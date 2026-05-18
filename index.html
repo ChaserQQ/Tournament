@@ -36,6 +36,7 @@
     label { display: block; color: #cbd5e1; font-size: 14px; font-weight: 800; margin-bottom: 8px; }
     .btnrow { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
     .btnrow.three { grid-template-columns: repeat(3, 1fr); }
+    .btnrow.four { grid-template-columns: repeat(4, 1fr); }
     button {
       border: 1px solid #334155;
       background: #1e293b;
@@ -111,7 +112,7 @@
     }
     @media (max-width: 620px) {
       .groups { grid-template-columns: 1fr; }
-      .btnrow.three { grid-template-columns: 1fr; }
+      .btnrow.three, .btnrow.four { grid-template-columns: 1fr; }
       .sticky { flex-direction:column; align-items:stretch; }
     }
   </style>
@@ -128,31 +129,24 @@
       <aside>
         <section class="card">
           <h2>대회 설정</h2>
-          <label>조 인원</label>
+          <label>경기 타입</label>
           <div class="btnrow">
-            <button id="size3" class="active" onclick="setGroupSize(3)">3명 조</button>
-            <button id="size5" onclick="setGroupSize(5)">5명 조</button>
+            <button id="size3" class="active" onclick="setGroupSize(3)">3레인</button>
+            <button id="size5" onclick="setGroupSize(5)">5레인</button>
           </div>
 
           <label>같은 팀 회피 강도</label>
-          <div class="btnrow three">
+          <div class="btnrow four">
+            <button id="avoidNone" onclick="setAvoidance('none')">없음</button>
             <button id="avoidLow" onclick="setAvoidance('low')">낮음</button>
             <button id="avoidMedium" class="active" onclick="setAvoidance('medium')">보통</button>
             <button id="avoidHigh" onclick="setAvoidance('high')">높음</button>
-          </div>
-
-          <div class="checkrow">
-            <div>
-              <strong>시드 분산 적용</strong><br>
-              <span class="hint">시드 번호를 조에 분산 배치</span>
-            </div>
-            <input id="useSeed" type="checkbox" checked />
           </div>
         </section>
 
         <section class="card">
           <h2>참가자 입력</h2>
-          <p class="hint">한 줄에 한 명씩 입력합니다. 형식: <b>이름, 팀명, 시드</b><br>엑셀에서 복사한 탭 구분도 인식합니다.</p>
+          <p class="hint">한 줄에 한 명씩 입력합니다. 형식: <b>이름/팀명</b><br>예: 홍길동/타미야팀</p>
           <textarea id="participantInput"></textarea>
           <div class="stats">
             <div class="stat"><small>참가자</small><strong id="statPlayers">0</strong></div>
@@ -187,26 +181,26 @@
   </div>
 
   <script>
-    const SAMPLE_TEXT = `김철수,A팀,1
-박민수,B팀,2
-이영희,C팀,3
-최준호,D팀,4
-강민재,A팀
-정다은,B팀
-한지우,C팀
-오세훈,D팀
-윤서준,A팀
-문하린,B팀
-배도윤,C팀
-신유진,D팀
-장현우,E팀
-권민서,F팀
-임지훈,E팀
-홍서연,F팀
-조태민,G팀
-백나연,H팀
-남기준,G팀
-서아린,H팀`;
+    const SAMPLE_TEXT = `김철수/A팀
+박민수/B팀
+이영희/C팀
+최준호/D팀
+강민재/A팀
+정다은/B팀
+한지우/C팀
+오세훈/D팀
+윤서준/A팀
+문하린/B팀
+배도윤/C팀
+신유진/D팀
+장현우/E팀
+권민서/F팀
+임지훈/E팀
+홍서연/F팀
+조태민/G팀
+백나연/H팀
+남기준/G팀
+서아린/H팀`;
 
     let groupSize = 3;
     let avoidance = "medium";
@@ -228,6 +222,7 @@
 
     function setAvoidance(level) {
       avoidance = level;
+      document.getElementById("avoidNone").classList.toggle("active", level === "none");
       document.getElementById("avoidLow").classList.toggle("active", level === "low");
       document.getElementById("avoidMedium").classList.toggle("active", level === "medium");
       document.getElementById("avoidHigh").classList.toggle("active", level === "high");
@@ -239,12 +234,10 @@
         .map(line => line.trim())
         .filter(Boolean)
         .map((line, index) => {
-          const parts = line.includes("\t") ? line.split("\t") : line.split(",");
+          const parts = line.includes("/") ? line.split("/") : line.includes("\t") ? line.split("\t") : line.split(",");
           const name = (parts[0] || `참가자 ${index + 1}`).trim();
           const team = (parts[1] || "").trim();
-          const seedRaw = (parts[2] || "").trim();
-          const seed = seedRaw && !Number.isNaN(Number(seedRaw)) ? Number(seedRaw) : null;
-          return { id: `p-${index + 1}-${name}`, name, team, seed };
+          return { id: `p-${index + 1}-${name}`, name, team };
         });
     }
 
@@ -273,6 +266,7 @@
     }
 
     function attemptCount() {
+      if (avoidance === "none") return 1;
       if (avoidance === "low") return 120;
       if (avoidance === "medium") return 500;
       return 1500;
@@ -293,9 +287,9 @@
 
     function scoreGroups(groups) {
       let score = 0;
+      if (avoidance === "none") return score;
       groups.forEach(group => {
         const teamCount = new Map();
-        const seedCount = group.filter(p => p && p.seed).length;
         group.forEach(p => {
           if (!p || !p.team) return;
           teamCount.set(p.team, (teamCount.get(p.team) || 0) + 1);
@@ -307,8 +301,7 @@
           }
           if (count >= 3) score += count * 200;
         });
-        if (seedCount >= 2) score += seedCount * 80;
-      });
+              });
 
       if (avoidance !== "low") {
         for (let start = 0; start < groups.length; start += groupSize) {
@@ -329,19 +322,8 @@
     function buildCandidate(players, roundNumber, useSeed) {
       const groupCount = Math.ceil(players.length / groupSize);
       const groups = Array.from({ length: groupCount }, () => []);
-      const seeded = useSeed
-        ? players.filter(p => p.seed).sort((a, b) => a.seed - b.seed)
-        : [];
-      const unseeded = useSeed ? players.filter(p => !p.seed) : players;
-      const seedOrder = seedGroupOrder(groupCount);
 
-      seeded.forEach((player, index) => {
-        const target = seedOrder[index % seedOrder.length];
-        if (groups[target].length < groupSize) groups[target].push(player);
-        else groups.find(g => g.length < groupSize).push(player);
-      });
-
-      shuffle(unseeded).forEach(player => {
+      shuffle(players).forEach(player => {
         const options = groups
           .map((g, i) => ({ group: g, index: i }))
           .filter(x => x.group.length < groupSize)
@@ -419,8 +401,7 @@
       const duplicated = [...new Set(names.filter((name, index) => names.indexOf(name) !== index))];
       if (duplicated.length) return showError("동명이인이 있습니다. 이름 뒤에 번호 등을 붙여 구분하세요: " + duplicated.join(", "));
 
-      const useSeed = document.getElementById("useSeed").checked;
-      rounds = [generateRound(players, 1, useSeed)];
+      rounds = [generateRound(players, 1, false)];
       render();
     }
 
