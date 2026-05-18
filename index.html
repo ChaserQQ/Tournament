@@ -6,28 +6,62 @@
   <title>Mini 4WD Tournament Maker</title>
   <style>
     * { box-sizing: border-box; }
+    :root {
+      --bg: #0b1511;
+      --panel: #121e18;
+      --panel-2: #07100d;
+      --line: #33483b;
+      --text: #eee9df;
+      --muted: #cfc8bb;
+      --dim: #9e968a;
+      --point: #d84d89;
+      --point-dark: #160811;
+      --warn: #f59e0b;
+      --danger: #fb7185;
+    }
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
         radial-gradient(circle at 85% 12%, rgba(216, 77, 137, .24), transparent 28%),
         radial-gradient(circle at 10% 85%, rgba(216, 77, 137, .12), transparent 30%),
-        #0b1511;
-      color: #eee9df;
+        var(--bg);
+      color: var(--text);
     }
-    .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 18px 80px; }
+    button, input, textarea, select { font: inherit; }
+    button {
+      border: 1px solid var(--line);
+      background: #1b2a22;
+      color: var(--text);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    button:hover { border-color: var(--point); }
+    button.active, button.primary, button.advanced {
+      background: var(--point);
+      color: var(--point-dark);
+      border-color: var(--point);
+    }
+    button.ghost { background: transparent; }
+    button.danger { background: transparent; color: #fca5a5; border-color: #7f1d1d; }
+    button:disabled { cursor: not-allowed; opacity: .45; }
+
+    .wrap { max-width: 1480px; margin: 0 auto; padding: 24px 18px 90px; }
     .header {
       position: relative;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 24px;
-      padding: 24px 28px;
+      padding: 22px 28px;
       border: 1px solid rgba(216, 77, 137, .36);
       border-radius: 28px;
       background: linear-gradient(135deg, rgba(18, 30, 24, .96), rgba(9, 18, 14, .96));
       margin-bottom: 22px;
       overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,.2);
     }
     .header::after {
       content: "";
@@ -44,192 +78,207 @@
     .header-logo {
       position: relative;
       z-index: 1;
-      width: clamp(112px, 20vw, 210px);
+      width: clamp(112px, 18vw, 210px);
       max-height: 132px;
       object-fit: contain;
       filter: drop-shadow(0 18px 26px rgba(0,0,0,.42));
     }
-    .eyebrow { color: #d84d89; font-size: 13px; letter-spacing: .22em; font-weight: 900; margin-bottom: 8px; }
+    .eyebrow { color: var(--point); font-size: 13px; letter-spacing: .22em; font-weight: 1000; margin-bottom: 8px; }
     h1 { margin: 0; font-size: clamp(20px, 3vw, 30px); }
-    .desc { color: #cfc8bb; line-height: 1.7; max-width: 760px; }
-    .grid { display: grid; grid-template-columns: 390px 1fr; gap: 20px; align-items: start; }
+    .desc { color: var(--muted); line-height: 1.7; max-width: 760px; margin: 10px 0 0; }
+
+    .layout { display: grid; grid-template-columns: 1fr 390px; gap: 20px; align-items: start; }
+    .main-area { min-width: 0; }
+    .side-area { min-width: 0; }
     .card {
-      border: 1px solid #1b2a22;
+      border: 1px solid rgba(51,72,59,.9);
       border-radius: 24px;
-      background: #121e18;
-      padding: 20px;
+      background: rgba(18,30,24,.92);
+      padding: 18px;
       margin-bottom: 16px;
       box-shadow: 0 20px 40px rgba(0,0,0,.18);
     }
     .card h2 { margin: 0 0 14px; font-size: 20px; }
-    label { display: block; color: #cfc8bb; font-size: 14px; font-weight: 800; margin-bottom: 8px; }
+    label { display: block; color: var(--muted); font-size: 14px; font-weight: 900; margin-bottom: 8px; }
     .btnrow { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
-    .btnrow.three { grid-template-columns: repeat(3, 1fr); }
     .btnrow.four { grid-template-columns: repeat(4, 1fr); }
-    button {
-      border: 1px solid #33483b;
-      background: #1b2a22;
-      color: #eee9df;
-      border-radius: 14px;
-      padding: 12px 14px;
-      font-weight: 900;
-      cursor: pointer;
-    }
-    button:hover { border-color: #d84d89; }
-    button.active { background: #d84d89; color: #0f172a; border-color: #d84d89; }
-    button.green { background: #d84d89; color: #160811; border-color: #d84d89; }
-    button.danger { background: transparent; color: #fca5a5; border-color: #7f1d1d; }
-    button:disabled { cursor: not-allowed; opacity: .45; }
-    .checkrow {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      border: 1px solid #33483b;
-      background: #1b2a22;
-      padding: 13px 14px;
-      border-radius: 16px;
-      margin-bottom: 14px;
-    }
+    .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
     textarea {
       width: 100%;
       min-height: 300px;
       resize: vertical;
-      border: 1px solid #33483b;
+      border: 1px solid var(--line);
       border-radius: 18px;
-      background: #07100d;
-      color: #eee9df;
+      background: var(--panel-2);
+      color: var(--text);
       padding: 14px;
       font-family: Consolas, Monaco, monospace;
       font-size: 13px;
       line-height: 1.6;
       outline: none;
     }
-    input[type="number"] {
+    textarea:focus, input:focus, select:focus { border-color: var(--point); }
+    input[type="number"], select {
       width: 100%;
-      border: 1px solid #33483b;
-      border-radius: 12px;
-      background: #07100d;
-      color: #eee9df;
-      padding: 8px 10px;
-      text-align: center;
-      font-size: 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 10px 12px;
       font-weight: 900;
       outline: none;
     }
-    input[type="number"]:focus { border-color: #d84d89; }
-    textarea:focus { border-color: #d84d89; }
-    .hint { color: #9e968a; font-size: 13px; line-height: 1.6; margin: 0 0 10px; }
+    .hint { color: var(--dim); font-size: 13px; line-height: 1.6; margin: 0 0 10px; }
     .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 12px; }
     .stat { background: #1b2a22; border-radius: 16px; padding: 12px; text-align: center; }
-    .stat small { display: block; color: #9e968a; font-size: 11px; }
+    .stat small { display: block; color: var(--dim); font-size: 11px; }
     .stat strong { display: block; font-size: 22px; margin-top: 2px; }
-    .error { display:none; border: 1px solid #fb7185; color: #fecdd3; background: rgba(244,63,94,.1); border-radius: 16px; padding: 12px; font-size: 14px; margin-top: 12px; }
-    .round { border: 1px solid #1b2a22; background: #121e18; border-radius: 24px; padding: 20px; margin-bottom: 18px; }
+    .error { display:none; border: 1px solid var(--danger); color: #fecdd3; background: rgba(244,63,94,.1); border-radius: 16px; padding: 12px; font-size: 14px; margin-top: 12px; }
+    .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+    .toolbar .grow { flex: 1; }
+    .round {
+      border: 1px solid rgba(51,72,59,.9);
+      background: rgba(18,30,24,.92);
+      border-radius: 24px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
     .roundtop { display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
-    .round h2 { margin: 0; font-size: 24px; }
-    .meta { color:#9e968a; font-size:13px; margin-top:4px; }
+    .round h2 { margin: 0; font-size: 26px; }
+    .meta { color: var(--dim); font-size:13px; margin-top:4px; }
     .groups { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:12px; }
-    .group { border:1px solid #33483b; background:#07100d; border-radius:20px; padding:14px; }
+    .group { border:1px solid var(--line); background:var(--panel-2); border-radius:20px; padding:14px; }
     .group-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
     .group-title strong { font-size:17px; }
-    .badge { font-size:11px; color:#cfc8bb; background:#1b2a22; border-radius:999px; padding:5px 9px; }
-    .slot {
-      width:100%;
-      text-align:left;
-      margin-bottom:8px;
-      line-height:1.4;
+    .badge { font-size:11px; color:var(--muted); background:#1b2a22; border-radius:999px; padding:5px 9px; white-space: nowrap; }
+    .slot { width:100%; text-align:left; margin-bottom:8px; line-height:1.4; }
+    .slot.advanced { background:var(--point); color:var(--point-dark); border-color:var(--point); }
+    .slot .team { color:inherit; opacity:.72; font-size:12px; font-weight:800; }
+    .slot-inner { display:flex; align-items:center; gap:12px; }
+    .lane-label {
+      flex: 0 0 auto;
+      min-width: 76px;
+      font-size: 20px;
+      line-height: 1;
+      font-weight: 1000;
+      letter-spacing: -.04em;
+      color: var(--point);
     }
-    .slot.winner { background:#d84d89; color:#160811; border-color:#d84d89; }
-    .slot.bye { color:#64748b; }
-    .slot .team { color:inherit; opacity:.72; font-size:12px; font-weight:700; }
-    .champion { display:none; background:#d84d89; color:#121e18; border-radius:24px; padding:22px; margin-bottom:18px; }
-    .champion small { display:block; letter-spacing:.22em; font-weight:900; }
+    .slot.advanced .lane-label { color: var(--point-dark); }
+    .player-info { min-width:0; flex:1; }
+    .advance-mark { font-size: 12px; font-weight: 1000; }
+    .empty { min-height:520px; display:flex; align-items:center; justify-content:center; text-align:center; border:1px dashed var(--line); border-radius:24px; color:var(--dim); }
+    .finalist-list { display: grid; gap: 8px; }
+    .finalist-item { display:flex; justify-content:space-between; align-items:center; gap:8px; background:#1b2a22; border-radius:14px; padding:10px 12px; font-size:14px; }
+    .champion { display:none; background:var(--point); color:var(--point-dark); border-radius:24px; padding:22px; margin-bottom:18px; }
+    .champion small { display:block; letter-spacing:.22em; font-weight:1000; }
     .champion strong { display:block; font-size:34px; margin-top:4px; }
-    .sticky { position: sticky; bottom: 14px; border:1px solid #33483b; background:rgba(15,23,42,.96); backdrop-filter: blur(8px); border-radius:24px; padding:16px; display:none; justify-content:space-between; align-items:center; gap:12px; }
-    .empty { min-height:520px; display:flex; align-items:center; justify-content:center; text-align:center; border:1px dashed #33483b; border-radius:24px; color:#9e968a; }
-    @media (max-width: 980px) {
-      .grid { grid-template-columns: 1fr; }
-      .header { align-items: flex-start; }
-      .header-logo { width: 120px; }
+    .sticky {
+      position: sticky;
+      bottom: 14px;
+      border:1px solid var(--line);
+      background:rgba(11,21,17,.96);
+      backdrop-filter: blur(8px);
+      border-radius:24px;
+      padding:14px;
+      display:none;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      z-index: 5;
+    }
+
+    /* TV VIEW */
+    body.tv-mode {
+      background: #07100d;
+      overflow: hidden;
+    }
+    .tv-wrap {
+      min-height: 100vh;
+      padding: 26px 34px 30px;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 16px;
+    }
+    .tv-head {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:28px;
+      border-bottom: 2px solid rgba(216,77,137,.42);
+      padding-bottom: 16px;
+    }
+    .tv-brand small { display:block; color:var(--point); letter-spacing:.28em; font-size:16px; font-weight:1000; }
+    .tv-brand strong { display:block; font-size: clamp(34px, 4.4vw, 70px); line-height:1.05; margin-top: 4px; }
+    .tv-logo { width: min(18vw, 230px); max-height: 130px; object-fit: contain; }
+    .tv-controls {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+      background: rgba(18,30,24,.8);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 12px;
+    }
+    .tv-controls select { width:auto; min-width:160px; }
+    .tv-stage { min-height: 0; display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+    .tv-group {
+      min-height: 0;
+      border: 2px solid var(--line);
+      border-radius: 26px;
+      background: linear-gradient(180deg, rgba(18,30,24,.96), rgba(7,16,13,.96));
+      padding: 18px;
+      display:flex;
+      flex-direction:column;
+      gap: 12px;
+    }
+    .tv-group-title { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .tv-group-title strong { font-size: clamp(26px, 2.8vw, 44px); color:var(--text); }
+    .tv-lane {
+      display:grid;
+      grid-template-columns: 132px 1fr auto;
+      align-items:center;
+      gap: 14px;
+      border-radius: 18px;
+      background:#101b16;
+      border:1px solid rgba(51,72,59,.9);
+      padding: 14px 16px;
+    }
+    .tv-lane.advanced { background: var(--point); color: var(--point-dark); border-color: var(--point); }
+    .tv-lane-no { font-size: clamp(28px, 3vw, 48px); font-weight: 1000; letter-spacing:-.06em; color:var(--point); }
+    .tv-lane.advanced .tv-lane-no { color: var(--point-dark); }
+    .tv-player { min-width:0; }
+    .tv-player strong { display:block; font-size: clamp(25px, 2.5vw, 42px); line-height:1.12; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .tv-player span { display:block; color:inherit; opacity:.72; font-size: clamp(14px, 1.4vw, 22px); font-weight:900; margin-top: 4px; }
+    .tv-adv { font-size: clamp(16px, 1.6vw, 24px); font-weight:1000; }
+    .tv-foot { display:flex; justify-content:space-between; color:var(--dim); font-size: 18px; font-weight:900; }
+    .mobile-view { max-width: 640px; margin: 0 auto; padding: 18px; }
+    .mobile-view .groups { grid-template-columns: 1fr; }
+
+    @media (max-width: 1180px) {
+      .layout { grid-template-columns: 1fr; }
+      .side-area { order: 2; }
+      .main-area { order: 1; }
       .groups { grid-template-columns: repeat(2, minmax(0,1fr)); }
     }
-    @media (max-width: 620px) {
-      .header { flex-direction: column-reverse; }
+    @media (max-width: 760px) {
+      .header { flex-direction: column-reverse; align-items: flex-start; }
       .header-logo { align-self: flex-end; width: 118px; }
       .groups { grid-template-columns: 1fr; }
-      .btnrow.three, .btnrow.four { grid-template-columns: 1fr; }
+      .btnrow.four { grid-template-columns: repeat(2,1fr); }
+      .form-grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr; }
       .sticky { flex-direction:column; align-items:stretch; }
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header class="header">
-      <div class="header-copy">
-        <div class="eyebrow">MINI 4WD TOURNAMENT MAKER</div>
-        <h1>3레인 & 5레인 토너먼트 대진표</h1>
-        <p class="desc">참가자 명단에 따라 대진표를 자동 생성합니다.</p>
-      </div>
-      <img class="header-logo" src="geeks-logo.webp" alt="Geeks logo" />
-    </header>
-
-    <div class="grid">
-      <aside>
-        <section class="card">
-          <h2>대회 설정</h2>
-          <label>경기 타입</label>
-          <div class="btnrow">
-            <button id="size3" class="active" onclick="setGroupSize(3)">3레인</button>
-            <button id="size5" onclick="setGroupSize(5)">5레인</button>
-          </div>
-
-          <label>같은 팀 회피 강도</label>
-          <div class="btnrow four">
-            <button id="avoidNone" onclick="setAvoidance('none')">없음</button>
-            <button id="avoidLow" onclick="setAvoidance('low')">낮음</button>
-            <button id="avoidMedium" class="active" onclick="setAvoidance('medium')">보통</button>
-            <button id="avoidHigh" onclick="setAvoidance('high')">높음</button>
-          </div>
-        </section>
-
-        <section class="card">
-          <h2>참가자 입력</h2>
-          <p class="hint">한 줄에 한 명씩 입력합니다. 형식: <b>이름/팀명</b><br>예: 홍길동/타미야팀</p>
-          <textarea id="participantInput"></textarea>
-          <div class="stats">
-            <div class="stat"><small>참가자</small><strong id="statPlayers">0</strong></div>
-            <div class="stat"><small>예상 조 개수</small><strong id="statGroups">0</strong></div>
-            <div class="stat"><small>강제 조 개수</small><input id="forcedGroupCount" type="number" min="1" placeholder="자동" /></div>
-          </div>
-          <div style="display:flex; gap:8px; margin-top:12px;">
-            <button class="green" style="flex:1" onclick="generateFirstRound()">대진표 생성</button>
-            <button class="danger" onclick="resetTournament()">초기화</button>
-          </div>
-          <div id="error" class="error"></div>
-        </section>
-      </aside>
-
-      <main>
-        <div id="champion" class="champion"></div>
-        <div id="output" class="empty">
-          <div>
-            <h2>아직 생성된 대진표가 없습니다</h2>
-            <p>왼쪽에서 참가자와 설정을 확인한 뒤 대진표를 생성하세요.</p>
-          </div>
-        </div>
-        <div id="nextPanel" class="sticky">
-          <div>
-            <strong>다음 진행</strong><br>
-            <span class="hint">각 조 승자를 선택한 뒤 다음 라운드를 생성하세요.</span>
-          </div>
-          <button class="green" onclick="createNextRound()">다음 라운드 생성</button>
-        </div>
-      </main>
-    </div>
-  </div>
+  <div id="app"></div>
 
   <script>
+    const LOGO_SRC = "geeks-logo.webp";
     const SAMPLE_TEXT = `김철수/A팀
 박민수/B팀
 이영희/C팀
@@ -251,70 +300,51 @@
 남기준/G팀
 서아린/H팀`;
 
-    let groupSize = 3;
-    let avoidance = "medium";
-    let rounds = [];
+    let state = {
+      inputText: SAMPLE_TEXT,
+      settings: {
+        groupSize: 3,
+        avoidance: "medium",
+        forcedGroupCount: "",
+        finalistTarget: 3
+      },
+      rounds: [],
+      finalists: []
+    };
 
+    let tvState = null;
+    let tvRoundIndex = 0;
+    let tvPage = 0;
+    let tvGroupsPerPage = 6;
+    let tvTimer = null;
+
+    const app = document.getElementById("app");
     const groupNames = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-    const input = document.getElementById("participantInput");
-    input.value = SAMPLE_TEXT;
-    input.addEventListener("input", updateStats);
-    document.getElementById("forcedGroupCount").addEventListener("input", updateStats);
-    updateStats();
 
-    function setGroupSize(size) {
-      groupSize = size;
-      document.getElementById("size3").classList.toggle("active", size === 3);
-      document.getElementById("size5").classList.toggle("active", size === 5);
-      updateStats();
+    function encodePayload(payload) {
+      return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
     }
 
-    function setAvoidance(level) {
-      avoidance = level;
-      document.getElementById("avoidNone").classList.toggle("active", level === "none");
-      document.getElementById("avoidLow").classList.toggle("active", level === "low");
-      document.getElementById("avoidMedium").classList.toggle("active", level === "medium");
-      document.getElementById("avoidHigh").classList.toggle("active", level === "high");
+    function decodePayload(text) {
+      return JSON.parse(decodeURIComponent(escape(atob(text))));
     }
 
-    function parseParticipants() {
-      return input.value
+    function getHashParams() {
+      const raw = location.hash.startsWith("#") ? location.hash.slice(1) : "";
+      return new URLSearchParams(raw);
+    }
+
+    function parseParticipants(text = state.inputText) {
+      return text
         .split(/\r?\n/)
         .map(line => line.trim())
         .filter(Boolean)
         .map((line, index) => {
-          const parts = line.includes("/") ? line.split("/") : line.includes("	") ? line.split("	") : line.split(",");
+          const parts = line.includes("/") ? line.split("/") : line.includes("\t") ? line.split("\t") : line.split(",");
           const name = (parts[0] || `참가자 ${index + 1}`).trim();
           const team = (parts[1] || "").trim();
           return { id: `p-${index + 1}-${name}`, name, team };
         });
-    }
-
-    function updateStats() {
-      const players = parseParticipants();
-      const groupCount = players.length ? Math.ceil(players.length / groupSize) : 0;
-      document.getElementById("statPlayers").textContent = players.length;
-      document.getElementById("statGroups").textContent = groupCount;
-    }
-
-    function getForcedGroupCount() {
-      const raw = document.getElementById("forcedGroupCount").value.trim();
-      if (!raw) return null;
-      const value = Number(raw);
-      if (!Number.isInteger(value) || value < 1) return null;
-      return value;
-    }
-
-    function getTargetGroupCount(playerCount, roundNumber) {
-      const autoGroupCount = Math.ceil(playerCount / groupSize);
-      const forcedGroupCount = roundNumber === 1 ? getForcedGroupCount() : null;
-      return forcedGroupCount || autoGroupCount;
-    }
-
-    function showError(message) {
-      const el = document.getElementById("error");
-      el.style.display = message ? "block" : "none";
-      el.textContent = message;
     }
 
     function shuffle(array) {
@@ -326,29 +356,23 @@
       return result;
     }
 
-    function attemptCount() {
-      if (avoidance === "none") return 1;
-      if (avoidance === "low") return 120;
-      if (avoidance === "medium") return 500;
+    function assignLanes(players, groupSize) {
+      const laneNumbers = shuffle(Array.from({ length: groupSize }, (_, index) => index + 1)).slice(0, players.length);
+      return players
+        .map((player, index) => ({ ...player, lane: laneNumbers[index] }))
+        .sort((a, b) => a.lane - b.lane);
+    }
+
+    function getAttemptCount() {
+      if (state.settings.avoidance === "none") return 1;
+      if (state.settings.avoidance === "low") return 120;
+      if (state.settings.avoidance === "medium") return 500;
       return 1500;
     }
 
-    function seedGroupOrder(groupCount) {
-      const order = [];
-      let left = 0;
-      let right = groupCount - 1;
-      while (left <= right) {
-        order.push(left);
-        if (left !== right) order.push(right);
-        left++;
-        right--;
-      }
-      return order;
-    }
-
     function scoreGroups(groups) {
+      if (state.settings.avoidance === "none") return 0;
       let score = 0;
-      if (avoidance === "none") return score;
       groups.forEach(group => {
         const teamCount = new Map();
         group.forEach(p => {
@@ -358,47 +382,26 @@
         teamCount.forEach(count => {
           if (count >= 2) {
             const pairCount = count * (count - 1) / 2;
-            score += pairCount * (avoidance === "high" ? 300 : avoidance === "medium" ? 180 : 100);
+            score += pairCount * (state.settings.avoidance === "high" ? 300 : state.settings.avoidance === "medium" ? 180 : 100);
           }
           if (count >= 3) score += count * 200;
         });
       });
 
-      if (avoidance !== "low") {
-        for (let start = 0; start < groups.length; start += groupSize) {
-          const block = groups.slice(start, start + groupSize).flat();
+      if (state.settings.avoidance !== "low") {
+        for (let start = 0; start < groups.length; start += state.settings.groupSize) {
+          const block = groups.slice(start, start + state.settings.groupSize).flat();
           const blockTeamCount = new Map();
           block.forEach(p => {
             if (!p || !p.team) return;
             blockTeamCount.set(p.team, (blockTeamCount.get(p.team) || 0) + 1);
           });
           blockTeamCount.forEach(count => {
-            if (count >= 2) score += count * (avoidance === "high" ? 60 : 25);
+            if (count >= 2) score += count * (state.settings.avoidance === "high" ? 60 : 25);
           });
         }
       }
       return score;
-    }
-
-    function buildCandidate(players, roundNumber, useSeed) {
-      const groupCount = getTargetGroupCount(players.length, roundNumber);
-      const groups = Array.from({ length: groupCount }, () => []);
-
-      shuffle(players).forEach(player => {
-        const options = groups
-          .map((g, i) => ({ group: g, index: i }))
-          .filter(x => x.group.length < groupSize)
-          .map(x => x.index);
-
-        const ranked = shuffle(options).map(index => {
-          const temp = groups.map((g, gi) => gi === index ? [...g, player] : [...g]);
-          return { index, score: scoreGroups(temp), size: groups[index].length };
-        }).sort((a, b) => a.score - b.score || a.size - b.size || Math.random() - .5);
-
-        groups[ranked[0].index].push(player);
-      });
-
-      return groups;
     }
 
     function sameTeamGroupCount(groups) {
@@ -412,12 +415,47 @@
       }, 0);
     }
 
-    function generateRound(players, roundNumber, applySeed) {
-      const tries = players.length <= groupSize ? 1 : attemptCount();
+    function getForcedGroupCount() {
+      const raw = String(state.settings.forcedGroupCount || "").trim();
+      if (!raw) return null;
+      const value = Number(raw);
+      if (!Number.isInteger(value) || value < 1) return null;
+      return value;
+    }
+
+    function getTargetGroupCount(playerCount, roundNumber) {
+      const autoGroupCount = Math.ceil(playerCount / state.settings.groupSize);
+      const forced = roundNumber === 1 ? getForcedGroupCount() : null;
+      return forced || autoGroupCount;
+    }
+
+    function buildCandidate(players, roundNumber) {
+      const groupCount = getTargetGroupCount(players.length, roundNumber);
+      const groups = Array.from({ length: groupCount }, () => []);
+
+      shuffle(players).forEach(player => {
+        const options = groups
+          .map((g, i) => ({ group: g, index: i }))
+          .filter(x => x.group.length < state.settings.groupSize)
+          .map(x => x.index);
+
+        const ranked = shuffle(options).map(index => {
+          const temp = groups.map((g, gi) => gi === index ? [...g, player] : [...g]);
+          return { index, score: scoreGroups(temp), size: groups[index].length };
+        }).sort((a, b) => a.score - b.score || a.size - b.size || Math.random() - .5);
+
+        groups[ranked[0].index].push(player);
+      });
+
+      return groups.filter(group => group.length > 0);
+    }
+
+    function generateRound(players, roundNumber, type = "normal", title = "") {
+      const tries = players.length <= state.settings.groupSize ? 1 : getAttemptCount();
       let best = null;
       let bestScore = Infinity;
       for (let i = 0; i < tries; i++) {
-        const candidate = buildCandidate(players, roundNumber, applySeed);
+        const candidate = buildCandidate(players, roundNumber);
         const score = scoreGroups(candidate);
         if (score < bestScore) {
           best = candidate;
@@ -426,145 +464,497 @@
       }
 
       const groups = best.map((slots, index) => {
-        const active = slots.filter(Boolean);
+        const laneAssignedSlots = assignLanes(slots, state.settings.groupSize);
         return {
           id: `r${roundNumber}-g${index + 1}-${Math.random().toString(36).slice(2, 8)}`,
           round: roundNumber,
           name: `${groupNames[index] || index + 1}조`,
-          slots,
-          winnerId: active.length === 1 ? active[0].id : null
+          slots: laneAssignedSlots,
+          advanceIds: []
         };
       });
 
       return {
         round: roundNumber,
+        type,
+        title: title || `${roundNumber}라운드`,
+        groupSize: state.settings.groupSize,
         groups,
         meta: {
           attempts: tries,
           score: bestScore,
-          sameTeam: sameTeamGroupCount(best),
-          laneShortage: 0
+          sameTeam: sameTeamGroupCount(best)
         }
       };
     }
 
-    function generateFirstRound() {
-      showError("");
-      const players = parseParticipants();
-      if (players.length < 2) return showError("참가자는 최소 2명 이상 필요합니다.");
-      if (players.length > 80) return showError("현재 단일 파일 버전은 80명 이하를 권장합니다.");
+    function setSetting(key, value) {
+      state.settings[key] = value;
+      renderOperator();
+    }
 
-      const autoGroupCount = Math.ceil(players.length / groupSize);
-      const forcedGroupCount = getForcedGroupCount();
-      if (forcedGroupCount !== null && forcedGroupCount < autoGroupCount) {
-        return showError(`${groupSize}레인 기준 현재 참가자는 최소 ${autoGroupCount}조 이상 필요합니다.`);
-      }
-      if (forcedGroupCount !== null && forcedGroupCount > players.length) {
-        return showError(`강제 조 개수는 참가자 수 ${players.length}개를 초과할 수 없습니다.`);
-      }
+    function setInputText(value) {
+      state.inputText = value;
+      renderOperator();
+    }
+
+    function showError(message) {
+      const el = document.getElementById("error");
+      if (!el) return;
+      el.style.display = message ? "block" : "none";
+      el.textContent = message;
+    }
+
+    function validateFirstRound(players) {
+      if (players.length < 2) return "참가자는 최소 2명 이상 필요합니다.";
+      if (players.length > 80) return "현재 단일 파일 버전은 80명 이하를 권장합니다.";
 
       const names = players.map(p => p.name);
       const duplicated = [...new Set(names.filter((name, index) => names.indexOf(name) !== index))];
-      if (duplicated.length) return showError("동명이인이 있습니다. 이름 뒤에 번호 등을 붙여 구분하세요: " + duplicated.join(", "));
+      if (duplicated.length) return "동명이인이 있습니다. 이름 뒤에 번호 등을 붙여 구분하세요: " + duplicated.join(", ");
 
-      rounds = [generateRound(players, 1, false)];
-      render();
+      const autoGroupCount = Math.ceil(players.length / state.settings.groupSize);
+      const forcedGroupCount = getForcedGroupCount();
+      if (forcedGroupCount !== null && forcedGroupCount < autoGroupCount) {
+        return `${state.settings.groupSize}레인 기준 현재 참가자는 최소 ${autoGroupCount}조 이상 필요합니다.`;
+      }
+      if (forcedGroupCount !== null && forcedGroupCount > players.length) {
+        return `강제 조 개수는 참가자 수 ${players.length}개를 초과할 수 없습니다.`;
+      }
+      return "";
+    }
+
+    function generateFirstRound() {
+      const players = parseParticipants();
+      const error = validateFirstRound(players);
+      if (error) {
+        showError(error);
+        return;
+      }
+      state.rounds = [generateRound(players, 1)];
+      state.finalists = [];
+      renderOperator();
     }
 
     function resetTournament() {
-      rounds = [];
-      showError("");
-      document.getElementById("champion").style.display = "none";
-      document.getElementById("nextPanel").style.display = "none";
-      document.getElementById("output").className = "empty";
-      document.getElementById("output").innerHTML = `<div><h2>아직 생성된 대진표가 없습니다</h2><p>왼쪽에서 참가자와 설정을 확인한 뒤 대진표를 생성하세요.</p></div>`;
+      state.rounds = [];
+      state.finalists = [];
+      renderOperator();
     }
 
-    function selectWinner(roundIndex, groupId, winnerId) {
-      rounds[roundIndex].groups = rounds[roundIndex].groups.map(g => g.id === groupId ? { ...g, winnerId } : g);
-      render();
+    function toggleAdvance(roundIndex, groupId, playerId) {
+      const group = state.rounds[roundIndex].groups.find(g => g.id === groupId);
+      if (!group) return;
+      group.advanceIds = group.advanceIds || [];
+      if (group.advanceIds.includes(playerId)) {
+        group.advanceIds = group.advanceIds.filter(id => id !== playerId);
+      } else {
+        group.advanceIds.push(playerId);
+      }
+      renderOperator();
+    }
+
+    function getSelectedFromRound(round) {
+      const selected = [];
+      round.groups.forEach(group => {
+        (group.advanceIds || []).forEach(id => {
+          const player = group.slots.find(p => p.id === id);
+          if (player) selected.push({ id: player.id, name: player.name, team: player.team });
+        });
+      });
+      return selected;
     }
 
     function createNextRound() {
-      showError("");
-      const last = rounds[rounds.length - 1];
-      const missing = last.groups.filter(g => g.slots.filter(Boolean).length > 1 && !g.winnerId);
-      if (missing.length) return showError("승자를 선택하지 않은 조가 있습니다: " + missing.map(g => g.name).join(", "));
+      const last = state.rounds[state.rounds.length - 1];
+      if (!last) return;
+      const selected = getSelectedFromRound(last);
+      if (selected.length === 0) return showError("다음 라운드로 보낼 진출자가 없습니다.");
+      if (selected.length === 1) return showError("다음 라운드 생성은 진출자 2명 이상부터 가능합니다.");
+      state.rounds.push(generateRound(selected, last.round + 1));
+      renderOperator();
+    }
 
-      const winners = last.groups
-        .map(g => g.slots.find(p => p && p.id === g.winnerId))
-        .filter(Boolean);
+    function registerFinalists() {
+      const last = state.rounds[state.rounds.length - 1];
+      if (!last) return;
+      const selected = getSelectedFromRound(last);
+      if (selected.length === 0) return showError("챔피언 결정전 후보로 등록할 진출자가 없습니다.");
 
-      if (winners.length <= 1) return showError("이미 우승자가 결정된 상태입니다.");
-      rounds.push(generateRound(winners, last.round + 1, false));
-      render();
+      const existingIds = new Set(state.finalists.map(p => p.id));
+      selected.forEach(player => {
+        if (!existingIds.has(player.id)) state.finalists.push(player);
+      });
+      renderOperator();
+    }
+
+    function removeFinalist(id) {
+      state.finalists = state.finalists.filter(p => p.id !== id);
+      renderOperator();
+    }
+
+    function createChampionship() {
+      const target = Number(state.settings.finalistTarget || 3);
+      if (state.finalists.length < 2) return showError("챔피언 결정전은 최소 2명 이상 필요합니다.");
+      if (state.finalists.length < target) return showError(`챔피언 결정전 후보가 ${target}명 이상 모여야 합니다.`);
+      const players = state.finalists.slice(0, target).map(p => ({ id: p.id, name: p.name, team: p.team }));
+      const roundNumber = state.rounds.length ? state.rounds[state.rounds.length - 1].round + 1 : 1;
+      const finalRound = generateRound(players, roundNumber, "championship", "챔피언 결정전");
+      state.rounds.push(finalRound);
+      renderOperator();
+    }
+
+    function copyOrShare(url, label = "링크") {
+      if (navigator.share) {
+        navigator.share({ title: "MINI 4WD TOURNAMENT MAKER", url }).catch(() => copyText(url, label));
+      } else {
+        copyText(url, label);
+      }
+    }
+
+    function copyText(url, label) {
+      navigator.clipboard?.writeText(url).then(() => {
+        alert(`${label}가 복사되었습니다.`);
+      }).catch(() => {
+        prompt(`${label}를 복사하세요.`, url);
+      });
+    }
+
+    function exportState() {
+      return {
+        settings: state.settings,
+        rounds: state.rounds,
+        finalists: state.finalists
+      };
+    }
+
+    function makeViewUrl(view) {
+      const data = encodePayload(exportState());
+      return `${location.origin}${location.pathname}#view=${view}&data=${data}`;
+    }
+
+    function openTvView() {
+      window.open(makeViewUrl("tv"), "_blank", "noopener,noreferrer");
+    }
+
+    function shareMobileView() {
+      copyOrShare(makeViewUrl("mobile"), "모바일 공유 링크");
     }
 
     function playerText(p) {
-      if (!p) return "";
-      return `${p.name}`;
+      return p ? p.name : "";
     }
 
-    function render() {
-      const output = document.getElementById("output");
-      output.className = "";
-      output.innerHTML = rounds.map((round, roundIndex) => {
-        const isFinal = round.groups.length === 1;
-        const title = isFinal ? "결승" : `${round.round}라운드`;
+    function renderOperator() {
+      document.body.classList.remove("tv-mode");
+      const players = parseParticipants();
+      const autoGroupCount = players.length ? Math.ceil(players.length / state.settings.groupSize) : 0;
+
+      app.innerHTML = `
+        <div class="wrap">
+          <header class="header">
+            <div class="header-copy">
+              <div class="eyebrow">MINI 4WD TOURNAMENT MAKER</div>
+              <h1>3레인 & 5레인 토너먼트 대진표</h1>
+              <p class="desc">참가자 명단에 따라 대진표를 자동 생성합니다.</p>
+            </div>
+            <img class="header-logo" src="${LOGO_SRC}" alt="Geeks logo" />
+          </header>
+
+          <div class="layout">
+            <main class="main-area">
+              <div class="toolbar">
+                <button class="primary" onclick="openTvView()">📺 TV 화면 열기</button>
+                <button class="ghost" onclick="shareMobileView()">✈️ 모바일 공유 링크</button>
+                <div class="grow"></div>
+                <button class="ghost" onclick="createNextRound()">선택 인원으로 다음 라운드</button>
+                <button class="ghost" onclick="registerFinalists()">챔피언 결정전 후보 등록</button>
+              </div>
+              <div id="championBox">${renderChampionBox()}</div>
+              <div id="roundOutput">${renderRounds()}</div>
+              <div class="sticky" style="display:${state.rounds.length ? "flex" : "none"};">
+                <div>
+                  <strong>라운드 진행</strong><br>
+                  <span class="hint">각 경기에서 진출자를 0명, 1명 또는 복수로 선택할 수 있습니다.</span>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <button class="primary" onclick="createNextRound()">다음 라운드 생성</button>
+                  <button class="ghost" onclick="registerFinalists()">후보 등록</button>
+                </div>
+              </div>
+            </main>
+
+            <aside class="side-area">
+              <section class="card">
+                <h2>대회 설정</h2>
+                <label>경기 타입</label>
+                <div class="btnrow">
+                  <button class="${state.settings.groupSize === 3 ? "active" : ""}" onclick="setSetting('groupSize', 3)">3레인</button>
+                  <button class="${state.settings.groupSize === 5 ? "active" : ""}" onclick="setSetting('groupSize', 5)">5레인</button>
+                </div>
+
+                <label>같은 팀 회피 강도</label>
+                <div class="btnrow four">
+                  ${["none","low","medium","high"].map(level => `<button class="${state.settings.avoidance === level ? "active" : ""}" onclick="setSetting('avoidance', '${level}')">${avoidanceLabel(level)}</button>`).join("")}
+                </div>
+
+                <div class="form-grid">
+                  <div>
+                    <label>강제 조 개수</label>
+                    <input type="number" min="1" placeholder="자동" value="${state.settings.forcedGroupCount}" oninput="setSetting('forcedGroupCount', this.value)" />
+                  </div>
+                  <div>
+                    <label>챔피언 결정전 인원</label>
+                    <input type="number" min="2" max="5" value="${state.settings.finalistTarget}" oninput="setSetting('finalistTarget', Number(this.value || 3))" />
+                  </div>
+                </div>
+              </section>
+
+              <section class="card">
+                <h2>참가자 입력</h2>
+                <p class="hint">한 줄에 한 명씩 입력합니다. 형식: <b>이름/팀명</b><br>예: 홍길동/타미야팀</p>
+                <textarea oninput="setInputText(this.value)">${escapeHtml(state.inputText)}</textarea>
+                <div class="stats">
+                  <div class="stat"><small>참가자</small><strong>${players.length}</strong></div>
+                  <div class="stat"><small>예상 조</small><strong>${autoGroupCount}</strong></div>
+                  <div class="stat"><small>경기 타입</small><strong>${state.settings.groupSize}L</strong></div>
+                </div>
+                <div style="display:flex; gap:8px; margin-top:12px;">
+                  <button class="primary" style="flex:1" onclick="generateFirstRound()">대진표 생성</button>
+                  <button class="danger" onclick="resetTournament()">초기화</button>
+                </div>
+                <div id="error" class="error"></div>
+              </section>
+
+              <section class="card">
+                <h2>챔피언 결정전 후보</h2>
+                <p class="hint">여러 라운드에서 선발한 진출자를 모아 최종 결승을 만들 수 있습니다.</p>
+                <div class="finalist-list">${renderFinalists()}</div>
+                <button class="primary" style="width:100%; margin-top:12px;" onclick="createChampionship()">챔피언 결정전 생성</button>
+              </section>
+            </aside>
+          </div>
+        </div>
+      `;
+    }
+
+    function avoidanceLabel(level) {
+      return { none: "없음", low: "낮음", medium: "보통", high: "높음" }[level] || level;
+    }
+
+    function renderRounds() {
+      if (!state.rounds.length) {
+        return `<div class="empty"><div><h2>아직 생성된 대진표가 없습니다</h2><p>오른쪽에서 참가자와 설정을 확인한 뒤 대진표를 생성하세요.</p></div></div>`;
+      }
+
+      return state.rounds.map((round, roundIndex) => {
+        const isChampionship = round.type === "championship";
         const warning = round.meta.sameTeam > 0
           ? `<div class="error" style="display:block; margin-bottom:12px; border-color:#fb923c; color:#fed7aa; background:rgba(251,146,60,.1);">같은 팀 매칭이 일부 발생했습니다. 참가자 팀 분포상 완전 회피가 어려운 경우입니다.</div>`
           : "";
 
-        const groupsHtml = round.groups.map(group => {
-          const activeCount = group.slots.filter(Boolean).length;
-          const slotsHtml = group.slots.map(p => {
-            const isBye = !p;
-            const isWinner = p && p.id === group.winnerId;
-            const team = p && p.team ? `<div class="team">${p.team}</div>` : "";
-            return `<button class="slot ${isBye ? "bye" : ""} ${isWinner ? "winner" : ""}" ${isBye ? "disabled" : ""} onclick="selectWinner(${roundIndex}, '${group.id}', '${p ? p.id : ""}')">
-              <strong>${playerText(p)}</strong>${team}${isWinner ? `<span style="float:right;font-size:12px;">WIN</span>` : ""}
-            </button>`;
-          }).join("");
-
-          return `<article class="group">
-            <div class="group-title"><strong>${group.name}</strong><span class="badge">${activeCount}명 경기</span></div>
-            ${slotsHtml}
-          </article>`;
-        }).join("");
-
         return `<section class="round">
           <div class="roundtop">
             <div>
-              <h2>${title}</h2>
-              <div class="meta">${round.groups.length}개 조 · 회피 점수 ${round.meta.score} · 같은 팀 중복 조 ${round.meta.sameTeam}개</div>
+              <h2>${escapeHtml(isChampionship ? "챔피언 결정전" : round.title)}</h2>
+              <div class="meta">${round.groups.length}개 조 · ${round.groupSize}레인 · 회피 점수 ${round.meta.score} · 같은 팀 중복 조 ${round.meta.sameTeam}개</div>
             </div>
             <div class="badge">후보 생성 ${round.meta.attempts.toLocaleString()}회</div>
           </div>
           ${warning}
-          <div class="groups">${groupsHtml}</div>
+          <div class="groups">${round.groups.map(group => renderGroup(group, roundIndex, isChampionship)).join("")}</div>
         </section>`;
       }).join("");
-
-      document.getElementById("nextPanel").style.display = rounds.length ? "flex" : "none";
-      renderChampion();
     }
 
-    function renderChampion() {
-      const champ = document.getElementById("champion");
-      const last = rounds[rounds.length - 1];
-      if (!last || last.groups.length !== 1 || !last.groups[0].winnerId) {
-        champ.style.display = "none";
-        champ.innerHTML = "";
-        return;
-      }
-      const winner = last.groups[0].slots.find(p => p && p.id === last.groups[0].winnerId);
-      if (!winner) {
-        champ.style.display = "none";
-        return;
-      }
-      champ.style.display = "block";
-      champ.innerHTML = `<small>CHAMPION</small><strong>${winner.name}</strong><span>${winner.team || "소속팀 없음"}</span>`;
+    function renderGroup(group, roundIndex, isChampionship) {
+      return `<article class="group">
+        <div class="group-title"><strong>${escapeHtml(group.name)}</strong><span class="badge">${group.slots.length}명 경기</span></div>
+        ${group.slots.map(p => renderSlot(p, group, roundIndex, isChampionship)).join("")}
+      </article>`;
     }
+
+    function renderSlot(p, group, roundIndex, isChampionship) {
+      const advanced = (group.advanceIds || []).includes(p.id);
+      const label = isChampionship ? "최종" : "진출";
+      return `<button class="slot ${advanced ? "advanced" : ""}" onclick="toggleAdvance(${roundIndex}, '${group.id}', '${p.id}')">
+        <div class="slot-inner">
+          <span class="lane-label">${p.lane}LANE</span>
+          <div class="player-info"><strong>${escapeHtml(playerText(p))}</strong>${p.team ? `<div class="team">${escapeHtml(p.team)}</div>` : ""}</div>
+          ${advanced ? `<span class="advance-mark">${label}</span>` : ""}
+        </div>
+      </button>`;
+    }
+
+    function renderFinalists() {
+      if (!state.finalists.length) return `<div class="hint">아직 등록된 후보가 없습니다.</div>`;
+      return state.finalists.map((p, index) => `<div class="finalist-item"><span><b>${index + 1}. ${escapeHtml(p.name)}</b>${p.team ? ` / ${escapeHtml(p.team)}` : ""}</span><button class="ghost" onclick="removeFinalist('${p.id}')">삭제</button></div>`).join("");
+    }
+
+    function renderChampionBox() {
+      const finalRound = [...state.rounds].reverse().find(r => r.type === "championship");
+      if (!finalRound) return "";
+      const selected = getSelectedFromRound(finalRound);
+      if (!selected.length) return "";
+      return `<div class="champion" style="display:block;"><small>FINAL RESULT</small><strong>${selected.map(p => escapeHtml(p.name)).join(", ")}</strong><span>${selected.length > 1 ? "공동 최종 선정" : "최종 우승자"}</span></div>`;
+    }
+
+    function renderTvView(payload, viewType = "tv") {
+      tvState = payload;
+      tvRoundIndex = Math.max(0, Math.min(tvRoundIndex, (payload.rounds || []).length - 1));
+      if (viewType === "mobile") {
+        document.body.classList.remove("tv-mode");
+        app.innerHTML = `<div class="mobile-view">
+          <header class="header" style="margin-bottom:16px;">
+            <div class="header-copy"><div class="eyebrow">MINI 4WD TOURNAMENT MAKER</div><h1>모바일 대진표</h1></div>
+            <img class="header-logo" src="${LOGO_SRC}" alt="Geeks logo" />
+          </header>
+          ${renderReadOnlyRounds(payload.rounds || [])}
+          ${renderReadOnlyFinalists(payload.finalists || [])}
+        </div>`;
+        return;
+      }
+
+      document.body.classList.add("tv-mode");
+      if (!payload.rounds || !payload.rounds.length) {
+        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><small>MINI 4WD TOURNAMENT MAKER</small><strong>대진표 없음</strong></div><img class="tv-logo" src="${LOGO_SRC}" alt="Geeks logo" /></div></div>`;
+        return;
+      }
+      renderTvStage();
+    }
+
+    function renderTvStage() {
+      const rounds = tvState.rounds || [];
+      const round = rounds[tvRoundIndex] || rounds[0];
+      const pages = chunk(round.groups || [], tvGroupsPerPage);
+      if (tvPage >= pages.length) tvPage = 0;
+      const currentGroups = pages[tvPage] || [];
+      const columns = tvGroupsPerPage <= 4 ? 2 : 3;
+
+      app.innerHTML = `<div class="tv-wrap">
+        <header class="tv-head">
+          <div class="tv-brand">
+            <small>MINI 4WD TOURNAMENT MAKER</small>
+            <strong>${escapeHtml(round.type === "championship" ? "챔피언 결정전" : round.title)}</strong>
+          </div>
+          <img class="tv-logo" src="${LOGO_SRC}" alt="Geeks logo" />
+        </header>
+
+        <section class="tv-controls">
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <select onchange="tvRoundIndex=Number(this.value); tvPage=0; renderTvStage();">
+              ${rounds.map((r, index) => `<option value="${index}" ${index === tvRoundIndex ? "selected" : ""}>${escapeHtml(r.type === "championship" ? "챔피언 결정전" : r.title)}</option>`).join("")}
+            </select>
+            <select onchange="tvGroupsPerPage=Number(this.value); tvPage=0; renderTvStage();">
+              ${[4,6,8].map(n => `<option value="${n}" ${n === tvGroupsPerPage ? "selected" : ""}>페이지당 ${n}조</option>`).join("")}
+            </select>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button onclick="tvPrevPage()">이전</button>
+            <button onclick="tvNextPage()">다음</button>
+            <button onclick="toggleTvAuto()">자동 넘김</button>
+            <button class="primary" onclick="document.documentElement.requestFullscreen && document.documentElement.requestFullscreen()">전체화면</button>
+          </div>
+        </section>
+
+        <main class="tv-stage" style="grid-template-columns: repeat(${columns}, minmax(0,1fr));">
+          ${currentGroups.map(group => renderTvGroup(group, round.type === "championship")).join("")}
+        </main>
+
+        <footer class="tv-foot">
+          <span>${round.groupSize} LANE · ${round.groups.length} GROUPS</span>
+          <span>PAGE ${tvPage + 1} / ${Math.max(1, pages.length)}</span>
+        </footer>
+      </div>`;
+    }
+
+    function renderTvGroup(group, isChampionship) {
+      return `<article class="tv-group">
+        <div class="tv-group-title"><strong>${escapeHtml(group.name)}</strong><span class="badge">${group.slots.length}명 경기</span></div>
+        ${group.slots.map(p => {
+          const advanced = (group.advanceIds || []).includes(p.id);
+          return `<div class="tv-lane ${advanced ? "advanced" : ""}">
+            <div class="tv-lane-no">${p.lane}LANE</div>
+            <div class="tv-player"><strong>${escapeHtml(p.name)}</strong>${p.team ? `<span>${escapeHtml(p.team)}</span>` : ""}</div>
+            <div class="tv-adv">${advanced ? (isChampionship ? "최종" : "진출") : ""}</div>
+          </div>`;
+        }).join("")}
+      </article>`;
+    }
+
+    function tvNextPage() {
+      const round = tvState.rounds[tvRoundIndex];
+      const pageCount = Math.max(1, Math.ceil((round.groups || []).length / tvGroupsPerPage));
+      tvPage = (tvPage + 1) % pageCount;
+      renderTvStage();
+    }
+
+    function tvPrevPage() {
+      const round = tvState.rounds[tvRoundIndex];
+      const pageCount = Math.max(1, Math.ceil((round.groups || []).length / tvGroupsPerPage));
+      tvPage = (tvPage - 1 + pageCount) % pageCount;
+      renderTvStage();
+    }
+
+    function toggleTvAuto() {
+      if (tvTimer) {
+        clearInterval(tvTimer);
+        tvTimer = null;
+        alert("자동 넘김을 중지했습니다.");
+      } else {
+        tvTimer = setInterval(tvNextPage, 10000);
+        alert("자동 넘김을 시작했습니다. 10초마다 다음 페이지로 이동합니다.");
+      }
+    }
+
+    function renderReadOnlyRounds(rounds) {
+      if (!rounds.length) return `<div class="empty"><div><h2>대진표가 없습니다</h2></div></div>`;
+      return rounds.map(round => `<section class="round"><div class="roundtop"><div><h2>${escapeHtml(round.type === "championship" ? "챔피언 결정전" : round.title)}</h2><div class="meta">${round.groupSize}레인 · ${round.groups.length}개 조</div></div></div><div class="groups">${round.groups.map(group => renderReadOnlyGroup(group, round.type === "championship")).join("")}</div></section>`).join("");
+    }
+
+    function renderReadOnlyGroup(group, isChampionship) {
+      return `<article class="group"><div class="group-title"><strong>${escapeHtml(group.name)}</strong><span class="badge">${group.slots.length}명 경기</span></div>${group.slots.map(p => {
+        const advanced = (group.advanceIds || []).includes(p.id);
+        return `<div class="slot ${advanced ? "advanced" : ""}" style="cursor:default;"><div class="slot-inner"><span class="lane-label">${p.lane}LANE</span><div class="player-info"><strong>${escapeHtml(p.name)}</strong>${p.team ? `<div class="team">${escapeHtml(p.team)}</div>` : ""}</div>${advanced ? `<span class="advance-mark">${isChampionship ? "최종" : "진출"}</span>` : ""}</div></div>`;
+      }).join("")}</article>`;
+    }
+
+    function renderReadOnlyFinalists(finalists) {
+      if (!finalists.length) return "";
+      return `<section class="card"><h2>챔피언 결정전 후보</h2><div class="finalist-list">${finalists.map((p, index) => `<div class="finalist-item"><span><b>${index + 1}. ${escapeHtml(p.name)}</b>${p.team ? ` / ${escapeHtml(p.team)}` : ""}</span></div>`).join("")}</div></section>`;
+    }
+
+    function chunk(items, size) {
+      const result = [];
+      for (let i = 0; i < items.length; i += size) result.push(items.slice(i, i + size));
+      return result;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function boot() {
+      const params = getHashParams();
+      const view = params.get("view");
+      const data = params.get("data");
+      if ((view === "tv" || view === "mobile") && data) {
+        try {
+          renderTvView(decodePayload(data), view);
+        } catch (error) {
+          app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>공유 데이터를 읽을 수 없습니다</h2><p>링크가 손상되었거나 너무 깁니다.</p></div></div></div>`;
+        }
+        return;
+      }
+      renderOperator();
+    }
+
+    boot();
   </script>
 </body>
 </html>
