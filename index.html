@@ -301,7 +301,7 @@
           }
           if (count >= 3) score += count * 200;
         });
-              });
+      });
 
       if (avoidance !== "low") {
         for (let start = 0; start < groups.length; start += groupSize) {
@@ -436,8 +436,7 @@
 
     function playerText(p) {
       if (!p) return "BYE";
-      const seed = p.seed ? `#${p.seed} ` : "";
-      return `${seed}${p.name}`;
+      return `${p.name}`;
     }
 
     function render() {
