@@ -105,6 +105,19 @@
       line-height: 1.6;
       outline: none;
     }
+    input[type="number"] {
+      width: 100%;
+      border: 1px solid #33483b;
+      border-radius: 12px;
+      background: #07100d;
+      color: #eee9df;
+      padding: 8px 10px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 900;
+      outline: none;
+    }
+    input[type="number"]:focus { border-color: #d84d89; }
     textarea:focus { border-color: #d84d89; }
     .hint { color: #9e968a; font-size: 13px; line-height: 1.6; margin: 0 0 10px; }
     .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 12px; }
@@ -186,8 +199,8 @@
           <textarea id="participantInput"></textarea>
           <div class="stats">
             <div class="stat"><small>참가자</small><strong id="statPlayers">0</strong></div>
-            <div class="stat"><small>예상 조</small><strong id="statGroups">0</strong></div>
-            <div class="stat"><small>BYE</small><strong id="statBye">0</strong></div>
+            <div class="stat"><small>예상 조 개수</small><strong id="statGroups">0</strong></div>
+            <div class="stat"><small>강제 조 개수</small><input id="forcedGroupCount" type="number" min="1" placeholder="자동" /></div>
           </div>
           <div style="display:flex; gap:8px; margin-top:12px;">
             <button class="green" style="flex:1" onclick="generateFirstRound()">대진표 생성</button>
@@ -246,7 +259,7 @@
     const input = document.getElementById("participantInput");
     input.value = SAMPLE_TEXT;
     input.addEventListener("input", updateStats);
-    document.getElementById("useSeed").addEventListener("change", () => {});
+    document.getElementById("forcedGroupCount").addEventListener("input", updateStats);
     updateStats();
 
     function setGroupSize(size) {
@@ -280,10 +293,22 @@
     function updateStats() {
       const players = parseParticipants();
       const groupCount = players.length ? Math.ceil(players.length / groupSize) : 0;
-      const bye = players.length ? groupCount * groupSize - players.length : 0;
       document.getElementById("statPlayers").textContent = players.length;
       document.getElementById("statGroups").textContent = groupCount;
-      document.getElementById("statBye").textContent = bye;
+    }
+
+    function getForcedGroupCount() {
+      const raw = document.getElementById("forcedGroupCount").value.trim();
+      if (!raw) return null;
+      const value = Number(raw);
+      if (!Number.isInteger(value) || value < 1) return null;
+      return value;
+    }
+
+    function getTargetGroupCount(playerCount, roundNumber) {
+      const autoGroupCount = Math.ceil(playerCount / groupSize);
+      const forcedGroupCount = roundNumber === 1 ? getForcedGroupCount() : null;
+      return forcedGroupCount || autoGroupCount;
     }
 
     function showError(message) {
@@ -356,7 +381,7 @@
     }
 
     function buildCandidate(players, roundNumber, useSeed) {
-      const groupCount = Math.ceil(players.length / groupSize);
+      const groupCount = getTargetGroupCount(players.length, roundNumber);
       const groups = Array.from({ length: groupCount }, () => []);
 
       shuffle(players).forEach(player => {
@@ -373,11 +398,7 @@
         groups[ranked[0].index].push(player);
       });
 
-      return groups.map(g => {
-        const padded = [...g];
-        while (padded.length < groupSize) padded.push(null);
-        return padded;
-      });
+      return groups;
     }
 
     function sameTeamGroupCount(groups) {
@@ -422,7 +443,7 @@
           attempts: tries,
           score: bestScore,
           sameTeam: sameTeamGroupCount(best),
-          bye: best.flat().filter(x => x === null).length
+          laneShortage: 0
         }
       };
     }
@@ -432,6 +453,15 @@
       const players = parseParticipants();
       if (players.length < 2) return showError("참가자는 최소 2명 이상 필요합니다.");
       if (players.length > 80) return showError("현재 단일 파일 버전은 80명 이하를 권장합니다.");
+
+      const autoGroupCount = Math.ceil(players.length / groupSize);
+      const forcedGroupCount = getForcedGroupCount();
+      if (forcedGroupCount !== null && forcedGroupCount < autoGroupCount) {
+        return showError(`${groupSize}레인 기준 현재 참가자는 최소 ${autoGroupCount}조 이상 필요합니다.`);
+      }
+      if (forcedGroupCount !== null && forcedGroupCount > players.length) {
+        return showError(`강제 조 개수는 참가자 수 ${players.length}개를 초과할 수 없습니다.`);
+      }
 
       const names = players.map(p => p.name);
       const duplicated = [...new Set(names.filter((name, index) => names.indexOf(name) !== index))];
@@ -471,7 +501,7 @@
     }
 
     function playerText(p) {
-      if (!p) return "BYE";
+      if (!p) return "";
       return `${p.name}`;
     }
 
@@ -506,7 +536,7 @@
           <div class="roundtop">
             <div>
               <h2>${title}</h2>
-              <div class="meta">${round.groups.length}개 조 · 회피 점수 ${round.meta.score} · 같은 팀 중복 조 ${round.meta.sameTeam}개 · BYE ${round.meta.bye}개</div>
+              <div class="meta">${round.groups.length}개 조 · 회피 점수 ${round.meta.score} · 같은 팀 중복 조 ${round.meta.sameTeam}개</div>
             </div>
             <div class="badge">후보 생성 ${round.meta.attempts.toLocaleString()}회</div>
           </div>
