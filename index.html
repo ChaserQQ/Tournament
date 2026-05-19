@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mini 4WD Tournament Maker</title>
+  <title>MINI4WD TOURNAMENT MAKER</title>
   <!-- KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="MINI 4WD TOURNAMENT MAKER" />
-  <meta property="og:description" content="3레인 & 5레인 토너먼트 대진표 by GEEKS 마이 · Special Thanks to SOON.D" />
+  <meta property="og:title" content="MINI4WD TOURNAMENT MAKER" />
+  <meta property="og:description" content="3레인 & 5레인 토너먼트 대진표 made by GEEKS 마이" />
   <meta property="og:image" content="og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="MINI 4WD TOURNAMENT MAKER" />
-  <meta name="twitter:description" content="3레인 & 5레인 토너먼트 대진표 by GEEKS 마이 · Special Thanks to SOON.D" />
+  <meta name="twitter:title" content="MINI4WD TOURNAMENT MAKER" />
+  <meta name="twitter:description" content="3레인 & 5레인 토너먼트 대진표 made by GEEKS 마이" />
   <meta name="twitter:image" content="og-image.png" />
   <style>
     * { box-sizing: border-box; }
@@ -1870,6 +1870,251 @@
       }
     }
 
+
+    /* v19 final consolidated package */
+    .status-panel {
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, .9fr) auto !important;
+      gap: 14px !important;
+      padding: 12px 14px !important;
+    }
+    .status-main {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .status-title-block {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+    }
+    .status-title-block strong {
+      font-size: 15px;
+      font-weight: 1000;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .status-title-block span {
+      font-size: 12px;
+      color: var(--dim);
+      font-weight: 800;
+    }
+    .status-time-block {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .status-time-block span {
+      font-size: 11px;
+      color: var(--dim);
+      font-weight: 900;
+    }
+    .status-badge {
+      min-width: 56px !important;
+      height: 30px;
+      padding: 0 10px !important;
+      font-size: 11px !important;
+      border-radius: 999px !important;
+    }
+    .status-actions button {
+      min-height: 34px !important;
+      padding: 7px 12px !important;
+      font-size: 12px !important;
+      border-radius: 12px !important;
+    }
+    .manual-open-button {
+      width: 100%;
+      margin: 0 0 10px;
+      min-height: 38px;
+    }
+    .download-mini button {
+      min-height: 28px;
+      padding: 5px 8px;
+      border-radius: 9px;
+      font-size: 11px;
+      margin: 5px 4px 0 0;
+    }
+    .group-size-control {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .group-size-control span {
+      color: var(--dim);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .group-size-control > div {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .group-size-control button {
+      min-height: 28px;
+      padding: 5px 8px;
+      border-radius: 9px;
+      font-size: 11px;
+    }
+    .toolbar {
+      display: flex !important;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    .toolbar .grow {
+      flex: 1 1 auto;
+      min-width: 24px;
+    }
+    .toolbar button {
+      flex: 0 0 auto;
+      min-width: auto !important;
+    }
+    .manual-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+    }
+    .manual-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,.68);
+      backdrop-filter: blur(5px);
+    }
+    .manual-panel {
+      position: relative;
+      width: min(920px, 100%);
+      max-height: min(86vh, 860px);
+      display: flex;
+      flex-direction: column;
+      border-radius: 24px;
+      border: 1px solid rgba(238,233,223,.12);
+      background: linear-gradient(180deg, rgba(18,30,24,.98), rgba(7,16,13,.98));
+      box-shadow: 0 30px 80px rgba(0,0,0,.45);
+      overflow: hidden;
+    }
+    .manual-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(238,233,223,.08);
+    }
+    .manual-head strong {
+      display: block;
+      color: var(--text);
+      font-size: 15px;
+      letter-spacing: .02em;
+    }
+    .manual-head span {
+      display: block;
+      color: var(--point);
+      font-size: 12px;
+      font-weight: 900;
+      margin-top: 3px;
+    }
+    .manual-head button {
+      min-height: 34px;
+      padding: 7px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+    .manual-body {
+      overflow: auto;
+      padding: 18px 22px 24px;
+      color: rgba(238,233,223,.86);
+      line-height: 1.68;
+      font-size: 14px;
+    }
+    .manual-body h2 {
+      margin: 20px 0 8px;
+      color: var(--text);
+      font-size: 18px;
+      border-top: 1px solid rgba(238,233,223,.08);
+      padding-top: 16px;
+    }
+    .manual-body h2:first-child {
+      margin-top: 0;
+      border-top: 0;
+      padding-top: 0;
+    }
+    .manual-body h3 {
+      margin: 12px 0 4px;
+      color: #ff8dbb;
+      font-size: 15px;
+    }
+    .manual-body p {
+      margin: 0 0 8px;
+    }
+    .manual-body ol,
+    .manual-body ul {
+      margin: 6px 0 10px 20px;
+      padding: 0;
+    }
+    .manual-body li {
+      margin: 3px 0;
+    }
+    .manual-body b {
+      color: var(--text);
+    }
+    @media (max-width: 760px) {
+      .status-panel {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+      }
+      .status-main {
+        align-items: flex-start;
+      }
+      .status-time-block {
+        justify-content: flex-start;
+      }
+      .status-actions {
+        justify-content: stretch;
+      }
+      .status-actions button {
+        width: 100%;
+      }
+      .manual-modal {
+        padding: 8px;
+        align-items: stretch;
+      }
+      .manual-panel {
+        max-height: 94vh;
+        border-radius: 18px;
+      }
+      .manual-head {
+        padding: 12px;
+      }
+      .manual-body {
+        padding: 14px;
+        font-size: 13px;
+      }
+      .manual-body h2 {
+        font-size: 16px;
+      }
+      .group-size-control {
+        justify-content: stretch;
+      }
+      .group-size-control > div {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        width: 100%;
+      }
+      .group-size-control button {
+        width: 100%;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -2415,6 +2660,14 @@
       renderOperator();
     }
 
+    function ruleSummary(mode = state.settings.matchMode) {
+      return {
+        basic: "라운드별 결승 진출자를 모아 최종 결승을 진행합니다.",
+        points: "1차 라운드는 포인트 합산 결선으로 진행하고, 이후 라운드는 토너먼트 방식으로 진행합니다.",
+        revival: "원하는 시점에 패자부활전을 추가하고, 진출자를 합류시켜 다음 경기를 진행합니다."
+      }[mode] || "라운드별 결승 진출자를 모아 최종 결승을 진행합니다.";
+    }
+
     function matchModeLabel(mode = state.settings.matchMode) {
       return {
         basic: "기본 토너먼트",
@@ -2428,7 +2681,7 @@
       if (isTournamentLocked() && !confirm("대회가 시작/종료된 상태입니다. 경기 방식을 바꾸면 기록이 꼬일 수 있습니다. 계속할까요?")) return;
 
       if (state.qualifierRounds.some(round => round.stages.length) || state.finalRace) {
-        if (!confirm("경기 방식을 바꾸면 현재 대진표가 초기화됩니다. 계속할까요?")) return;
+        if (!confirm("경기 방식을 바꾸면 현재 대진표가 라운드 초기화됩니다. 계속할까요?")) return;
       }
 
       const currentTournament = { ...state.tournament };
@@ -2799,7 +3052,7 @@
       ensureStateDefaults();
       if (isTournamentLocked() && !confirm("대회가 시작/종료된 상태입니다. 레인 수를 바꾸면 기록이 꼬일 수 있습니다. 계속할까요?")) return;
       if (state.qualifierRounds.some(round => round.stages.length) || state.finalRace) {
-        if (!confirm("경기 타입을 바꾸면 현재 대진표가 초기화됩니다. 계속할까요?")) return;
+        if (!confirm("경기 타입을 바꾸면 현재 대진표가 라운드 초기화됩니다. 계속할까요?")) return;
       }
 
       const inputText = state.inputText;
@@ -2882,7 +3135,7 @@
 
     function copyOrShare(url, label) {
       if (navigator.share) {
-        navigator.share({ title: "MINI 4WD TOURNAMENT MAKER", url }).catch(() => copyText(url, label));
+        navigator.share({ title: "MINI4WD TOURNAMENT MAKER", url }).catch(() => copyText(url, label));
       } else {
         copyText(url, label);
       }
@@ -2949,11 +3202,11 @@
           <header class="header">
             <div class="header-copy">
               <div class="brand-line">
-                <div class="eyebrow">MINI 4WD TOURNAMENT MAKER</div>
-                <div class="maker">by GEEKS 마이 · Special Thanks to SOON.D</div>
+                <div class="eyebrow">MINI4WD TOURNAMENT MAKER</div>
+                <div class="maker">made by GEEKS 마이</div>
               </div>
               <h1>${matchModeLabel()} · ${state.settings.laneCount}레인</h1>
-              <p class="desc">경기방식에 따라 대진/포인트전/패자부활을 진행합니다.</p>
+              <p class="desc">${ruleSummary()}</p>
             </div>
             <img class="header-logo" src="${LOGO_SRC}" alt="Geeks logo" />
           </header>
@@ -3026,7 +3279,7 @@
                   <button class="${!state.settings.sameLanePrevention ? "active" : ""}" onclick="setSetting('sameLanePrevention', false)">없음</button>
                   <button class="${state.settings.sameLanePrevention ? "active" : ""}" onclick="setSetting('sameLanePrevention', true)">적용</button>
                 </div>
-                <p class="hint">이전 경기에서 배정된 레인 이력을 보고, 가능하면 같은 레인을 피해서 배정합니다.</p>
+                <p class="hint">이전 경기에서 배정된 레인 이력에 따라, 가능하면 같은 레인을 피해서 배정합니다.</p>
 
                 
 
@@ -3065,9 +3318,6 @@
               <section class="card">
                 <h2>운영 정보</h2>
                 <button class="primary manual-open-button" onclick="openUsageManual()">사용설명서</button>
-                <p class="hint">
-                  현재 경기 방식과 송출 대상을 확인합니다. PRINT는 현재 단계 기준 A4 출력용 화면을 엽니다.
-                </p>
                 <div class="finalist-grid" style="grid-template-columns:1fr;">
                   <div class="finalist-item"><b>경기 방식</b><br>${matchModeLabel()}</div>
                   <div class="finalist-item"><b>대회명</b><br>${escapeHtml(state.tournament.name || "미입력")}</div>
@@ -3094,7 +3344,7 @@
         <section class="manual-panel" role="dialog" aria-modal="true" aria-label="사용설명서">
           <header class="manual-head">
             <div>
-              <strong>MINI 4WD TOURNAMENT MAKER</strong>
+              <strong>MINI4WD TOURNAMENT MAKER</strong>
               <span>사용설명서</span>
             </div>
             <button onclick="closeUsageManual()">닫기</button>
@@ -3195,7 +3445,6 @@
             <div>
               <div class="round-title">
                 <h2>${escapeHtml(round.title)}</h2>
-                <span class="round-badge">${isRevivalMode() ? "단일 토너먼트" : `${state.settings.laneCount}레인 결승 진출자 선발`}</span>
                 ${round.finalist ? `<span class="round-badge finalist-badge">${isRevivalMode() ? "우승:" : "진출:"} ${escapeHtml(round.finalist.name)}</span>` : `<span class="round-badge">대기중</span>`}
               </div>
               <div class="meta">
@@ -3393,30 +3642,33 @@
     function renderTournamentStatusPanel() {
       ensureStateDefaults();
       const status = state.tournament.status || "draft";
+      const tournamentName = state.tournament.name || "대회명 없음";
+      const venueName = state.tournament.venue || "경기장 없음";
       const actionButtons = status === "draft"
         ? `<button class="primary" onclick="startTournament()">대회 시작</button>`
         : status === "running"
           ? `<button class="primary" onclick="finishTournament()">대회 종료</button>`
           : status === "finished"
-            ? `<button class="ghost" onclick="reopenTournament()">종료 해제</button><button class="ghost" onclick="archiveTournament()">저장 완료 표시</button>`
+            ? `<button class="ghost" onclick="reopenTournament()">종료 취소</button><button class="ghost" onclick="archiveTournament()">기록 저장 완료</button>`
             : `<button class="ghost" onclick="reopenTournament()">다시 진행</button>`;
 
       return `
         <section class="status-panel">
-          <div>
+          <div class="status-main">
             <span class="status-badge status-${status}">${statusLabel(status)}</span>
-            <strong>${escapeHtml(state.tournament.name || "대회명 미입력")}</strong>
-            <span>${escapeHtml(state.tournament.venue || "경기장 미입력")}</span>
+            <div class="status-title-block">
+              <strong>${escapeHtml(tournamentName)}</strong>
+              <span>${escapeHtml(venueName)}</span>
+            </div>
           </div>
-          <div class="status-times">
-            <span>시작: ${state.tournament.startedAtDisplay || "-"}</span>
-            <span>종료: ${state.tournament.endedAtDisplay || "-"}</span>
+          <div class="status-time-block">
+            <span>시작 ${state.tournament.startedAtDisplay || "-"}</span>
+            <span>종료 ${state.tournament.endedAtDisplay || "-"}</span>
           </div>
           <div class="status-actions">${actionButtons}</div>
         </section>
       `;
     }
-
 
     function renderFinalRace() {
       const finalists = state.qualifierRounds.map(round => round.finalist).filter(Boolean);
@@ -3532,7 +3784,7 @@
       }
 
       if (!tvState) {
-        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI 4WD TOURNAMENT MAKER</small><div class="maker">by GEEKS 마이 · Special Thanks to SOON.D</div></div><strong>라이브 대기중</strong></div><img class="tv-logo" src="${LOGO_SRC}" alt="Geeks logo" /></div><div class="empty"><h2>운영자 화면에서 대진표를 생성하면 자동 표시됩니다.</h2></div></div>`;
+        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS 마이</div></div><strong>라이브 대기중</strong></div><img class="tv-logo" src="${LOGO_SRC}" alt="Geeks logo" /></div><div class="empty"><h2>운영자 화면에서 대진표를 생성하면 자동 표시됩니다.</h2></div></div>`;
         return;
       }
 
@@ -3560,8 +3812,8 @@
           <header class="header" style="margin-bottom:16px;">
             <div class="header-copy">
               <div class="brand-line">
-                <div class="eyebrow">MINI 4WD TOURNAMENT MAKER</div>
-                <div class="maker">by GEEKS 마이 · Special Thanks to SOON.D</div>
+                <div class="eyebrow">MINI4WD TOURNAMENT MAKER</div>
+                <div class="maker">made by GEEKS 마이</div>
               </div>
               <h1>모바일 대진표</h1>
               <p class="desc">${matchModeLabel(payload.settings?.matchMode)} · ${payload.settings?.laneCount || 3}레인 · ${escapeHtml(payload.tournament?.name || "대회명 미입력")}</p>
@@ -3625,7 +3877,7 @@
 function renderTvStage() {
       const target = getBroadcastTarget(tvState);
       if (!target) {
-        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI 4WD TOURNAMENT MAKER</small><div class="maker">by GEEKS 마이 · Special Thanks to SOON.D</div></div><strong>대진표 없음</strong></div><img class="tv-logo" src="${LOGO_SRC}" alt="Geeks logo" /></div><div class="empty"><h2>현재 송출할 라운드가 없습니다.</h2></div></div>`;
+        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS 마이</div></div><strong>대진표 없음</strong></div><img class="tv-logo" src="${LOGO_SRC}" alt="Geeks logo" /></div><div class="empty"><h2>현재 송출할 라운드가 없습니다.</h2></div></div>`;
         return;
       }
 
@@ -3639,8 +3891,8 @@ function renderTvStage() {
           <header class="tv-head">
             <div class="tv-brand">
               <div class="tv-brand-line">
-                <small>MINI 4WD TOURNAMENT MAKER</small>
-                <div class="maker">by GEEKS 마이 · Special Thanks to SOON.D</div>
+                <small>MINI4WD TOURNAMENT MAKER</small>
+                <div class="maker">made by GEEKS 마이</div>
               </div>
               <strong>${escapeHtml(target.title)}</strong>
             </div>
@@ -4157,8 +4409,8 @@ function renderTvStage() {
           <header class="header">
             <div class="header-copy">
               <div class="brand-line">
-                <div class="eyebrow">MINI 4WD TOURNAMENT MAKER</div>
-                <div class="maker">by GEEKS 마이 · Special Thanks to SOON.D</div>
+                <div class="eyebrow">MINI4WD TOURNAMENT MAKER</div>
+                <div class="maker">made by GEEKS 마이</div>
               </div>
               <h1>선수 DB / 오늘 참가자 관리</h1>
               <p class="desc">자주 참가하는 선수를 명부로 저장하고, 오늘 참가자만 선택해서 대진표로 보낼 수 있습니다.</p>
