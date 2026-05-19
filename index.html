@@ -1697,71 +1697,7 @@
     }
 
 
-    /* v15 toolbar/text cleanup */
-    .main-toolbar {
-      display: flex !important;
-      flex-wrap: wrap !important;
-      align-items: center !important;
-      gap: 8px !important;
-    }
-    .main-toolbar .grow {
-      flex: 1 1 auto !important;
-      min-width: 24px !important;
-    }
-    .main-toolbar button {
-      flex: 0 0 auto !important;
-      min-width: auto !important;
-      width: auto !important;
-      padding-left: 14px !important;
-      padding-right: 14px !important;
-    }
-    .main-toolbar .final-action {
-      margin-left: auto;
-    }
-    .download-actions {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid rgba(238,233,223,.08);
-      display: grid;
-      grid-template-columns: 1fr auto auto;
-      gap: 8px;
-      align-items: center;
-    }
-    .download-actions span {
-      color: var(--dim);
-      font-size: 12px;
-      font-weight: 900;
-    }
-    .download-actions button.small {
-      min-height: 32px;
-      padding: 7px 10px;
-      border-radius: 10px;
-      font-size: 12px;
-      text-transform: none;
-    }
-    @media (max-width: 760px) {
-      .main-toolbar {
-        display: grid !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-      }
-      .main-toolbar .grow {
-        display: none !important;
-      }
-      .main-toolbar button,
-      .main-toolbar .final-action {
-        width: 100% !important;
-        margin-left: 0 !important;
-      }
-      .download-actions {
-        grid-template-columns: 1fr 1fr;
-      }
-      .download-actions span {
-        grid-column: 1 / -1;
-      }
-    }
-
-
-    /* v17 usage manual modal */
+    /* v18 consolidated fixes */
     .manual-open-button {
       width: 100%;
       margin: 0 0 10px;
@@ -1778,7 +1714,7 @@
     .manual-backdrop {
       position: absolute;
       inset: 0;
-      background: rgba(0, 0, 0, .68);
+      background: rgba(0,0,0,.68);
       backdrop-filter: blur(5px);
     }
     .manual-panel {
@@ -1858,6 +1794,50 @@
     .manual-body b {
       color: var(--text);
     }
+    .group-size-control {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .group-size-control span {
+      color: var(--dim);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .group-size-control > div {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .group-size-control button,
+    .download-mini button {
+      min-height: 28px;
+      padding: 5px 8px;
+      border-radius: 9px;
+      font-size: 11px;
+      margin-right: 4px;
+    }
+    .download-mini button {
+      margin-top: 5px;
+    }
+    .toolbar {
+      display: flex !important;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    .toolbar .grow {
+      flex: 1 1 auto;
+      min-width: 24px;
+    }
+    .toolbar button {
+      flex: 0 0 auto;
+      min-width: auto !important;
+    }
     @media (max-width: 760px) {
       .manual-modal {
         padding: 8px;
@@ -1876,6 +1856,17 @@
       }
       .manual-body h2 {
         font-size: 16px;
+      }
+      .group-size-control {
+        justify-content: stretch;
+      }
+      .group-size-control > div {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        width: 100%;
+      }
+      .group-size-control button {
+        width: 100%;
       }
     }
 
@@ -1930,10 +1921,11 @@
         settings: {
           laneCount,
           matchMode: "basic",
-          avoidance: "medium",
+          avoidance: "none",
           forcedGroupCount: "",
           excludeFinalists: true,
-          sameLanePrevention: true
+          sameLanePrevention: false,
+          nextGroupSize: ""
         },
         tournament: {
           name: "",
@@ -1950,13 +1942,24 @@
           roundIndex: 0,
           stageIndex: 0
         },
-        qualifierRounds: makeQualifierRounds(laneCount),
+        qualifierRounds: makeQualifierRounds(laneCount, "basic"),
         finalRace: null,
         updatedAt: Date.now()
       };
     }
 
-    function makeQualifierRounds(laneCount) {
+    function makeQualifierRounds(laneCount, matchMode = "basic") {
+      if (matchMode === "revival") {
+        return [{
+          id: "revival-main",
+          index: 1,
+          title: "패자부활 토너먼트",
+          stagePlan: [],
+          stages: [],
+          finalist: null
+        }];
+      }
+
       return Array.from({ length: laneCount }, (_, index) => ({
         id: `qr-${index + 1}`,
         index: index + 1,
@@ -2155,6 +2158,31 @@
       return value;
     }
 
+    function getNextGroupSize() {
+      const size = Number(state.settings.nextGroupSize || 0);
+      if (!size || size < 2 || size > state.settings.laneCount) return state.settings.laneCount;
+      return size;
+    }
+
+    function setNextGroupSize(size) {
+      state.settings.nextGroupSize = size;
+      renderOperator();
+    }
+
+    function renderGroupSizeControl() {
+      const options = ["", ...Array.from({ length: Math.max(0, state.settings.laneCount - 1) }, (_, index) => index + 2)];
+      return `
+        <div class="group-size-control">
+          <span>다음 경기 조 인원</span>
+          <div>
+            ${options.map(option => `
+              <button class="${String(state.settings.nextGroupSize || "") === String(option) ? "active" : ""}" onclick="setNextGroupSize('${option}')">${option === "" ? "자동" : `${option}명`}</button>
+            `).join("")}
+          </div>
+        </div>
+      `;
+    }
+
     function buildCandidateGroups(players, stageName) {
       const laneCount = state.settings.laneCount;
       const targetGroupSize = getNextGroupSize();
@@ -2239,7 +2267,8 @@
         meta: {
           attempts: tries,
           score: bestScore,
-          sameTeam: sameTeamGroupCount(best)
+          sameTeam: sameTeamGroupCount(best),
+          groupSize: getNextGroupSize()
         }
       };
     }
@@ -2383,7 +2412,7 @@
     function setTournamentField(field, value) {
       ensureStateDefaults();
       state.tournament[field] = value;
-      saveLiveState();
+      renderOperator();
     }
 
     function matchModeLabel(mode = state.settings.matchMode) {
@@ -2397,25 +2426,22 @@
     function setMatchMode(mode) {
       ensureStateDefaults();
       if (isTournamentLocked() && !confirm("대회가 시작/종료된 상태입니다. 경기 방식을 바꾸면 기록이 꼬일 수 있습니다. 계속할까요?")) return;
+
       if (state.qualifierRounds.some(round => round.stages.length) || state.finalRace) {
-        if (!confirm("경기 방식을 바꾸면 현재 대진표가 라운드 초기화됩니다. 계속할까요?")) return;
-        const currentTournament = { ...state.tournament };
-        const inputText = state.inputText;
-        const laneCount = state.settings.laneCount;
-        const avoidance = state.settings.avoidance;
-        const forcedGroupCount = state.settings.forcedGroupCount;
-        const excludeFinalists = state.settings.excludeFinalists;
-        const sameLanePrevention = state.settings.sameLanePrevention;
-        state = makeInitialState(laneCount);
-        state.inputText = inputText;
-        state.tournament = currentTournament;
-        state.settings.avoidance = avoidance;
-        state.settings.forcedGroupCount = forcedGroupCount;
-        state.settings.excludeFinalists = excludeFinalists;
-        state.settings.sameLanePrevention = sameLanePrevention;
-        activeRoundIndex = 0;
+        if (!confirm("경기 방식을 바꾸면 현재 대진표가 초기화됩니다. 계속할까요?")) return;
       }
-      state.settings.matchMode = mode;
+
+      const currentTournament = { ...state.tournament };
+      const inputText = state.inputText;
+      const previousSettings = { ...state.settings };
+
+      state = makeInitialState(previousSettings.laneCount || 3);
+      state.inputText = inputText;
+      state.tournament = currentTournament;
+      state.settings = { ...state.settings, ...previousSettings, matchMode: mode };
+      state.qualifierRounds = makeQualifierRounds(state.settings.laneCount, mode);
+      state.finalRace = null;
+      activeRoundIndex = 0;
       renderOperator();
     }
 
@@ -2602,7 +2628,7 @@
         round.finalist = null;
         round.stages = [generatePointStage(players, round.index, 1, "포인트 1차전")];
       } else if (isRevivalMode()) {
-        const plan = makeStagePlan(players.length, state.settings.laneCount);
+        const plan = makeStagePlan(players.length, state.settings.laneCount).map(name => name === "라운드 결승" ? "결승" : name);
         round.stagePlan = [...plan, "패자부활 삽입 가능"];
         round.stages = [];
         round.finalist = null;
@@ -2647,7 +2673,7 @@
     }
 
     function getNextStageName(round, nextPlayersCount) {
-      if (nextPlayersCount <= state.settings.laneCount) return "라운드 결승";
+      if (nextPlayersCount <= state.settings.laneCount) return isRevivalMode() ? "결승" : "라운드 결승";
 
       const nextIndex = round.stages.length;
       const planned = round.stagePlan[nextIndex];
@@ -2685,12 +2711,12 @@
       if (!round || !round.stages.length) return showError("먼저 해당 라운드를 진행하세요.");
 
       const lastStage = round.stages[round.stages.length - 1];
-      const validFinalStage = lastStage.name === "라운드 결승" || lastStage.type === "pointFinal";
-      if (!validFinalStage) return showError("라운드 결승 또는 포인트 상위 결정전에서만 최종 결승 진출자를 확정할 수 있습니다.");
+      const validFinalStage = lastStage.name === "라운드 결승" || lastStage.name === "결승" || lastStage.type === "pointFinal";
+      if (!validFinalStage) return showError(isRevivalMode() ? "결승 경기에서만 우승자를 확정할 수 있습니다." : "라운드 결승 또는 포인트 상위 결정전에서만 최종 결승 진출자를 확정할 수 있습니다.");
 
       const selected = getSelectedFromStage(lastStage);
-      if (selected.length === 0) return showError("최종 결승 진출자를 선택하세요.");
-      if (selected.length > 1) return showError("각 라운드의 최종 결승 진출자는 1명만 선택해야 합니다.");
+      if (selected.length === 0) return showError(isRevivalMode() ? "우승자를 선택하세요." : "최종 결승 진출자를 선택하세요.");
+      if (selected.length > 1) return showError(isRevivalMode() ? "우승자는 1명만 선택해야 합니다." : "각 라운드의 최종 결승 진출자는 1명만 선택해야 합니다.");
 
       round.finalist = selected[0];
       state.finalRace = null;
@@ -2773,17 +2799,19 @@
       ensureStateDefaults();
       if (isTournamentLocked() && !confirm("대회가 시작/종료된 상태입니다. 레인 수를 바꾸면 기록이 꼬일 수 있습니다. 계속할까요?")) return;
       if (state.qualifierRounds.some(round => round.stages.length) || state.finalRace) {
-        if (!confirm("경기 타입을 바꾸면 현재 대진표가 라운드 초기화됩니다. 계속할까요?")) return;
+        if (!confirm("경기 타입을 바꾸면 현재 대진표가 초기화됩니다. 계속할까요?")) return;
       }
+
       const inputText = state.inputText;
       const previousSettings = { ...state.settings };
       const previousTournament = { ...state.tournament };
 
       state = makeInitialState(laneCount);
       state.inputText = inputText;
-      state.settings = { ...state.settings, ...previousSettings, laneCount };
+      state.settings = { ...state.settings, ...previousSettings, laneCount, nextGroupSize: "" };
       state.tournament = previousTournament;
-      state.qualifierRounds = makeQualifierRounds(laneCount);
+      state.qualifierRounds = makeQualifierRounds(laneCount, state.settings.matchMode);
+      state.finalRace = null;
       activeRoundIndex = 0;
       renderOperator();
     }
@@ -2890,7 +2918,7 @@
           round.stagePlan = ["포인트 1차전", "포인트 2차전", "포인트 3차전", `포인트 상위 ${state.settings.laneCount}명 결정전`];
           round.stages = [generatePointStage(roundPlayers, round.index, 1, "포인트 1차전")];
         } else if (isRevivalMode()) {
-          const plan = makeStagePlan(roundPlayers.length, state.settings.laneCount);
+          const plan = makeStagePlan(roundPlayers.length, state.settings.laneCount).map(name => name === "라운드 결승" ? "결승" : name);
           round.stagePlan = [...plan, "패자부활 삽입 가능"];
           round.stages = [generateStage(roundPlayers, round.index, 1, plan[0])];
         } else {
@@ -2932,22 +2960,24 @@
 
           <div class="layout">
             <main class="main-area">
-              <div class="toolbar main-toolbar">
+              <div class="toolbar">
                 <button class="primary" onclick="openTvView()">TV LIVE</button>
                 <button class="ghost" onclick="shareMobileView()">MOBILE LINK</button>
-                <button class="ghost" onclick="openPrintView()">PRINT</button>
                 <button class="ghost" onclick="openDbPage()">PLAYER DB</button>
+                <button class="ghost" onclick="openPrintView()">PRINT</button>
                 <div class="grow"></div>
-                <button class="ghost final-action" onclick="createFinalRace()">최종 결승 진행</button>
+                ${!isRevivalMode() ? `<button class="ghost" onclick="createFinalRace()">최종 결승 진행</button>` : ""}
               </div>
 
               ${renderTournamentStatusPanel()}
 
-              ${renderFinalRace()}
+              ${!isRevivalMode() ? renderFinalRace() : ""}
 
-              <div class="tabs">
-                ${state.qualifierRounds.map((round, index) => renderRoundTab(round, index)).join("")}
-              </div>
+              ${!isRevivalMode() ? `
+                <div class="tabs">
+                  ${state.qualifierRounds.map((round, index) => renderRoundTab(round, index)).join("")}
+                </div>
+              ` : ""}
 
               ${renderActiveRound(activeRound, activeRoundIndex)}
 
@@ -2961,16 +2991,16 @@
                 <div class="form-grid">
                   <div>
                     <label>대회명</label>
-                    <input class="mini-input" placeholder="GEEKS OPEN" value="${escapeHtml(state.tournament.name || "")}" oninput="setTournamentField('name', this.value)" onblur="renderOperator()" />
+                    <input class="mini-input" placeholder="OPEN CLASS" value="${escapeHtml(state.tournament.name || "")}" oninput="setTournamentField('name', this.value)" />
                   </div>
                   <div>
                     <label>경기장</label>
-                    <input class="mini-input" placeholder="ATHENS 경기장" value="${escapeHtml(state.tournament.venue || "")}" oninput="setTournamentField('venue', this.value)" onblur="renderOperator()" />
+                    <input class="mini-input" placeholder="" value="${escapeHtml(state.tournament.venue || "")}" oninput="setTournamentField('venue', this.value)" />
                   </div>
                 </div>
                 <p class="hint">대회명과 경기장을 입력하면 결과 다운로드와 출력용 대진표에 함께 표시됩니다.</p>
                 <div style="margin:8px 0 14px;">
-                  <span class="pill">경기일시: ${state.tournament.startedAtDisplay || "대회 진행 시작 시 자동 기록"}</span>
+                  <span class="pill">경기일시: ${state.tournament.startedAtDisplay || "대회 시작 시 자동 기록"}</span>
                 </div>
 
                 <label>경기 방식</label>
@@ -2991,12 +3021,14 @@
                   ${["none", "low", "medium", "high"].map(level => `<button class="${state.settings.avoidance === level ? "active" : ""}" onclick="setSetting('avoidance', '${level}')">${avoidanceLabel(level)}</button>`).join("")}
                 </div>
 
-                <label>같은 레인 방지</label>
+<label>같은 레인 방지</label>
                 <div class="btnrow">
                   <button class="${!state.settings.sameLanePrevention ? "active" : ""}" onclick="setSetting('sameLanePrevention', false)">없음</button>
                   <button class="${state.settings.sameLanePrevention ? "active" : ""}" onclick="setSetting('sameLanePrevention', true)">적용</button>
                 </div>
                 <p class="hint">이전 경기에서 배정된 레인 이력을 보고, 가능하면 같은 레인을 피해서 배정합니다.</p>
+
+                
 
                 <div class="form-grid">
                   <div>
@@ -3042,11 +3074,7 @@
                   <div class="finalist-item"><b>경기장</b><br>${escapeHtml(state.tournament.venue || "미입력")}</div>
                   ${renderBroadcastStatus()}
                   <div class="finalist-item"><b>같은 레인 방지</b><br>${state.settings.sameLanePrevention ? "ON" : "OFF"}</div>
-                </div>
-                <div class="download-actions">
-                  <span>기록 다운로드</span>
-                  <button class="ghost small" onclick="exportTournamentCsv()">결과 CSV</button>
-                  <button class="ghost small" onclick="exportTournamentJson()">기록 JSON</button>
+                  <div class="finalist-item download-mini"><b>기록 다운로드</b><br><button onclick="exportTournamentCsv()">결과 CSV</button><button onclick="exportTournamentJson()">기록 JSON</button></div>
                 </div>
               </section>
             </aside>
@@ -3055,7 +3083,6 @@
       `;
     }
 
-    
     function openUsageManual() {
       closeUsageManual();
 
@@ -3135,8 +3162,7 @@
       if (existing) existing.remove();
     }
 
-    
-function renderRoundTab(round, index) {
+    function renderRoundTab(round, index) {
       const status = getRoundStatus(round);
       return `
         <button class="tab-btn ${activeRoundIndex === index ? "active" : ""}" onclick="setActiveRound(${index})">
@@ -3169,8 +3195,8 @@ function renderRoundTab(round, index) {
             <div>
               <div class="round-title">
                 <h2>${escapeHtml(round.title)}</h2>
-                <span class="round-badge">${state.settings.laneCount}레인 결승 진출자 선발</span>
-                ${round.finalist ? `<span class="round-badge finalist-badge">진출: ${escapeHtml(round.finalist.name)}</span>` : `<span class="round-badge">미확정</span>`}
+                <span class="round-badge">${isRevivalMode() ? "단일 토너먼트" : `${state.settings.laneCount}레인 결승 진출자 선발`}</span>
+                ${round.finalist ? `<span class="round-badge finalist-badge">${isRevivalMode() ? "우승:" : "진출:"} ${escapeHtml(round.finalist.name)}</span>` : `<span class="round-badge">대기중</span>`}
               </div>
               <div class="meta">
                 경기 순서 : ${round.stagePlan.length ? round.stagePlan.join(" → ") : makeStagePlan(Math.max(2, parseParticipants().length), state.settings.laneCount).join(" → ")}
@@ -3180,9 +3206,10 @@ function renderRoundTab(round, index) {
               <button class="primary" onclick="startQualifierRound(${roundIndex})">${round.stages.length ? "이번 라운드 재추첨" : "이 라운드 시작"}</button>
               <button class="ghost" onclick="createNextStage(${roundIndex})">${currentStage?.type === "revival" ? "패자부활 진출자 합류" : "다음 경기 진행"}</button>
               ${isRevivalMode() && currentStage && currentStage.type !== "revival" && currentStage.name !== "라운드 결승" ? `<button class="ghost" onclick="createRevivalStage(${roundIndex})">패자부활전 생성</button>` : ""}
-              <button class="ghost" onclick="confirmRoundFinalist(${roundIndex})">결승 진출자 확정</button>
+              <button class="ghost" onclick="confirmRoundFinalist(${roundIndex})">${isRevivalMode() ? "우승자 확정" : "결승 진출자 확정"}</button>
               <button class="danger" onclick="resetQualifierRound(${roundIndex})">라운드 초기화</button>
             </div>
+            ${renderGroupSizeControl()}
           </div>
 
           ${currentStage ? `
@@ -3265,7 +3292,7 @@ function renderRoundTab(round, index) {
           <div class="stage-head">
             <div>
               <h3>${escapeHtml(stage.name)} ${isBroadcast ? `<span class="round-badge live-badge">● TV 송출중</span>` : ""}</h3>
-              <div class="meta">점수 입력: ${stage.pointOptions.join(" / ")}점 · ${stage.groups.length}개 조</div>
+              <div class="meta">포인트 선택: ${stage.pointOptions.join(" / ")}점 · ${stage.groups.length}개 조</div>
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
               <button class="${isBroadcast ? "primary" : "ghost"}" onclick="setBroadcastStage(${roundIndex}, ${stageIndex})">TV 송출</button>
@@ -3367,11 +3394,11 @@ function renderRoundTab(round, index) {
       ensureStateDefaults();
       const status = state.tournament.status || "draft";
       const actionButtons = status === "draft"
-        ? `<button class="primary" onclick="startTournament()">대회 진행 시작</button>`
+        ? `<button class="primary" onclick="startTournament()">대회 시작</button>`
         : status === "running"
-          ? `<button class="primary" onclick="finishTournament()">대회 마감</button>`
+          ? `<button class="primary" onclick="finishTournament()">대회 종료</button>`
           : status === "finished"
-            ? `<button class="ghost" onclick="reopenTournament()">종료 취소</button><button class="ghost" onclick="archiveTournament()">기록 저장 완료</button>`
+            ? `<button class="ghost" onclick="reopenTournament()">종료 해제</button><button class="ghost" onclick="archiveTournament()">저장 완료 표시</button>`
             : `<button class="ghost" onclick="reopenTournament()">다시 진행</button>`;
 
       return `
@@ -3400,7 +3427,7 @@ function renderRoundTab(round, index) {
             <h2>최종 결승</h2>
             <p class="hint">${state.settings.laneCount}명의 라운드 결승 진출자가 모두 확정되면 최종 결승을 진행할 수 있습니다.</p>
             <div class="finalist-grid">
-              ${state.qualifierRounds.map(round => `<div class="finalist-item"><b>${round.title}</b><br>${round.finalist ? `${escapeHtml(round.finalist.name)}${round.finalist.team ? " / " + escapeHtml(round.finalist.team) : ""}` : "미확정"}</div>`).join("")}
+              ${state.qualifierRounds.map(round => `<div class="finalist-item"><b>${round.title}</b><br>${round.finalist ? `${escapeHtml(round.finalist.name)}${round.finalist.team ? " / " + escapeHtml(round.finalist.team) : ""}` : "대기중"}</div>`).join("")}
             </div>
             <button class="primary" style="margin-top:12px;" onclick="createFinalRace()">최종 결승 진행</button>
           </section>
@@ -3721,7 +3748,7 @@ function renderTvStage() {
             <div>
               <div class="round-title">
                 <h2>${escapeHtml(round.title)}</h2>
-                ${round.finalist ? `<span class="round-badge finalist-badge">진출: ${escapeHtml(round.finalist.name)}</span>` : `<span class="round-badge">미확정</span>`}
+                ${round.finalist ? `<span class="round-badge finalist-badge">진출: ${escapeHtml(round.finalist.name)}</span>` : `<span class="round-badge">대기중</span>`}
               </div>
             </div>
           </div>
@@ -4156,7 +4183,7 @@ function renderTvStage() {
                 <div class="db-panel-title"><h2>선수 빠른 추가</h2><span class="pill">Roster</span></div>
                 <div class="form-grid">
                   <div><label>선수명</label><input class="mini-input" id="dbName" placeholder="홍길동" /></div>
-                  <div><label>팀명</label><input class="mini-input" id="dbTeam" placeholder="GEEKS" /></div>
+                  <div><label>팀명</label><input class="mini-input" id="dbTeam" placeholder="OPEN CLASS" /></div>
                   <div><label>닉네임</label><input class="mini-input" id="dbNickname" placeholder="마이" /></div>
                   <div><label>메모</label><input class="mini-input" id="dbMemo" placeholder="차량/특이사항" /></div>
                 </div>
@@ -4177,7 +4204,7 @@ function renderTvStage() {
               <section class="card">
                 <h2>목록 일괄 추가</h2>
                 <p class="hint">한 줄에 한 명씩 입력합니다. 형식: 이름/팀명</p>
-                <textarea id="quickImportText" style="min-height:150px;" placeholder="홍길동/GEEKS&#10;김철수/A팀"></textarea>
+                <textarea id="quickImportText" style="min-height:150px;" placeholder="OPEN CLASS"></textarea>
                 <button class="ghost" style="width:100%; margin-top:10px;" onclick="quickImportRosterLines()">목록에서 선수 추가</button>
               </section>
 
@@ -4363,6 +4390,53 @@ function renderTvStage() {
       window.open(`${location.origin}${location.pathname}#view=print`, "_blank", "noopener,noreferrer");
     }
 
+    function exportPrintExcel() {
+      let payload = null;
+      try {
+        payload = JSON.parse(localStorage.getItem(STORAGE_KEY) || "");
+      } catch (error) {
+        payload = exportState();
+      }
+      if (!payload) payload = exportState();
+
+      const printable = getCurrentStageForPrint(payload);
+      if (!printable || !printable.groups?.length) {
+        alert("엑셀로 저장할 출력용 대진표가 없습니다.");
+        return;
+      }
+
+      const meta = payload.tournament || {};
+      const settings = payload.settings || {};
+      const rows = [
+        ["대회명", meta.name || ""],
+        ["경기장", meta.venue || ""],
+        ["경기일시", meta.startedAtDisplay || ""],
+        ["경기방식", matchModeLabel(settings.matchMode)],
+        ["레인수", `${settings.laneCount || 3}레인`],
+        ["단계", printable.title || ""],
+        [],
+        ["조", "레인", "선수명"]
+      ];
+
+      printable.groups.forEach(group => {
+        group.slots.forEach(slot => {
+          rows.push([group.name, `${slot.lane}LANE`, slot.isEmptyLane ? "빈 레인" : slot.name]);
+        });
+      });
+
+      const filename = `print_bracket_${Date.now()}.xlsx`;
+
+      if (window.XLSX) {
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        ws["!cols"] = [{ wch: 12 }, { wch: 12 }, { wch: 28 }];
+        XLSX.utils.book_append_sheet(wb, ws, "출력용대진표");
+        XLSX.writeFile(wb, filename);
+      } else {
+        downloadTextFile(filename.replace(".xlsx", ".csv"), toCsv(rows));
+      }
+    }
+
     function renderPrintView() {
       document.body.classList.remove("tv-mode");
       let payload = null;
@@ -4384,6 +4458,7 @@ function renderTvStage() {
         <div class="print-page ${densityClass}">
           <div class="print-controls">
             <button onclick="window.print()">인쇄</button>
+            <button onclick="exportPrintExcel()">엑셀 다운로드</button>
             <button onclick="location.hash=''; boot()">운영 화면</button>
           </div>
 
