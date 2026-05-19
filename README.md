@@ -1,6 +1,6 @@
 # MINI4WD TOURNAMENT MAKER
 
-made by GEEKS 마이
+made by GEEKS 마이 · Special Thanks to SOON.D
 
 ## 포함 파일
 

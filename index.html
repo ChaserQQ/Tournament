@@ -7,13 +7,13 @@
   <!-- KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="MINI4WD TOURNAMENT MAKER" />
-  <meta property="og:description" content="3레인 & 5레인 토너먼트 대진표 made by GEEKS 마이" />
+  <meta property="og:description" content="3레인 & 5레인 토너먼트 대진표 made by GEEKS 마이 · Special Thanks to SOON.D" />
   <meta property="og:image" content="og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="MINI4WD TOURNAMENT MAKER" />
-  <meta name="twitter:description" content="3레인 & 5레인 토너먼트 대진표 made by GEEKS 마이" />
+  <meta name="twitter:description" content="3레인 & 5레인 토너먼트 대진표 made by GEEKS 마이 · Special Thanks to SOON.D" />
   <meta name="twitter:image" content="og-image.png" />
   <style>
     * { box-sizing: border-box; }
@@ -2657,7 +2657,7 @@
     function setTournamentField(field, value) {
       ensureStateDefaults();
       state.tournament[field] = value;
-      renderOperator();
+      saveLiveState();
     }
 
     function ruleSummary(mode = state.settings.matchMode) {
@@ -3203,7 +3203,7 @@
             <div class="header-copy">
               <div class="brand-line">
                 <div class="eyebrow">MINI4WD TOURNAMENT MAKER</div>
-                <div class="maker">made by GEEKS 마이</div>
+                <div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div>
               </div>
               <h1>${matchModeLabel()} · ${state.settings.laneCount}레인</h1>
               <p class="desc">${ruleSummary()}</p>
@@ -3244,11 +3244,11 @@
                 <div class="form-grid">
                   <div>
                     <label>대회명</label>
-                    <input class="mini-input" placeholder="OPEN CLASS" value="${escapeHtml(state.tournament.name || "")}" oninput="setTournamentField('name', this.value)" />
+                    <input class="mini-input" placeholder="OPEN CLASS" value="${escapeHtml(state.tournament.name || "")}" oninput="setTournamentField('name', this.value)" onblur="renderOperator()" />
                   </div>
                   <div>
                     <label>경기장</label>
-                    <input class="mini-input" placeholder="" value="${escapeHtml(state.tournament.venue || "")}" oninput="setTournamentField('venue', this.value)" />
+                    <input class="mini-input" placeholder="" value="${escapeHtml(state.tournament.venue || "")}" oninput="setTournamentField('venue', this.value)" onblur="renderOperator()" />
                   </div>
                 </div>
                 <p class="hint">대회명과 경기장을 입력하면 결과 다운로드와 출력용 대진표에 함께 표시됩니다.</p>
@@ -3784,7 +3784,7 @@
       }
 
       if (!tvState) {
-        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS 마이</div></div><strong>라이브 대기중</strong></div><img class="tv-logo" src="${LOGO_SRC}" alt="Geeks logo" /></div><div class="empty"><h2>운영자 화면에서 대진표를 생성하면 자동 표시됩니다.</h2></div></div>`;
+        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div></div><strong>라이브 대기중</strong></div><img class="tv-logo" src="${LOGO_SRC}" alt="Geeks logo" /></div><div class="empty"><h2>운영자 화면에서 대진표를 생성하면 자동 표시됩니다.</h2></div></div>`;
         return;
       }
 
@@ -3813,7 +3813,7 @@
             <div class="header-copy">
               <div class="brand-line">
                 <div class="eyebrow">MINI4WD TOURNAMENT MAKER</div>
-                <div class="maker">made by GEEKS 마이</div>
+                <div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div>
               </div>
               <h1>모바일 대진표</h1>
               <p class="desc">${matchModeLabel(payload.settings?.matchMode)} · ${payload.settings?.laneCount || 3}레인 · ${escapeHtml(payload.tournament?.name || "대회명 미입력")}</p>
@@ -3877,7 +3877,7 @@
 function renderTvStage() {
       const target = getBroadcastTarget(tvState);
       if (!target) {
-        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS 마이</div></div><strong>대진표 없음</strong></div><img class="tv-logo" src="${LOGO_SRC}" alt="Geeks logo" /></div><div class="empty"><h2>현재 송출할 라운드가 없습니다.</h2></div></div>`;
+        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div></div><strong>대진표 없음</strong></div><img class="tv-logo" src="${LOGO_SRC}" alt="Geeks logo" /></div><div class="empty"><h2>현재 송출할 라운드가 없습니다.</h2></div></div>`;
         return;
       }
 
@@ -3892,7 +3892,7 @@ function renderTvStage() {
             <div class="tv-brand">
               <div class="tv-brand-line">
                 <small>MINI4WD TOURNAMENT MAKER</small>
-                <div class="maker">made by GEEKS 마이</div>
+                <div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div>
               </div>
               <strong>${escapeHtml(target.title)}</strong>
             </div>
@@ -4410,7 +4410,7 @@ function renderTvStage() {
             <div class="header-copy">
               <div class="brand-line">
                 <div class="eyebrow">MINI4WD TOURNAMENT MAKER</div>
-                <div class="maker">made by GEEKS 마이</div>
+                <div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div>
               </div>
               <h1>선수 DB / 오늘 참가자 관리</h1>
               <p class="desc">자주 참가하는 선수를 명부로 저장하고, 오늘 참가자만 선택해서 대진표로 보낼 수 있습니다.</p>
