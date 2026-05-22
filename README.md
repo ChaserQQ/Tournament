@@ -1,6 +1,6 @@
 # MINI4WD TOURNAMENT MAKER
 
-made by GEEKS 마이 · Special Thanks to SOON.D
+made by GEEKS 마이
 
 ## 포함 파일
 
@@ -58,3 +58,20 @@ made by GEEKS 마이 · Special Thanks to SOON.D
 - 선수 등록 양식 다운로드
 - 선수 명부 엑셀/CSV 업로드
 - 사용설명서 팝업
+
+
+## Firebase LIVE
+
+기본 대회 ID: `open-class-20260522`
+
+Realtime Database 저장 경로:
+
+`tournaments/open-class-20260522/state`
+
+모바일 라이브 링크:
+
+`#view=mobile-live&t=open-class-20260522`
+
+TV 라이브 링크:
+
+`#view=tv-live&t=open-class-20260522`

@@ -7,13 +7,13 @@
   <!-- KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="MINI4WD TOURNAMENT MAKER" />
-  <meta property="og:description" content="3레인 & 5레인 토너먼트 대진표 made by GEEKS 마이 · Special Thanks to SOON.D" />
+  <meta property="og:description" content="3레인 & 5레인 토너먼트 대진표 made made made by GEEKS 마이" />
   <meta property="og:image" content="og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="MINI4WD TOURNAMENT MAKER" />
-  <meta name="twitter:description" content="3레인 & 5레인 토너먼트 대진표 made by GEEKS 마이 · Special Thanks to SOON.D" />
+  <meta name="twitter:description" content="3레인 & 5레인 토너먼트 대진표 made made made by GEEKS 마이" />
   <meta name="twitter:image" content="og-image.png" />
   <style>
     * { box-sizing: border-box; }
@@ -2115,18 +2115,63 @@
       }
     }
 
+
+    /* v20 Firebase live integration */
+    .firebase-panel {
+      margin: 0 0 12px;
+      padding: 12px;
+      border: 1px solid rgba(238,233,223,.08);
+      border-radius: 16px;
+      background: rgba(238,233,223,.03);
+    }
+    .firebase-panel label {
+      margin: 0 0 7px;
+      display: block;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 1000;
+      letter-spacing: .02em;
+    }
+    .firebase-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .firebase-actions button {
+      min-height: 30px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+    }
+
   </style>
 </head>
 <body>
   <div id="app"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
   <script>
     const LOGO_SRC = "geeks-logo.webp";
     const STORAGE_KEY = "mini4wdTournamentLiveState";
     const ROSTER_KEY = "mini4wdRosterDB";
     const RECENT_PARTICIPANTS_KEY = "mini4wdRecentParticipantIds";
     const PENDING_PARTICIPANTS_KEY = "mini4wdPendingParticipantsText";
+
+    const DEFAULT_TOURNAMENT_ID = "open-class-20260522";
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyB6xeY68_H0CFR3en1d5ksUmet_nvQy8y0",
+      authDomain: "geeks-46794.firebaseapp.com",
+      databaseURL: "https://geeks-46794-default-rtdb.firebaseio.com",
+      projectId: "geeks-46794",
+      storageBucket: "geeks-46794.firebasestorage.app",
+      messagingSenderId: "265761666359",
+      appId: "1:265761666359:web:538d8e8ca142ad109ed6b2",
+      measurementId: "G-94MJJRQZME"
+    };
+
     const SAMPLE_TEXT = `김철수/A팀
 박민수/B팀
 이영희/C팀
@@ -2157,6 +2202,14 @@
     let dbSelectedIds = new Set();
     let dbSearchText = "";
     let dbTeamFilter = "전체";
+
+    let firebaseApp = null;
+    let firebaseDb = null;
+    let firebaseTournamentId = DEFAULT_TOURNAMENT_ID;
+    let firebaseSaveTimer = null;
+    let firebaseApplyingRemote = false;
+    let firebaseOnline = false;
+
 
     const app = document.getElementById("app");
 
@@ -2219,6 +2272,7 @@
       state.updatedAt = Date.now();
       state.activeRoundIndex = activeRoundIndex;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(exportState()));
+      queueFirebaseSave();
     }
 
     function parseParticipants(text = state.inputText) {
@@ -2657,7 +2711,7 @@
     function setTournamentField(field, value) {
       ensureStateDefaults();
       state.tournament[field] = value;
-      saveLiveState();
+      renderOperator();
     }
 
     function ruleSummary(mode = state.settings.matchMode) {
@@ -3130,9 +3184,16 @@
     }
 
     function shareMobileView() {
-      copyOrShare(makeSnapshotUrl("mobile"), "모바일 공유 링크");
+      const id = getCurrentTournamentId();
+      const url = `${location.origin}${location.pathname}#view=mobile-live&t=${encodeURIComponent(id)}`;
+      navigator.clipboard?.writeText(url).then(() => {
+        alert("모바일 라이브 링크를 복사했습니다. 카톡에 붙여넣어 공유하세요.");
+      }).catch(() => {
+        prompt("모바일 라이브 링크를 복사하세요.", url);
+      });
     }
 
+    
     function copyOrShare(url, label) {
       if (navigator.share) {
         navigator.share({ title: "MINI4WD TOURNAMENT MAKER", url }).catch(() => copyText(url, label));
@@ -3203,7 +3264,7 @@
             <div class="header-copy">
               <div class="brand-line">
                 <div class="eyebrow">MINI4WD TOURNAMENT MAKER</div>
-                <div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div>
+                <div class="maker">made made made by GEEKS 마이</div>
               </div>
               <h1>${matchModeLabel()} · ${state.settings.laneCount}레인</h1>
               <p class="desc">${ruleSummary()}</p>
@@ -3244,11 +3305,11 @@
                 <div class="form-grid">
                   <div>
                     <label>대회명</label>
-                    <input class="mini-input" placeholder="OPEN CLASS" value="${escapeHtml(state.tournament.name || "")}" oninput="setTournamentField('name', this.value)" onblur="renderOperator()" />
+                    <input class="mini-input" placeholder="OPEN CLASS" value="${escapeHtml(state.tournament.name || "")}" oninput="setTournamentField('name', this.value)" />
                   </div>
                   <div>
                     <label>경기장</label>
-                    <input class="mini-input" placeholder="" value="${escapeHtml(state.tournament.venue || "")}" oninput="setTournamentField('venue', this.value)" onblur="renderOperator()" />
+                    <input class="mini-input" placeholder="" value="${escapeHtml(state.tournament.venue || "")}" oninput="setTournamentField('venue', this.value)" />
                   </div>
                 </div>
                 <p class="hint">대회명과 경기장을 입력하면 결과 다운로드와 출력용 대진표에 함께 표시됩니다.</p>
@@ -3318,6 +3379,17 @@
               <section class="card">
                 <h2>운영 정보</h2>
                 <button class="primary manual-open-button" onclick="openUsageManual()">사용설명서</button>
+                <div class="firebase-panel">
+                  <label>Firebase LIVE</label>
+                  <input class="mini-input" value="${escapeHtml(getCurrentTournamentId())}" oninput="setTournamentId(this.value)" />
+                  <div class="firebase-actions">
+                    <button onclick="loadFirebaseStateOnce().then(() => renderOperator())">불러오기</button>
+                    <button onclick="queueFirebaseSave()">저장</button>
+                    <button onclick="copyLiveLink()">모바일 링크</button>
+                    <button onclick="openFirebaseTvLive()">TV LIVE</button>
+                  </div>
+                  <p class="hint">상태: ${firebaseStatusText()}</p>
+                </div>
                 <div class="finalist-grid" style="grid-template-columns:1fr;">
                   <div class="finalist-item"><b>경기 방식</b><br>${matchModeLabel()}</div>
                   <div class="finalist-item"><b>대회명</b><br>${escapeHtml(state.tournament.name || "미입력")}</div>
@@ -3639,7 +3711,117 @@
     }
 
 
-    function renderTournamentStatusPanel() {
+    
+    function getCurrentTournamentId() {
+      const params = getHashParams();
+      const fromHash = params.get("t") || params.get("tournamentId");
+      const stored = localStorage.getItem("mini4wdTournamentId");
+      firebaseTournamentId = (fromHash || stored || DEFAULT_TOURNAMENT_ID).trim() || DEFAULT_TOURNAMENT_ID;
+      localStorage.setItem("mini4wdTournamentId", firebaseTournamentId);
+      return firebaseTournamentId;
+    }
+
+    function setTournamentId(value) {
+      const nextId = String(value || "").trim().toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+      firebaseTournamentId = nextId || DEFAULT_TOURNAMENT_ID;
+      localStorage.setItem("mini4wdTournamentId", firebaseTournamentId);
+      renderOperator();
+    }
+
+    function initFirebase() {
+      if (firebaseDb) return firebaseDb;
+      try {
+        if (!window.firebase) return null;
+        firebaseApp = firebase.apps && firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
+        firebaseDb = firebase.database();
+        firebaseOnline = true;
+        return firebaseDb;
+      } catch (error) {
+        firebaseOnline = false;
+        console.warn("Firebase init failed", error);
+        return null;
+      }
+    }
+
+    function tournamentRef() {
+      const db = initFirebase();
+      if (!db) return null;
+      return db.ref(`tournaments/${getCurrentTournamentId()}`);
+    }
+
+    function queueFirebaseSave() {
+      if (firebaseApplyingRemote) return;
+      const ref = tournamentRef();
+      if (!ref) return;
+      clearTimeout(firebaseSaveTimer);
+      firebaseSaveTimer = setTimeout(() => {
+        ref.child("state").set(exportState());
+        ref.child("updatedAt").set(firebase.database.ServerValue.TIMESTAMP);
+      }, 450);
+    }
+
+    function applyRemoteState(payload) {
+      if (!payload) return;
+      state.settings = payload.settings || state.settings;
+      state.tournament = payload.tournament || state.tournament;
+      state.broadcast = payload.broadcast || state.broadcast;
+      state.qualifierRounds = payload.qualifierRounds || state.qualifierRounds;
+      state.finalRace = payload.finalRace || null;
+      state.updatedAt = payload.updatedAt || Date.now();
+      activeRoundIndex = Number(payload.activeRoundIndex || 0);
+    }
+
+    function loadFirebaseStateOnce() {
+      const ref = tournamentRef();
+      if (!ref) return Promise.resolve(false);
+      return ref.child("state").get().then(snapshot => {
+        const payload = snapshot.val();
+        if (!payload) return false;
+        firebaseApplyingRemote = true;
+        applyRemoteState(payload);
+        firebaseApplyingRemote = false;
+        return true;
+      }).catch(error => {
+        console.warn("Firebase load failed", error);
+        return false;
+      });
+    }
+
+    function watchFirebaseState(viewType) {
+      const ref = tournamentRef();
+      if (!ref) return;
+      ref.child("state").on("value", snapshot => {
+        const payload = snapshot.val();
+        if (!payload) return;
+        if (viewType === "tv-live") {
+          tvState = payload;
+          document.body.classList.add("tv-mode");
+          renderTvStage();
+          return;
+        }
+        if (viewType === "mobile-live") {
+          renderTvSnapshot(payload, "mobile");
+          return;
+        }
+      });
+    }
+
+    function firebaseStatusText() {
+      return firebaseOnline ? `연결됨 · ${escapeHtml(getCurrentTournamentId())}` : `대기 · ${escapeHtml(getCurrentTournamentId())}`;
+    }
+
+    function copyLiveLink() {
+      const id = getCurrentTournamentId();
+      const url = `${location.origin}${location.pathname}#view=mobile-live&t=${encodeURIComponent(id)}`;
+      navigator.clipboard?.writeText(url).then(() => alert("모바일 라이브 링크를 복사했습니다.")).catch(() => prompt("모바일 라이브 링크", url));
+    }
+
+    function openFirebaseTvLive() {
+      const id = getCurrentTournamentId();
+      window.open(`${location.origin}${location.pathname}#view=tv-live&t=${encodeURIComponent(id)}`, "_blank", "noopener,noreferrer");
+    }
+
+function renderTournamentStatusPanel() {
       ensureStateDefaults();
       const status = state.tournament.status || "draft";
       const tournamentName = state.tournament.name || "대회명 없음";
@@ -3784,7 +3966,7 @@
       }
 
       if (!tvState) {
-        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div></div><strong>라이브 대기중</strong></div><img class="tv-logo" src="${LOGO_SRC}" alt="Geeks logo" /></div><div class="empty"><h2>운영자 화면에서 대진표를 생성하면 자동 표시됩니다.</h2></div></div>`;
+        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made made made by GEEKS 마이</div></div><strong>라이브 대기중</strong></div><img class="tv-logo" src="${LOGO_SRC}" alt="Geeks logo" /></div><div class="empty"><h2>운영자 화면에서 대진표를 생성하면 자동 표시됩니다.</h2></div></div>`;
         return;
       }
 
@@ -3813,7 +3995,7 @@
             <div class="header-copy">
               <div class="brand-line">
                 <div class="eyebrow">MINI4WD TOURNAMENT MAKER</div>
-                <div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div>
+                <div class="maker">made made made by GEEKS 마이</div>
               </div>
               <h1>모바일 대진표</h1>
               <p class="desc">${matchModeLabel(payload.settings?.matchMode)} · ${payload.settings?.laneCount || 3}레인 · ${escapeHtml(payload.tournament?.name || "대회명 미입력")}</p>
@@ -3877,7 +4059,7 @@
 function renderTvStage() {
       const target = getBroadcastTarget(tvState);
       if (!target) {
-        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div></div><strong>대진표 없음</strong></div><img class="tv-logo" src="${LOGO_SRC}" alt="Geeks logo" /></div><div class="empty"><h2>현재 송출할 라운드가 없습니다.</h2></div></div>`;
+        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made made made by GEEKS 마이</div></div><strong>대진표 없음</strong></div><img class="tv-logo" src="${LOGO_SRC}" alt="Geeks logo" /></div><div class="empty"><h2>현재 송출할 라운드가 없습니다.</h2></div></div>`;
         return;
       }
 
@@ -3892,7 +4074,7 @@ function renderTvStage() {
             <div class="tv-brand">
               <div class="tv-brand-line">
                 <small>MINI4WD TOURNAMENT MAKER</small>
-                <div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div>
+                <div class="maker">made made made by GEEKS 마이</div>
               </div>
               <strong>${escapeHtml(target.title)}</strong>
             </div>
@@ -4410,7 +4592,7 @@ function renderTvStage() {
             <div class="header-copy">
               <div class="brand-line">
                 <div class="eyebrow">MINI4WD TOURNAMENT MAKER</div>
-                <div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div>
+                <div class="maker">made made made by GEEKS 마이</div>
               </div>
               <h1>선수 DB / 오늘 참가자 관리</h1>
               <p class="desc">자주 참가하는 선수를 명부로 저장하고, 오늘 참가자만 선택해서 대진표로 보낼 수 있습니다.</p>
@@ -4859,6 +5041,8 @@ function renderTvStage() {
       const params = getHashParams();
       const view = params.get("view");
       const data = params.get("data");
+      getCurrentTournamentId();
+      initFirebase();
 
       if (view === "db") {
         renderDbPage();
@@ -4871,7 +5055,15 @@ function renderTvStage() {
       }
 
       if (view === "tv-live") {
-        renderTvLiveView();
+        document.body.classList.add("tv-mode");
+        app.innerHTML = `<div class="tv-wrap"><div class="tv-empty"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div></div><strong>라이브 연결중</strong></div></div>`;
+        watchFirebaseState("tv-live");
+        return;
+      }
+
+      if (view === "mobile-live" || view === "live") {
+        app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>라이브 연결중</h2><p>대회 ID: ${escapeHtml(getCurrentTournamentId())}</p></div></div></div>`;
+        watchFirebaseState("mobile-live");
         return;
       }
 
@@ -4890,9 +5082,12 @@ function renderTvStage() {
         localStorage.removeItem(PENDING_PARTICIPANTS_KEY);
       }
 
-      renderOperator();
+      loadFirebaseStateOnce().then(() => {
+        renderOperator();
+      });
     }
 
+    
     boot();
   </script>
 </body>
