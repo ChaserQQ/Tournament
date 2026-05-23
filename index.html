@@ -2646,97 +2646,89 @@
     }
 
 
-    /* v28 TV 16 groups direct fix */
+    /* v28 TV 16 + embedded logo fix */
     body.tv-mode .tv-wrap {
       grid-template-rows: auto auto minmax(0, 1fr) auto !important;
       padding: clamp(8px, 1vw, 16px) !important;
-      gap: clamp(6px, .7vw, 10px) !important;
+      gap: clamp(5px, .65vw, 9px) !important;
     }
     body.tv-mode .tv-head {
-      padding: clamp(5px, .55vw, 9px) 0 !important;
+      padding: clamp(4px, .5vw, 8px) 0 !important;
+    }
+    body.tv-mode .tv-brand strong {
+      font-size: clamp(20px, 2.5vw, 38px) !important;
+    }
+    body.tv-mode .tv-logo {
+      width: clamp(54px, 5.2vw, 84px) !important;
+      max-width: 84px !important;
+      max-height: 54px !important;
     }
     body.tv-mode .tv-controls {
       min-height: 0 !important;
-      padding: clamp(6px, .65vw, 9px) clamp(8px, .8vw, 12px) !important;
-      border-radius: clamp(12px, 1vw, 18px) !important;
-      font-size: clamp(11px, .9vw, 14px) !important;
+      padding: clamp(5px, .55vw, 8px) clamp(7px, .75vw, 11px) !important;
+      border-radius: clamp(10px, .9vw, 16px) !important;
+      font-size: clamp(10px, .82vw, 13px) !important;
     }
     body.tv-mode .tv-controls button {
-      min-height: 30px !important;
-      padding: 6px 10px !important;
-      border-radius: 11px !important;
-      font-size: clamp(10px, .82vw, 13px) !important;
+      min-height: 28px !important;
+      padding: 5px 9px !important;
+      border-radius: 10px !important;
+      font-size: clamp(9px, .78vw, 12px) !important;
     }
     body.tv-mode .tv-stage {
       grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
       grid-auto-rows: minmax(0, 1fr) !important;
-      gap: clamp(6px, .75vw, 11px) !important;
-    }
-    body.tv-mode .tv-stage[style*="repeat(4"] {
-      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      gap: clamp(5px, .65vw, 9px) !important;
     }
     body.tv-mode .tv-group {
-      padding: clamp(7px, .72vw, 11px) !important;
-      gap: clamp(4px, .55vw, 8px) !important;
-      border-width: 1px !important;
-      border-radius: clamp(13px, 1.1vw, 20px) !important;
+      padding: clamp(5px, .65vw, 9px) !important;
+      border-radius: clamp(10px, 1vw, 16px) !important;
+      gap: clamp(3px, .4vw, 6px) !important;
     }
     body.tv-mode .tv-group-title {
-      margin-bottom: clamp(3px, .45vw, 6px) !important;
+      margin-bottom: clamp(2px, .35vw, 5px) !important;
     }
     body.tv-mode .tv-group-title strong {
-      font-size: clamp(15px, 1.35vw, 23px) !important;
+      font-size: clamp(13px, 1.05vw, 19px) !important;
     }
     body.tv-mode .tv-group-title .badge {
-      font-size: clamp(8px, .65vw, 11px) !important;
-      padding: 2px 6px !important;
+      font-size: clamp(8px, .65vw, 10px) !important;
+      padding: 2px 5px !important;
       min-height: 16px !important;
     }
     body.tv-mode .tv-lane {
-      grid-template-columns: minmax(54px, .32fr) minmax(0, 1fr) minmax(38px, .2fr) !important;
-      gap: clamp(5px, .55vw, 9px) !important;
-      padding: clamp(4px, .48vw, 7px) clamp(5px, .6vw, 9px) !important;
-      margin-top: clamp(3px, .35vw, 5px) !important;
-      border-radius: clamp(8px, .8vw, 13px) !important;
+      flex: 1 1 0 !important;
+      grid-template-columns: minmax(46px, .36fr) minmax(0, 1fr) minmax(32px, .18fr) !important;
+      gap: clamp(4px, .55vw, 8px) !important;
+      padding: clamp(3px, .45vw, 7px) !important;
+      border-radius: clamp(7px, .75vw, 11px) !important;
+      margin-top: clamp(2px, .25vw, 4px) !important;
     }
     body.tv-mode .tv-lane-no {
-      font-size: clamp(10px, 1vw, 17px) !important;
-      padding-right: clamp(4px, .45vw, 8px) !important;
+      font-size: clamp(10px, .95vw, 16px) !important;
+      padding-right: clamp(3px, .45vw, 7px) !important;
     }
     body.tv-mode .tv-player strong {
-      font-size: clamp(14px, 1.75vw, 31px) !important;
+      font-size: clamp(13px, 1.45vw, 25px) !important;
       line-height: 1 !important;
-      letter-spacing: -.055em !important;
     }
     body.tv-mode .tv-player span {
-      font-size: clamp(8px, .75vw, 12px) !important;
+      font-size: clamp(7px, .65vw, 10px) !important;
       margin-top: 2px !important;
     }
     body.tv-mode .tv-adv {
-      min-height: 18px !important;
-      font-size: clamp(8px, .75vw, 12px) !important;
+      min-height: 16px !important;
+      font-size: clamp(8px, .65vw, 11px) !important;
       padding: 2px 4px !important;
     }
     body.tv-mode .tv-foot {
-      min-height: 16px !important;
-      font-size: clamp(10px, .8vw, 13px) !important;
-      line-height: 1.1 !important;
+      font-size: clamp(9px, .8vw, 12px) !important;
     }
-    body.tv-mode .tv-lane-count-5 .tv-group {
-      padding: clamp(5px, .55vw, 8px) !important;
-      gap: clamp(3px, .35vw, 5px) !important;
+    @media (max-width: 900px) {
+      body.tv-mode .tv-stage {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      }
     }
-    body.tv-mode .tv-lane-count-5 .tv-lane {
-      padding: clamp(3px, .35vw, 5px) clamp(4px, .45vw, 7px) !important;
-      margin-top: clamp(2px, .25vw, 4px) !important;
-    }
-    body.tv-mode .tv-lane-count-5 .tv-player strong {
-      font-size: clamp(12px, 1.35vw, 24px) !important;
-    }
-    body.tv-mode .tv-lane-count-5 .tv-lane-no {
-      font-size: clamp(9px, .85vw, 15px) !important;
-    }
-
 
   </style>
 </head>
@@ -2747,7 +2739,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
   <script>
-    const LOGO_SRC = "page-logo.webp";
+    const LOGO_SRC = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20420%20220%22%3E%3Cdefs%3E%3ClinearGradient%20id=%22g%22%20x1=%220%22%20x2=%221%22%20y1=%220%22%20y2=%221%22%3E%3Cstop%20offset=%220%22%20stop-color=%22#f06aa3%22/%3E%3Cstop%20offset=%221%22%20stop-color=%22#d84d89%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width=%22420%22%20height=%22220%22%20rx=%2238%22%20fill=%22none%22/%3E%3Cpath%20d=%22M55%2058h126v36H96v22h70v34H96v24h88v36H55z%22%20fill=%22url%28#g%29%22/%3E%3Cpath%20d=%22M201%2058h164v36H242v22h102v34H242v24h126v36H201z%22%20fill=%22#eee9df%22/%3E%3Ctext%20x=%2258%22%20y=%2241%22%20font-family=%22Arial,%20sans-serif%22%20font-size=%2226%22%20font-weight=%22900%22%20letter-spacing=%228%22%20fill=%22#eee9df%22%3EGEEKS%3C/text%3E%3C/svg%3E";
     const STORAGE_KEY = "mini4wdTournamentLiveState";
     const ROSTER_KEY = "mini4wdRosterDB";
     const RECENT_PARTICIPANTS_KEY = "mini4wdRecentParticipantIds";
@@ -4685,10 +4677,10 @@ function renderTvStage() {
       const pages = chunk(target.groups, tvGroupsPerPage);
       if (tvPage >= pages.length) tvPage = 0;
       const currentGroups = pages[tvPage] || [];
-      const columns = tvGroupsPerPage >= 16 ? 4 : (tvGroupsPerPage <= 4 ? 2 : 3);
+      const columns = 4;
 
       app.innerHTML = `
-        <div class="tv-wrap tv-count-${currentGroups.length} tv-lane-count-${target.laneCount}">
+        <div class="tv-wrap">
           <header class="tv-head">
             <div class="tv-brand">
               <div class="tv-brand-line">
