@@ -60,26 +60,8 @@ made by GEEKS 마이
 - 사용설명서 팝업
 
 
-## Firebase LIVE
+## v22 Firebase Safe Mode
 
-기본 대회 ID: `open-class-20260522`
-
-Realtime Database 저장 경로:
-
-`tournaments/open-class-20260522/state`
-
-모바일 라이브 링크:
-
-`#view=mobile-live&t=open-class-20260522`
-
-TV 라이브 링크:
-
-`#view=tv-live&t=open-class-20260522`
-
-
-## v21 수정
-
-- 대회명 / 경기장 입력 중 화면 재렌더링 문제 수정
-- 모바일 운영 화면 스크롤 동선 최적화
-- TV LIVE 화면 가독성 개선
-- 모바일 LIVE 화면 가독성 개선
+- 메인 화면 진입 시 Firebase 자동 불러오기를 하지 않습니다.
+- 사이트 화면을 먼저 표시한 뒤, 운영 정보 영역의 Firebase LIVE에서 수동으로 저장/불러오기를 합니다.
+- Firebase 자동 저장은 체크박스로 켜고 끌 수 있습니다.

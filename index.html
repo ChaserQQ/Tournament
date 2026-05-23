@@ -2457,6 +2457,18 @@
       font-size: 12px !important;
     }
 
+
+    /* v22 firebase safe mode */
+    .firebase-autosave {
+      display: flex !important;
+      align-items: center;
+      gap: 7px;
+      margin: 8px 0 0 !important;
+      color: var(--muted) !important;
+      font-size: 11px !important;
+      font-weight: 900 !important;
+    }
+
   </style>
 </head>
 <body>
@@ -2535,7 +2547,8 @@
           forcedGroupCount: "",
           excludeFinalists: true,
           sameLanePrevention: false,
-          nextGroupSize: ""
+          nextGroupSize: "",
+          firebaseAutoSave: false
         },
         tournament: {
           name: "",
@@ -2584,7 +2597,7 @@
       state.updatedAt = Date.now();
       state.activeRoundIndex = activeRoundIndex;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(exportState()));
-      queueFirebaseSave();
+      if (state.settings.firebaseAutoSave) queueFirebaseSave();
     }
 
     function parseParticipants(text = state.inputText) {
@@ -3700,6 +3713,7 @@
                     <button onclick="copyLiveLink()">모바일 링크</button>
                     <button onclick="openFirebaseTvLive()">TV LIVE</button>
                   </div>
+                  <label class="firebase-autosave"><input type="checkbox" ${state.settings.firebaseAutoSave ? "checked" : ""} onchange="setSetting('firebaseAutoSave', this.checked)" /> Firebase 자동 저장</label>
                   <p class="hint">상태: ${firebaseStatusText()}</p>
                 </div>
                 <div class="finalist-grid" style="grid-template-columns:1fr;">
@@ -4049,7 +4063,10 @@
     function initFirebase() {
       if (firebaseDb) return firebaseDb;
       try {
-        if (!window.firebase) return null;
+        if (!window.firebase || !firebase.initializeApp || !firebase.database) {
+          firebaseOnline = false;
+          return null;
+        }
         firebaseApp = firebase.apps && firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
         firebaseDb = firebase.database();
         firebaseOnline = true;
@@ -4070,11 +4087,17 @@
     function queueFirebaseSave() {
       if (firebaseApplyingRemote) return;
       const ref = tournamentRef();
-      if (!ref) return;
+      if (!ref) {
+        console.warn("Firebase is not ready.");
+        return;
+      }
       clearTimeout(firebaseSaveTimer);
       firebaseSaveTimer = setTimeout(() => {
-        ref.child("state").set(exportState());
-        ref.child("updatedAt").set(firebase.database.ServerValue.TIMESTAMP);
+        ref.child("state").set(exportState()).catch(error => {
+          firebaseOnline = false;
+          console.warn("Firebase save failed", error);
+        });
+        ref.child("updatedAt").set(firebase.database.ServerValue.TIMESTAMP).catch(() => {});
       }, 450);
     }
 
@@ -4091,16 +4114,25 @@
 
     function loadFirebaseStateOnce() {
       const ref = tournamentRef();
-      if (!ref) return Promise.resolve(false);
+      if (!ref) {
+        alert("Firebase 연결 준비가 되지 않았습니다. Rules 또는 SDK 로드를 확인하세요.");
+        return Promise.resolve(false);
+      }
       return ref.child("state").get().then(snapshot => {
         const payload = snapshot.val();
-        if (!payload) return false;
+        if (!payload) {
+          alert("저장된 대회 데이터가 없습니다. 먼저 저장을 눌러주세요.");
+          return false;
+        }
         firebaseApplyingRemote = true;
         applyRemoteState(payload);
         firebaseApplyingRemote = false;
+        firebaseOnline = true;
         return true;
       }).catch(error => {
+        firebaseOnline = false;
         console.warn("Firebase load failed", error);
+        alert("Firebase 불러오기에 실패했습니다. Realtime Database Rules를 확인하세요.");
         return false;
       });
     }
@@ -5356,53 +5388,56 @@ function renderTvStage() {
 
 
     function boot() {
-      const params = getHashParams();
-      const view = params.get("view");
-      const data = params.get("data");
-      getCurrentTournamentId();
-      initFirebase();
+      try {
+        const params = getHashParams();
+        const view = params.get("view");
+        const data = params.get("data");
+        getCurrentTournamentId();
+        initFirebase();
 
-      if (view === "db") {
-        renderDbPage();
-        return;
-      }
-
-      if (view === "print") {
-        renderPrintView();
-        return;
-      }
-
-      if (view === "tv-live") {
-        document.body.classList.add("tv-mode");
-        app.innerHTML = `<div class="tv-wrap"><div class="tv-empty"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div></div><strong>라이브 연결중</strong></div></div>`;
-        watchFirebaseState("tv-live");
-        return;
-      }
-
-      if (view === "mobile-live" || view === "live") {
-        app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>라이브 연결중</h2><p>대회 ID: ${escapeHtml(getCurrentTournamentId())}</p></div></div></div>`;
-        watchFirebaseState("mobile-live");
-        return;
-      }
-
-      if ((view === "tv" || view === "mobile") && data) {
-        try {
-          renderTvSnapshot(decodePayload(data), view);
-        } catch (error) {
-          app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>공유 데이터를 읽을 수 없습니다</h2><p>링크가 손상되었거나 너무 깁니다.</p></div></div></div>`;
+        if (view === "db") {
+          renderDbPage();
+          return;
         }
-        return;
-      }
 
-      const pending = localStorage.getItem(PENDING_PARTICIPANTS_KEY);
-      if (pending) {
-        state.inputText = pending;
-        localStorage.removeItem(PENDING_PARTICIPANTS_KEY);
-      }
+        if (view === "print") {
+          renderPrintView();
+          return;
+        }
 
-      loadFirebaseStateOnce().then(() => {
+        if (view === "tv-live") {
+          document.body.classList.add("tv-mode");
+          app.innerHTML = `<div class="tv-wrap"><div class="tv-empty"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div></div><strong>라이브 연결중</strong></div></div>`;
+          watchFirebaseState("tv-live");
+          return;
+        }
+
+        if (view === "mobile-live" || view === "live") {
+          app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>라이브 연결중</h2><p>대회 ID: ${escapeHtml(getCurrentTournamentId())}</p></div></div></div>`;
+          watchFirebaseState("mobile-live");
+          return;
+        }
+
+        if ((view === "tv" || view === "mobile") && data) {
+          try {
+            renderTvSnapshot(decodePayload(data), view);
+          } catch (error) {
+            app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>공유 데이터를 읽을 수 없습니다</h2><p>링크가 손상되었거나 너무 깁니다.</p></div></div></div>`;
+          }
+          return;
+        }
+
+        const pending = localStorage.getItem(PENDING_PARTICIPANTS_KEY);
+        if (pending) {
+          state.inputText = pending;
+          localStorage.removeItem(PENDING_PARTICIPANTS_KEY);
+        }
+
         renderOperator();
-      });
+      } catch (error) {
+        console.error(error);
+        app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>화면을 여는 중 오류가 발생했습니다</h2><p>${escapeHtml(error.message || String(error))}</p></div></div></div>`;
+      }
     }
 
     
