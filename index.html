@@ -2646,6 +2646,13 @@
     }
 
 
+
+    /* v31 logo asset separation */
+    .header-logo, .tv-logo {
+      background: transparent !important;
+      mix-blend-mode: normal !important;
+    }
+
     /* v29 TV 16 groups + cumulative point display + logo fail-safe */
     body.tv-mode .tv-wrap {
       display: flex !important;
@@ -2773,17 +2780,13 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
   <script>
-    const LOGO_SRC = "page-logo.webp";
+    const LOGO_SRC = "page-logo.png";
     const LOGO_FALLBACK_SRC = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 160"><rect width="480" height="160" fill="none"/><text x="50%" y="48%" dominant-baseline="middle" text-anchor="middle" fill="#eee9df" font-size="54" font-family="Arial, sans-serif" font-weight="900" letter-spacing="-2">GEEKS</text><text x="50%" y="74%" dominant-baseline="middle" text-anchor="middle" fill="#d84d89" font-size="18" font-family="Arial, sans-serif" font-weight="800">MINI4WD TOURNAMENT</text></svg>`);
     const LOGO_CANDIDATES = [
-      "page-logo.webp",
-      "./page-logo.webp",
-      "/Tournament/page-logo.webp",
-      "https://chaserqq.github.io/Tournament/page-logo.webp",
-      "og-image.png",
-      "./og-image.png",
-      "/Tournament/og-image.png",
-      "https://chaserqq.github.io/Tournament/og-image.png"
+      "page-logo.png",
+      "./page-logo.png",
+      "/Tournament/page-logo.png",
+      "https://chaserqq.github.io/Tournament/page-logo.png"
     ];
 
     function handleLogoError(img) {
