@@ -75,3 +75,11 @@ Realtime Database 저장 경로:
 TV 라이브 링크:
 
 `#view=tv-live&t=open-class-20260522`
+
+
+## v21 수정
+
+- 대회명 / 경기장 입력 중 화면 재렌더링 문제 수정
+- 모바일 운영 화면 스크롤 동선 최적화
+- TV LIVE 화면 가독성 개선
+- 모바일 LIVE 화면 가독성 개선
