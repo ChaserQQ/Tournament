@@ -2617,6 +2617,315 @@
       }
     }
 
+
+    /* v25 hard page logo separation */
+    .header-logo,
+    .tv-logo {
+      width: auto !important;
+      max-width: 96px !important;
+      height: auto !important;
+      max-height: 82px !important;
+      object-fit: contain !important;
+      object-position: center !important;
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      filter: none !important;
+      padding: 0 !important;
+      border-radius: 0 !important;
+    }
+    .tv-logo {
+      max-width: 110px !important;
+      max-height: 94px !important;
+    }
+    @media (max-width: 760px) {
+      .header-logo {
+        max-width: 58px !important;
+        max-height: 50px !important;
+      }
+    }
+
+
+    /* v26 TV autofit + transparent logo */
+    .header-logo,
+    .tv-logo {
+      object-fit: contain !important;
+      object-position: center !important;
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      filter: none !important;
+      padding: 0 !important;
+      border-radius: 0 !important;
+      mix-blend-mode: normal !important;
+    }
+    .header-logo {
+      width: clamp(58px, 7vw, 96px) !important;
+      height: auto !important;
+      max-height: 88px !important;
+    }
+    .tv-logo {
+      width: clamp(58px, 7vw, 102px) !important;
+      height: auto !important;
+      max-height: 92px !important;
+    }
+
+    body.tv-mode {
+      overflow: hidden !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      max-height: 100vh !important;
+    }
+    body.tv-mode #app {
+      width: 100vw !important;
+      height: 100vh !important;
+      overflow: hidden !important;
+    }
+    body.tv-mode .tv-wrap {
+      width: 100vw !important;
+      height: 100vh !important;
+      max-height: 100vh !important;
+      overflow: hidden !important;
+      display: grid !important;
+      grid-template-rows: auto minmax(0, 1fr) auto !important;
+      gap: clamp(6px, .8vw, 12px) !important;
+      padding: clamp(8px, 1.1vw, 18px) !important;
+      box-sizing: border-box !important;
+    }
+    body.tv-mode .tv-head {
+      min-height: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      gap: clamp(10px, 1.2vw, 18px) !important;
+      align-items: center !important;
+    }
+    body.tv-mode .tv-brand {
+      min-width: 0 !important;
+    }
+    body.tv-mode .tv-brand-line {
+      margin-bottom: clamp(2px, .35vw, 5px) !important;
+    }
+    body.tv-mode .tv-brand-line small {
+      font-size: clamp(9px, .9vw, 13px) !important;
+      letter-spacing: .08em !important;
+    }
+    body.tv-mode .tv-brand-line .maker {
+      font-size: clamp(8px, .75vw, 11px) !important;
+      line-height: 1.15 !important;
+      opacity: .78 !important;
+    }
+    body.tv-mode .tv-brand strong {
+      display: block !important;
+      font-size: clamp(20px, 3.1vw, 44px) !important;
+      line-height: .98 !important;
+      letter-spacing: -.055em !important;
+      max-width: 78vw !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.tv-mode .tv-stage {
+      height: 100% !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+      display: grid !important;
+      grid-template-columns: repeat(var(--tv-cols), minmax(0, 1fr)) !important;
+      grid-template-rows: repeat(var(--tv-rows), minmax(0, 1fr)) !important;
+      gap: clamp(6px, .8vw, 12px) !important;
+      align-content: stretch !important;
+    }
+    body.tv-mode .tv-group {
+      min-height: 0 !important;
+      height: 100% !important;
+      overflow: hidden !important;
+      display: flex !important;
+      flex-direction: column !important;
+      padding: clamp(6px, .75vw, 12px) !important;
+      border-radius: clamp(12px, 1.2vw, 18px) !important;
+    }
+    body.tv-mode .tv-group-title {
+      flex: 0 0 auto !important;
+      min-height: 0 !important;
+      margin: 0 0 clamp(4px, .45vw, 7px) !important;
+    }
+    body.tv-mode .tv-group-title strong {
+      font-size: clamp(14px, 1.35vw, 22px) !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.tv-mode .tv-group-title .badge {
+      font-size: clamp(8px, .7vw, 11px) !important;
+      min-height: 18px !important;
+      padding: 2px 6px !important;
+    }
+    body.tv-mode .tv-lane {
+      flex: 1 1 0 !important;
+      min-height: 0 !important;
+      display: grid !important;
+      grid-template-columns: minmax(50px, .34fr) minmax(0, 1fr) minmax(36px, .18fr) !important;
+      gap: clamp(5px, .6vw, 10px) !important;
+      align-items: center !important;
+      padding: clamp(4px, .55vw, 8px) !important;
+      border-radius: clamp(8px, .85vw, 13px) !important;
+      margin-top: clamp(3px, .38vw, 6px) !important;
+    }
+    body.tv-mode .tv-lane-no {
+      font-size: clamp(11px, 1.1vw, 18px) !important;
+      line-height: 1 !important;
+      padding-right: clamp(4px, .5vw, 8px) !important;
+      border-right: 1px solid rgba(238,233,223,.12) !important;
+      white-space: nowrap !important;
+    }
+    body.tv-mode .tv-player {
+      min-width: 0 !important;
+    }
+    body.tv-mode .tv-player strong {
+      display: block !important;
+      font-size: clamp(17px, 2vw, 34px) !important;
+      line-height: .98 !important;
+      letter-spacing: -.055em !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.tv-mode .tv-player span {
+      display: block !important;
+      font-size: clamp(8px, .8vw, 12px) !important;
+      margin-top: 2px !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.tv-mode .tv-adv {
+      min-height: clamp(18px, 1.6vw, 26px) !important;
+      font-size: clamp(9px, .8vw, 13px) !important;
+      padding: 2px 5px !important;
+      border-radius: 999px !important;
+      white-space: nowrap !important;
+    }
+    body.tv-mode .tv-pager {
+      min-height: 14px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      font-size: clamp(9px, .75vw, 11px) !important;
+      line-height: 1 !important;
+      color: rgba(238,233,223,.5) !important;
+    }
+
+    body.tv-mode .tv-fit-5lane .tv-brand strong {
+      font-size: clamp(18px, 2.7vw, 38px) !important;
+    }
+    body.tv-mode .tv-fit-5lane .tv-player strong {
+      font-size: clamp(15px, 1.65vw, 28px) !important;
+    }
+    body.tv-mode .tv-fit-5lane .tv-lane {
+      padding: clamp(3px, .45vw, 7px) !important;
+      margin-top: clamp(2px, .3vw, 5px) !important;
+    }
+    body.tv-mode .tv-fit-4groups .tv-player strong {
+      font-size: clamp(15px, 1.75vw, 29px) !important;
+    }
+
+
+    /* v27 TV focus groups and qualifier board */
+    body.tv-mode .tv-body {
+      min-height: 0 !important;
+      height: 100% !important;
+      overflow: hidden !important;
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) minmax(210px, 22vw) !important;
+      gap: clamp(7px, .8vw, 12px) !important;
+    }
+    body.tv-mode .tv-wrap[style*="--tv-side:0"] .tv-body {
+      grid-template-columns: 1fr !important;
+    }
+    body.tv-mode .tv-body .tv-stage {
+      min-height: 0 !important;
+      height: 100% !important;
+    }
+    body.tv-mode .tv-qualifiers {
+      min-height: 0 !important;
+      overflow: hidden !important;
+      border: 1px solid rgba(240,106,163,.28);
+      border-radius: clamp(12px, 1vw, 18px);
+      background: rgba(240,106,163,.08);
+      padding: clamp(8px, .8vw, 13px);
+      display: flex;
+      flex-direction: column;
+    }
+    body.tv-mode .tv-qualifiers-title {
+      flex: 0 0 auto;
+      color: #ff8dbb;
+      font-size: clamp(13px, 1.1vw, 18px);
+      font-weight: 1000;
+      margin-bottom: clamp(6px, .7vw, 10px);
+      letter-spacing: -.02em;
+    }
+    body.tv-mode .tv-qualifier-list {
+      min-height: 0;
+      overflow: hidden;
+      display: grid;
+      gap: clamp(5px, .6vw, 9px);
+      align-content: start;
+    }
+    body.tv-mode .tv-qualifier {
+      border-radius: clamp(10px, .8vw, 14px);
+      background: rgba(238,233,223,.07);
+      padding: clamp(6px, .65vw, 10px);
+      min-width: 0;
+    }
+    body.tv-mode .tv-qualifier strong {
+      display: block;
+      color: var(--text);
+      font-size: clamp(16px, 1.65vw, 28px);
+      line-height: 1.05;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: -.05em;
+    }
+    body.tv-mode .tv-qualifier span {
+      display: block;
+      color: var(--muted);
+      font-size: clamp(9px, .8vw, 12px);
+      margin-top: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mobile-qualifier-box {
+      display: grid;
+      gap: 5px;
+      margin: 0 0 10px;
+      padding: 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(240,106,163,.25);
+      background: rgba(240,106,163,.08);
+    }
+    .mobile-qualifier-box b {
+      color: #ff8dbb;
+      font-size: 12px;
+    }
+    .mobile-qualifier-box span {
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 900;
+    }
+    @media (max-width: 900px) {
+      body.tv-mode .tv-body {
+        grid-template-columns: 1fr !important;
+        grid-template-rows: minmax(0, 1fr) auto !important;
+      }
+      body.tv-mode .tv-qualifiers {
+        max-height: 22vh;
+      }
+      body.tv-mode .tv-qualifier-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -2626,7 +2935,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
   <script>
-    const LOGO_SRC = "geeks-logo.webp";
+    const LOGO_SRC = "page-logo.png";
     const STORAGE_KEY = "mini4wdTournamentLiveState";
     const ROSTER_KEY = "mini4wdRosterDB";
     const RECENT_PARTICIPANTS_KEY = "mini4wdRecentParticipantIds";
@@ -3286,6 +3595,7 @@
       if (!player || player.isEmptyLane) return;
       group.points = group.points || {};
       group.points[playerId] = Number(score);
+      stage.lastFocusGroupId = groupId;
       state.broadcast = { mode: "stage", roundIndex, stageIndex };
       activeRoundIndex = roundIndex;
       renderOperator();
@@ -3526,6 +3836,7 @@
         group.advanceIds.push(playerId);
       }
 
+      stage.lastFocusGroupId = groupId;
       state.broadcast = { mode: "stage", roundIndex, stageIndex };
       activeRoundIndex = roundIndex;
       renderOperator();
@@ -4426,6 +4737,9 @@ function renderTournamentStatusPanel() {
           title: "최종 결승",
           laneCount: payload.settings.laneCount,
           groups: [payload.finalRace.group],
+          stage: payload.finalRace,
+          roundIndex: -1,
+          stageIndex: -1,
           isFinal: true,
           stageType: "final"
         };
@@ -4434,13 +4748,18 @@ function renderTournamentStatusPanel() {
       const round = payload.qualifierRounds?.[broadcast.roundIndex];
       const stage = round?.stages?.[broadcast.stageIndex];
       if (!round || !stage) {
-        const fallbackRound = payload.qualifierRounds?.find(item => item.stages?.length);
-        const fallbackStage = fallbackRound?.stages?.[fallbackRound.stages.length - 1];
+        const fallbackRoundIndex = payload.qualifierRounds?.findIndex(item => item.stages?.length);
+        const fallbackRound = fallbackRoundIndex >= 0 ? payload.qualifierRounds[fallbackRoundIndex] : null;
+        const fallbackStageIndex = fallbackRound?.stages?.length ? fallbackRound.stages.length - 1 : -1;
+        const fallbackStage = fallbackStageIndex >= 0 ? fallbackRound.stages[fallbackStageIndex] : null;
         if (!fallbackRound || !fallbackStage) return null;
         return {
           title: `${fallbackRound.title} · ${fallbackStage.name}`,
           laneCount: payload.settings.laneCount,
           groups: fallbackStage.groups,
+          stage: fallbackStage,
+          roundIndex: fallbackRoundIndex,
+          stageIndex: fallbackStageIndex,
           isFinal: false,
           stageType: fallbackStage.type || "normal"
         };
@@ -4450,6 +4769,9 @@ function renderTournamentStatusPanel() {
         title: `${round.title} · ${stage.name}`,
         laneCount: payload.settings.laneCount,
         groups: stage.groups,
+        stage,
+        roundIndex: broadcast.roundIndex,
+        stageIndex: broadcast.stageIndex,
         isFinal: false,
         stageType: stage.type || "normal"
       };
@@ -4505,6 +4827,7 @@ function renderTournamentStatusPanel() {
             <section class="final-box mobile-current">
               <h2>현재 진행</h2>
               <p class="hint">${escapeHtml(target.title)}</p>
+              <div class="mobile-live-summary">${renderMobileQualifiers(payload, target)}</div>
               <div class="groups" style="grid-template-columns:1fr;">
                 ${target.groups.map(group => target.stageType === "points" ? renderReadOnlyPointGroup(group, { type: "points" }) : renderReadOnlyGroup(group, target.isFinal)).join("")}
               </div>
@@ -4554,6 +4877,116 @@ function renderTournamentStatusPanel() {
       `;
     }
 
+
+    function getTvFocusedGroups(stage, groups, maxPerPage) {
+      if (!groups || !groups.length) return [];
+      const focusId = stage?.lastFocusGroupId;
+      let startIndex = focusId ? groups.findIndex(group => group.id === focusId) : 0;
+      if (startIndex < 0) startIndex = 0;
+
+      if (startIndex + maxPerPage > groups.length) {
+        startIndex = Math.max(0, groups.length - maxPerPage);
+      }
+
+      return groups.slice(startIndex, startIndex + maxPerPage);
+    }
+
+    function getSelectedPlayersFromTvStage(stage) {
+      if (!stage?.groups) return [];
+      const selected = [];
+      stage.groups.forEach(group => {
+        (group.advanceIds || []).forEach(id => {
+          const player = group.slots.find(slot => slot.id === id && !slot.isEmptyLane);
+          if (player) selected.push({ ...player, groupName: group.name });
+        });
+      });
+      return selected;
+    }
+
+    function getPointTopPlayersForTv(round, laneCount) {
+      const totals = {};
+      round.stages
+        .filter(stage => stage.type === "points")
+        .forEach(stage => {
+          stage.groups.forEach(group => {
+            group.slots.forEach(player => {
+              if (player.isEmptyLane) return;
+              totals[player.id] = totals[player.id] || { id: player.id, name: player.name, team: player.team, total: 0 };
+              totals[player.id].total += Number(group.points?.[player.id] || 0);
+            });
+          });
+        });
+
+      const list = Object.values(totals).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
+      if (!list.length) return [];
+      const cutoff = list[Math.min(laneCount, list.length) - 1]?.total ?? null;
+      return list.filter(player => player.total >= cutoff);
+    }
+
+    function renderTvQualifiers(target) {
+      const stage = target.stage;
+      let players = [];
+
+      if (target.stageType === "points") {
+        const round = tvState?.qualifierRounds?.[target.roundIndex];
+        players = getPointTopPlayersForTv(round, tvState?.settings?.laneCount || 3);
+        if (!players.length) return "";
+        return `
+          <aside class="tv-qualifiers">
+            <div class="tv-qualifiers-title">포인트 상위 ${tvState?.settings?.laneCount || 3}명${players.length > (tvState?.settings?.laneCount || 3) ? " + 동점자" : ""}</div>
+            <div class="tv-qualifier-list">
+              ${players.map(player => `
+                <div class="tv-qualifier">
+                  <strong>${escapeHtml(player.name)}</strong>
+                  <span>${player.total}점${player.team ? ` · ${escapeHtml(player.team)}` : ""}</span>
+                </div>
+              `).join("")}
+            </div>
+          </aside>
+        `;
+      }
+
+      players = getSelectedPlayersFromTvStage(stage);
+      if (!players.length) return "";
+      return `
+        <aside class="tv-qualifiers">
+          <div class="tv-qualifiers-title">진출자</div>
+          <div class="tv-qualifier-list">
+            ${players.map(player => `
+              <div class="tv-qualifier">
+                <strong>${escapeHtml(player.name)}</strong>
+                <span>${escapeHtml(player.groupName || "")}${player.team ? ` · ${escapeHtml(player.team)}` : ""}</span>
+              </div>
+            `).join("")}
+          </div>
+        </aside>
+      `;
+    }
+
+
+    function renderMobileQualifiers(payload, target) {
+      if (!target) return "";
+      if (target.stageType === "points") {
+        const round = payload.qualifierRounds?.[target.roundIndex];
+        const list = getPointTopPlayersForTv(round, payload.settings?.laneCount || 3);
+        if (!list.length) return "";
+        return `
+          <div class="mobile-qualifier-box">
+            <b>포인트 상위 ${payload.settings?.laneCount || 3}명${list.length > (payload.settings?.laneCount || 3) ? " + 동점자" : ""}</b>
+            ${list.map(player => `<span>${escapeHtml(player.name)} · ${player.total}점</span>`).join("")}
+          </div>
+        `;
+      }
+      const list = getSelectedPlayersFromTvStage(target.stage);
+      if (!list.length) return "";
+      return `
+        <div class="mobile-qualifier-box">
+          <b>진출자</b>
+          ${list.map(player => `<span>${escapeHtml(player.name)}${player.groupName ? ` · ${escapeHtml(player.groupName)}` : ""}</span>`).join("")}
+        </div>
+      `;
+    }
+
 function renderTvStage() {
       const target = getBroadcastTarget(tvState);
       if (!target) {
@@ -4561,13 +4994,20 @@ function renderTvStage() {
         return;
       }
 
-      const pages = chunk(target.groups, tvGroupsPerPage);
-      if (tvPage >= pages.length) tvPage = 0;
-      const currentGroups = pages[tvPage] || [];
-      const columns = tvGroupsPerPage <= 4 ? 2 : 3;
+      const laneCount = Math.max(...target.groups.map(group => group.slots?.length || 0), tvState?.settings?.laneCount || 3);
+      const maxPerPage = laneCount >= 5 ? 2 : 4;
+      const currentGroups = getTvFocusedGroups(target.stage, target.groups, maxPerPage);
+      const focusIndex = target.stage?.lastFocusGroupId ? target.groups.findIndex(group => group.id === target.stage.lastFocusGroupId) : 0;
+      const startIndex = currentGroups.length ? target.groups.findIndex(group => group.id === currentGroups[0].id) : 0;
+      const endIndex = startIndex + currentGroups.length;
+      const groupCount = currentGroups.length || 1;
+      const columns = groupCount <= 1 ? 1 : 2;
+      const rows = Math.ceil(groupCount / columns);
+      const fitClass = laneCount >= 5 ? "tv-fit-5lane" : groupCount >= 4 ? "tv-fit-4groups" : "tv-fit-standard";
+      const qualifierHtml = renderTvQualifiers(target);
 
       app.innerHTML = `
-        <div class="tv-wrap">
+        <div class="tv-wrap ${fitClass}" style="--tv-groups:${groupCount}; --tv-cols:${columns}; --tv-rows:${rows}; --tv-lanes:${laneCount}; --tv-side:${qualifierHtml ? 1 : 0};">
           <header class="tv-head">
             <div class="tv-brand">
               <div class="tv-brand-line">
@@ -4579,26 +5019,14 @@ function renderTvStage() {
             <img class="tv-logo" src="${LOGO_SRC}" alt="Geeks logo" />
           </header>
 
-          <section class="tv-controls">
-            <div>
-              <b>LIVE</b> · 운영자 화면 변경사항 자동 반영
+          <section class="tv-body">
+            <div class="tv-stage tv-cols-${columns}">
+              ${currentGroups.map(group => renderTvGroup(group, target.isFinal, target.stageType)).join("")}
             </div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button onclick="tvPrevPage()">이전</button>
-              <button onclick="tvNextPage()">다음</button>
-              <button onclick="toggleTvAuto()">자동 넘김</button>
-              <button class="primary" onclick="document.documentElement.requestFullscreen && document.documentElement.requestFullscreen()">전체화면</button>
-            </div>
+            ${qualifierHtml}
           </section>
 
-          <main class="tv-stage" style="grid-template-columns: repeat(${columns}, minmax(0,1fr));">
-            ${currentGroups.map(group => renderTvGroup(group, target.isFinal, target.stageType)).join("")}
-          </main>
-
-          <footer class="tv-foot">
-            <span>${target.laneCount} LANE · ${target.groups.length} GROUPS</span>
-            <span>PAGE ${tvPage + 1} / ${Math.max(1, pages.length)}</span>
-          </footer>
+          <footer class="tv-pager">${target.groups.length > currentGroups.length ? `${startIndex + 1}-${endIndex}조 표시 / 전체 ${target.groups.length}조` : "&nbsp;"}</footer>
         </div>
       `;
     }
