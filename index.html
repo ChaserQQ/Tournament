@@ -2646,87 +2646,121 @@
     }
 
 
-    /* v28 TV 16 + embedded logo fix */
+    /* v29 TV 16 groups + cumulative point display + logo fail-safe */
     body.tv-mode .tv-wrap {
-      grid-template-rows: auto auto minmax(0, 1fr) auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      height: 100vh !important;
+      max-height: 100vh !important;
+      overflow: hidden !important;
       padding: clamp(8px, 1vw, 16px) !important;
-      gap: clamp(5px, .65vw, 9px) !important;
-    }
-    body.tv-mode .tv-head {
-      padding: clamp(4px, .5vw, 8px) 0 !important;
-    }
-    body.tv-mode .tv-brand strong {
-      font-size: clamp(20px, 2.5vw, 38px) !important;
-    }
-    body.tv-mode .tv-logo {
-      width: clamp(54px, 5.2vw, 84px) !important;
-      max-width: 84px !important;
-      max-height: 54px !important;
+      gap: clamp(6px, .7vw, 10px) !important;
     }
     body.tv-mode .tv-controls {
+      flex: 0 0 auto !important;
       min-height: 0 !important;
-      padding: clamp(5px, .55vw, 8px) clamp(7px, .75vw, 11px) !important;
-      border-radius: clamp(10px, .9vw, 16px) !important;
-      font-size: clamp(10px, .82vw, 13px) !important;
+      padding: clamp(5px, .55vw, 8px) clamp(8px, .8vw, 12px) !important;
+      border-radius: 14px !important;
+      font-size: clamp(10px, .9vw, 13px) !important;
     }
     body.tv-mode .tv-controls button {
       min-height: 28px !important;
-      padding: 5px 9px !important;
+      padding: 5px 8px !important;
       border-radius: 10px !important;
-      font-size: clamp(9px, .78vw, 12px) !important;
+      font-size: clamp(9px, .8vw, 12px) !important;
     }
     body.tv-mode .tv-stage {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      height: auto !important;
       grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
       grid-auto-rows: minmax(0, 1fr) !important;
-      gap: clamp(5px, .65vw, 9px) !important;
+      gap: clamp(5px, .55vw, 9px) !important;
     }
     body.tv-mode .tv-group {
-      padding: clamp(5px, .65vw, 9px) !important;
-      border-radius: clamp(10px, 1vw, 16px) !important;
-      gap: clamp(3px, .4vw, 6px) !important;
+      padding: clamp(6px, .65vw, 10px) !important;
+      gap: clamp(3px, .35vw, 5px) !important;
+      border-radius: clamp(12px, 1vw, 18px) !important;
     }
     body.tv-mode .tv-group-title {
-      margin-bottom: clamp(2px, .35vw, 5px) !important;
+      margin-bottom: 2px !important;
     }
     body.tv-mode .tv-group-title strong {
-      font-size: clamp(13px, 1.05vw, 19px) !important;
-    }
-    body.tv-mode .tv-group-title .badge {
-      font-size: clamp(8px, .65vw, 10px) !important;
-      padding: 2px 5px !important;
-      min-height: 16px !important;
+      font-size: clamp(13px, 1.15vw, 20px) !important;
     }
     body.tv-mode .tv-lane {
-      flex: 1 1 0 !important;
-      grid-template-columns: minmax(46px, .36fr) minmax(0, 1fr) minmax(32px, .18fr) !important;
-      gap: clamp(4px, .55vw, 8px) !important;
-      padding: clamp(3px, .45vw, 7px) !important;
-      border-radius: clamp(7px, .75vw, 11px) !important;
-      margin-top: clamp(2px, .25vw, 4px) !important;
+      grid-template-columns: minmax(48px, .32fr) minmax(0, 1fr) minmax(54px, .28fr) !important;
+      padding: clamp(4px, .45vw, 7px) !important;
+      gap: clamp(4px, .5vw, 8px) !important;
+      margin-top: 3px !important;
+      border-radius: clamp(8px, .8vw, 13px) !important;
     }
     body.tv-mode .tv-lane-no {
       font-size: clamp(10px, .95vw, 16px) !important;
-      padding-right: clamp(3px, .45vw, 7px) !important;
+      padding-right: 5px !important;
     }
     body.tv-mode .tv-player strong {
-      font-size: clamp(13px, 1.45vw, 25px) !important;
+      font-size: clamp(13px, 1.45vw, 24px) !important;
       line-height: 1 !important;
     }
     body.tv-mode .tv-player span {
-      font-size: clamp(7px, .65vw, 10px) !important;
+      font-size: clamp(8px, .75vw, 11px) !important;
       margin-top: 2px !important;
     }
-    body.tv-mode .tv-adv {
-      min-height: 16px !important;
-      font-size: clamp(8px, .65vw, 11px) !important;
-      padding: 2px 4px !important;
+    body.tv-mode .tv-adv.tv-point-value {
+      min-width: clamp(42px, 3.8vw, 76px) !important;
+      min-height: clamp(26px, 2.6vw, 46px) !important;
+      font-size: clamp(18px, 2.2vw, 36px) !important;
+      line-height: 1 !important;
+      color: #170810 !important;
+      background: linear-gradient(135deg, #f8d56b, #f06aa3) !important;
+      border-radius: 999px !important;
+      font-weight: 1000 !important;
+      box-shadow: 0 8px 20px rgba(0,0,0,.22) !important;
     }
-    body.tv-mode .tv-foot {
-      font-size: clamp(9px, .8vw, 12px) !important;
+    .tv-point-leaders {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: clamp(8px, .9vw, 14px);
+      padding: clamp(6px, .7vw, 10px) clamp(10px, 1vw, 16px);
+      border: 1px solid rgba(248,213,107,.35);
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(248,213,107,.14), rgba(216,77,137,.13));
+    }
+    .tv-point-leaders-title {
+      color: #f8d56b;
+      font-size: clamp(12px, 1.05vw, 18px);
+      font-weight: 1000;
+      white-space: nowrap;
+    }
+    .tv-point-leaders-list {
+      display: flex;
+      align-items: center;
+      gap: clamp(5px, .55vw, 9px);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .tv-point-leader {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: clamp(5px, .55vw, 9px) clamp(8px, .8vw, 12px);
+      border-radius: 999px;
+      background: rgba(238,233,223,.08);
+      border: 1px solid rgba(238,233,223,.12);
+      font-size: clamp(12px, 1.15vw, 19px);
+      font-weight: 1000;
+      min-width: 0;
+    }
+    .tv-point-leader b {
+      color: #f8d56b;
     }
     @media (max-width: 900px) {
       body.tv-mode .tv-stage {
-        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        overflow: auto !important;
       }
     }
 
@@ -2739,7 +2773,34 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
   <script>
-    const LOGO_SRC = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20420%20220%22%3E%3Cdefs%3E%3ClinearGradient%20id=%22g%22%20x1=%220%22%20x2=%221%22%20y1=%220%22%20y2=%221%22%3E%3Cstop%20offset=%220%22%20stop-color=%22#f06aa3%22/%3E%3Cstop%20offset=%221%22%20stop-color=%22#d84d89%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width=%22420%22%20height=%22220%22%20rx=%2238%22%20fill=%22none%22/%3E%3Cpath%20d=%22M55%2058h126v36H96v22h70v34H96v24h88v36H55z%22%20fill=%22url%28#g%29%22/%3E%3Cpath%20d=%22M201%2058h164v36H242v22h102v34H242v24h126v36H201z%22%20fill=%22#eee9df%22/%3E%3Ctext%20x=%2258%22%20y=%2241%22%20font-family=%22Arial,%20sans-serif%22%20font-size=%2226%22%20font-weight=%22900%22%20letter-spacing=%228%22%20fill=%22#eee9df%22%3EGEEKS%3C/text%3E%3C/svg%3E";
+    const LOGO_SRC = "page-logo.webp";
+    const LOGO_FALLBACK_SRC = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 160"><rect width="480" height="160" fill="none"/><text x="50%" y="48%" dominant-baseline="middle" text-anchor="middle" fill="#eee9df" font-size="54" font-family="Arial, sans-serif" font-weight="900" letter-spacing="-2">GEEKS</text><text x="50%" y="74%" dominant-baseline="middle" text-anchor="middle" fill="#d84d89" font-size="18" font-family="Arial, sans-serif" font-weight="800">MINI4WD TOURNAMENT</text></svg>`);
+    const LOGO_CANDIDATES = [
+      "page-logo.webp",
+      "./page-logo.webp",
+      "/Tournament/page-logo.webp",
+      "https://chaserqq.github.io/Tournament/page-logo.webp",
+      "og-image.png",
+      "./og-image.png",
+      "/Tournament/og-image.png",
+      "https://chaserqq.github.io/Tournament/og-image.png"
+    ];
+
+    function handleLogoError(img) {
+      const currentIndex = Number(img.dataset.logoIndex || 0);
+      const nextIndex = currentIndex + 1;
+      if (nextIndex < LOGO_CANDIDATES.length) {
+        img.dataset.logoIndex = String(nextIndex);
+        img.src = LOGO_CANDIDATES[nextIndex];
+        return;
+      }
+      img.onerror = null;
+      img.src = LOGO_FALLBACK_SRC;
+    }
+
+    function logoMarkup(className) {
+      return `<img class="${className}" src="${LOGO_CANDIDATES[0]}" data-logo-index="0" onerror="handleLogoError(this)" alt="Geeks logo" />`;
+    }
     const STORAGE_KEY = "mini4wdTournamentLiveState";
     const ROSTER_KEY = "mini4wdRosterDB";
     const RECENT_PARTICIPANTS_KEY = "mini4wdRecentParticipantIds";
@@ -3855,7 +3916,7 @@
               <h1>${matchModeLabel()} · ${state.settings.laneCount}레인</h1>
               <p class="desc">${ruleSummary()}</p>
             </div>
-            <img class="header-logo" src="${LOGO_SRC}" alt="Geeks logo" />
+            ${logoMarkup("header-logo")}
           </header>
 
           <div class="layout">
@@ -4531,6 +4592,49 @@ function renderTournamentStatusPanel() {
       return { none: "없음", low: "낮음", medium: "보통", high: "높음" }[level] || level;
     }
 
+    function computePointTotalsUpToStage(round, uptoStageIndex = Infinity) {
+      const totals = new Map();
+      (round.stages || []).forEach((stage, stageIndex) => {
+        if (stageIndex > uptoStageIndex || stage.type !== "points") return;
+        stage.groups.forEach(group => {
+          group.slots.forEach(player => {
+            if (player.isEmptyLane) return;
+            const current = totals.get(player.id) || { id: player.id, name: player.name, team: player.team, total: 0, heats: [] };
+            const score = Number((group.points || {})[player.id] ?? 0);
+            current.total += score;
+            current.heats.push({ stage: stage.name, score });
+            totals.set(player.id, current);
+          });
+        });
+      });
+      return Array.from(totals.values()).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "ko"));
+    }
+
+    function getPointLeadersWithTies(totals, rankLimit = 3) {
+      if (!totals.length) return [];
+      const cutoffIndex = Math.min(rankLimit, totals.length) - 1;
+      const cutoffScore = totals[cutoffIndex]?.total ?? 0;
+      return totals.filter(player => player.total >= cutoffScore);
+    }
+
+    function renderTvPointLeaders(target) {
+      if (target.stageType !== "points" || target.stageName !== "포인트 3차전" || !target.pointLeaders?.length) return "";
+      return `
+        <section class="tv-point-leaders">
+          <div class="tv-point-leaders-title">포인트 TOP 3</div>
+          <div class="tv-point-leaders-list">
+            ${target.pointLeaders.map((player, index) => `
+              <div class="tv-point-leader">
+                <b>${index + 1}</b>
+                <span>${escapeHtml(player.name)}${player.team ? ` / ${escapeHtml(player.team)}` : ""}</span>
+                <strong>${player.total}P</strong>
+              </div>
+            `).join("")}
+          </div>
+        </section>
+      `;
+    }
+
     function getBroadcastTarget(payload) {
       const broadcast = payload.broadcast || { mode: "stage", roundIndex: 0, stageIndex: 0 };
 
@@ -4540,7 +4644,9 @@ function renderTournamentStatusPanel() {
           laneCount: payload.settings.laneCount,
           groups: [payload.finalRace.group],
           isFinal: true,
-          stageType: "final"
+          stageType: "final",
+          stageName: "최종 결승",
+          pointTotalsMap: {}
         };
       }
 
@@ -4548,23 +4654,32 @@ function renderTournamentStatusPanel() {
       const stage = round?.stages?.[broadcast.stageIndex];
       if (!round || !stage) {
         const fallbackRound = payload.qualifierRounds?.find(item => item.stages?.length);
-        const fallbackStage = fallbackRound?.stages?.[fallbackRound.stages.length - 1];
+        const fallbackStageIndex = (fallbackRound?.stages?.length || 1) - 1;
+        const fallbackStage = fallbackRound?.stages?.[fallbackStageIndex];
         if (!fallbackRound || !fallbackStage) return null;
+        const pointTotals = fallbackStage.type === "points" ? computePointTotalsUpToStage(fallbackRound, fallbackStageIndex) : [];
         return {
           title: `${fallbackRound.title} · ${fallbackStage.name}`,
           laneCount: payload.settings.laneCount,
           groups: fallbackStage.groups,
           isFinal: false,
-          stageType: fallbackStage.type || "normal"
+          stageType: fallbackStage.type || "normal",
+          stageName: fallbackStage.name,
+          pointTotalsMap: Object.fromEntries(pointTotals.map(player => [player.id, player.total])),
+          pointLeaders: fallbackStage.name === "포인트 3차전" ? getPointLeadersWithTies(pointTotals, 3) : []
         };
       }
 
+      const pointTotals = stage.type === "points" ? computePointTotalsUpToStage(round, broadcast.stageIndex) : [];
       return {
         title: `${round.title} · ${stage.name}`,
         laneCount: payload.settings.laneCount,
         groups: stage.groups,
         isFinal: false,
-        stageType: stage.type || "normal"
+        stageType: stage.type || "normal",
+        stageName: stage.name,
+        pointTotalsMap: Object.fromEntries(pointTotals.map(player => [player.id, player.total])),
+        pointLeaders: stage.name === "포인트 3차전" ? getPointLeadersWithTies(pointTotals, 3) : []
       };
     }
 
@@ -4577,7 +4692,7 @@ function renderTournamentStatusPanel() {
       }
 
       if (!tvState) {
-        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div></div><strong>라이브 대기중</strong></div><img class="tv-logo" src="${LOGO_SRC}" alt="Geeks logo" /></div><div class="empty"><h2>운영자 화면에서 대진표를 생성하면 자동 표시됩니다.</h2></div></div>`;
+        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div></div><strong>라이브 대기중</strong></div>${logoMarkup("tv-logo")}</div><div class="empty"><h2>운영자 화면에서 대진표를 생성하면 자동 표시됩니다.</h2></div></div>`;
         return;
       }
 
@@ -4611,7 +4726,7 @@ function renderTournamentStatusPanel() {
               <h1>모바일 대진표</h1>
               <p class="desc">${matchModeLabel(payload.settings?.matchMode)} · ${payload.settings?.laneCount || 3}레인 · ${escapeHtml(payload.tournament?.name || "대회명 미입력")}</p>
             </div>
-            <img class="header-logo" src="${LOGO_SRC}" alt="Geeks logo" />
+            ${logoMarkup("header-logo")}
           </header>
 
           ${target ? `
@@ -4670,7 +4785,7 @@ function renderTournamentStatusPanel() {
 function renderTvStage() {
       const target = getBroadcastTarget(tvState);
       if (!target) {
-        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div></div><strong>대진표 없음</strong></div><img class="tv-logo" src="${LOGO_SRC}" alt="Geeks logo" /></div><div class="empty"><h2>현재 송출할 라운드가 없습니다.</h2></div></div>`;
+        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div></div><strong>대진표 없음</strong></div>${logoMarkup("tv-logo")}</div><div class="empty"><h2>현재 송출할 라운드가 없습니다.</h2></div></div>`;
         return;
       }
 
@@ -4689,7 +4804,7 @@ function renderTvStage() {
               </div>
               <strong>${escapeHtml(target.title)}</strong>
             </div>
-            <img class="tv-logo" src="${LOGO_SRC}" alt="Geeks logo" />
+            ${logoMarkup("tv-logo")}
           </header>
 
           <section class="tv-controls">
@@ -4704,8 +4819,10 @@ function renderTvStage() {
             </div>
           </section>
 
+          ${renderTvPointLeaders(target)}
+
           <main class="tv-stage" style="grid-template-columns: repeat(${columns}, minmax(0,1fr));">
-            ${currentGroups.map(group => renderTvGroup(group, target.isFinal, target.stageType)).join("")}
+            ${currentGroups.map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap)).join("")}
           </main>
 
           <footer class="tv-foot">
@@ -4716,7 +4833,7 @@ function renderTvStage() {
       `;
     }
 
-    function renderTvGroup(group, isFinal, stageType = "normal") {
+    function renderTvGroup(group, isFinal, stageType = "normal", pointTotalsMap = {}) {
       return `
         <article class="tv-group">
           <div class="tv-group-title">
@@ -4742,7 +4859,7 @@ function renderTvStage() {
                   <strong>${escapeHtml(player.name)}</strong>
                   ${player.team ? `<span>${escapeHtml(player.team)}</span>` : ""}
                 </div>
-                <div class="tv-adv">${stageType === "points" ? `${Number((group.points || {})[player.id] ?? 0)}P` : (selected ? (isFinal ? "최종" : "진출") : "")}</div>
+                <div class="tv-adv ${stageType === "points" ? "tv-point-value" : ""}">${stageType === "points" ? `${Number(pointTotalsMap[player.id] ?? (group.points || {})[player.id] ?? 0)}P` : (selected ? (isFinal ? "최종" : "진출") : "")}</div>
               </div>
             `;
           }).join("")}
@@ -5208,7 +5325,7 @@ function renderTvStage() {
               <h1>선수 DB / 오늘 참가자 관리</h1>
               <p class="desc">자주 참가하는 선수를 명부로 저장하고, 오늘 참가자만 선택해서 대진표로 보낼 수 있습니다.</p>
             </div>
-            <img class="header-logo" src="${LOGO_SRC}" alt="Geeks logo" />
+            ${logoMarkup("header-logo")}
           </header>
 
           <div class="toolbar">
