@@ -2469,6 +2469,154 @@
       font-weight: 900 !important;
     }
 
+
+    /* v23 logo hard fix */
+    .header-logo,
+    .tv-logo {
+      object-fit: contain !important;
+      object-position: center !important;
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+    }
+    .header-logo {
+      padding: 0 !important;
+    }
+
+
+    /* v24 TV one-screen fit for Chromecast */
+    body.tv-mode {
+      overflow: hidden !important;
+      height: 100vh !important;
+      max-height: 100vh !important;
+    }
+    body.tv-mode #app {
+      height: 100vh !important;
+      max-height: 100vh !important;
+      overflow: hidden !important;
+    }
+    body.tv-mode .tv-wrap {
+      height: 100vh !important;
+      max-height: 100vh !important;
+      overflow: hidden !important;
+      display: grid !important;
+      grid-template-rows: auto minmax(0, 1fr) auto !important;
+      padding: clamp(10px, 1.4vw, 22px) !important;
+      gap: clamp(8px, 1vw, 14px) !important;
+      box-sizing: border-box !important;
+    }
+    body.tv-mode .tv-head {
+      min-height: 0 !important;
+      margin: 0 !important;
+      padding: clamp(6px, .8vw, 12px) 0 !important;
+      gap: clamp(10px, 1.2vw, 22px) !important;
+    }
+    body.tv-mode .tv-brand strong {
+      font-size: clamp(22px, 3.2vw, 46px) !important;
+      line-height: .98 !important;
+      max-width: 72vw;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    body.tv-mode .tv-brand-line small {
+      font-size: clamp(10px, 1vw, 14px) !important;
+    }
+    body.tv-mode .tv-brand-line .maker {
+      font-size: clamp(9px, .85vw, 12px) !important;
+    }
+    body.tv-mode .tv-logo {
+      width: clamp(52px, 6vw, 88px) !important;
+      height: clamp(52px, 6vw, 88px) !important;
+      flex: 0 0 auto;
+    }
+    body.tv-mode .tv-stage {
+      min-height: 0 !important;
+      height: 100% !important;
+      overflow: hidden !important;
+      display: grid !important;
+      gap: clamp(8px, 1vw, 14px) !important;
+      align-content: stretch !important;
+    }
+    body.tv-mode .tv-stage[style*="repeat(3"] {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+    body.tv-mode .tv-group {
+      min-height: 0 !important;
+      overflow: hidden !important;
+      padding: clamp(8px, .9vw, 14px) !important;
+      border-radius: clamp(14px, 1.5vw, 22px) !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    body.tv-mode .tv-group-title {
+      margin: 0 0 clamp(5px, .7vw, 10px) !important;
+      flex: 0 0 auto;
+    }
+    body.tv-mode .tv-group-title strong {
+      font-size: clamp(16px, 1.6vw, 26px) !important;
+      line-height: 1 !important;
+    }
+    body.tv-mode .tv-group-title .badge {
+      font-size: clamp(9px, .8vw, 12px) !important;
+      padding: 3px 7px !important;
+      min-height: 20px !important;
+    }
+    body.tv-mode .tv-lane {
+      min-height: 0 !important;
+      flex: 1 1 0 !important;
+      display: grid !important;
+      grid-template-columns: minmax(58px, .34fr) minmax(0, 1fr) minmax(44px, .22fr) !important;
+      gap: clamp(6px, .8vw, 12px) !important;
+      align-items: center !important;
+      padding: clamp(5px, .65vw, 10px) !important;
+      border-radius: clamp(10px, 1vw, 16px) !important;
+      margin-top: clamp(4px, .5vw, 7px) !important;
+    }
+    body.tv-mode .tv-lane-no {
+      font-size: clamp(12px, 1.25vw, 21px) !important;
+      padding-right: clamp(5px, .6vw, 10px) !important;
+      line-height: 1 !important;
+    }
+    body.tv-mode .tv-player {
+      min-width: 0 !important;
+    }
+    body.tv-mode .tv-player strong {
+      display: block !important;
+      font-size: clamp(18px, 2.3vw, 38px) !important;
+      line-height: .98 !important;
+      letter-spacing: -.06em !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.tv-mode .tv-player span {
+      display: block !important;
+      font-size: clamp(9px, .95vw, 14px) !important;
+      margin-top: 3px !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.tv-mode .tv-adv {
+      min-height: clamp(20px, 2vw, 30px) !important;
+      font-size: clamp(10px, .9vw, 15px) !important;
+      padding: 3px 6px !important;
+    }
+    body.tv-mode .tv-pager {
+      flex: 0 0 auto !important;
+      font-size: clamp(10px, .95vw, 13px) !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      min-height: 18px !important;
+      color: rgba(238,233,223,.62);
+    }
+    @media (max-width: 900px) {
+      body.tv-mode .tv-stage {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -2521,7 +2669,7 @@
     let activeRoundIndex = 0;
     let tvState = null;
     let tvPage = 0;
-    let tvGroupsPerPage = 6;
+    let tvGroupsPerPage = 4;
     let tvTimer = null;
     let dbSelectedIds = new Set();
     let dbSearchText = "";
@@ -4168,7 +4316,7 @@
 
     function openFirebaseTvLive() {
       const id = getCurrentTournamentId();
-      window.open(`${location.origin}${location.pathname}#view=tv-live&t=${encodeURIComponent(id)}`, "_blank", "noopener,noreferrer");
+      window.open(`${location.origin}${location.pathname}#view=tv-live&t=${encodeURIComponent(id)}`, "mini4wd-tv-live", "popup=yes,width=1280,height=720,noopener,noreferrer");
     }
 
 function renderTournamentStatusPanel() {
