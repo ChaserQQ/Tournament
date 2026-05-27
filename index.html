@@ -3029,6 +3029,39 @@
       }
     }
 
+
+    /* v38 dashboard venue source + calendar period controls */
+    .dashboard-period-row {
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap:8px;
+      margin-top:10px;
+    }
+    .dashboard-period-row button {
+      min-height:38px;
+      padding:8px 10px;
+      border-radius:12px;
+      font-size:12px;
+    }
+    .dashboard-filter label {
+      display:block;
+      margin:0 0 5px;
+      font-size:11px;
+      color:var(--dim);
+      font-weight:1000;
+    }
+    .dashboard-filter > div { min-width:0; }
+    @media (max-width: 760px) {
+      .dashboard-period-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .dashboard-period-row button {
+        min-height:36px;
+        font-size:11px;
+        padding:7px 6px;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -6848,9 +6881,12 @@ function renderTvStage() {
     }
 
     function filterRecords(records) {
+      const limitedVenueId = !isAdminUser() && isVenueUser() ? currentVenueId() : "";
+      const limitedVenueName = !isAdminUser() && isVenueUser() ? currentVenueName() : "";
       return records.filter(record => {
         const date = String(record.endedAtISO || record.startedAtISO || record.createdAt || "").slice(0, 10);
         const recordClass = record.raceClass || "미분류";
+        if (limitedVenueId && record.venueId !== limitedVenueId && record.venueName !== limitedVenueName) return false;
         if (dashboardFilter.from && date < dashboardFilter.from) return false;
         if (dashboardFilter.to && date > dashboardFilter.to) return false;
         if (dashboardFilter.venue !== "전체" && record.venueName !== dashboardFilter.venue && record.venueId !== dashboardFilter.venue) return false;
@@ -6869,14 +6905,58 @@ function renderTvStage() {
       return Array.from(map.entries()).sort((a, b) => b[1] - a[1]).map(([raceClass, count]) => ({ raceClass, count }));
     }
 
+    function localDateInputValue(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function setDashboardPeriod(mode) {
+      const today = new Date();
+      if (mode === "all") {
+        dashboardFilter.from = "";
+        dashboardFilter.to = "";
+      } else if (mode === "month") {
+        dashboardFilter.from = localDateInputValue(new Date(today.getFullYear(), today.getMonth(), 1));
+        dashboardFilter.to = localDateInputValue(today);
+      } else if (mode === "30d") {
+        const from = new Date(today);
+        from.setDate(from.getDate() - 29);
+        dashboardFilter.from = localDateInputValue(from);
+        dashboardFilter.to = localDateInputValue(today);
+      }
+      renderDashboardWithRecords(window.__dashboardRecords || []);
+    }
+
+    function dashboardVenueOptions(records = []) {
+      const map = new Map();
+      const addVenue = (id, name) => {
+        const venueId = String(id || name || "").trim();
+        const venueName = String(name || id || "").trim();
+        if (!venueId && !venueName) return;
+        map.set(venueId || venueName, { id: venueId || venueName, name: venueName || venueId });
+      };
+      if (isAdminUser()) {
+        Object.values(window.__dashboardProfiles || {}).forEach(profile => {
+          if (profile && profile.role !== "pending" && profile.role !== "suspended") addVenue(profile.venueId, profile.venueName);
+        });
+        records.forEach(record => addVenue(record.venueId, record.venueName));
+      } else if (isVenueUser()) {
+        addVenue(currentVenueId(), currentVenueName());
+      }
+      return Array.from(map.values()).filter(v => v.id !== "all" && v.name !== "전체").sort((a, b) => a.name.localeCompare(b.name));
+    }
+
     function renderDashboardWithRecords(records) {
+      const venueOptions = dashboardVenueOptions(records);
+      if (dashboardFilter.venue !== "전체" && !venueOptions.some(v => v.id === dashboardFilter.venue || v.name === dashboardFilter.venue)) dashboardFilter.venue = "전체";
       const filtered = filterRecords(records);
-      const venues = Array.from(new Set(records.map(r => r.venueName || r.venueId).filter(Boolean))).sort();
       const classes = Array.from(new Set(records.map(r => r.raceClass || "미분류").filter(Boolean))).sort();
       const classStats = summarizeClasses(filtered);
       const stats = analyzeRecords(filtered);
       document.body.classList.remove("tv-mode");
-      app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">DASHBOARD</div></div><h1>상시 데이터 대시보드</h1><p class="desc">기간별 · 경기장별 · 클래스별 경기 기록 분석</p></div>${logoMarkup("header-logo")}</header>${currentAuthUser ? accountBadge() : ""}<div class="toolbar"><button class="primary" onclick="location.hash=''; bootV33();">TOURNAMENT</button><button class="ghost" onclick="location.hash='view=mobile-live'; bootV33();">MOBILE LIVE</button><button class="ghost" onclick="openDashboardPage()">새로고침</button></div><section class="card"><div class="dashboard-filter"><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.from)}" onchange="dashboardFilter.from=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.to)}" onchange="dashboardFilter.to=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /><select onchange="dashboardFilter.venue=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 경기장</option>${venues.map(v => `<option value="${escapeHtml(v)}" ${dashboardFilter.venue===v?"selected":""}>${escapeHtml(v)}</option>`).join("")}</select><select onchange="dashboardFilter.raceClass=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 클래스</option>${classes.map(c => `<option value="${escapeHtml(c)}" ${dashboardFilter.raceClass===c?"selected":""}>${escapeHtml(c)}</option>`).join("")}</select><input class="mini-input" placeholder="검색" value="${escapeHtml(dashboardFilter.keyword)}" oninput="dashboardFilter.keyword=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div class="db-stat-grid"><div class="db-stat"><small>대회 기록</small><strong>${filtered.length}</strong></div><div class="db-stat"><small>경기장</small><strong>${new Set(filtered.map(r=>r.venueName||r.venueId)).size}</strong></div><div class="db-stat"><small>선수</small><strong>${stats.players.length}</strong></div></div></section><div class="dashboard-grid"><section class="dashboard-card"><h3>클래스별 기록</h3><div class="class-chip-wrap">${classStats.map(item => `<div class="class-chip"><span>${escapeHtml(item.raceClass)}</span><b>${item.count}회</b></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>최다승 유저</h3>${rankList(stats.mostWins, "wins", "승")}</section><section class="dashboard-card"><h3>자주 우승하는 사람</h3>${rankList(stats.mostChampions, "championships", "회")}</section><section class="dashboard-card"><h3>자주 지는 사람</h3>${rankList(stats.mostLosses, "losses", "패")}</section><section class="dashboard-card"><h3>참가 횟수 랭킹</h3>${rankList(stats.mostParticipants, "matches", "회")}</section><section class="dashboard-card"><h3>포인트전 누적</h3>${rankList(stats.mostPoints, "points", "P")}</section><section class="dashboard-card"><h3>한 레인 편중</h3><div class="rank-list">${stats.oneLane.slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)} · ${p.mainLane}LANE</span><strong>${Math.round(p.laneRate*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>레인별 승률</h3><div class="rank-list">${stats.laneStats.map(l=>`<div class="rank-row"><b>${l.lane}</b><span class="rank-name">${l.matches}경기</span><strong>${l.matches ? Math.round(l.wins/l.matches*100) : 0}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>결승 진출률</h3><div class="rank-list">${stats.players.filter(p=>p.matches).sort((a,b)=>(b.finals/b.matches)-(a.finals/a.matches)).slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)}</span><strong>${Math.round(p.finals/p.matches*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section></div></div>`;
+      app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">DASHBOARD</div></div><h1>상시 데이터 대시보드</h1><p class="desc">기간별 · 경기장별 · 클래스별 경기 기록 분석</p></div>${logoMarkup("header-logo")}</header>${currentAuthUser ? accountBadge() : ""}<div class="toolbar"><button class="primary" onclick="location.hash=''; bootV33();">TOURNAMENT</button><button class="ghost" onclick="location.hash='view=mobile-live'; bootV33();">MOBILE LIVE</button><button class="ghost" onclick="openDashboardPage()">새로고침</button></div><section class="card"><div class="dashboard-filter"><div><label>시작일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.from)}" onchange="dashboardFilter.from=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>종료일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.to)}" onchange="dashboardFilter.to=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>경기장</label><select class="mini-input" onchange="dashboardFilter.venue=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 경기장</option>${venueOptions.map(v => `<option value="${escapeHtml(v.id)}" ${dashboardFilter.venue===v.id || dashboardFilter.venue===v.name ? "selected" : ""}>${escapeHtml(v.name)}</option>`).join("")}</select></div><div><label>클래스</label><select class="mini-input" onchange="dashboardFilter.raceClass=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 클래스</option>${classes.map(c => `<option value="${escapeHtml(c)}" ${dashboardFilter.raceClass===c?"selected":""}>${escapeHtml(c)}</option>`).join("")}</select></div><div><label>검색</label><input class="mini-input" placeholder="대회명/경기장/클래스" value="${escapeHtml(dashboardFilter.keyword)}" oninput="dashboardFilter.keyword=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div></div><div class="dashboard-period-row"><button class="ghost" onclick="setDashboardPeriod('all')">전체 기간</button><button class="ghost" onclick="setDashboardPeriod('month')">이번달</button><button class="ghost" onclick="setDashboardPeriod('30d')">최근 30일</button></div><div class="db-stat-grid" style="margin-top:12px;"><div class="db-stat"><small>대회 기록</small><strong>${filtered.length}</strong></div><div class="db-stat"><small>경기장</small><strong>${new Set(filtered.map(r=>r.venueName||r.venueId)).size}</strong></div><div class="db-stat"><small>선수</small><strong>${stats.players.length}</strong></div></div></section><div class="dashboard-grid"><section class="dashboard-card"><h3>클래스별 기록</h3><div class="class-chip-wrap">${classStats.map(item => `<div class="class-chip"><span>${escapeHtml(item.raceClass)}</span><b>${item.count}회</b></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>최다승 유저</h3>${rankList(stats.mostWins, "wins", "승")}</section><section class="dashboard-card"><h3>자주 우승하는 사람</h3>${rankList(stats.mostChampions, "championships", "회")}</section><section class="dashboard-card"><h3>자주 지는 사람</h3>${rankList(stats.mostLosses, "losses", "패")}</section><section class="dashboard-card"><h3>참가 횟수 랭킹</h3>${rankList(stats.mostParticipants, "matches", "회")}</section><section class="dashboard-card"><h3>포인트전 누적</h3>${rankList(stats.mostPoints, "points", "P")}</section><section class="dashboard-card"><h3>한 레인 편중</h3><div class="rank-list">${stats.oneLane.slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)} · ${p.mainLane}LANE</span><strong>${Math.round(p.laneRate*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>레인별 승률</h3><div class="rank-list">${stats.laneStats.map(l=>`<div class="rank-row"><b>${l.lane}</b><span class="rank-name">${l.matches}경기</span><strong>${l.matches ? Math.round(l.wins/l.matches*100) : 0}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>결승 진출률</h3><div class="rank-list">${stats.players.filter(p=>p.matches).sort((a,b)=>(b.finals/b.matches)-(a.finals/a.matches)).slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)}</span><strong>${Math.round(p.finals/p.matches*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section></div></div>`;
     }
 
     function renderDashboardPage() {
@@ -6886,13 +6966,17 @@ function renderTvStage() {
       app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>대시보드 불러오는 중</h2></div></div></div>`;
       const db = initFirebase();
       const local = loadLocalResultLogs();
-      if (!db) { window.__dashboardRecords = local; renderDashboardWithRecords(local); return; }
-      db.ref(RESULT_LOGS_PATH).get().then(snapshot => {
+      if (!db) { window.__dashboardProfiles = {}; window.__dashboardRecords = local; renderDashboardWithRecords(local); return; }
+      const profilePromise = isAdminUser()
+        ? db.ref(USER_PROFILE_PATH).get().then(s => s.val() || {}).catch(() => ({}))
+        : Promise.resolve(currentUserProfile ? { [currentUserProfile.uid || currentAuthUser.uid]: currentUserProfile } : {});
+      Promise.all([db.ref(RESULT_LOGS_PATH).get(), profilePromise]).then(([snapshot, profiles]) => {
         const cloud = snapshot.val() ? Object.values(snapshot.val()) : [];
         const merged = [...local, ...cloud].filter((item, idx, arr) => arr.findIndex(x => x.id === item.id) === idx);
+        window.__dashboardProfiles = profiles || {};
         window.__dashboardRecords = merged;
         renderDashboardWithRecords(merged);
-      }).catch(() => { window.__dashboardRecords = local; renderDashboardWithRecords(local); });
+      }).catch(() => { window.__dashboardProfiles = {}; window.__dashboardRecords = local; renderDashboardWithRecords(local); });
     }
 
     async function bootV33() {
