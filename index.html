@@ -3675,7 +3675,7 @@
       }
       if (state.tournament.name === undefined) state.tournament.name = "";
       if (state.tournament.venue === undefined) state.tournament.venue = "";
-      if (state.tournament.raceClass === undefined) state.tournament.raceClass = "오픈";
+      state.tournament.raceClass = normalizeRaceClassName(state.tournament.raceClass);
       if (state.tournament.status === undefined) state.tournament.status = state.tournament.startedAtISO ? "running" : "draft";
       if (state.tournament.startedAtISO === undefined) state.tournament.startedAtISO = "";
       if (state.tournament.startedAtDisplay === undefined) state.tournament.startedAtDisplay = "";
@@ -3704,7 +3704,7 @@
         alert("경기장을 입력하세요.");
         return false;
       }
-      if (!state.tournament.raceClass) state.tournament.raceClass = "오픈";
+      state.tournament.raceClass = normalizeRaceClassName(state.tournament.raceClass);
       return true;
     }
 
@@ -3773,7 +3773,7 @@
 
     function setTournamentField(field, value) {
       ensureStateDefaults();
-      state.tournament[field] = value;
+      state.tournament[field] = field === "raceClass" ? normalizeRaceClassName(value) : value;
       saveLiveState();
     }
 
@@ -4383,7 +4383,7 @@
                 <div style="margin:10px 0 0;">
                   <label>클래스</label>
                   <select class="mini-input" value="${escapeHtml(state.tournament.raceClass || "오픈")}" onchange="setTournamentField('raceClass', this.value)">
-                    ${["어드벤스드", "스톡", "오픈"].map(item => `<option value="${item}" ${state.tournament.raceClass === item ? "selected" : ""}>${item}</option>`).join("")}
+                    ${CLASS_OPTIONS.map(item => `<option value="${item}" ${normalizeRaceClassName(state.tournament.raceClass) === item ? "selected" : ""}>${item}</option>`).join("")}
                   </select>
                 </div>
                 <p class="hint">대회명과 경기장은 필수입니다. 클래스는 결과 다운로드와 출력용 대진표에 함께 표시됩니다.</p>
@@ -4500,7 +4500,7 @@
           <div class="manual-body">
             <h2>1. 기본 흐름</h2>
             <ol>
-              <li>대회명과 경기장은 필수로 입력합니다. 클래스는 어드벤스드, 스톡, 오픈 중 선택합니다.</li>
+              <li>대회명과 경기장은 필수로 입력합니다. 클래스는 오픈, 스톡, 어드&비맥스, 기타 클래스 순서로 선택합니다.</li>
               <li>경기 방식을 선택합니다. 기본 토너먼트, 1R 포인트전, 패자부활 중 하나를 고릅니다.</li>
               <li>경기 타입을 3레인 또는 5레인으로 선택합니다. 레인 수는 실제 경기장 레인 수입니다.</li>
               <li>참가자 명단을 한 줄에 한 명씩 입력합니다. 형식은 <b>이름/팀명</b>입니다.</li>
@@ -4924,7 +4924,7 @@ function renderTournamentStatusPanel() {
       const status = state.tournament.status || "draft";
       const tournamentName = state.tournament.name || "대회명 없음";
       const venueName = state.tournament.venue || "경기장 없음";
-      const raceClassName = state.tournament.raceClass || "오픈";
+      const raceClassName = normalizeRaceClassName(state.tournament.raceClass);
       const actionButtons = status === "draft"
         ? `<button class="primary" onclick="startTournament()">대회 시작</button>`
         : status === "running"
@@ -5877,7 +5877,7 @@ function renderTvStage() {
         경기일시: state.tournament.startedAtDisplay || "",
         대회명: state.tournament.name || "",
         경기장: state.tournament.venue || "",
-        클래스: state.tournament.raceClass || "오픈",
+        클래스: normalizeRaceClassName(state.tournament.raceClass),
         경기방식: matchModeLabel(),
         레인수: `${state.settings.laneCount}레인`,
         대회상태: statusLabel(),
@@ -6000,7 +6000,7 @@ function renderTvStage() {
       const rows = [
         ["대회명", meta.name || ""],
         ["경기장", meta.venue || ""],
-        ["클래스", meta.raceClass || "오픈"],
+        ["클래스", normalizeRaceClassName(meta.raceClass)],
         ["경기일시", meta.startedAtDisplay || ""],
         ["경기방식", matchModeLabel(settings.matchMode)],
         ["레인수", `${settings.laneCount || 3}레인`],
@@ -6056,7 +6056,7 @@ function renderTvStage() {
           <header class="print-header">
             <div>
               <h1>${escapeHtml(meta.name || "대회명 미입력")}</h1>
-              <p>${escapeHtml(meta.venue || "경기장 미입력")} · ${escapeHtml(meta.raceClass || "오픈")} · ${escapeHtml(meta.startedAtDisplay || "")} · ${escapeHtml(matchModeLabel(settings.matchMode))} · ${settings.laneCount || 3}레인</p>
+              <p>${escapeHtml(meta.venue || "경기장 미입력")} · ${escapeHtml(normalizeRaceClassName(meta.raceClass))} · ${escapeHtml(meta.startedAtDisplay || "")} · ${escapeHtml(matchModeLabel(settings.matchMode))} · ${settings.laneCount || 3}레인</p>
             </div>
             <strong>${escapeHtml(printable?.title || "출력할 대진 없음")}</strong>
           </header>
@@ -6265,6 +6265,15 @@ function renderTvStage() {
     let dbVenueIdDraft = localStorage.getItem(DB_VENUE_KEY) || "";
     let dbCloudLoadedVenueId = "";
     let dashboardFilter = { from: "", to: "", venue: "전체", raceClass: "전체", keyword: "" };
+    const CLASS_OPTIONS = ["오픈", "스톡", "어드&비맥스", "기타 클래스"];
+
+    function normalizeRaceClassName(value) {
+      const text = String(value || "").trim();
+      if (!text) return "오픈";
+      if (text === "어드벤스드" || text === "어드밴스드" || text === "어드&비맥스") return "어드&비맥스";
+      if (text === "기타") return "기타 클래스";
+      return text;
+    }
 
     function normalizeKey(text) {
       return String(text || "")
@@ -6877,7 +6886,7 @@ function renderTvStage() {
       if (isVenueUser()) state.tournament.venue = currentVenueName();
       if (!state.tournament.name.trim()) { showError("대회명을 입력해야 시작할 수 있습니다."); alert("대회명을 입력하세요."); return false; }
       if (!state.tournament.venue.trim()) { showError("경기장을 입력해야 시작할 수 있습니다."); alert("경기장을 입력하세요."); return false; }
-      if (!state.tournament.raceClass) state.tournament.raceClass = "오픈";
+      state.tournament.raceClass = normalizeRaceClassName(state.tournament.raceClass);
       return true;
     }
 
@@ -6918,7 +6927,7 @@ function renderTvStage() {
       ensureStateDefaults();
       const id = state.tournament.recordId || state.tournament.id || `record-${Date.now()}`;
       state.tournament.recordId = id;
-      return { id, venueId: currentVenueId(), venueName: state.tournament.venue || currentVenueName(), raceClass: state.tournament.raceClass || "오픈", tournamentName: state.tournament.name || "", startedAtISO: state.tournament.startedAtISO || "", endedAtISO: state.tournament.endedAtISO || "", createdAt: new Date().toISOString(), mode: state.settings.matchMode, laneCount: state.settings.laneCount, rows: getStageResultRows().map(row => ({ ...row, 연락처: "" })) };
+      return { id, venueId: currentVenueId(), venueName: state.tournament.venue || currentVenueName(), raceClass: normalizeRaceClassName(state.tournament.raceClass), tournamentName: state.tournament.name || "", startedAtISO: state.tournament.startedAtISO || "", endedAtISO: state.tournament.endedAtISO || "", createdAt: new Date().toISOString(), mode: state.settings.matchMode, laneCount: state.settings.laneCount, rows: getStageResultRows().map(row => ({ ...row, 연락처: "" })) };
     }
 
     function saveTournamentRecord() {
@@ -6992,7 +7001,7 @@ function renderTvStage() {
       const limitedVenueName = !isAdminUser() && isVenueUser() ? currentVenueName() : "";
       return records.filter(record => {
         const date = String(record.endedAtISO || record.startedAtISO || record.createdAt || "").slice(0, 10);
-        const recordClass = record.raceClass || "미분류";
+        const recordClass = normalizeRaceClassName(record.raceClass || "미분류");
         if (limitedVenueId && record.venueId !== limitedVenueId && record.venueName !== limitedVenueName) return false;
         if (dashboardFilter.from && date < dashboardFilter.from) return false;
         if (dashboardFilter.to && date > dashboardFilter.to) return false;
@@ -7006,7 +7015,7 @@ function renderTvStage() {
     function summarizeClasses(records) {
       const map = new Map();
       records.forEach(record => {
-        const key = record.raceClass || "미분류";
+        const key = normalizeRaceClassName(record.raceClass || "미분류");
         map.set(key, (map.get(key) || 0) + 1);
       });
       return Array.from(map.entries()).sort((a, b) => b[1] - a[1]).map(([raceClass, count]) => ({ raceClass, count }));
@@ -7086,7 +7095,7 @@ function renderTvStage() {
       const venueOptions = dashboardVenueOptions(records);
       if (dashboardFilter.venue !== "전체" && !venueOptions.some(v => v.id === dashboardFilter.venue || v.name === dashboardFilter.venue)) dashboardFilter.venue = "전체";
       const filtered = filterRecords(records);
-      const classes = Array.from(new Set(records.map(r => r.raceClass || "미분류").filter(Boolean))).sort();
+      const classes = Array.from(new Set([...CLASS_OPTIONS, ...records.map(r => normalizeRaceClassName(r.raceClass || "미분류")).filter(Boolean)]));
       const classStats = summarizeClasses(filtered);
       const stats = analyzeRecords(filtered);
       const venueVisits = analyzePlayerVenueVisits(filtered);
@@ -7121,7 +7130,7 @@ function renderTvStage() {
           venueId: tournament.venueId || st.venueId || normalizeKey(tournament.venue || id),
           venueName: tournament.venue || st.venueName || id,
           tournamentName: tournament.name || "대회명 미입력",
-          raceClass: tournament.raceClass || "오픈",
+          raceClass: normalizeRaceClassName(tournament.raceClass),
           status
         };
       }).sort((a, b) => (b.status === "running") - (a.status === "running") || Number(b.updatedAt || 0) - Number(a.updatedAt || 0));
@@ -7137,7 +7146,7 @@ function renderTvStage() {
       });
       const venueCards = Array.from(activeByVenue.values());
       const recent = [...records].sort((a,b) => String(b.endedAtISO || b.createdAt || "").localeCompare(String(a.endedAtISO || a.createdAt || ""))).slice(0, 12);
-      app.innerHTML = `<div class="mobile-view"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">LIVE LOBBY</div></div><h1>경기장 LIVE</h1><p class="desc">경기장을 선택하면 현재 진행 중인 모바일 대진표로 이동합니다.</p></div>${logoMarkup("header-logo")}</header><section class="card"><div class="db-panel-title"><h2>경기장별 LIVE 상태</h2><button class="ghost" onclick="renderLiveLobbyPage()">새로고침</button></div><div class="live-lobby-grid">${venueCards.map(item => { const live = item.status === "running"; return `<article class="live-lobby-card ${live ? "live-on" : ""}"><span class="live-status ${live ? "on" : ""}">${liveStatusLabel(item.status)}</span><h3>${escapeHtml(item.venueName)}</h3><div class="live-lobby-meta">${escapeHtml(item.tournamentName)}<br>${escapeHtml(item.raceClass)} · ${item.updatedAt ? new Date(item.updatedAt).toLocaleString("ko-KR") : "업데이트 없음"}</div><button class="${live ? "primary" : "ghost"}" ${live ? "" : "disabled"} onclick="location.hash='view=mobile-live&t=${encodeURIComponent(item.id)}'; bootV33();">대진표 보기</button></article>`; }).join("") || `<div class="hint">표시할 경기장이 없습니다.</div>`}</div></section><section class="card"><h2>최근 경기 히스토리</h2><div class="history-public-list">${recent.map(record => `<div class="history-public-row"><div><b>${escapeHtml(record.venueName || record.venueId || "경기장")}</b><span>${escapeHtml(record.raceClass || "오픈")}</span></div><div><b>${escapeHtml(record.tournamentName || "대회명 미입력")}</b><span>${escapeHtml(record.endedAtISO ? new Date(record.endedAtISO).toLocaleString("ko-KR") : record.createdAt ? new Date(record.createdAt).toLocaleString("ko-KR") : "")}</span></div><div><b>${escapeHtml(getRecordWinnerText(record))}</b><span>우승/상위 결과</span></div></div>`).join("") || `<div class="hint">최근 경기 기록이 없습니다.</div>`}</div></section></div>`;
+      app.innerHTML = `<div class="mobile-view"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">LIVE LOBBY</div></div><h1>경기장 LIVE</h1><p class="desc">경기장을 선택하면 현재 진행 중인 모바일 대진표로 이동합니다.</p></div>${logoMarkup("header-logo")}</header><section class="card"><div class="db-panel-title"><h2>경기장별 LIVE 상태</h2><button class="ghost" onclick="renderLiveLobbyPage()">새로고침</button></div><div class="live-lobby-grid">${venueCards.map(item => { const live = item.status === "running"; return `<article class="live-lobby-card ${live ? "live-on" : ""}"><span class="live-status ${live ? "on" : ""}">${liveStatusLabel(item.status)}</span><h3>${escapeHtml(item.venueName)}</h3><div class="live-lobby-meta">${escapeHtml(item.tournamentName)}<br>${escapeHtml(item.raceClass)} · ${item.updatedAt ? new Date(item.updatedAt).toLocaleString("ko-KR") : "업데이트 없음"}</div><button class="${live ? "primary" : "ghost"}" ${live ? "" : "disabled"} onclick="location.hash='view=mobile-live&t=${encodeURIComponent(item.id)}'; bootV33();">대진표 보기</button></article>`; }).join("") || `<div class="hint">표시할 경기장이 없습니다.</div>`}</div></section><section class="card"><h2>최근 경기 히스토리</h2><div class="history-public-list">${recent.map(record => `<div class="history-public-row"><div><b>${escapeHtml(record.venueName || record.venueId || "경기장")}</b><span>${escapeHtml(normalizeRaceClassName(record.raceClass))}</span></div><div><b>${escapeHtml(record.tournamentName || "대회명 미입력")}</b><span>${escapeHtml(record.endedAtISO ? new Date(record.endedAtISO).toLocaleString("ko-KR") : record.createdAt ? new Date(record.createdAt).toLocaleString("ko-KR") : "")}</span></div><div><b>${escapeHtml(getRecordWinnerText(record))}</b><span>우승/상위 결과</span></div></div>`).join("") || `<div class="hint">최근 경기 기록이 없습니다.</div>`}</div></section></div>`;
     }
 
     function renderLiveLobbyPage() {
