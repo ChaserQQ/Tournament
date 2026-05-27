@@ -2771,6 +2771,33 @@
       }
     }
 
+
+    /* v33 auth + venue dashboard */
+    .auth-card { max-width: 520px; margin: 0 auto; }
+    .auth-card .mini-input { margin-bottom: 9px; }
+    .auth-actions { display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px; }
+    .account-strip { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+    .dashboard-grid { display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap:12px; }
+    .dashboard-card { border:1px solid rgba(238,233,223,.08); border-radius:20px; background:rgba(7,16,13,.72); padding:14px; }
+    .dashboard-card h3 { margin:0 0 10px; font-size:16px; }
+    .rank-list { display:grid; gap:7px; }
+    .rank-row { display:grid; grid-template-columns: 34px minmax(0,1fr) auto; gap:8px; align-items:center; padding:8px; border-radius:12px; background:rgba(238,233,223,.035); border:1px solid rgba(238,233,223,.07); }
+    .rank-row b { color:#ff8dbb; }
+    .rank-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .dashboard-filter { display:grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap:8px; margin-bottom:12px; }
+    .admin-table { width:100%; border-collapse:collapse; min-width:760px; }
+    .admin-table th, .admin-table td { border-bottom:1px solid rgba(238,233,223,.08); padding:9px; text-align:left; font-size:13px; }
+    .admin-table th { color:var(--muted); background:rgba(27,42,34,.9); }
+    .privacy-note { border:1px solid rgba(216,77,137,.28); background:rgba(216,77,137,.09); border-radius:16px; padding:10px; color:var(--muted); font-size:12px; line-height:1.55; }
+    @media (max-width: 1180px) {
+      .dashboard-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .dashboard-filter { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+    @media (max-width: 760px) {
+      .auth-actions, .dashboard-grid, .dashboard-filter { grid-template-columns: 1fr; }
+      .account-strip { display:grid; }
+    }
+
   </style>
 </head>
 <body>
@@ -2779,6 +2806,7 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script>
     const LOGO_SRC = "page-logo.png";
     const LOGO_FALLBACK_SRC = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 160"><rect width="480" height="160" fill="none"/><text x="50%" y="48%" dominant-baseline="middle" text-anchor="middle" fill="#eee9df" font-size="54" font-family="Arial, sans-serif" font-weight="900" letter-spacing="-2">GEEKS</text><text x="50%" y="74%" dominant-baseline="middle" text-anchor="middle" fill="#d84d89" font-size="18" font-family="Arial, sans-serif" font-weight="800">MINI4WD TOURNAMENT</text></svg>`);
@@ -2878,6 +2906,7 @@
         tournament: {
           name: "",
           venue: "",
+          raceClass: "오픈",
           status: "draft",
           startedAtISO: "",
           startedAtDisplay: "",
@@ -3274,10 +3303,11 @@
       if (!state.settings.matchMode) state.settings.matchMode = "basic";
       if (state.settings.sameLanePrevention === undefined) state.settings.sameLanePrevention = true;
       if (!state.tournament) {
-        state.tournament = { name: "", venue: "", status: "draft", startedAtISO: "", startedAtDisplay: "", endedAtISO: "", endedAtDisplay: "" };
+        state.tournament = { name: "", venue: "", raceClass: "오픈", status: "draft", startedAtISO: "", startedAtDisplay: "", endedAtISO: "", endedAtDisplay: "" };
       }
       if (state.tournament.name === undefined) state.tournament.name = "";
       if (state.tournament.venue === undefined) state.tournament.venue = "";
+      if (state.tournament.raceClass === undefined) state.tournament.raceClass = "오픈";
       if (state.tournament.status === undefined) state.tournament.status = state.tournament.startedAtISO ? "running" : "draft";
       if (state.tournament.startedAtISO === undefined) state.tournament.startedAtISO = "";
       if (state.tournament.startedAtDisplay === undefined) state.tournament.startedAtDisplay = "";
@@ -3294,10 +3324,25 @@
       }[status] || "준비중";
     }
 
+    function validateTournamentMetaRequired() {
+      ensureStateDefaults();
+      if (!state.tournament.name.trim()) {
+        showError("대회명을 입력해야 시작할 수 있습니다.");
+        alert("대회명을 입력하세요.");
+        return false;
+      }
+      if (!state.tournament.venue.trim()) {
+        showError("경기장을 입력해야 시작할 수 있습니다.");
+        alert("경기장을 입력하세요.");
+        return false;
+      }
+      if (!state.tournament.raceClass) state.tournament.raceClass = "오픈";
+      return true;
+    }
+
     function startTournament() {
       ensureStateDefaults();
-      if (!state.tournament.name.trim() && !confirm("대회명이 비어 있습니다. 그대로 시작할까요?")) return;
-      if (!state.tournament.venue.trim() && !confirm("경기장이 비어 있습니다. 그대로 시작할까요?")) return;
+      if (!validateTournamentMetaRequired()) return;
 
       ensureTournamentStarted();
       state.tournament.status = "running";
@@ -3572,6 +3617,7 @@
 
     function startQualifierRound(roundIndex) {
       ensureStateDefaults();
+      if (!validateTournamentMetaRequired()) return;
       ensureTournamentStarted();
 
       const round = state.qualifierRounds[roundIndex];
@@ -3862,6 +3908,7 @@
 
     function startAllFirstStages() {
       ensureStateDefaults();
+      if (!validateTournamentMetaRequired()) return;
       ensureTournamentStarted();
 
       const players = getEligibleParticipants();
@@ -3928,7 +3975,10 @@
                 <button class="primary" onclick="openTvView()">TV LIVE</button>
                 <button class="ghost" onclick="shareMobileView()">MOBILE LINK</button>
                 <button class="ghost" onclick="openDbPage()">PLAYER DB</button>
+                <button class="ghost" onclick="openDashboardPage()">DASHBOARD</button>
+                ${isAdminUser() ? `<button class="ghost" onclick="openAdminPage()">ADMIN</button>` : ""}
                 <button class="ghost" onclick="openPrintView()">PRINT</button>
+                <button class="ghost" onclick="logoutUser()">LOGOUT</button>
                 <div class="grow"></div>
                 ${!isRevivalMode() ? `<button class="ghost" onclick="createFinalRace()">최종 결승 진행</button>` : ""}
               </div>
@@ -3954,15 +4004,21 @@
 
                 <div class="form-grid">
                   <div>
-                    <label>대회명</label>
-                    <input class="mini-input" placeholder="OPEN CLASS" value="${escapeHtml(state.tournament.name || "")}" oninput="setTournamentField('name', this.value)" onblur="renderOperator()" />
+                    <label>대회명 *</label>
+                    <input class="mini-input" required placeholder="대회명 입력 필수" value="${escapeHtml(state.tournament.name || "")}" oninput="setTournamentField('name', this.value)" onblur="renderOperator()" />
                   </div>
                   <div>
-                    <label>경기장</label>
-                    <input class="mini-input" placeholder="" value="${escapeHtml(state.tournament.venue || "")}" oninput="setTournamentField('venue', this.value)" onblur="renderOperator()" />
+                    <label>경기장 *</label>
+                    <input class="mini-input" required placeholder="경기장 입력 필수" value="${escapeHtml(state.tournament.venue || "")}" oninput="setTournamentField('venue', this.value)" onblur="renderOperator()" />
                   </div>
                 </div>
-                <p class="hint">대회명과 경기장을 입력하면 결과 다운로드와 출력용 대진표에 함께 표시됩니다.</p>
+                <div style="margin:10px 0 0;">
+                  <label>클래스</label>
+                  <select class="mini-input" value="${escapeHtml(state.tournament.raceClass || "오픈")}" onchange="setTournamentField('raceClass', this.value)">
+                    ${["어드벤스드", "스톡", "오픈"].map(item => `<option value="${item}" ${state.tournament.raceClass === item ? "selected" : ""}>${item}</option>`).join("")}
+                  </select>
+                </div>
+                <p class="hint">대회명과 경기장은 필수입니다. 클래스는 결과 다운로드와 출력용 대진표에 함께 표시됩니다.</p>
                 <div style="margin:8px 0 14px;">
                   <span class="pill">경기일시: ${state.tournament.startedAtDisplay || "대회 시작 시 자동 기록"}</span>
                 </div>
@@ -4076,7 +4132,7 @@
           <div class="manual-body">
             <h2>1. 기본 흐름</h2>
             <ol>
-              <li>대회명은 기본 예시인 <b>OPEN CLASS</b>를 참고해 입력합니다. 경기장은 필요할 때만 입력합니다.</li>
+              <li>대회명과 경기장은 필수로 입력합니다. 클래스는 어드벤스드, 스톡, 오픈 중 선택합니다.</li>
               <li>경기 방식을 선택합니다. 기본 토너먼트, 1R 포인트전, 패자부활 중 하나를 고릅니다.</li>
               <li>경기 타입을 3레인 또는 5레인으로 선택합니다. 레인 수는 실제 경기장 레인 수입니다.</li>
               <li>참가자 명단을 한 줄에 한 명씩 입력합니다. 형식은 <b>이름/팀명</b>입니다.</li>
@@ -4501,6 +4557,7 @@ function renderTournamentStatusPanel() {
       const status = state.tournament.status || "draft";
       const tournamentName = state.tournament.name || "대회명 없음";
       const venueName = state.tournament.venue || "경기장 없음";
+      const raceClassName = state.tournament.raceClass || "오픈";
       const actionButtons = status === "draft"
         ? `<button class="primary" onclick="startTournament()">대회 시작</button>`
         : status === "running"
@@ -4515,7 +4572,7 @@ function renderTournamentStatusPanel() {
             <span class="status-badge status-${status}">${statusLabel(status)}</span>
             <div class="status-title-block">
               <strong>${escapeHtml(tournamentName)}</strong>
-              <span>${escapeHtml(venueName)}</span>
+              <span>${escapeHtml(venueName)} · ${escapeHtml(raceClassName)}</span>
             </div>
           </div>
           <div class="status-time-block">
@@ -5453,6 +5510,7 @@ function renderTvStage() {
         경기일시: state.tournament.startedAtDisplay || "",
         대회명: state.tournament.name || "",
         경기장: state.tournament.venue || "",
+        클래스: state.tournament.raceClass || "오픈",
         경기방식: matchModeLabel(),
         레인수: `${state.settings.laneCount}레인`,
         대회상태: statusLabel(),
@@ -5524,7 +5582,7 @@ function renderTvStage() {
         alert("다운로드할 경기 결과가 없습니다.");
         return;
       }
-      const headers = ["경기일시", "종료일시", "대회상태", "대회명", "경기장", "경기방식", "레인수", "차수", "단계", "조", "레인", "선수명", "팀명", "점수", "결과", "비고"];
+      const headers = ["경기일시", "종료일시", "대회상태", "대회명", "경기장", "클래스", "경기방식", "레인수", "차수", "단계", "조", "레인", "선수명", "팀명", "점수", "결과", "비고"];
       const csvRows = [headers, ...rows.map(row => headers.map(header => row[header] ?? ""))];
       downloadTextFile(`tournament_result_${Date.now()}.csv`, toCsv(csvRows));
     }
@@ -5575,6 +5633,7 @@ function renderTvStage() {
       const rows = [
         ["대회명", meta.name || ""],
         ["경기장", meta.venue || ""],
+        ["클래스", meta.raceClass || "오픈"],
         ["경기일시", meta.startedAtDisplay || ""],
         ["경기방식", matchModeLabel(settings.matchMode)],
         ["레인수", `${settings.laneCount || 3}레인`],
@@ -5630,7 +5689,7 @@ function renderTvStage() {
           <header class="print-header">
             <div>
               <h1>${escapeHtml(meta.name || "대회명 미입력")}</h1>
-              <p>${escapeHtml(meta.venue || "경기장 미입력")} · ${escapeHtml(meta.startedAtDisplay || "")} · ${escapeHtml(matchModeLabel(settings.matchMode))} · ${settings.laneCount || 3}레인</p>
+              <p>${escapeHtml(meta.venue || "경기장 미입력")} · ${escapeHtml(meta.raceClass || "오픈")} · ${escapeHtml(meta.startedAtDisplay || "")} · ${escapeHtml(matchModeLabel(settings.matchMode))} · ${settings.laneCount || 3}레인</p>
             </div>
             <strong>${escapeHtml(printable?.title || "출력할 대진 없음")}</strong>
           </header>
@@ -5822,7 +5881,680 @@ function renderTvStage() {
     }
 
     
-    boot();
+
+    /* v33 login, venue roster, dashboard */
+    const ADMIN_EMAILS = ["chaser.escane@gmail.com"];
+    const USER_PROFILE_PATH = "userProfiles";
+    const RESULT_LOGS_PATH = "resultLogs";
+    const LOCAL_RESULT_LOGS_KEY = "mini4wdResultLogsV33";
+    const DB_VENUE_KEY = "mini4wdDbVenueId";
+    let firebaseAuth = null;
+    let firebaseAuthReadyPromise = null;
+    let currentAuthUser = null;
+    let currentUserProfile = null;
+    let dbVenueIdDraft = localStorage.getItem(DB_VENUE_KEY) || "";
+    let dbCloudLoadedVenueId = "";
+    let dashboardFilter = { from: "", to: "", venue: "전체", raceClass: "전체", keyword: "" };
+
+    function normalizeKey(text) {
+      return String(text || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9가-힣]+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "") || "default";
+    }
+
+    function playerIdentityKey(realName, contact) {
+      return normalizeKey(`${realName || ""}-${String(contact || "").replace(/\D/g, "")}`);
+    }
+
+    function rosterIdentityId(realName, contact) {
+      const key = playerIdentityKey(realName, contact);
+      return key === "default" ? `roster-${Date.now()}-${Math.random().toString(36).slice(2, 8)}` : `player-${key}`;
+    }
+
+    function profileFromAdminEmail(user) {
+      return user && ADMIN_EMAILS.includes(String(user.email || "").toLowerCase())
+        ? { uid: user.uid, email: user.email, role: "admin", venueId: "all", venueName: "전체", approved: true }
+        : null;
+    }
+
+    function initAuthState() {
+      if (firebaseAuthReadyPromise) return firebaseAuthReadyPromise;
+      initFirebase();
+      firebaseAuthReadyPromise = new Promise(resolve => {
+        if (!window.firebase || !firebase.auth) {
+          currentAuthUser = null;
+          currentUserProfile = null;
+          resolve(false);
+          return;
+        }
+        firebaseAuth = firebase.auth();
+        firebaseAuth.onAuthStateChanged(async user => {
+          currentAuthUser = user;
+          currentUserProfile = user ? await loadUserProfile(user) : null;
+          resolve(true);
+        });
+      });
+      return firebaseAuthReadyPromise;
+    }
+
+    async function loadUserProfile(user) {
+      const adminProfile = profileFromAdminEmail(user);
+      const db = initFirebase();
+      if (!db) return adminProfile || { uid: user.uid, email: user.email, role: "pending", venueId: "", venueName: "", approved: false };
+      try {
+        const snap = await db.ref(`${USER_PROFILE_PATH}/${user.uid}`).get();
+        const stored = snap.val();
+        if (adminProfile) {
+          await db.ref(`${USER_PROFILE_PATH}/${user.uid}`).update({ ...adminProfile, lastLoginAt: new Date().toISOString() }).catch(() => {});
+          return { ...(stored || {}), ...adminProfile };
+        }
+        if (stored) {
+          await db.ref(`${USER_PROFILE_PATH}/${user.uid}`).update({ email: user.email, lastLoginAt: new Date().toISOString() }).catch(() => {});
+          return { uid: user.uid, email: user.email, role: stored.role || "pending", venueId: stored.venueId || "", venueName: stored.venueName || "", approved: stored.approved === true, ...stored };
+        }
+        const pending = { uid: user.uid, email: user.email, role: "pending", venueId: "", venueName: "", approved: false, requestedAt: new Date().toISOString() };
+        await db.ref(`${USER_PROFILE_PATH}/${user.uid}`).set(pending).catch(() => {});
+        return pending;
+      } catch (error) {
+        return adminProfile || { uid: user.uid, email: user.email, role: "pending", venueId: "", venueName: "", approved: false };
+      }
+    }
+
+    function isAdminUser() {
+      return Boolean(currentAuthUser && (ADMIN_EMAILS.includes(String(currentAuthUser.email || "").toLowerCase()) || currentUserProfile?.role === "admin"));
+    }
+
+    function isVenueUser() {
+      return Boolean(currentAuthUser && currentUserProfile?.role === "venue" && currentUserProfile?.approved !== false);
+    }
+
+    function canOperate() {
+      return isAdminUser() || isVenueUser();
+    }
+
+    function currentVenueName() {
+      if (isVenueUser()) return currentUserProfile.venueName || currentUserProfile.venueId || "경기장";
+      return state?.tournament?.venue || dbVenueIdDraft || "GEEKS";
+    }
+
+    function currentVenueId() {
+      if (isVenueUser()) return currentUserProfile.venueId || normalizeKey(currentUserProfile.venueName || currentUserProfile.email);
+      return normalizeKey(dbVenueIdDraft || state?.tournament?.venue || "GEEKS");
+    }
+
+    function accountBadge() {
+      if (!currentAuthUser) return "";
+      const role = isAdminUser() ? "ADMIN" : isVenueUser() ? "VENUE" : "PENDING";
+      const venue = isVenueUser() ? ` · ${escapeHtml(currentVenueName())}` : "";
+      return `<div class="account-strip"><span class="pill">${role}${venue} · ${escapeHtml(currentAuthUser.email || "")}</span><div><button class="ghost" onclick="openDashboardPage()">DASHBOARD</button> ${isAdminUser() ? `<button class="ghost" onclick="openAdminPage()">ADMIN</button>` : ""} <button class="ghost" onclick="logoutUser()">LOGOUT</button></div></div>`;
+    }
+
+    function renderLoginPage(message = "운영자 화면은 로그인이 필요합니다.") {
+      document.body.classList.remove("tv-mode");
+      app.innerHTML = `
+        <div class="wrap">
+          <header class="header">
+            <div class="header-copy">
+              <div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div></div>
+              <h1>운영자 로그인</h1>
+              <p class="desc">일반 유저는 TV LIVE / 모바일 LIVE를 로그인 없이 볼 수 있습니다. 운영 및 선수 DB는 계정이 필요합니다.</p>
+            </div>
+            ${logoMarkup("header-logo")}
+          </header>
+          <section class="card auth-card">
+            <h2>LOGIN</h2>
+            <p class="hint">${escapeHtml(message)}</p>
+            <label>이메일</label><input class="mini-input" id="loginEmail" type="email" autocomplete="username" />
+            <label>비밀번호</label><input class="mini-input" id="loginPassword" type="password" autocomplete="current-password" />
+            <div class="auth-actions">
+              <button class="primary" onclick="loginWithEmailPassword()">로그인</button>
+              <button class="ghost" onclick="requestVenueAccount()">경기장 계정 신청</button>
+            </div>
+            <p class="privacy-note" style="margin-top:12px;">경기장 계정 신청 후 관리자가 승인해야 운영자 화면에 들어갈 수 있습니다.</p>
+            <div style="display:flex; gap:8px; margin-top:12px;"><button class="ghost" onclick="openDashboardPage()">대시보드 보기</button><button class="ghost" onclick="location.hash='view=mobile-live'; bootV33();">모바일 LIVE</button></div>
+          </section>
+        </div>`;
+    }
+
+    async function loginWithEmailPassword() {
+      const email = document.getElementById("loginEmail")?.value.trim();
+      const password = document.getElementById("loginPassword")?.value;
+      if (!email || !password) return alert("이메일과 비밀번호를 입력하세요.");
+      try {
+        await initAuthState();
+        await firebaseAuth.signInWithEmailAndPassword(email, password);
+        firebaseAuthReadyPromise = null;
+        await initAuthState();
+        location.hash = "";
+        bootV33();
+      } catch (error) {
+        alert(`로그인 실패: ${error.message || error}`);
+      }
+    }
+
+    async function requestVenueAccount() {
+      const email = document.getElementById("loginEmail")?.value.trim();
+      const password = document.getElementById("loginPassword")?.value;
+      const venueName = prompt("신청할 경기장명을 입력하세요.");
+      if (!email || !password || !venueName) return alert("이메일, 비밀번호, 경기장명이 필요합니다.");
+      try {
+        await initAuthState();
+        const credential = await firebaseAuth.createUserWithEmailAndPassword(email, password);
+        const user = credential.user;
+        const profile = { uid: user.uid, email, role: "pending", venueId: normalizeKey(venueName), venueName, approved: false, requestedAt: new Date().toISOString() };
+        const db = initFirebase();
+        if (db) await db.ref(`${USER_PROFILE_PATH}/${user.uid}`).set(profile);
+        currentAuthUser = user;
+        currentUserProfile = profile;
+        renderPendingPage();
+      } catch (error) {
+        alert(`계정 신청 실패: ${error.message || error}`);
+      }
+    }
+
+    async function logoutUser() {
+      if (firebaseAuth) await firebaseAuth.signOut().catch(() => {});
+      currentAuthUser = null;
+      currentUserProfile = null;
+      firebaseAuthReadyPromise = null;
+      location.hash = "view=login";
+      renderLoginPage("로그아웃되었습니다.");
+    }
+
+    function renderPendingPage() {
+      document.body.classList.remove("tv-mode");
+      app.innerHTML = `<div class="wrap"><section class="card auth-card"><h2>승인 대기</h2><p class="hint">관리자 승인이 필요합니다.</p><p class="privacy-note">계정: ${escapeHtml(currentAuthUser?.email || "")}<br>신청 경기장: ${escapeHtml(currentUserProfile?.venueName || "")}</p><button class="ghost" onclick="logoutUser()">LOGOUT</button></section></div>`;
+    }
+
+    function openDashboardPage() { location.hash = "view=dashboard"; renderDashboardPage(); }
+    function openAdminPage() { location.hash = "view=admin"; renderAdminPage(); }
+
+    function renderAdminPage() {
+      if (!isAdminUser()) return renderLoginPage("관리자 권한이 필요합니다.");
+      document.body.classList.remove("tv-mode");
+      app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">경기장 계정 승인 및 권한 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<section class="card"><h2>불러오는 중</h2></section></div>`;
+      const db = initFirebase();
+      if (!db) return;
+      db.ref(USER_PROFILE_PATH).get().then(snapshot => {
+        const profiles = snapshot.val() || {};
+        const rows = Object.entries(profiles).sort((a,b) => String(a[1].email || "").localeCompare(String(b[1].email || "")));
+        app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">경기장 계정 승인 및 권한 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar"><button class="primary" onclick="location.hash=''; renderOperator();">TOURNAMENT</button><button class="ghost" onclick="openDashboardPage()">DASHBOARD</button><button class="ghost" onclick="renderAdminPage()">새로고침</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>권한</th><th>경기장</th><th>승인</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${escapeHtml(p.role || "pending")}</td><td>${escapeHtml(p.venueName || p.venueId || "")}</td><td>${p.approved ? "Y" : "N"}</td><td><button class="primary" onclick="approveVenueUser('${escapeAttr(uid)}')">경기장 승인</button> <button class="ghost" onclick="makeAdminUser('${escapeAttr(uid)}')">관리자</button> <button class="danger" onclick="suspendUser('${escapeAttr(uid)}')">중지</button></td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">신규 계정은 로그인 화면에서 경기장 계정 신청으로 생성하고, 여기서 승인합니다.</p></section></div>`;
+      }).catch(error => alert(`사용자 목록 로드 실패: ${error.message || error}`));
+    }
+
+    async function approveVenueUser(uid) {
+      if (!isAdminUser()) return;
+      const venueName = prompt("승인할 경기장명");
+      if (!venueName) return;
+      const db = initFirebase();
+      await db.ref(`${USER_PROFILE_PATH}/${uid}`).update({ role: "venue", approved: true, venueName, venueId: normalizeKey(venueName), approvedAt: new Date().toISOString() });
+      renderAdminPage();
+    }
+
+    async function makeAdminUser(uid) {
+      if (!isAdminUser() || !confirm("관리자 권한을 부여할까요?")) return;
+      const db = initFirebase();
+      await db.ref(`${USER_PROFILE_PATH}/${uid}`).update({ role: "admin", approved: true, venueName: "전체", venueId: "all" });
+      renderAdminPage();
+    }
+
+    async function suspendUser(uid) {
+      if (!isAdminUser() || !confirm("이 계정을 중지할까요?")) return;
+      const db = initFirebase();
+      await db.ref(`${USER_PROFILE_PATH}/${uid}`).update({ role: "pending", approved: false });
+      renderAdminPage();
+    }
+
+    function getRosterStorageKey() {
+      return `${ROSTER_KEY}_${currentVenueId()}`;
+    }
+
+    function loadRoster() {
+      try {
+        const raw = localStorage.getItem(getRosterStorageKey()) || localStorage.getItem(ROSTER_KEY);
+        const data = raw ? JSON.parse(raw) : [];
+        return Array.isArray(data) ? data.map(normalizeRosterPlayer) : [];
+      } catch (error) { return []; }
+    }
+
+    function normalizeRosterPlayer(player) {
+      const realName = String(player.realName || player.name || "").trim();
+      const contact = String(player.contact || "").trim();
+      const id = player.id && !String(player.id).startsWith("roster-") ? player.id : rosterIdentityId(realName, contact);
+      return { ...player, id, realName, contact, name: String(player.name || player.nickname || realName || "").trim(), team: String(player.team || "").trim(), nickname: String(player.nickname || "").trim(), memo: String(player.memo || "").trim(), favorite: Boolean(player.favorite), active: player.active !== false, venueId: player.venueId || currentVenueId(), venueName: player.venueName || currentVenueName(), createdAt: player.createdAt || new Date().toISOString() };
+    }
+
+    function saveRoster(roster) {
+      const normalized = roster.map(normalizeRosterPlayer);
+      localStorage.setItem(getRosterStorageKey(), JSON.stringify(normalized));
+      const db = initFirebase();
+      if (db && currentAuthUser) db.ref(`venues/${currentVenueId()}/players`).set(Object.fromEntries(normalized.map(player => [player.id, player]))).catch(error => console.warn("roster cloud save failed", error));
+    }
+
+    function requestRosterCloudLoad() {
+      const venueId = currentVenueId();
+      if (dbCloudLoadedVenueId === venueId) return;
+      dbCloudLoadedVenueId = venueId;
+      const db = initFirebase();
+      if (!db || !currentAuthUser) return;
+      db.ref(`venues/${venueId}/players`).get().then(snapshot => {
+        const raw = snapshot.val();
+        if (!raw) return;
+        const cloud = Object.values(raw).map(normalizeRosterPlayer);
+        localStorage.setItem(getRosterStorageKey(), JSON.stringify(cloud));
+        renderDbPage();
+      }).catch(() => {});
+    }
+
+    function rosterId() { return rosterIdentityId("", ""); }
+
+    function findRosterMatch(displayName, team) {
+      const nameKey = String(displayName || "").trim();
+      const teamKey = String(team || "").trim();
+      return loadRoster().find(player => player.active && (player.name === nameKey || player.nickname === nameKey || player.realName === nameKey) && String(player.team || "") === teamKey)
+        || loadRoster().find(player => player.active && (player.name === nameKey || player.nickname === nameKey || player.realName === nameKey));
+    }
+
+    function parseParticipants(text = state.inputText) {
+      return text
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map((line, index) => {
+          const parts = line.includes("/") ? line.split("/") : line.includes("\t") ? line.split("\t") : line.split(",");
+          const name = (parts[0] || `참가자 ${index + 1}`).trim();
+          const team = (parts[1] || "").trim();
+          const roster = findRosterMatch(name, team);
+          if (roster) return { id: roster.id, name, team, realName: roster.realName, contact: roster.contact, venueId: roster.venueId, venueName: roster.venueName };
+          return { id: `p-${index + 1}-${name}`, name, team, realName: "", contact: "", venueId: currentVenueId(), venueName: currentVenueName() };
+        });
+    }
+
+    function setDbVenue(value) {
+      if (isVenueUser()) return;
+      dbVenueIdDraft = value;
+      localStorage.setItem(DB_VENUE_KEY, value);
+      dbCloudLoadedVenueId = "";
+      dbSelectedIds = new Set();
+      renderDbPage();
+    }
+
+    function addRosterPlayer() {
+      const realName = document.getElementById("dbRealName")?.value.trim();
+      const contact = document.getElementById("dbContact")?.value.trim();
+      const name = document.getElementById("dbName")?.value.trim() || realName;
+      const team = document.getElementById("dbTeam")?.value.trim();
+      const nickname = document.getElementById("dbNickname")?.value.trim();
+      const memo = document.getElementById("dbMemo")?.value.trim();
+      if (!realName || !contact) return alert("실명과 연락처는 필수입니다.");
+      const roster = loadRoster();
+      const key = playerIdentityKey(realName, contact);
+      const duplicated = roster.find(player => playerIdentityKey(player.realName, player.contact) === key);
+      if (duplicated) return alert("동일 실명/연락처 선수가 이미 등록되어 있습니다.");
+      roster.push(normalizeRosterPlayer({ id: rosterIdentityId(realName, contact), realName, contact, name, team, nickname, memo, favorite: false, active: true, createdAt: new Date().toISOString() }));
+      saveRoster(roster);
+      renderDbPage();
+    }
+
+    function updateRosterInline(id, field, value) {
+      const roster = loadRoster().map(player => {
+        if (player.id !== id) return player;
+        const next = { ...player, [field]: value };
+        if (field === "realName" || field === "contact") next.id = rosterIdentityId(next.realName, next.contact);
+        return normalizeRosterPlayer(next);
+      });
+      saveRoster(roster);
+    }
+
+    function updateSelectedPreview() {
+      const roster = loadRoster();
+      const selected = roster.filter(player => dbSelectedIds.has(player.id));
+      const el = document.getElementById("selectedPreview");
+      const count = document.getElementById("selectedCount");
+      if (count) count.textContent = selected.length;
+      if (!el) return;
+      if (!selected.length) { el.innerHTML = `<div class="hint">선택된 선수가 없습니다.</div>`; return; }
+      el.innerHTML = selected.map(player => `<div class="finalist-item"><b>${escapeHtml(player.nickname || player.name || player.realName)}</b>${player.team ? ` / ${escapeHtml(player.team)}` : ""}<br><span class="hint">${escapeHtml(player.realName || "")} · ${escapeHtml(player.contact || "")}</span></div>`).join("");
+    }
+
+    function applySelectedPlayersToTournament() {
+      const roster = loadRoster();
+      const selected = roster.filter(player => dbSelectedIds.has(player.id) && player.active);
+      if (!selected.length) return alert("오늘 참가자를 선택하세요.");
+      const text = selected.map(player => `${player.nickname || player.name || player.realName}/${player.team || ""}`).join("\n");
+      localStorage.setItem(PENDING_PARTICIPANTS_KEY, text);
+      localStorage.setItem(RECENT_PARTICIPANTS_KEY, JSON.stringify(selected.map(player => player.id)));
+      state.inputText = text;
+      if (isVenueUser()) state.tournament.venue = currentVenueName();
+      saveLiveState();
+      location.hash = "";
+      renderOperator();
+    }
+
+    function exportRosterCsv() {
+      const roster = loadRoster();
+      const rows = [["경기장", "실명", "연락처", "선수명", "팀명", "닉네임", "즐겨찾기", "활성", "메모", "등록일"]];
+      roster.forEach(player => rows.push([player.venueName || currentVenueName(), player.realName || "", player.contact || "", player.name || "", player.team || "", player.nickname || "", player.favorite ? "Y" : "N", player.active ? "Y" : "N", player.memo || "", player.createdAt || ""]));
+      downloadTextFile(`mini4wd_roster_${currentVenueId()}.csv`, toCsv(rows));
+    }
+
+    function exportRosterJson() { downloadTextFile(`mini4wd_roster_${currentVenueId()}_backup.json`, JSON.stringify(loadRoster(), null, 2)); }
+
+    function quickImportRosterLines() {
+      const text = document.getElementById("quickImportText")?.value.trim();
+      if (!text) return alert("목록을 붙여넣으세요.");
+      const current = loadRoster();
+      const existingKey = new Set(current.map(player => playerIdentityKey(player.realName, player.contact)));
+      const added = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
+        const parts = line.includes("/") ? line.split("/") : line.includes("\t") ? line.split("\t") : line.split(",");
+        const realName = (parts[0] || "").trim();
+        const contact = (parts[1] || "").trim();
+        const name = (parts[2] || realName).trim();
+        const team = (parts[3] || "").trim();
+        const nickname = (parts[4] || "").trim();
+        return { realName, contact, name, team, nickname };
+      }).filter(player => player.realName && player.contact).filter(player => {
+        const key = playerIdentityKey(player.realName, player.contact);
+        if (existingKey.has(key)) return false;
+        existingKey.add(key);
+        return true;
+      }).map(player => normalizeRosterPlayer({ id: rosterIdentityId(player.realName, player.contact), ...player, memo: "", favorite: false, active: true, createdAt: new Date().toISOString() }));
+      if (!added.length) return alert("새로 추가할 선수가 없습니다. 형식: 실명/연락처/선수명/팀명/닉네임");
+      saveRoster([...current, ...added]);
+      renderDbPage();
+    }
+
+    function downloadRosterTemplate() {
+      const rows = [["실명", "연락처", "선수명", "팀명", "닉네임", "메모", "활성여부", "즐겨찾기"], ["김철수", "010-0000-0000", "철수", "GEEKS", "마이", "MS 플렉스", "TRUE", "TRUE"]];
+      if (window.XLSX) { const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet(rows); XLSX.utils.book_append_sheet(wb, ws, "선수등록양식"); XLSX.writeFile(wb, "mini4wd_player_upload_template.xlsx"); }
+      else downloadTextFile("mini4wd_player_upload_template.csv", toCsv(rows));
+    }
+
+    function importRosterExcel(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const ext = file.name.split(".").pop().toLowerCase();
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          let rows = [];
+          if ((ext === "xlsx" || ext === "xls") && window.XLSX) {
+            const wb = XLSX.read(new Uint8Array(e.target.result), { type: "array" });
+            rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" });
+          } else {
+            const lines = e.target.result.split(/\r?\n/).filter(Boolean);
+            const headers = lines.shift().split(/,|\t/).map(h => h.replace(/^"|"$/g, "").trim());
+            rows = lines.map(line => { const cells = line.split(/,|\t/).map(cell => cell.replace(/^"|"$/g, "").trim()); const obj = {}; headers.forEach((h,i) => obj[h] = cells[i] || ""); return obj; });
+          }
+          const current = loadRoster();
+          const existingKey = new Set(current.map(player => playerIdentityKey(player.realName, player.contact)));
+          const imported = [];
+          rows.forEach(row => {
+            const realName = String(row["실명"] || row["realName"] || row["선수명"] || row["name"] || "").trim();
+            const contact = String(row["연락처"] || row["contact"] || "").trim();
+            if (!realName || !contact) return;
+            const key = playerIdentityKey(realName, contact);
+            if (existingKey.has(key)) return;
+            existingKey.add(key);
+            imported.push(normalizeRosterPlayer({ id: rosterIdentityId(realName, contact), realName, contact, name: String(row["선수명"] || row["name"] || realName).trim(), team: String(row["팀명"] || row["team"] || "").trim(), nickname: String(row["닉네임"] || row["nickname"] || "").trim(), memo: String(row["메모"] || row["memo"] || "").trim(), active: parseBooleanCell(row["활성여부"], true), favorite: parseBooleanCell(row["즐겨찾기"], false), createdAt: new Date().toISOString() }));
+          });
+          if (!imported.length) { event.target.value = ""; return alert("추가할 선수가 없습니다. 실명/연락처가 필요합니다."); }
+          saveRoster([...current, ...imported]);
+          event.target.value = "";
+          renderDbPage();
+        } catch (error) { alert("업로드 파일을 읽는 중 오류가 발생했습니다."); event.target.value = ""; }
+      };
+      if (ext === "xlsx" || ext === "xls") reader.readAsArrayBuffer(file); else reader.readAsText(file, "utf-8");
+    }
+
+    function importRosterJsonFromText() {
+      const text = document.getElementById("importJsonText")?.value.trim();
+      if (!text) return alert("불러올 JSON 내용을 붙여넣으세요.");
+      try {
+        const data = JSON.parse(text);
+        if (!Array.isArray(data)) throw new Error("not array");
+        const cleaned = data.map(normalizeRosterPlayer).filter(player => player.realName && player.contact);
+        if (!cleaned.length) return alert("불러올 선수가 없습니다. 실명/연락처가 필요합니다.");
+        if (!confirm(`선수 ${cleaned.length}명을 불러옵니다. 기존 명부를 교체할까요?`)) return;
+        saveRoster(cleaned);
+        dbSelectedIds = new Set();
+        renderDbPage();
+      } catch (error) { alert("JSON 형식이 올바르지 않습니다."); }
+    }
+
+    function renderDbPage() {
+      if (!canOperate()) return renderLoginPage("선수 DB는 경기장 계정 또는 관리자만 사용할 수 있습니다.");
+      document.body.classList.remove("tv-mode");
+      requestRosterCloudLoad();
+      const roster = loadRoster();
+      const search = dbSearchText.trim().toLowerCase();
+      const teams = Array.from(new Set(roster.map(player => player.team).filter(Boolean))).sort();
+      const filtered = roster.filter(player => {
+        const matchesSearch = !search || [player.realName, player.contact, player.name, player.team, player.nickname, player.memo].some(value => String(value || "").toLowerCase().includes(search));
+        const matchesTeam = dbTeamFilter === "전체" || (player.team || "") === dbTeamFilter;
+        return matchesSearch && matchesTeam;
+      });
+      const activeCount = roster.filter(player => player.active).length;
+      const favoriteCount = roster.filter(player => player.favorite).length;
+      app.innerHTML = `
+        <div class="db-page">
+          <header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div></div><h1>선수 DB / 경기장별 관리</h1><p class="desc">실명과 연락처를 기준으로 식별하고, 닉네임은 변경 가능합니다.</p></div>${logoMarkup("header-logo")}</header>
+          ${accountBadge()}
+          <div class="toolbar"><button class="primary" onclick="location.hash=''; renderOperator();">TOURNAMENT</button><button class="ghost" onclick="exportRosterCsv()">CSV 다운로드</button><button class="ghost" onclick="exportRosterJson()">JSON 백업</button><button class="ghost" onclick="downloadRosterTemplate()">선수 양식</button><label class="upload-button ghost">엑셀 업로드<input type="file" accept=".xlsx,.xls,.csv,.tsv" onchange="importRosterExcel(event)" hidden /></label></div>
+          <div class="db-grid"><aside>
+            <section class="card"><div class="db-panel-title"><h2>선수 빠른 추가</h2><span class="pill">${escapeHtml(currentVenueName())}</span></div>${isAdminUser() ? `<div style="margin-bottom:10px;"><label>관리 경기장</label><input class="mini-input" value="${escapeHtml(dbVenueIdDraft || currentVenueName())}" onchange="setDbVenue(this.value)" /></div>` : ""}<div class="form-grid"><div><label>실명 *</label><input class="mini-input" id="dbRealName" placeholder="홍길동" /></div><div><label>연락처 *</label><input class="mini-input" id="dbContact" placeholder="010-0000-0000" /></div><div><label>선수명</label><input class="mini-input" id="dbName" placeholder="표시명" /></div><div><label>팀명</label><input class="mini-input" id="dbTeam" placeholder="OPEN CLASS" /></div><div><label>닉네임</label><input class="mini-input" id="dbNickname" placeholder="변경 가능" /></div><div><label>메모</label><input class="mini-input" id="dbMemo" placeholder="차량/특이사항" /></div></div><button class="primary" style="width:100%; margin-top:12px;" onclick="addRosterPlayer()">선수 추가</button><p class="privacy-note" style="margin-top:10px;">연락처가 포함되므로 선수 DB는 경기장별로 분리됩니다.</p></section>
+            <section class="card selected-box"><div class="db-panel-title"><h2>오늘 참가자</h2><span class="pill"><span id="selectedCount">0</span>명 선택</span></div><div class="db-actions" style="margin-bottom:10px;"><button class="ghost" onclick="selectRecentPlayers()">최근 참가자</button><button class="ghost" onclick="selectFavoritePlayers()">즐겨찾기</button><button class="ghost" onclick="clearSelectedPlayers()">선택 해제</button></div><div id="selectedPreview" class="finalist-grid" style="grid-template-columns:1fr;"></div><button class="primary" style="width:100%; margin-top:12px;" onclick="applySelectedPlayersToTournament()">선택 선수로 대진 생성 준비</button></section>
+            <section class="card"><h2>목록 일괄 추가</h2><p class="hint">형식: 실명/연락처/선수명/팀명/닉네임</p><textarea id="quickImportText" style="min-height:150px;" placeholder="홍길동/010-0000-0000/길동/GEEKS/마이"></textarea><button class="ghost" style="width:100%; margin-top:10px;" onclick="quickImportRosterLines()">목록에서 선수 추가</button></section>
+            <section class="card"><h2>JSON 복원</h2><textarea id="importJsonText" style="min-height:130px;"></textarea><button class="danger" style="width:100%; margin-top:10px;" onclick="importRosterJsonFromText()">JSON 불러오기</button></section>
+          </aside><main><section class="card"><div class="db-panel-title"><div><h2>선수 명부</h2><div class="meta">총 ${roster.length}명 · 표시 ${filtered.length}명</div></div><div class="db-actions"><input class="mini-input" placeholder="검색" value="${escapeHtml(dbSearchText)}" oninput="setDbSearch(this.value)" style="width:180px;" /><select onchange="setDbTeamFilter(this.value)" style="width:150px;"><option value="전체">전체 팀</option>${teams.map(team => `<option value="${escapeHtml(team)}" ${team === dbTeamFilter ? "selected" : ""}>${escapeHtml(team)}</option>`).join("")}</select></div></div><div class="db-stat-grid"><div class="db-stat"><small>전체 선수</small><strong>${roster.length}</strong></div><div class="db-stat"><small>활성 선수</small><strong>${activeCount}</strong></div><div class="db-stat"><small>즐겨찾기</small><strong>${favoriteCount}</strong></div></div><div class="roster-table-wrap"><table class="roster-table"><thead><tr><th>참가</th><th>★</th><th>실명</th><th>연락처</th><th>선수명</th><th>팀명</th><th>닉네임</th><th>상태</th><th>메모</th><th>관리</th></tr></thead><tbody>${filtered.map(player => renderRosterRow(player)).join("") || `<tr><td colspan="10"><div class="db-empty">등록된 선수가 없습니다.</div></td></tr>`}</tbody></table></div></section></main></div></div>`;
+      updateSelectedPreview();
+    }
+
+    function renderRosterRow(player) {
+      return `<tr><td data-label="참가"><input type="checkbox" data-roster-select value="${escapeAttr(player.id)}" ${dbSelectedIds.has(player.id) ? "checked" : ""} ${player.active ? "" : "disabled"} onchange="toggleDbSelected('${escapeAttr(player.id)}', this.checked)" /></td><td data-label="즐겨찾기"><button class="ghost" onclick="toggleRosterField('${escapeAttr(player.id)}', 'favorite')">${player.favorite ? "★" : "☆"}</button></td><td data-label="실명"><input class="mini-input" value="${escapeHtml(player.realName || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'realName', this.value)" /></td><td data-label="연락처"><input class="mini-input" value="${escapeHtml(player.contact || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'contact', this.value)" /></td><td data-label="선수명"><input class="mini-input" value="${escapeHtml(player.name || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'name', this.value)" /></td><td data-label="팀명"><input class="mini-input" value="${escapeHtml(player.team || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'team', this.value)" /></td><td data-label="닉네임"><input class="mini-input" value="${escapeHtml(player.nickname || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'nickname', this.value)" /></td><td data-label="상태"><button class="${player.active ? "primary" : "ghost"}" onclick="toggleRosterField('${escapeAttr(player.id)}', 'active')">${player.active ? "활성" : "비활성"}</button></td><td data-label="메모"><input class="mini-input" value="${escapeHtml(player.memo || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'memo', this.value)" /></td><td data-label="관리"><button class="danger" onclick="deleteRosterPlayer('${escapeAttr(player.id)}')">삭제</button></td></tr>`;
+    }
+
+    function getCurrentTournamentId() {
+      const params = getHashParams();
+      const fromHash = params.get("t") || params.get("tournamentId");
+      const stored = localStorage.getItem("mini4wdTournamentId");
+      const defaultId = `${currentVenueId()}-${DEFAULT_TOURNAMENT_ID}`;
+      firebaseTournamentId = (fromHash || stored || defaultId).trim() || defaultId;
+      localStorage.setItem("mini4wdTournamentId", firebaseTournamentId);
+      return firebaseTournamentId;
+    }
+
+    function setTournamentField(field, value) {
+      ensureStateDefaults();
+      if (field === "venue" && isVenueUser()) value = currentVenueName();
+      state.tournament[field] = value;
+      saveLiveState();
+    }
+
+    function validateTournamentMetaRequired() {
+      ensureStateDefaults();
+      if (isVenueUser()) state.tournament.venue = currentVenueName();
+      if (!state.tournament.name.trim()) { showError("대회명을 입력해야 시작할 수 있습니다."); alert("대회명을 입력하세요."); return false; }
+      if (!state.tournament.venue.trim()) { showError("경기장을 입력해야 시작할 수 있습니다."); alert("경기장을 입력하세요."); return false; }
+      if (!state.tournament.raceClass) state.tournament.raceClass = "오픈";
+      return true;
+    }
+
+    function resolvePlayerIdentity(player) {
+      if (!player || player.isEmptyLane) return { playerId: "", realName: "", contact: "" };
+      const match = loadRoster().find(item => item.id === player.id) || findRosterMatch(player.name, player.team);
+      return { playerId: match?.id || player.id || "", realName: match?.realName || player.realName || "", contact: match?.contact || player.contact || "" };
+    }
+
+    function getStageResultRows() {
+      const meta = getTournamentMeta();
+      const rows = [];
+      state.qualifierRounds.forEach(round => (round.stages || []).forEach(stage => stage.groups.forEach(group => group.slots.forEach(player => {
+        const isFinalist = round.finalist && round.finalist.id === player.id;
+        const isAdvanced = (group.advanceIds || []).includes(player.id);
+        const score = stage.type === "points" && !player.isEmptyLane ? Number((group.points || {})[player.id] ?? 0) : "";
+        const ident = resolvePlayerIdentity(player);
+        let result = player.isEmptyLane ? "빈 레인" : stage.type === "points" ? "포인트" : isFinalist ? "최종결승진출" : isAdvanced ? "진출" : "탈락";
+        rows.push({ ...meta, 경기장ID: currentVenueId(), 선수ID: ident.playerId, 실명: ident.realName, 연락처: ident.contact, 차수: round.title, 단계: stage.name, 조: group.name, 레인: `${player.lane}LANE`, 선수명: player.name, 팀명: player.team || "", 점수: score, 결과: result, 비고: stage.type || "" });
+      }))));
+      if (state.finalRace) state.finalRace.group.slots.forEach(player => {
+        const selected = (state.finalRace.group.advanceIds || []).includes(player.id);
+        const ident = resolvePlayerIdentity(player);
+        rows.push({ ...meta, 경기장ID: currentVenueId(), 선수ID: ident.playerId, 실명: ident.realName, 연락처: ident.contact, 차수: "최종 결승", 단계: "FINAL", 조: "FINAL", 레인: `${player.lane}LANE`, 선수명: player.name, 팀명: player.team || "", 점수: "", 결과: player.isEmptyLane ? "빈 레인" : selected ? "최종우승" : "결승참가", 비고: "final" });
+      });
+      return rows;
+    }
+
+    function exportTournamentCsv() {
+      ensureTournamentStarted();
+      const rows = getStageResultRows();
+      if (!rows.length) return alert("다운로드할 경기 결과가 없습니다.");
+      const headers = ["경기일시", "종료일시", "대회상태", "대회명", "경기장", "경기장ID", "클래스", "경기방식", "레인수", "차수", "단계", "조", "레인", "선수ID", "실명", "연락처", "선수명", "팀명", "점수", "결과", "비고"];
+      downloadTextFile(`tournament_result_${Date.now()}.csv`, toCsv([headers, ...rows.map(row => headers.map(header => row[header] ?? ""))]));
+    }
+
+    function makeTournamentRecord() {
+      ensureStateDefaults();
+      const id = state.tournament.recordId || state.tournament.id || `record-${Date.now()}`;
+      state.tournament.recordId = id;
+      return { id, venueId: currentVenueId(), venueName: state.tournament.venue || currentVenueName(), raceClass: state.tournament.raceClass || "오픈", tournamentName: state.tournament.name || "", startedAtISO: state.tournament.startedAtISO || "", endedAtISO: state.tournament.endedAtISO || "", createdAt: new Date().toISOString(), mode: state.settings.matchMode, laneCount: state.settings.laneCount, rows: getStageResultRows().map(row => ({ ...row, 연락처: "" })) };
+    }
+
+    function saveTournamentRecord() {
+      const record = makeTournamentRecord();
+      const local = loadLocalResultLogs().filter(item => item.id !== record.id);
+      local.push(record);
+      localStorage.setItem(LOCAL_RESULT_LOGS_KEY, JSON.stringify(local));
+      const db = initFirebase();
+      if (db && currentAuthUser) db.ref(`${RESULT_LOGS_PATH}/${record.id}`).set(record).catch(error => console.warn("result log save failed", error));
+    }
+
+    function loadLocalResultLogs() {
+      try { const data = JSON.parse(localStorage.getItem(LOCAL_RESULT_LOGS_KEY) || "[]"); return Array.isArray(data) ? data : []; } catch (e) { return []; }
+    }
+
+    function finishTournament() {
+      ensureStateDefaults();
+      if (state.tournament.status !== "running" && !confirm("현재 진행중 상태가 아닙니다. 그래도 종료할까요?")) return;
+      const now = new Date();
+      state.tournament.endedAtISO = now.toISOString();
+      state.tournament.endedAtDisplay = formatDateTimeLocal(now);
+      state.tournament.status = "finished";
+      saveTournamentRecord();
+      renderOperator();
+    }
+
+    function archiveTournament() {
+      ensureStateDefaults();
+      state.tournament.status = "archived";
+      saveTournamentRecord();
+      renderOperator();
+    }
+
+    function getPlayerKeyFromRow(row) {
+      return row.선수ID || playerIdentityKey(row.실명 || row.선수명, row.연락처 || "") || `${row.선수명}|${row.팀명 || ""}`;
+    }
+
+    function analyzeRecords(records) {
+      const player = new Map();
+      const lane = new Map();
+      records.forEach(record => (record.rows || []).forEach(row => {
+        if (!row || row.결과 === "빈 레인") return;
+        const key = getPlayerKeyFromRow(row);
+        const name = row.선수명 || row.실명 || key;
+        const item = player.get(key) || { key, name, team: row.팀명 || "", matches: 0, wins: 0, losses: 0, championships: 0, finals: 0, points: 0, lanes: {} };
+        item.matches += 1;
+        item.points += Number(row.점수 || 0);
+        const laneNo = String(row.레인 || "").replace(/[^0-9]/g, "") || "?";
+        item.lanes[laneNo] = (item.lanes[laneNo] || 0) + 1;
+        if (["진출", "최종결승진출", "최종우승"].includes(row.결과)) item.wins += 1;
+        if (row.결과 === "탈락") item.losses += 1;
+        if (row.결과 === "최종우승") item.championships += 1;
+        if (["최종결승진출", "결승참가", "최종우승"].includes(row.결과)) item.finals += 1;
+        player.set(key, item);
+        const laneStat = lane.get(laneNo) || { lane: laneNo, matches: 0, wins: 0 };
+        laneStat.matches += 1;
+        if (["진출", "최종결승진출", "최종우승"].includes(row.결과)) laneStat.wins += 1;
+        lane.set(laneNo, laneStat);
+      }));
+      const players = Array.from(player.values());
+      const oneLane = players.map(p => { const top = Object.entries(p.lanes).sort((a,b)=>b[1]-a[1])[0] || ["",0]; return { ...p, mainLane: top[0], mainLaneCount: top[1], laneRate: p.matches ? top[1] / p.matches : 0 }; }).filter(p => p.matches >= 3).sort((a,b)=>b.laneRate-a.laneRate || b.matches-a.matches);
+      return { players, laneStats: Array.from(lane.values()).sort((a,b)=>Number(a.lane)-Number(b.lane)), mostWins: [...players].sort((a,b)=>b.wins-a.wins), mostChampions: [...players].sort((a,b)=>b.championships-a.championships), mostLosses: [...players].sort((a,b)=>b.losses-a.losses), mostParticipants: [...players].sort((a,b)=>b.matches-a.matches), mostPoints: [...players].sort((a,b)=>b.points-a.points), oneLane };
+    }
+
+    function rankList(items, field, suffix = "") {
+      return `<div class="rank-list">${items.slice(0, 10).map((item, index) => `<div class="rank-row"><b>${index + 1}</b><span class="rank-name">${escapeHtml(item.name)}${item.team ? ` / ${escapeHtml(item.team)}` : ""}</span><strong>${item[field]}${suffix}</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div>`;
+    }
+
+    function filterRecords(records) {
+      return records.filter(record => {
+        const date = String(record.endedAtISO || record.startedAtISO || record.createdAt || "").slice(0, 10);
+        if (dashboardFilter.from && date < dashboardFilter.from) return false;
+        if (dashboardFilter.to && date > dashboardFilter.to) return false;
+        if (dashboardFilter.venue !== "전체" && record.venueName !== dashboardFilter.venue && record.venueId !== dashboardFilter.venue) return false;
+        if (dashboardFilter.raceClass !== "전체" && record.raceClass !== dashboardFilter.raceClass) return false;
+        if (dashboardFilter.keyword && !`${record.tournamentName} ${record.venueName} ${record.raceClass}`.toLowerCase().includes(dashboardFilter.keyword.toLowerCase())) return false;
+        return true;
+      });
+    }
+
+    function renderDashboardWithRecords(records) {
+      const filtered = filterRecords(records);
+      const venues = Array.from(new Set(records.map(r => r.venueName || r.venueId).filter(Boolean))).sort();
+      const classes = Array.from(new Set(records.map(r => r.raceClass).filter(Boolean))).sort();
+      const stats = analyzeRecords(filtered);
+      document.body.classList.remove("tv-mode");
+      app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">DASHBOARD</div></div><h1>상시 데이터 대시보드</h1><p class="desc">기간별 · 경기장별 경기 기록 분석</p></div>${logoMarkup("header-logo")}</header>${currentAuthUser ? accountBadge() : ""}<div class="toolbar"><button class="primary" onclick="location.hash=''; bootV33();">TOURNAMENT</button><button class="ghost" onclick="location.hash='view=mobile-live'; bootV33();">MOBILE LIVE</button><button class="ghost" onclick="openDashboardPage()">새로고침</button></div><section class="card"><div class="dashboard-filter"><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.from)}" onchange="dashboardFilter.from=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.to)}" onchange="dashboardFilter.to=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /><select onchange="dashboardFilter.venue=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 경기장</option>${venues.map(v => `<option value="${escapeHtml(v)}" ${dashboardFilter.venue===v?"selected":""}>${escapeHtml(v)}</option>`).join("")}</select><select onchange="dashboardFilter.raceClass=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 클래스</option>${classes.map(c => `<option value="${escapeHtml(c)}" ${dashboardFilter.raceClass===c?"selected":""}>${escapeHtml(c)}</option>`).join("")}</select><input class="mini-input" placeholder="검색" value="${escapeHtml(dashboardFilter.keyword)}" oninput="dashboardFilter.keyword=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div class="db-stat-grid"><div class="db-stat"><small>대회 기록</small><strong>${filtered.length}</strong></div><div class="db-stat"><small>경기장</small><strong>${new Set(filtered.map(r=>r.venueName||r.venueId)).size}</strong></div><div class="db-stat"><small>선수</small><strong>${stats.players.length}</strong></div></div></section><div class="dashboard-grid"><section class="dashboard-card"><h3>최다승 유저</h3>${rankList(stats.mostWins, "wins", "승")}</section><section class="dashboard-card"><h3>자주 우승하는 사람</h3>${rankList(stats.mostChampions, "championships", "회")}</section><section class="dashboard-card"><h3>자주 지는 사람</h3>${rankList(stats.mostLosses, "losses", "패")}</section><section class="dashboard-card"><h3>참가 횟수 랭킹</h3>${rankList(stats.mostParticipants, "matches", "회")}</section><section class="dashboard-card"><h3>포인트전 누적</h3>${rankList(stats.mostPoints, "points", "P")}</section><section class="dashboard-card"><h3>한 레인 편중</h3><div class="rank-list">${stats.oneLane.slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)} · ${p.mainLane}LANE</span><strong>${Math.round(p.laneRate*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>레인별 승률</h3><div class="rank-list">${stats.laneStats.map(l=>`<div class="rank-row"><b>${l.lane}</b><span class="rank-name">${l.matches}경기</span><strong>${l.matches ? Math.round(l.wins/l.matches*100) : 0}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>결승 진출률</h3><div class="rank-list">${stats.players.filter(p=>p.matches).sort((a,b)=>(b.finals/b.matches)-(a.finals/a.matches)).slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)}</span><strong>${Math.round(p.finals/p.matches*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section></div></div>`;
+    }
+
+    function renderDashboardPage() {
+      document.body.classList.remove("tv-mode");
+      app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>대시보드 불러오는 중</h2></div></div></div>`;
+      const db = initFirebase();
+      const local = loadLocalResultLogs();
+      if (!db) { window.__dashboardRecords = local; renderDashboardWithRecords(local); return; }
+      db.ref(RESULT_LOGS_PATH).get().then(snapshot => {
+        const cloud = snapshot.val() ? Object.values(snapshot.val()) : [];
+        const merged = [...local, ...cloud].filter((item, idx, arr) => arr.findIndex(x => x.id === item.id) === idx);
+        window.__dashboardRecords = merged;
+        renderDashboardWithRecords(merged);
+      }).catch(() => { window.__dashboardRecords = local; renderDashboardWithRecords(local); });
+    }
+
+    async function bootV33() {
+      try {
+        const params = getHashParams();
+        const view = params.get("view");
+        const data = params.get("data");
+        getCurrentTournamentId();
+        initFirebase();
+        if (view === "tv-live") { document.body.classList.add("tv-mode"); app.innerHTML = `<div class="tv-wrap"><div class="tv-empty"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div></div><strong>라이브 연결중</strong></div></div>`; watchFirebaseState("tv-live"); return; }
+        if (view === "mobile-live" || view === "live") { app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>라이브 연결중</h2><p>대회 ID: ${escapeHtml(getCurrentTournamentId())}</p></div></div></div>`; watchFirebaseState("mobile-live"); return; }
+        if ((view === "tv" || view === "mobile") && data) { try { renderTvSnapshot(decodePayload(data), view); } catch (error) { app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>공유 데이터를 읽을 수 없습니다</h2><p>링크가 손상되었거나 너무 깁니다.</p></div></div></div>`; } return; }
+        if (view === "dashboard") { await initAuthState(); renderDashboardPage(); return; }
+        await initAuthState();
+        if (view === "login") { renderLoginPage("로그인하세요."); return; }
+        if (!currentAuthUser) { renderLoginPage(); return; }
+        if (!canOperate()) { renderPendingPage(); return; }
+        if (isVenueUser()) state.tournament.venue = currentVenueName();
+        if (view === "admin") { renderAdminPage(); return; }
+        if (view === "db") { renderDbPage(); return; }
+        if (view === "print") { renderPrintView(); return; }
+        const pending = localStorage.getItem(PENDING_PARTICIPANTS_KEY);
+        if (pending) { state.inputText = pending; localStorage.removeItem(PENDING_PARTICIPANTS_KEY); }
+        renderOperator();
+      } catch (error) {
+        console.error(error);
+        app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>화면을 여는 중 오류가 발생했습니다</h2><p>${escapeHtml(error.message || String(error))}</p></div></div></div>`;
+      }
+    }
+
+    bootV33();
   </script>
 </body>
 </html>

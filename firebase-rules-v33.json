@@ -1,0 +1,30 @@
+{
+  "rules": {
+    "tournaments": {
+      "$tid": {
+        ".read": true,
+        ".write": "auth != null && (root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('approved').val() == true)"
+      }
+    },
+    "resultLogs": {
+      ".read": true,
+      "$rid": {
+        ".write": "auth != null && (root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('approved').val() == true)"
+      }
+    },
+    "venues": {
+      "$venueId": {
+        "players": {
+          ".read": "auth != null && (root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('venueId').val() == $venueId)",
+          ".write": "auth != null && (root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('venueId').val() == $venueId)"
+        }
+      }
+    },
+    "userProfiles": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid == $uid || root.child('userProfiles').child(auth.uid).child('role').val() == 'admin')",
+        ".write": "auth != null && (auth.uid == $uid || root.child('userProfiles').child(auth.uid).child('role').val() == 'admin')"
+      }
+    }
+  }
+}
