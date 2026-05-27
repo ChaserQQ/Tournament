@@ -2928,6 +2928,107 @@
       font-size: 12px !important;
     }
 
+
+    /* v37 permissions + nav + responsive UX */
+    .account-strip {
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .account-left {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .page-nav {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .page-nav button {
+      min-height:36px;
+      padding:8px 12px;
+      border-radius:12px;
+      font-size:12px;
+      font-weight:900;
+    }
+    .admin-actions {
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap:8px;
+      min-width:240px;
+    }
+    .admin-actions button {
+      min-height:40px;
+      padding:8px 10px;
+      border-radius:12px;
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .permission-detail {
+      display:block;
+      margin-top:4px;
+      color: var(--dim);
+      font-size:12px;
+      line-height:1.45;
+    }
+    .permission-flags {
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:6px;
+    }
+    .permission-flag {
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      padding:4px 8px;
+      border-radius:999px;
+      background:rgba(238,233,223,.05);
+      border:1px solid rgba(238,233,223,.08);
+      font-size:11px;
+      font-weight:900;
+      color:var(--text);
+    }
+    .permission-flag.off { opacity:.55; }
+    .section-toolbar {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-bottom:12px;
+    }
+    .toolbar button,
+    .section-toolbar button { min-height:40px; }
+    @media (max-width: 760px) {
+      .account-strip {
+        align-items:stretch;
+      }
+      .account-strip > div:last-child,
+      .page-nav,
+      .admin-actions,
+      .section-toolbar {
+        width:100%;
+      }
+      .account-strip > div:last-child,
+      .page-nav,
+      .section-toolbar {
+        display:grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .admin-actions {
+        grid-template-columns: 1fr;
+        min-width:0;
+      }
+      .page-nav button,
+      .account-strip > div:last-child button,
+      .section-toolbar button {
+        width:100%;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -6095,16 +6196,34 @@ function renderTvStage() {
       }
     }
 
+    function profilePermissionFlags(profile = currentUserProfile || {}) {
+      const role = profile?.role || "pending";
+      const approved = profile?.approved === true;
+      const permissions = profile?.permissions || {};
+      const admin = role === "admin" && approved;
+      const suspended = role === "suspended";
+      const operate = admin ? true : role === "venue" && approved ? permissions.operate !== false : false;
+      const dashboard = admin ? true : role === "venue" && approved ? permissions.dashboard !== false : false;
+      return { role, approved, suspended, admin, operate, dashboard };
+    }
+
     function isAdminUser() {
       return Boolean(currentAuthUser && (ADMIN_EMAILS.includes(String(currentAuthUser.email || "").toLowerCase()) || currentUserProfile?.role === "admin"));
     }
 
     function isVenueUser() {
-      return Boolean(currentAuthUser && currentUserProfile?.role === "venue" && currentUserProfile?.approved !== false);
+      const flags = profilePermissionFlags(currentUserProfile);
+      return Boolean(currentAuthUser && flags.role === "venue" && flags.approved);
     }
 
     function canOperate() {
-      return isAdminUser() || isVenueUser();
+      const flags = profilePermissionFlags(currentUserProfile);
+      return isAdminUser() || flags.operate === true;
+    }
+
+    function canViewDashboard() {
+      const flags = profilePermissionFlags(currentUserProfile);
+      return isAdminUser() || flags.dashboard === true;
     }
 
     function currentVenueName() {
@@ -6117,11 +6236,26 @@ function renderTvStage() {
       return normalizeKey(dbVenueIdDraft || state?.tournament?.venue || "GEEKS");
     }
 
+    function goHome() {
+      location.hash = "";
+      bootV33();
+    }
+
+    function goBack() {
+      if (history.length > 1) history.back();
+      else goHome();
+    }
+
+    function renderPageNav() {
+      return `<div class="page-nav"><button class="ghost" onclick="goBack()">뒤로가기</button><button class="ghost" onclick="goHome()">홈</button></div>`;
+    }
+
     function accountBadge() {
       if (!currentAuthUser) return "";
-      const role = isAdminUser() ? "ADMIN" : isVenueUser() ? "VENUE" : "PENDING";
+      const flags = profilePermissionFlags(currentUserProfile);
+      const role = isAdminUser() ? "ADMIN" : flags.approved ? "VENUE" : flags.suspended ? "SUSPENDED" : "PENDING";
       const venue = isVenueUser() ? ` · ${escapeHtml(currentVenueName())}` : "";
-      return `<div class="account-strip"><span class="pill">${role}${venue} · ${escapeHtml(currentAuthUser.email || "")}</span><div><button class="ghost" onclick="openDashboardPage()">DASHBOARD</button> ${isAdminUser() ? `<button class="ghost" onclick="openAdminPage()">ADMIN</button>` : ""} <button class="ghost" onclick="logoutUser()">LOGOUT</button></div></div>`;
+      return `<div class="account-strip"><div class="account-left">${renderPageNav()}<span class="pill">${role}${venue} · ${escapeHtml(currentAuthUser.email || "")}</span></div><div>${canViewDashboard() ? `<button class="ghost" onclick="openDashboardPage()">DASHBOARD</button>` : ""} ${isAdminUser() ? `<button class="ghost" onclick="openAdminPage()">ADMIN</button>` : ""} <button class="ghost" onclick="logoutUser()">LOGOUT</button></div></div>`;
     }
 
     function renderLoginPage(message = "운영자 화면은 로그인이 필요합니다.") {
@@ -6136,7 +6270,7 @@ function renderTvStage() {
             </div>
             ${logoMarkup("header-logo")}
           </header>
-          <section class="card auth-card">
+          ${renderPageNav()}<section class="card auth-card">
             <h2>LOGIN</h2>
             <p class="hint">${escapeHtml(message)}</p>
             <label>이메일</label><input class="mini-input" id="loginEmail" type="email" autocomplete="username" />
@@ -6198,68 +6332,137 @@ function renderTvStage() {
 
     function renderPendingPage() {
       document.body.classList.remove("tv-mode");
-      app.innerHTML = `<div class="wrap"><section class="card auth-card"><h2>승인 대기</h2><p class="hint">관리자 승인이 필요합니다.</p><p class="privacy-note">계정: ${escapeHtml(currentAuthUser?.email || "")}<br>신청 경기장: ${escapeHtml(currentUserProfile?.venueName || "")}</p><button class="ghost" onclick="logoutUser()">LOGOUT</button></section></div>`;
+      app.innerHTML = `<div class="wrap">${renderPageNav()}<section class="card auth-card"><h2>승인 대기</h2><p class="hint">관리자 승인이 필요합니다.</p><p class="privacy-note">계정: ${escapeHtml(currentAuthUser?.email || "")}<br>신청 경기장: ${escapeHtml(currentUserProfile?.venueName || "")}</p><button class="ghost" onclick="logoutUser()">LOGOUT</button></section></div>`;
     }
 
-    function openDashboardPage() { location.hash = "view=dashboard"; renderDashboardPage(); }
+    function renderRestrictedPage(title = "권한 없음", message = "접근 권한이 없습니다.") {
+      document.body.classList.remove("tv-mode");
+      app.innerHTML = `<div class="wrap">${renderPageNav()}<section class="card auth-card"><h2>${escapeHtml(title)}</h2><p class="hint">${escapeHtml(message)}</p><div class="section-toolbar"><button class="ghost" onclick="goHome()">운영 홈</button>${canViewDashboard() ? `<button class="ghost" onclick="openDashboardPage()">대시보드</button>` : ``}${canOperate() ? `<button class="ghost" onclick="location.hash='view=db'; renderDbPage();">PLAYER DB</button>` : ``}</div></section></div>`;
+    }
+
+    function openDashboardPage() {
+      location.hash = "view=dashboard";
+      if (!currentAuthUser) return renderLoginPage("대시보드는 로그인 후 이용할 수 있습니다.");
+      if (!canViewDashboard()) return renderRestrictedPage("대시보드 권한 없음", "관리자가 대시보드 권한을 부여해야 합니다.");
+      renderDashboardPage();
+    }
     function openAdminPage() { location.hash = "view=admin"; renderAdminPage(); }
 
 
     function permissionInfo(profile = {}) {
-      const role = profile.role || "pending";
-      const approved = profile.approved === true;
-      if (role === "admin" && approved) return { type: "admin", label: "전체 관리자", scope: "전체 경기장 · 전체 대회 · 선수DB · 대시보드 · 사용자 승인" };
-      if (role === "venue" && approved) return { type: "venue", label: "경기장 운영자", scope: `${profile.venueName || profile.venueId || "지정 경기장"} 전용 운영 · 선수DB 관리` };
-      if (role === "suspended") return { type: "suspended", label: "중지", scope: "운영 화면 접근 제한" };
+      const flags = profilePermissionFlags(profile);
+      if (flags.admin) return { type: "admin", label: "전체 관리자", scope: "전체 경기장 · 전체 대회 · 선수DB · 대시보드 · 사용자 승인" };
+      if (flags.role === "venue" && flags.approved) return { type: "venue", label: "경기장 계정", scope: `${profile.venueName || profile.venueId || "지정 경기장"} 기준 권한 분리` };
+      if (flags.suspended) return { type: "suspended", label: "중지", scope: "로그인은 가능하지만 운영/대시보드 접근 제한" };
       return { type: "pending", label: "승인 대기", scope: "TV/MOBILE 보기만 가능 · 운영 권한 없음" };
     }
 
     function renderPermissionCell(profile = {}) {
       const info = permissionInfo(profile);
-      return `<span class="permission-badge permission-${info.type}">${escapeHtml(info.label)}</span><span class="permission-detail">${escapeHtml(info.scope)}</span>`;
+      const flags = profilePermissionFlags(profile);
+      return `<span class="permission-badge permission-${info.type}">${escapeHtml(info.label)}</span><span class="permission-detail">${escapeHtml(info.scope)}</span><div class="permission-flags"><span class="permission-flag ${flags.operate ? '' : 'off'}">운영 ${flags.operate ? 'ON' : 'OFF'}</span><span class="permission-flag ${flags.dashboard ? '' : 'off'}">대시보드 ${flags.dashboard ? 'ON' : 'OFF'}</span><span class="permission-flag ${flags.admin ? '' : 'off'}">관리자 ${flags.admin ? 'ON' : 'OFF'}</span></div>`;
     }
 
     function renderApprovedCell(profile = {}) {
-      const info = permissionInfo(profile);
-      if (info.type === "admin") return "승인됨 · 관리자";
-      if (info.type === "venue") return "승인됨 · 경기장";
-      if (info.type === "suspended") return "중지됨";
+      const flags = profilePermissionFlags(profile);
+      if (flags.admin) return "승인됨 · 관리자";
+      if (flags.role === "venue" && flags.approved) return "승인됨 · 경기장";
+      if (flags.suspended) return "중지됨";
       return "미승인";
+    }
+
+    function adminActionButtons(uid, profile = {}) {
+      const flags = profilePermissionFlags(profile);
+      const isSelf = uid === currentAuthUser?.uid;
+      return `<div class="admin-actions">${flags.operate ? `<button class="primary" onclick="revokeOperatePermission('${escapeAttr(uid)}')">운영 해제</button>` : `<button class="primary" onclick="grantVenuePermission('${escapeAttr(uid)}')">운영 부여</button>`}${flags.dashboard ? `<button class="ghost" onclick="setDashboardPermission('${escapeAttr(uid)}', false)">대시보드 해제</button>` : `<button class="ghost" onclick="setDashboardPermission('${escapeAttr(uid)}', true)">대시보드 부여</button>`}${flags.admin ? `<button class="ghost" ${isSelf ? 'disabled' : ''} onclick="demoteAdminToVenue('${escapeAttr(uid)}')">관리자 해제</button>` : `<button class="ghost" onclick="grantAdminRole('${escapeAttr(uid)}')">관리자 부여</button>`}${flags.suspended ? `<button class="danger" onclick="unsuspendUser('${escapeAttr(uid)}')">중지 해제</button>` : `<button class="danger" onclick="suspendUser('${escapeAttr(uid)}')">중지</button>`}</div>`;
     }
 
     function renderAdminPage() {
       if (!isAdminUser()) return renderLoginPage("관리자 권한이 필요합니다.");
       document.body.classList.remove("tv-mode");
-      app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">경기장 계정 승인 및 권한 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<section class="card"><h2>불러오는 중</h2></section></div>`;
+      app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<section class="card"><h2>불러오는 중</h2></section></div>`;
       const db = initFirebase();
       if (!db) return;
       db.ref(USER_PROFILE_PATH).get().then(snapshot => {
         const profiles = snapshot.val() || {};
         const rows = Object.entries(profiles).sort((a,b) => String(a[1].email || "").localeCompare(String(b[1].email || "")));
-        app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">경기장 계정 승인 및 권한 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar"><button class="primary" onclick="location.hash=''; renderOperator();">TOURNAMENT</button><button class="ghost" onclick="openDashboardPage()">DASHBOARD</button><button class="ghost" onclick="renderAdminPage()">새로고침</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td><div class="admin-actions"><button class="primary" onclick="approveVenueUser('${escapeAttr(uid)}')">경기장 권한</button><button class="ghost" onclick="makeAdminUser('${escapeAttr(uid)}')">관리자 권한</button><button class="danger" onclick="suspendUser('${escapeAttr(uid)}')">중지</button></div></td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">현재 권한 칸에서 부여된 권한과 허용 범위를 확인할 수 있습니다.</p></section></div>`;
+        app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar"><button class="primary" onclick="location.hash=''; renderOperator();">TOURNAMENT</button>${canViewDashboard() ? `<button class="ghost" onclick="openDashboardPage()">DASHBOARD</button>` : ``}<button class="ghost" onclick="renderAdminPage()">새로고침</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section></div>`;
       }).catch(error => alert(`사용자 목록 로드 실패: ${error.message || error}`));
     }
 
-    async function approveVenueUser(uid) {
-      if (!isAdminUser()) return;
-      const venueName = prompt("승인할 경기장명");
-      if (!venueName) return;
+    async function fetchUserProfileForAdmin(uid) {
       const db = initFirebase();
-      await db.ref(`${USER_PROFILE_PATH}/${uid}`).update({ role: "venue", approved: true, venueName, venueId: normalizeKey(venueName), approvedAt: new Date().toISOString() });
+      const snap = await db.ref(`${USER_PROFILE_PATH}/${uid}`).get();
+      return { db, profile: snap.val() || {} };
+    }
+
+    async function grantVenuePermission(uid) {
+      if (!isAdminUser()) return;
+      const { db, profile } = await fetchUserProfileForAdmin(uid);
+      let venueName = profile.venueName && profile.venueName !== '전체' ? profile.venueName : '';
+      venueName = prompt('운영 권한을 부여할 경기장명', venueName || '') || '';
+      if (!venueName) return;
+      const permissions = { ...(profile.permissions || {}), operate: true, dashboard: profile.permissions?.dashboard !== false };
+      await db.ref(`${USER_PROFILE_PATH}/${uid}`).update({ role: 'venue', approved: true, venueName, venueId: normalizeKey(venueName), permissions, approvedAt: new Date().toISOString() });
       renderAdminPage();
     }
 
-    async function makeAdminUser(uid) {
-      if (!isAdminUser() || !confirm("관리자 권한을 부여할까요?")) return;
-      const db = initFirebase();
-      await db.ref(`${USER_PROFILE_PATH}/${uid}`).update({ role: "admin", approved: true, venueName: "전체", venueId: "all" });
+    async function revokeOperatePermission(uid) {
+      if (!isAdminUser() || !confirm('운영 권한을 해제할까요?')) return;
+      const { db, profile } = await fetchUserProfileForAdmin(uid);
+      const permissions = { ...(profile.permissions || {}), operate: false };
+      await db.ref(`${USER_PROFILE_PATH}/${uid}`).update({ role: 'venue', approved: true, permissions });
+      renderAdminPage();
+    }
+
+    async function setDashboardPermission(uid, enabled) {
+      if (!isAdminUser()) return;
+      const { db, profile } = await fetchUserProfileForAdmin(uid);
+      const permissions = { ...(profile.permissions || {}), dashboard: Boolean(enabled), operate: profile.permissions?.operate !== false };
+      const updates = { permissions };
+      if (!profile.role || profile.role === 'pending') {
+        let venueName = profile.venueName || prompt('대시보드 권한을 줄 경기장명', '') || '';
+        if (!venueName) return;
+        updates.role = 'venue';
+        updates.approved = true;
+        updates.venueName = venueName;
+        updates.venueId = normalizeKey(venueName);
+      }
+      await db.ref(`${USER_PROFILE_PATH}/${uid}`).update(updates);
+      renderAdminPage();
+    }
+
+    async function grantAdminRole(uid) {
+      if (!isAdminUser() || !confirm('관리자 권한을 부여할까요?')) return;
+      const { db } = await fetchUserProfileForAdmin(uid);
+      await db.ref(`${USER_PROFILE_PATH}/${uid}`).update({ role: 'admin', approved: true, venueName: '전체', venueId: 'all', permissions: { operate: true, dashboard: true }, approvedAt: new Date().toISOString() });
+      renderAdminPage();
+    }
+
+    async function demoteAdminToVenue(uid) {
+      if (!isAdminUser()) return;
+      if (uid === currentAuthUser?.uid) return alert('현재 로그인한 본인 계정의 관리자 권한은 여기서 해제할 수 없습니다.');
+      const { db, profile } = await fetchUserProfileForAdmin(uid);
+      let venueName = profile.venueName && profile.venueName !== '전체' ? profile.venueName : '';
+      venueName = prompt('관리자 해제 후 부여할 경기장명', venueName || '') || '';
+      if (!venueName) return;
+      await db.ref(`${USER_PROFILE_PATH}/${uid}`).update({ role: 'venue', approved: true, venueName, venueId: normalizeKey(venueName), permissions: { operate: true, dashboard: true } });
       renderAdminPage();
     }
 
     async function suspendUser(uid) {
-      if (!isAdminUser() || !confirm("이 계정을 중지할까요?")) return;
-      const db = initFirebase();
-      await db.ref(`${USER_PROFILE_PATH}/${uid}`).update({ role: "suspended", approved: false });
+      if (!isAdminUser() || !confirm('이 계정을 중지할까요?')) return;
+      const { db } = await fetchUserProfileForAdmin(uid);
+      await db.ref(`${USER_PROFILE_PATH}/${uid}`).update({ role: 'suspended', approved: false, permissions: { operate: false, dashboard: false } });
+      renderAdminPage();
+    }
+
+    async function unsuspendUser(uid) {
+      if (!isAdminUser()) return;
+      const { db, profile } = await fetchUserProfileForAdmin(uid);
+      const venueName = profile.venueName && profile.venueName !== '전체' ? profile.venueName : (prompt('중지 해제 후 지정할 경기장명', '') || '');
+      if (!venueName) return;
+      await db.ref(`${USER_PROFILE_PATH}/${uid}`).update({ role: 'venue', approved: true, venueName, venueId: normalizeKey(venueName), permissions: { operate: false, dashboard: false } });
       renderAdminPage();
     }
 
@@ -6677,6 +6880,8 @@ function renderTvStage() {
     }
 
     function renderDashboardPage() {
+      if (!currentAuthUser) return renderLoginPage("대시보드는 로그인 후 이용할 수 있습니다.");
+      if (!canViewDashboard()) return renderRestrictedPage("대시보드 권한 없음", "관리자가 대시보드 권한을 부여해야 합니다.");
       document.body.classList.remove("tv-mode");
       app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>대시보드 불러오는 중</h2></div></div></div>`;
       const db = initFirebase();
@@ -6700,11 +6905,17 @@ function renderTvStage() {
         if (view === "tv-live") { document.body.classList.add("tv-mode"); app.innerHTML = `<div class="tv-wrap"><div class="tv-empty"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS 마이 · Special Thanks to SOON.D</div></div><strong>라이브 연결중</strong></div></div>`; watchFirebaseState("tv-live"); return; }
         if (view === "mobile-live" || view === "live") { app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>라이브 연결중</h2><p>대회 ID: ${escapeHtml(getCurrentTournamentId())}</p></div></div></div>`; watchFirebaseState("mobile-live"); return; }
         if ((view === "tv" || view === "mobile") && data) { try { renderTvSnapshot(decodePayload(data), view); } catch (error) { app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>공유 데이터를 읽을 수 없습니다</h2><p>링크가 손상되었거나 너무 깁니다.</p></div></div></div>`; } return; }
-        if (view === "dashboard") { await initAuthState(); renderDashboardPage(); return; }
+        if (view === "dashboard") {
+          await initAuthState();
+          if (!currentAuthUser) { renderLoginPage("대시보드는 로그인 후 이용할 수 있습니다."); return; }
+          if (!canViewDashboard()) { renderRestrictedPage("대시보드 권한 없음", "관리자가 대시보드 권한을 부여해야 합니다."); return; }
+          renderDashboardPage();
+          return;
+        }
         await initAuthState();
         if (view === "login") { renderLoginPage("로그인하세요."); return; }
         if (!currentAuthUser) { renderLoginPage(); return; }
-        if (!canOperate()) { renderPendingPage(); return; }
+        if (!canOperate()) { renderRestrictedPage("운영 권한 없음", "관리자가 운영 권한을 부여해야 합니다."); return; }
         if (isVenueUser()) state.tournament.venue = currentVenueName();
         if (view === "admin") { renderAdminPage(); return; }
         if (view === "db") { renderDbPage(); return; }
