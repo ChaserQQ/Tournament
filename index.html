@@ -6,15 +6,18 @@
   <title>MINI4WD TOURNAMENT MAKER</title>
   <!-- KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
   <meta property="og:title" content="MINI4WD TOURNAMENT MAKER" />
-  <meta property="og:description" content="3레인 & 5레인 토너먼트 대진표 made by GEEKS 마이 · Special Thanks to SOON.D" />
-  <meta property="og:image" content="og-image.png" />
+  <meta property="og:description" content="made by GEEKS MY" />
+  <meta property="og:image" content="https://chaserqq.github.io/Tournament/og-image.png?v=34" />
+  <meta property="og:image:secure_url" content="https://chaserqq.github.io/Tournament/og-image.png?v=34" />
+  <meta property="og:image:type" content="image/png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="MINI4WD TOURNAMENT MAKER" />
-  <meta name="twitter:description" content="3레인 & 5레인 토너먼트 대진표 made by GEEKS 마이 · Special Thanks to SOON.D" />
-  <meta name="twitter:image" content="og-image.png" />
+  <meta name="twitter:description" content="made by GEEKS MY" />
+  <meta name="twitter:image" content="https://chaserqq.github.io/Tournament/og-image.png?v=34" />
   <style>
     * { box-sizing: border-box; }
     :root {
@@ -2796,6 +2799,133 @@
     @media (max-width: 760px) {
       .auth-actions, .dashboard-grid, .dashboard-filter { grid-template-columns: 1fr; }
       .account-strip { display:grid; }
+    }
+
+
+    /* v35 UI consistency + dashboard class filter */
+    .round-head > div:last-child,
+    .stage-head > div:last-child,
+    .status-actions {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      align-items: stretch;
+    }
+    .toolbar button,
+    .btnrow button,
+    .firebase-actions button,
+    .round-head button,
+    .stage-head button,
+    .status-actions button,
+    .group-size-control button,
+    .download-mini button {
+      min-height: 42px !important;
+      padding: 10px 12px !important;
+      border-radius: 14px !important;
+      font-size: 13px !important;
+      justify-content: center;
+    }
+    .group-size-control {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      align-items: stretch;
+    }
+    .group-size-control > div {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      width: 100%;
+    }
+    .group-size-control span {
+      display: block;
+      margin-bottom: 0;
+    }
+    .firebase-actions {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .dashboard-card .class-chip-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .dashboard-card .class-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-width: 120px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(238,233,223,.08);
+      background: rgba(238,233,223,.035);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .dashboard-card .class-chip b { color: var(--point); }
+    @media (max-width: 760px) {
+      .round-head > div:last-child,
+      .stage-head > div:last-child,
+      .status-actions {
+        grid-template-columns: 1fr !important;
+      }
+      .toolbar button,
+      .btnrow button,
+      .firebase-actions button,
+      .round-head button,
+      .stage-head button,
+      .status-actions button,
+      .group-size-control button,
+      .download-mini button {
+        min-height: 40px !important;
+        font-size: 12px !important;
+      }
+      .group-size-control > div,
+      .firebase-actions {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .firebase-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+
+    /* v36 admin permission display */
+    .permission-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 86px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 1000;
+      border: 1px solid rgba(238,233,223,.1);
+      background: rgba(238,233,223,.045);
+    }
+    .permission-admin { background: rgba(216,77,137,.22); color: #ff8dbb; border-color: rgba(216,77,137,.36); }
+    .permission-venue { background: rgba(42,135,104,.22); color: #9ee8c6; border-color: rgba(42,135,104,.36); }
+    .permission-pending { background: rgba(248,213,107,.12); color: #f8d56b; border-color: rgba(248,213,107,.28); }
+    .permission-suspended { background: rgba(251,113,133,.12); color: #fca5a5; border-color: rgba(251,113,133,.28); }
+    .permission-detail {
+      display: block;
+      margin-top: 5px;
+      color: var(--dim);
+      font-size: 11px;
+      line-height: 1.45;
+      font-weight: 800;
+    }
+    .admin-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .admin-actions button {
+      min-height: 34px !important;
+      padding: 7px 10px !important;
+      border-radius: 11px !important;
+      font-size: 12px !important;
     }
 
   </style>
@@ -6074,6 +6204,29 @@ function renderTvStage() {
     function openDashboardPage() { location.hash = "view=dashboard"; renderDashboardPage(); }
     function openAdminPage() { location.hash = "view=admin"; renderAdminPage(); }
 
+
+    function permissionInfo(profile = {}) {
+      const role = profile.role || "pending";
+      const approved = profile.approved === true;
+      if (role === "admin" && approved) return { type: "admin", label: "전체 관리자", scope: "전체 경기장 · 전체 대회 · 선수DB · 대시보드 · 사용자 승인" };
+      if (role === "venue" && approved) return { type: "venue", label: "경기장 운영자", scope: `${profile.venueName || profile.venueId || "지정 경기장"} 전용 운영 · 선수DB 관리` };
+      if (role === "suspended") return { type: "suspended", label: "중지", scope: "운영 화면 접근 제한" };
+      return { type: "pending", label: "승인 대기", scope: "TV/MOBILE 보기만 가능 · 운영 권한 없음" };
+    }
+
+    function renderPermissionCell(profile = {}) {
+      const info = permissionInfo(profile);
+      return `<span class="permission-badge permission-${info.type}">${escapeHtml(info.label)}</span><span class="permission-detail">${escapeHtml(info.scope)}</span>`;
+    }
+
+    function renderApprovedCell(profile = {}) {
+      const info = permissionInfo(profile);
+      if (info.type === "admin") return "승인됨 · 관리자";
+      if (info.type === "venue") return "승인됨 · 경기장";
+      if (info.type === "suspended") return "중지됨";
+      return "미승인";
+    }
+
     function renderAdminPage() {
       if (!isAdminUser()) return renderLoginPage("관리자 권한이 필요합니다.");
       document.body.classList.remove("tv-mode");
@@ -6083,7 +6236,7 @@ function renderTvStage() {
       db.ref(USER_PROFILE_PATH).get().then(snapshot => {
         const profiles = snapshot.val() || {};
         const rows = Object.entries(profiles).sort((a,b) => String(a[1].email || "").localeCompare(String(b[1].email || "")));
-        app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">경기장 계정 승인 및 권한 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar"><button class="primary" onclick="location.hash=''; renderOperator();">TOURNAMENT</button><button class="ghost" onclick="openDashboardPage()">DASHBOARD</button><button class="ghost" onclick="renderAdminPage()">새로고침</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>권한</th><th>경기장</th><th>승인</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${escapeHtml(p.role || "pending")}</td><td>${escapeHtml(p.venueName || p.venueId || "")}</td><td>${p.approved ? "Y" : "N"}</td><td><button class="primary" onclick="approveVenueUser('${escapeAttr(uid)}')">경기장 승인</button> <button class="ghost" onclick="makeAdminUser('${escapeAttr(uid)}')">관리자</button> <button class="danger" onclick="suspendUser('${escapeAttr(uid)}')">중지</button></td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">신규 계정은 로그인 화면에서 경기장 계정 신청으로 생성하고, 여기서 승인합니다.</p></section></div>`;
+        app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">경기장 계정 승인 및 권한 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar"><button class="primary" onclick="location.hash=''; renderOperator();">TOURNAMENT</button><button class="ghost" onclick="openDashboardPage()">DASHBOARD</button><button class="ghost" onclick="renderAdminPage()">새로고침</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td><div class="admin-actions"><button class="primary" onclick="approveVenueUser('${escapeAttr(uid)}')">경기장 권한</button><button class="ghost" onclick="makeAdminUser('${escapeAttr(uid)}')">관리자 권한</button><button class="danger" onclick="suspendUser('${escapeAttr(uid)}')">중지</button></div></td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">현재 권한 칸에서 부여된 권한과 허용 범위를 확인할 수 있습니다.</p></section></div>`;
       }).catch(error => alert(`사용자 목록 로드 실패: ${error.message || error}`));
     }
 
@@ -6106,7 +6259,7 @@ function renderTvStage() {
     async function suspendUser(uid) {
       if (!isAdminUser() || !confirm("이 계정을 중지할까요?")) return;
       const db = initFirebase();
-      await db.ref(`${USER_PROFILE_PATH}/${uid}`).update({ role: "pending", approved: false });
+      await db.ref(`${USER_PROFILE_PATH}/${uid}`).update({ role: "suspended", approved: false });
       renderAdminPage();
     }
 
@@ -6494,22 +6647,33 @@ function renderTvStage() {
     function filterRecords(records) {
       return records.filter(record => {
         const date = String(record.endedAtISO || record.startedAtISO || record.createdAt || "").slice(0, 10);
+        const recordClass = record.raceClass || "미분류";
         if (dashboardFilter.from && date < dashboardFilter.from) return false;
         if (dashboardFilter.to && date > dashboardFilter.to) return false;
         if (dashboardFilter.venue !== "전체" && record.venueName !== dashboardFilter.venue && record.venueId !== dashboardFilter.venue) return false;
-        if (dashboardFilter.raceClass !== "전체" && record.raceClass !== dashboardFilter.raceClass) return false;
-        if (dashboardFilter.keyword && !`${record.tournamentName} ${record.venueName} ${record.raceClass}`.toLowerCase().includes(dashboardFilter.keyword.toLowerCase())) return false;
+        if (dashboardFilter.raceClass !== "전체" && recordClass !== dashboardFilter.raceClass) return false;
+        if (dashboardFilter.keyword && !`${record.tournamentName} ${record.venueName} ${recordClass}`.toLowerCase().includes(dashboardFilter.keyword.toLowerCase())) return false;
         return true;
       });
+    }
+
+    function summarizeClasses(records) {
+      const map = new Map();
+      records.forEach(record => {
+        const key = record.raceClass || "미분류";
+        map.set(key, (map.get(key) || 0) + 1);
+      });
+      return Array.from(map.entries()).sort((a, b) => b[1] - a[1]).map(([raceClass, count]) => ({ raceClass, count }));
     }
 
     function renderDashboardWithRecords(records) {
       const filtered = filterRecords(records);
       const venues = Array.from(new Set(records.map(r => r.venueName || r.venueId).filter(Boolean))).sort();
-      const classes = Array.from(new Set(records.map(r => r.raceClass).filter(Boolean))).sort();
+      const classes = Array.from(new Set(records.map(r => r.raceClass || "미분류").filter(Boolean))).sort();
+      const classStats = summarizeClasses(filtered);
       const stats = analyzeRecords(filtered);
       document.body.classList.remove("tv-mode");
-      app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">DASHBOARD</div></div><h1>상시 데이터 대시보드</h1><p class="desc">기간별 · 경기장별 경기 기록 분석</p></div>${logoMarkup("header-logo")}</header>${currentAuthUser ? accountBadge() : ""}<div class="toolbar"><button class="primary" onclick="location.hash=''; bootV33();">TOURNAMENT</button><button class="ghost" onclick="location.hash='view=mobile-live'; bootV33();">MOBILE LIVE</button><button class="ghost" onclick="openDashboardPage()">새로고침</button></div><section class="card"><div class="dashboard-filter"><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.from)}" onchange="dashboardFilter.from=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.to)}" onchange="dashboardFilter.to=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /><select onchange="dashboardFilter.venue=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 경기장</option>${venues.map(v => `<option value="${escapeHtml(v)}" ${dashboardFilter.venue===v?"selected":""}>${escapeHtml(v)}</option>`).join("")}</select><select onchange="dashboardFilter.raceClass=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 클래스</option>${classes.map(c => `<option value="${escapeHtml(c)}" ${dashboardFilter.raceClass===c?"selected":""}>${escapeHtml(c)}</option>`).join("")}</select><input class="mini-input" placeholder="검색" value="${escapeHtml(dashboardFilter.keyword)}" oninput="dashboardFilter.keyword=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div class="db-stat-grid"><div class="db-stat"><small>대회 기록</small><strong>${filtered.length}</strong></div><div class="db-stat"><small>경기장</small><strong>${new Set(filtered.map(r=>r.venueName||r.venueId)).size}</strong></div><div class="db-stat"><small>선수</small><strong>${stats.players.length}</strong></div></div></section><div class="dashboard-grid"><section class="dashboard-card"><h3>최다승 유저</h3>${rankList(stats.mostWins, "wins", "승")}</section><section class="dashboard-card"><h3>자주 우승하는 사람</h3>${rankList(stats.mostChampions, "championships", "회")}</section><section class="dashboard-card"><h3>자주 지는 사람</h3>${rankList(stats.mostLosses, "losses", "패")}</section><section class="dashboard-card"><h3>참가 횟수 랭킹</h3>${rankList(stats.mostParticipants, "matches", "회")}</section><section class="dashboard-card"><h3>포인트전 누적</h3>${rankList(stats.mostPoints, "points", "P")}</section><section class="dashboard-card"><h3>한 레인 편중</h3><div class="rank-list">${stats.oneLane.slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)} · ${p.mainLane}LANE</span><strong>${Math.round(p.laneRate*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>레인별 승률</h3><div class="rank-list">${stats.laneStats.map(l=>`<div class="rank-row"><b>${l.lane}</b><span class="rank-name">${l.matches}경기</span><strong>${l.matches ? Math.round(l.wins/l.matches*100) : 0}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>결승 진출률</h3><div class="rank-list">${stats.players.filter(p=>p.matches).sort((a,b)=>(b.finals/b.matches)-(a.finals/a.matches)).slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)}</span><strong>${Math.round(p.finals/p.matches*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section></div></div>`;
+      app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">DASHBOARD</div></div><h1>상시 데이터 대시보드</h1><p class="desc">기간별 · 경기장별 · 클래스별 경기 기록 분석</p></div>${logoMarkup("header-logo")}</header>${currentAuthUser ? accountBadge() : ""}<div class="toolbar"><button class="primary" onclick="location.hash=''; bootV33();">TOURNAMENT</button><button class="ghost" onclick="location.hash='view=mobile-live'; bootV33();">MOBILE LIVE</button><button class="ghost" onclick="openDashboardPage()">새로고침</button></div><section class="card"><div class="dashboard-filter"><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.from)}" onchange="dashboardFilter.from=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.to)}" onchange="dashboardFilter.to=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /><select onchange="dashboardFilter.venue=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 경기장</option>${venues.map(v => `<option value="${escapeHtml(v)}" ${dashboardFilter.venue===v?"selected":""}>${escapeHtml(v)}</option>`).join("")}</select><select onchange="dashboardFilter.raceClass=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 클래스</option>${classes.map(c => `<option value="${escapeHtml(c)}" ${dashboardFilter.raceClass===c?"selected":""}>${escapeHtml(c)}</option>`).join("")}</select><input class="mini-input" placeholder="검색" value="${escapeHtml(dashboardFilter.keyword)}" oninput="dashboardFilter.keyword=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div class="db-stat-grid"><div class="db-stat"><small>대회 기록</small><strong>${filtered.length}</strong></div><div class="db-stat"><small>경기장</small><strong>${new Set(filtered.map(r=>r.venueName||r.venueId)).size}</strong></div><div class="db-stat"><small>선수</small><strong>${stats.players.length}</strong></div></div></section><div class="dashboard-grid"><section class="dashboard-card"><h3>클래스별 기록</h3><div class="class-chip-wrap">${classStats.map(item => `<div class="class-chip"><span>${escapeHtml(item.raceClass)}</span><b>${item.count}회</b></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>최다승 유저</h3>${rankList(stats.mostWins, "wins", "승")}</section><section class="dashboard-card"><h3>자주 우승하는 사람</h3>${rankList(stats.mostChampions, "championships", "회")}</section><section class="dashboard-card"><h3>자주 지는 사람</h3>${rankList(stats.mostLosses, "losses", "패")}</section><section class="dashboard-card"><h3>참가 횟수 랭킹</h3>${rankList(stats.mostParticipants, "matches", "회")}</section><section class="dashboard-card"><h3>포인트전 누적</h3>${rankList(stats.mostPoints, "points", "P")}</section><section class="dashboard-card"><h3>한 레인 편중</h3><div class="rank-list">${stats.oneLane.slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)} · ${p.mainLane}LANE</span><strong>${Math.round(p.laneRate*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>레인별 승률</h3><div class="rank-list">${stats.laneStats.map(l=>`<div class="rank-row"><b>${l.lane}</b><span class="rank-name">${l.matches}경기</span><strong>${l.matches ? Math.round(l.wins/l.matches*100) : 0}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>결승 진출률</h3><div class="rank-list">${stats.players.filter(p=>p.matches).sort((a,b)=>(b.finals/b.matches)-(a.finals/a.matches)).slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)}</span><strong>${Math.round(p.finals/p.matches*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section></div></div>`;
     }
 
     function renderDashboardPage() {
