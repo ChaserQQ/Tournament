@@ -3550,6 +3550,38 @@
       }
     }
 
+
+    /* v59 live lobby result card cleanup */
+    .live-lobby-result {
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(238,233,223,.08);
+      background:rgba(238,233,223,.045);
+      display:grid;
+      gap:3px;
+    }
+    .live-lobby-result span {
+      color:var(--dim);
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.02em;
+    }
+    .live-lobby-result b {
+      color:var(--text);
+      font-size:14px;
+      line-height:1.35;
+    }
+    .live-lobby-result small {
+      color:var(--muted);
+      font-size:11px;
+      font-weight:800;
+      line-height:1.35;
+    }
+    .live-lobby-result.muted {
+      opacity:.72;
+    }
+
   </style>
 </head>
 <body>
@@ -4711,7 +4743,7 @@
 
                 <label>경기 방식</label>
                 <div class="btnrow mode-row three">
-                  <button class="${state.settings.matchMode === 'basic' ? "active" : ""}" onclick="setMatchMode('basic')">기본 토너먼트</button>
+                  <button class="${state.settings.matchMode === 'basic' ? "active" : ""}" onclick="setMatchMode('basic')">토너먼트</button>
                   <button class="${state.settings.matchMode === 'points' ? "active" : ""}" onclick="setMatchMode('points')">포인트전</button>
                   <button class="${state.settings.matchMode === 'revival' ? "active" : ""}" onclick="setMatchMode('revival')">패자부활</button>
                 </div>
@@ -4823,7 +4855,7 @@
             <h2>1. 기본 흐름</h2>
             <ol>
               <li>대회명과 경기장은 필수로 입력합니다. 클래스는 오픈, 스톡, 어드&비맥스, 기타 클래스 순서로 선택합니다.</li>
-              <li>경기 방식을 선택합니다. 기본 토너먼트, 1R 포인트전, 패자부활 중 하나를 고릅니다.</li>
+              <li>경기 방식을 선택합니다. 토너먼트, 1R 포인트전, 패자부활 중 하나를 고릅니다.</li>
               <li>경기 타입을 3레인 또는 5레인으로 선택합니다. 레인 수는 실제 경기장 레인 수입니다.</li>
               <li>참가자 명단을 한 줄에 한 명씩 입력합니다. 형식은 <b>이름/팀명</b>입니다.</li>
               <li><b>대회 시작</b>을 누르면 시작 시간이 기록됩니다.</li>
@@ -4832,7 +4864,7 @@
             </ol>
 
             <h2>2. 경기 방식</h2>
-            <h3>기본 토너먼트</h3>
+            <h3>토너먼트</h3>
             <p>3레인은 1차~3차 라운드, 5레인은 1차~5차 라운드로 운영합니다. 각 라운드의 결승 진출자가 모두 확정되면 최종 결승을 진행합니다.</p>
 
             <h3>1R 포인트전</h3>
@@ -7400,11 +7432,11 @@ function renderTvStage() {
 
     function matchModeLabel(mode = state.settings.matchMode) {
       return {
-        basic: "기본 토너먼트",
+        basic: "토너먼트",
         crow: "9강 준결 토너먼트",
         points: "1라운드 포인트전",
         revival: "패자부활 토너먼트"
-      }[mode] || "기본 토너먼트";
+      }[mode] || "토너먼트";
     }
 
     
@@ -7721,26 +7753,26 @@ function renderTvStage() {
     function buildLobbySlots(venues = [], tournaments = [], records = []) {
       const venueMap = new Map();
       const venueKey = item => normalizeKey(item?.venueName || item?.venueId || "");
-      venues.forEach(venue => {
+
+      // 상용화 기준: LIVE 로비는 승인된 경기장 계정/publicVenueDirectory 기준만 노출한다.
+      // 관리자 계정 또는 기록에서 파생된 임시 경기장은 로비 카드로 만들지 않는다.
+      mergeVenueArraysV49(venues || []).forEach(venue => {
+        const venueName = String(venue?.venueName || "").trim();
+        if (!venueName) return;
         const key = venueKey(venue);
-        if (!key) return;
-        venueMap.set(key, { venueId: venue.venueId || key, venueName: venue.venueName || venue.venueId || key, approved: true });
-      });
-      tournaments.forEach(item => {
-        const key = venueKey(item);
-        if (!key) return;
-        if (!venueMap.has(key)) venueMap.set(key, { venueId: item.venueId || key, venueName: item.venueName || item.venueId || key, approved: false });
-      });
-      records.forEach(record => {
-        const key = venueKey(record);
-        if (!key) return;
-        if (!venueMap.has(key)) venueMap.set(key, { venueId: record.venueId || key, venueName: record.venueName || record.venueId || key, approved: false });
+        if (!key || key === "all" || venueName === "전체" || venue?.role === "admin") return;
+        venueMap.set(key, {
+          venueId: venue.venueId || key,
+          venueName,
+          approved: true,
+          source: venue.source || "public-directory"
+        });
       });
 
       const liveByVenue = new Map();
       tournaments.forEach(item => {
         const key = venueKey(item);
-        if (!key) return;
+        if (!key || !venueMap.has(key)) return;
         const current = liveByVenue.get(key);
         if (!current || toTimeValue(item.updatedAt) > toTimeValue(current.updatedAt)) liveByVenue.set(key, item);
       });
@@ -7748,7 +7780,7 @@ function renderTvStage() {
       const latestRecordByVenue = new Map();
       records.forEach(record => {
         const key = venueKey(record);
-        if (!key) return;
+        if (!key || !venueMap.has(key)) return;
         const current = latestRecordByVenue.get(key);
         if (!current || normalizeRecentTime(record) > normalizeRecentTime(current)) latestRecordByVenue.set(key, record);
       });
@@ -7756,30 +7788,46 @@ function renderTvStage() {
       const cards = Array.from(venueMap.entries()).map(([key, venue]) => {
         const liveItem = liveByVenue.get(key);
         const recentRecord = latestRecordByVenue.get(key);
-        const status = liveItem ? effectiveLiveStatus(liveItem) : recentRecord ? "recent" : "waiting";
+        const status = liveItem ? effectiveLiveStatus(liveItem) : "waiting";
         const recentAt = recentRecord ? normalizeRecentTime(recentRecord) : 0;
-        const updatedAt = liveItem ? toTimeValue(liveItem.updatedAt) : recentAt;
+        const updatedAt = liveItem ? toTimeValue(liveItem.updatedAt) : 0;
+        const activityAt = Math.max(updatedAt || 0, recentAt || 0);
         return {
           id: liveItem?.id || "",
           venueId: venue.venueId,
           venueName: venue.venueName,
-          tournamentName: liveItem?.tournamentName || recentRecord?.tournamentName || "대기중",
+          tournamentName: liveItem?.tournamentName || "대기중",
           raceClass: normalizeRaceClassName(liveItem?.raceClass || recentRecord?.raceClass || ""),
           status,
           updatedAt,
           recentAt,
+          activityAt,
+          recentRecord,
+          recentResult: recentRecord ? getRecordWinnerText(recentRecord) : "",
+          recentTournamentName: recentRecord?.tournamentName || "",
           approved: venue.approved
         };
       });
 
+      // 요청 기준: 최근 경기를 치른 순서. LIVE 여부보다 최근 활동/최근 결과 시간을 우선한다.
       cards.sort((a, b) => {
-        const rank = item => item.status === "running" ? 0 : (item.updatedAt || item.recentAt) ? 1 : 2;
-        return rank(a) - rank(b) || Number(b.updatedAt || b.recentAt || 0) - Number(a.updatedAt || a.recentAt || 0) || String(a.venueName).localeCompare(String(b.venueName), "ko");
+        return Number(b.activityAt || 0) - Number(a.activityAt || 0)
+          || String(a.venueName).localeCompare(String(b.venueName), "ko");
       });
 
       const slots = cards.slice(0, LIVE_LOBBY_SLOT_COUNT);
       while (slots.length < LIVE_LOBBY_SLOT_COUNT) {
-        slots.push({ empty: true, venueId: `empty-${slots.length + 1}`, venueName: `빈 슬롯 ${slots.length + 1}`, tournamentName: "경기장 계정 승인 시 자동 표시", raceClass: "", status: "empty", updatedAt: 0 });
+        slots.push({
+          empty: true,
+          venueId: `empty-${slots.length + 1}`,
+          venueName: `빈 슬롯 ${slots.length + 1}`,
+          tournamentName: "경기장 계정 승인 시 자동 표시",
+          raceClass: "",
+          status: "empty",
+          updatedAt: 0,
+          recentAt: 0,
+          activityAt: 0
+        });
       }
       return slots;
     }
@@ -7789,19 +7837,58 @@ function renderTvStage() {
       const venueCards = buildLobbySlots(venues, tournaments, records);
       const recent = [...records].sort((a,b) => normalizeRecentTime(b) - normalizeRecentTime(a)).slice(0, 12);
       const liveCount = venueCards.filter(item => item.status === "running").length;
-      const recentCount = venueCards.filter(item => item.status === "recent" || item.status === "stale").length;
+      const recentCount = venueCards.filter(item => item.recentAt).length;
       const waitingCount = venueCards.filter(item => item.status === "waiting").length;
       const nowText = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+
       const cardHtml = venueCards.map(item => {
         const live = item.status === "running";
         const recentState = item.status === "recent" || item.status === "stale";
         const empty = item.empty || item.status === "empty";
-        const timeText = item.updatedAt ? new Date(item.updatedAt).toLocaleString("ko-KR") : "업데이트 없음";
-        const metaLine = empty ? item.tournamentName : `${item.tournamentName}<br>${item.raceClass ? `${escapeHtml(item.raceClass)} · ` : ""}${escapeHtml(timeText)}`;
-        return `<article class="live-lobby-card ${live ? "live-on" : ""} ${recentState ? "live-recent" : ""} ${empty ? "live-empty" : ""}"><div><span class="live-status ${live ? "on" : recentState ? "recent" : empty ? "empty" : ""}">${liveStatusLabel(item.status)}</span><h3>${escapeHtml(item.venueName)}</h3><div class="live-lobby-meta">${metaLine}</div></div><button class="${live ? "primary" : "ghost"}" ${live ? "" : "disabled"} onclick="location.hash='view=mobile-live&t=${encodeURIComponent(item.id)}'; bootV33();">${live ? "대진표 보기" : "대기중"}</button></article>`;
+        const timeText = item.updatedAt ? new Date(item.updatedAt).toLocaleString("ko-KR") : "";
+        const recentTimeText = item.recentAt ? new Date(item.recentAt).toLocaleString("ko-KR") : "";
+        const latestResultHtml = item.recentRecord
+          ? `<div class="live-lobby-result"><span>최근 경기 결과</span><b>${escapeHtml(item.recentResult || "결과 기록 없음")}</b><small>${escapeHtml(item.recentTournamentName || "최근 경기")} · ${escapeHtml(recentTimeText)}</small></div>`
+          : `<div class="live-lobby-result muted"><span>최근 경기 결과</span><b>기록 없음</b><small>경기 종료 후 자동 표시</small></div>`;
+
+        const metaLine = empty
+          ? item.tournamentName
+          : live
+            ? `${escapeHtml(item.tournamentName)}<br>${item.raceClass ? `${escapeHtml(item.raceClass)} · ` : ""}${escapeHtml(timeText)}`
+            : `대기중`;
+
+        return `<article class="live-lobby-card ${live ? "live-on" : ""} ${recentState ? "live-recent" : ""} ${empty ? "live-empty" : ""}">
+          <div>
+            <span class="live-status ${live ? "on" : recentState ? "recent" : empty ? "empty" : ""}">${liveStatusLabel(item.status)}</span>
+            <h3>${escapeHtml(item.venueName)}</h3>
+            <div class="live-lobby-meta">${metaLine}</div>
+            ${empty ? "" : latestResultHtml}
+          </div>
+          <button class="${live ? "primary" : "ghost"}" ${live ? "" : "disabled"} onclick="location.hash='view=mobile-live&t=${encodeURIComponent(item.id)}'; bootV33();">${live ? "대진표 보기" : "대기중"}</button>
+        </article>`;
       }).join("");
+
       const historyHtml = recent.map(record => `<div class="history-public-row"><div><b>${escapeHtml(record.venueName || record.venueId || "경기장")}</b><span>${escapeHtml(normalizeRaceClassName(record.raceClass))}</span></div><div><b>${escapeHtml(record.tournamentName || "대회명 미입력")}</b><span>${escapeHtml(record.endedAtISO ? new Date(record.endedAtISO).toLocaleString("ko-KR") : record.createdAt ? new Date(record.createdAt).toLocaleString("ko-KR") : "")}</span></div><div><b>${escapeHtml(getRecordWinnerText(record))}</b><span>우승/상위 결과</span></div></div>`).join("");
-      app.innerHTML = `<div class="mobile-view live-lobby-shell"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">LIVE LOBBY</div></div><h1>경기장 LIVE</h1><p class="desc">LIVE ON 경기장을 선택하면 현재 모바일 대진표로 이동합니다. 3시간 이상 갱신이 없으면 자동 대기중으로 표시됩니다.</p></div>${logoMarkup("header-logo")}</header><section class="card"><div class="live-lobby-topbar"><div><h2 style="margin:0 0 6px;">경기장별 LIVE 상태</h2><div class="meta">승인된 경기장 계정 기준 20개 슬롯 · 실시간 반영 · ${escapeHtml(nowText)} 기준</div></div><button class="ghost" onclick="renderLiveLobbyPage()">새로고침</button></div><div class="live-lobby-summary"><span class="pill">LIVE ${liveCount}</span><span class="pill">최근/종료 ${recentCount}</span><span class="pill">대기 ${waitingCount}</span></div><div class="live-lobby-grid" style="margin-top:12px;">${cardHtml}</div></section><section class="card"><h2>최근 경기 히스토리</h2><div class="history-public-list">${historyHtml || `<div class="hint">최근 경기 기록이 없습니다.</div>`}</div></section></div>`;
+
+      app.innerHTML = `<div class="mobile-view live-lobby-shell">
+        <header class="header">
+          <div class="header-copy">
+            <div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">LIVE LOBBY</div></div>
+            <h1>경기장 LIVE</h1>
+            <p class="desc">승인된 경기장만 표시합니다. 각 경기장 카드는 최근 경기 순서로 정렬되며, 대기중 카드에도 최근 결과가 표시됩니다.</p>
+          </div>
+          ${logoMarkup("header-logo")}
+        </header>
+        <section class="card">
+          <div class="live-lobby-topbar">
+            <div><h2 style="margin:0 0 6px;">경기장별 LIVE 상태</h2><div class="meta">승인된 경기장 계정 기준 20개 슬롯 · 실시간 반영 · ${escapeHtml(nowText)} 기준</div></div>
+            <button class="ghost" onclick="renderLiveLobbyPage()">새로고침</button>
+          </div>
+          <div class="live-lobby-summary"><span class="pill">LIVE ${liveCount}</span><span class="pill">최근 결과 ${recentCount}</span><span class="pill">대기 ${waitingCount}</span></div>
+          <div class="live-lobby-grid" style="margin-top:12px;">${cardHtml}</div>
+        </section>
+        <section class="card"><h2>최근 경기 히스토리</h2><div class="history-public-list">${historyHtml || `<div class="hint">최근 경기 기록이 없습니다.</div>`}</div></section>
+      </div>`;
     }
 
     
@@ -8096,7 +8183,7 @@ function renderTvStage() {
       const missingFunctions = requiredFunctions.filter(name => typeof window[name] !== "function");
       const publicOnlyPaths = ["publicLive","publicHistory","publicVenueDirectory","publicVenues"];
       const report = {
-        version: "v58-commercial-stabilization",
+        version: "v59-live-lobby-order-fix",
         checkedAt: new Date().toISOString(),
         missingFunctions,
         duplicateFunctionDeclarations: [],
