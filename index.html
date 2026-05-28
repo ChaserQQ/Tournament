@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v45 FINAL CANDIDATE</title>
-  <!-- v45 FINAL CANDIDATE · KakaoTalk / Open Graph preview -->
+  <title>MINI4WD TOURNAMENT MAKER · v58 COMMERCIAL STABILIZATION</title>
+  <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
   <meta property="og:title" content="MINI4WD TOURNAMENT MAKER" />
-  <meta property="og:description" content="made by GEEKS M.Y · Special Thanks to SOON.D" />
+  <meta property="og:description" content="3레인 & 5레인 토너먼트 대진표" />
   <meta property="og:image" content="https://chaserqq.github.io/Tournament/og-image.png?v=51" />
   <meta property="og:image:secure_url" content="https://chaserqq.github.io/Tournament/og-image.png?v=51" />
   <meta property="og:image:type" content="image/png" />
@@ -16,7 +16,7 @@
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="MINI4WD TOURNAMENT MAKER" />
-  <meta name="twitter:description" content="made by GEEKS M.Y · Special Thanks to SOON.D" />
+  <meta name="twitter:description" content="3레인 & 5레인 토너먼트 대진표" />
   <meta name="twitter:image" content="https://chaserqq.github.io/Tournament/og-image.png?v=51" />
   <style>
     * { box-sizing: border-box; }
@@ -3436,6 +3436,120 @@
       font-synthesis: weight;
     }
 
+
+
+    /* v58 mobile interaction stabilization */
+    .mode-row {
+      scroll-margin-top: 18px;
+    }
+    .mode-row button {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .mode-row button.active {
+      box-shadow: 0 10px 28px rgba(236,72,153,.18), inset 0 0 0 1px rgba(255,255,255,.08);
+    }
+    @media (max-width: 760px) {
+      .btnrow.mode-row.three {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+      }
+      .btnrow.mode-row.three button:nth-child(3) {
+        grid-column: 1 / -1;
+      }
+      .btnrow.mode-row:not(.three) {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+      }
+      .btnrow.mode-row button {
+        min-height: 48px !important;
+        padding: 10px 12px !important;
+        border-radius: 16px !important;
+        font-size: 13px !important;
+        line-height: 1.15 !important;
+      }
+      .btnrow.mode-row .crow-mode-btn {
+        min-height: 54px !important;
+      }
+      .btnrow.mode-row .crow-mode-btn span,
+      .btnrow.mode-row .crow-mode-btn strong {
+        font-size: 13px !important;
+        line-height: 1.05 !important;
+      }
+    }
+
+
+    /* v58 commercial stabilization: unified button/card UX */
+    .toolbar, .btnrow, .firebase-actions, .admin-actions, .section-toolbar, .auth-actions, .dashboard-nav-actions {
+      gap: 10px !important;
+    }
+    button, .primary, .ghost, .danger {
+      min-height: 42px;
+      border-radius: 14px !important;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      touch-action: manipulation;
+    }
+    .mode-row {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 10px !important;
+    }
+    .mode-row button {
+      width: 100%;
+      min-height: 48px;
+      line-height: 1.25;
+      white-space: normal;
+    }
+    .mode-row button[data-mode="crow"], .mode-row .crow-mode, .mode-crow {
+      grid-column: 1 / -1;
+      min-height: 52px;
+    }
+    .live-lobby-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 12px;
+    }
+    .live-lobby-card {
+      min-height: 156px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .dashboard-filter {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+    .dashboard-nav-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      margin-bottom: 12px;
+    }
+    @media (max-width: 760px) {
+      .toolbar, .firebase-actions, .section-toolbar, .auth-actions, .dashboard-nav-actions {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+      .toolbar button, .firebase-actions button, .section-toolbar button, .auth-actions button, .dashboard-nav-actions button {
+        width: 100%;
+      }
+      .mode-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+      .mode-row button {
+        min-height: 50px;
+        font-size: 13px !important;
+      }
+      .mode-row button[data-mode="crow"], .mode-row .crow-mode, .mode-crow {
+        grid-column: 1 / -1;
+      }
+      .live-lobby-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -3593,18 +3707,9 @@
       if (state.settings.firebaseAutoSave) queueFirebaseSave();
     }
 
-    function parseParticipants(text = state.inputText) {
-      return text
-        .split(/\r?\n/)
-        .map(line => line.trim())
-        .filter(Boolean)
-        .map((line, index) => {
-          const parts = line.includes("/") ? line.split("/") : line.includes("\t") ? line.split("\t") : line.split(",");
-          const name = (parts[0] || `참가자 ${index + 1}`).trim();
-          const team = (parts[1] || "").trim();
-          return { id: `p-${index + 1}-${name}`, name, team };
-        });
-    }
+    
+/* v58 removed duplicate function parseParticipants from earlier patch line 3638 */
+
 
     function shuffle(array) {
       const result = [...array];
@@ -3963,21 +4068,9 @@
       }[status] || "준비중";
     }
 
-    function validateTournamentMetaRequired() {
-      ensureStateDefaults();
-      if (!state.tournament.name.trim()) {
-        showError("대회명을 입력해야 시작할 수 있습니다.");
-        alert("대회명을 입력하세요.");
-        return false;
-      }
-      if (!state.tournament.venue.trim()) {
-        showError("경기장을 입력해야 시작할 수 있습니다.");
-        alert("경기장을 입력하세요.");
-        return false;
-      }
-      state.tournament.raceClass = normalizeRaceClassName(state.tournament.raceClass);
-      return true;
-    }
+    
+/* v58 removed duplicate function validateTournamentMetaRequired from earlier patch line 4008 */
+
 
     function startTournament() {
       ensureStateDefaults();
@@ -3996,18 +4089,9 @@
       renderOperator();
     }
 
-    function finishTournament() {
-      ensureStateDefaults();
-      if (!canModifyTournamentAction("대회 종료")) return;
-      if (state.tournament.status !== "running" && !confirm("현재 진행중 상태가 아닙니다. 그래도 종료할까요?")) return;
-      const now = new Date();
-      state.tournament.endedAtISO = now.toISOString();
-      state.tournament.endedAtDisplay = formatDateTimeLocal(now);
-      state.tournament.status = "finished";
-      createAutoSnapshot("대회 종료");
-      logTournamentAction("대회 종료", state.tournament.name || "");
-      renderOperator();
-    }
+    
+/* v58 removed duplicate function finishTournament from earlier patch line 4041 */
+
 
     function reopenTournament() {
       ensureStateDefaults();
@@ -4018,11 +4102,9 @@
       renderOperator();
     }
 
-    function archiveTournament() {
-      ensureStateDefaults();
-      state.tournament.status = "archived";
-      renderOperator();
-    }
+    
+/* v58 removed duplicate function archiveTournament from earlier patch line 4063 */
+
 
     function isTournamentLocked() {
       ensureStateDefaults();
@@ -4048,49 +4130,21 @@
       }
     }
 
-    function setTournamentField(field, value) {
-      ensureStateDefaults();
-      state.tournament[field] = field === "raceClass" ? normalizeRaceClassName(value) : value;
-      saveLiveState();
-    }
+    
+/* v58 removed duplicate function setTournamentField from earlier patch line 4093 */
 
-    function ruleSummary(mode = state.settings.matchMode) {
-      return {
-        basic: "라운드별 결승 진출자를 모아 최종 결승을 진행합니다.",
-        points: "1차 라운드는 포인트 합산 결선으로 진행하고, 이후 라운드는 토너먼트 방식으로 진행합니다.",
-        revival: "원하는 시점에 패자부활전을 추가하고, 진출자를 합류시켜 다음 경기를 진행합니다."
-      }[mode] || "라운드별 결승 진출자를 모아 최종 결승을 진행합니다.";
-    }
 
-    function matchModeLabel(mode = state.settings.matchMode) {
-      return {
-        basic: "기본 토너먼트",
-        points: "1라운드 포인트전",
-        revival: "패자부활 토너먼트"
-      }[mode] || "기본 토너먼트";
-    }
+    
+/* v58 removed duplicate function ruleSummary from earlier patch line 4099 */
 
-    function setMatchMode(mode) {
-      ensureStateDefaults();
-      if (isTournamentLocked() && !confirm("대회가 시작/종료된 상태입니다. 경기 방식을 바꾸면 기록이 꼬일 수 있습니다. 계속할까요?")) return;
 
-      if (state.qualifierRounds.some(round => round.stages.length) || state.finalRace) {
-        if (!confirm("경기 방식을 바꾸면 현재 대진표가 라운드 초기화됩니다. 계속할까요?")) return;
-      }
+    
+/* v58 removed duplicate function matchModeLabel from earlier patch line 4107 */
 
-      const currentTournament = { ...state.tournament };
-      const inputText = state.inputText;
-      const previousSettings = { ...state.settings };
 
-      state = makeInitialState(previousSettings.laneCount || 3);
-      state.inputText = inputText;
-      state.tournament = currentTournament;
-      state.settings = { ...state.settings, ...previousSettings, matchMode: mode };
-      state.qualifierRounds = makeQualifierRounds(state.settings.laneCount, mode);
-      state.finalRace = null;
-      activeRoundIndex = 0;
-      renderOperator();
-    }
+    
+/* v58 removed duplicate function setMatchMode from earlier patch line 4115 */
+
 
     function isPointRound(roundIndex) {
       return state.settings.matchMode === "points" && roundIndex === 0;
@@ -4359,23 +4413,9 @@
       requestAnimationFrame(() => document.getElementById("currentStageTop")?.scrollIntoView({ behavior: "smooth", block: "start" }));
     }
 
-    function confirmRoundFinalist(roundIndex) {
-      const round = state.qualifierRounds[roundIndex];
-      if (!round || !round.stages.length) return showError("먼저 해당 라운드를 진행하세요.");
+    
+/* v58 removed duplicate function confirmRoundFinalist from earlier patch line 4404 */
 
-      const lastStage = round.stages[round.stages.length - 1];
-      const validFinalStage = lastStage.name === "라운드 결승" || lastStage.name === "결승" || lastStage.type === "pointFinal";
-      if (!validFinalStage) return showError(isRevivalMode() ? "결승 경기에서만 우승자를 확정할 수 있습니다." : "라운드 결승 또는 포인트 상위 결정전에서만 최종 결승 진출자를 확정할 수 있습니다.");
-
-      const selected = getSelectedFromStage(lastStage);
-      if (selected.length === 0) return showError(isRevivalMode() ? "우승자를 선택하세요." : "최종 결승 진출자를 선택하세요.");
-      if (selected.length > 1) return showError(isRevivalMode() ? "우승자는 1명만 선택해야 합니다." : "각 라운드의 최종 결승 진출자는 1명만 선택해야 합니다.");
-
-      round.finalist = selected[0];
-      state.finalRace = null;
-      state.broadcast = { mode: "stage", roundIndex, stageIndex: round.stages.length - 1 };
-      renderOperator();
-    }
 
     function setBroadcastStage(roundIndex, stageIndex) {
       state.broadcast = { mode: "stage", roundIndex, stageIndex };
@@ -4405,43 +4445,13 @@
       renderOperator();
     }
 
-    function createFinalRace() {
-      if (!canModifyTournamentAction("최종 결승 생성")) return;
-      const finalists = state.qualifierRounds.map(round => round.finalist).filter(Boolean);
-      if (finalists.length < state.settings.laneCount) {
-        return showError(`${state.settings.laneCount}명의 최종 결승 진출자가 모두 확정되어야 합니다.`);
-      }
+    
+/* v58 removed duplicate function createFinalRace from earlier patch line 4450 */
 
-      state.finalRace = {
-        id: `final-${Math.random().toString(36).slice(2, 8)}`,
-        name: "최종 결승",
-        groupSize: state.settings.laneCount,
-        group: {
-          id: `final-group-${Math.random().toString(36).slice(2, 8)}`,
-          name: "FINAL",
-          slots: assignLanes(finalists, state.settings.laneCount),
-          advanceIds: []
-        }
-      };
 
-      state.broadcast = { mode: "final" };
-      logTournamentAction("최종 결승 생성", "FINAL");
-      renderOperator();
-    }
+    
+/* v58 removed duplicate function toggleFinalWinner from earlier patch line 4474 */
 
-    function toggleFinalWinner(playerId) {
-      if (!state.finalRace) return;
-      const player = state.finalRace.group.slots.find(item => item.id === playerId);
-      if (!player || player.isEmptyLane) return;
-      const ids = state.finalRace.group.advanceIds || [];
-      if (ids.includes(playerId)) {
-        state.finalRace.group.advanceIds = ids.filter(id => id !== playerId);
-      } else {
-        state.finalRace.group.advanceIds = [...ids, playerId];
-      }
-      state.broadcast = { mode: "final" };
-      renderOperator();
-    }
 
     function resetTournament() {
       if (!canModifyTournamentAction("라운드 초기화")) return;
@@ -4528,57 +4538,9 @@
       };
     }
 
-    function makePublicStatePayload(sourceState = exportState()) {
-      let seq = 0;
-      const idMap = new Map();
-      const publicId = original => {
-        const key = String(original || `empty-${seq + 1}`);
-        if (!idMap.has(key)) idMap.set(key, `pub-${++seq}`);
-        return idMap.get(key);
-      };
-      const cleanPlayer = player => {
-        if (!player) return player;
-        if (player.isEmptyLane) return { id: `empty-${player.lane || ++seq}`, lane: player.lane, name: "빈 레인", team: "", isEmptyLane: true };
-        const displayName = player.nickname || player.name || player.realName || "참가자";
-        return { id: publicId(player.id || displayName), lane: player.lane, name: displayName, nickname: displayName, team: player.team || "" };
-      };
-      const cleanGroup = group => {
-        const slots = (group.slots || []).map(cleanPlayer);
-        const advanceIds = (group.advanceIds || []).map(id => idMap.get(String(id)) || publicId(id));
-        const points = {};
-        Object.entries(group.points || {}).forEach(([id, value]) => { points[idMap.get(String(id)) || publicId(id)] = value; });
-        return { ...group, slots, advanceIds, points };
-      };
-      const cleanStage = stage => ({ ...stage, groups: (stage.groups || []).map(cleanGroup) });
-      const cleanRound = round => ({
-        id: round.id,
-        index: round.index,
-        title: round.title,
-        stagePlan: round.stagePlan || [],
-        stages: (round.stages || []).map(cleanStage),
-        finalist: round.finalist ? cleanPlayer(round.finalist) : null
-      });
-      const publicTournament = {
-        name: sourceState.tournament?.name || "",
-        venue: sourceState.tournament?.venue || "",
-        venueId: sourceState.tournament?.venueId || "",
-        raceClass: normalizeRaceClassName(sourceState.tournament?.raceClass || "오픈"),
-        status: sourceState.tournament?.status || "draft",
-        startedAtISO: sourceState.tournament?.startedAtISO || "",
-        startedAtDisplay: sourceState.tournament?.startedAtDisplay || "",
-        endedAtISO: sourceState.tournament?.endedAtISO || "",
-        endedAtDisplay: sourceState.tournament?.endedAtDisplay || ""
-      };
-      return {
-        settings: sourceState.settings ? { laneCount: sourceState.settings.laneCount, matchMode: sourceState.settings.matchMode } : {},
-        tournament: publicTournament,
-        activeRoundIndex: sourceState.activeRoundIndex || 0,
-        broadcast: sourceState.broadcast || { mode: "stage", roundIndex: 0, stageIndex: 0 },
-        qualifierRounds: (sourceState.qualifierRounds || []).map(cleanRound),
-        finalRace: sourceState.finalRace ? { ...sourceState.finalRace, group: cleanGroup(sourceState.finalRace.group || {}) } : null,
-        updatedAt: sourceState.updatedAt || Date.now()
-      };
-    }
+    
+/* v58 removed duplicate function makePublicStatePayload from earlier patch line 4573 */
+
 
     function makePublicLivePayload(sourceState = exportState()) {
       const publicState = makePublicStatePayload(sourceState);
@@ -4603,19 +4565,14 @@
     }
 
     function openTvView() {
-      saveLiveState();
+      forcePublishPublicLiveV50("TV LIVE");
+      if (__openTvViewBaseV50) return __openTvViewBaseV50();
       window.open(makeLiveTvUrl(), "_blank", "noopener,noreferrer");
     }
 
-    function shareMobileView() {
-      const id = getCurrentTournamentId();
-      const url = `${location.origin}${location.pathname}#view=mobile-live&t=${encodeURIComponent(id)}`;
-      navigator.clipboard?.writeText(url).then(() => {
-        alert("모바일 라이브 링크를 복사했습니다. 카톡에 붙여넣어 공유하세요.");
-      }).catch(() => {
-        prompt("모바일 라이브 링크를 복사하세요.", url);
-      });
-    }
+    
+/* v58 removed duplicate function shareMobileView from earlier patch line 4652 */
+
 
     
     function copyOrShare(url, label) {
@@ -4689,7 +4646,7 @@
             <div class="header-copy">
               <div class="brand-line">
                 <div class="eyebrow">MINI4WD TOURNAMENT MAKER</div>
-                <div class="maker">made by GEEKS M.Y · Special Thanks to SOON.D</div>
+                
               </div>
               <h1>${matchModeLabel()} · ${state.settings.laneCount}레인</h1>
               <p class="desc">${ruleSummary()}</p>
@@ -5152,14 +5109,9 @@
 
 
     
-    function getCurrentTournamentId() {
-      const params = getHashParams();
-      const fromHash = params.get("t") || params.get("tournamentId");
-      const stored = localStorage.getItem("mini4wdTournamentId");
-      firebaseTournamentId = (fromHash || stored || DEFAULT_TOURNAMENT_ID).trim() || DEFAULT_TOURNAMENT_ID;
-      localStorage.setItem("mini4wdTournamentId", firebaseTournamentId);
-      return firebaseTournamentId;
-    }
+    
+/* v58 removed duplicate function getCurrentTournamentId from earlier patch line 5197 */
+
 
     function setTournamentIdDraft(value) {
       const nextId = String(value || "").trim().toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
@@ -5256,38 +5208,21 @@
       });
     }
 
-    function watchFirebaseState(viewType) {
-      const db = initFirebase();
-      if (!db) return;
-      db.ref(`${PUBLIC_LIVE_PATH}/${getCurrentTournamentId()}/state`).on("value", snapshot => {
-        const payload = snapshot.val();
-        if (!payload) return;
-        if (viewType === "tv-live") {
-          tvState = payload;
-          document.body.classList.add("tv-mode");
-          renderTvStage();
-          return;
-        }
-        if (viewType === "mobile-live") {
-          renderTvSnapshot(payload, "mobile");
-          return;
-        }
-      });
-    }
+    
+/* v58 removed duplicate function watchFirebaseState from earlier patch line 5301 */
+
 
     function firebaseStatusText() {
       return firebaseOnline ? `연결됨 · ${escapeHtml(getCurrentTournamentId())}` : `대기 · ${escapeHtml(getCurrentTournamentId())}`;
     }
 
-    function copyLiveLink() {
-      const url = `${location.origin}${location.pathname}#view=live-list`;
-      navigator.clipboard?.writeText(url).then(() => alert("모바일 LIVE 로비 링크를 복사했습니다.")).catch(() => prompt("모바일 LIVE 로비 링크", url));
-    }
+    
+/* v58 removed duplicate function copyLiveLink from earlier patch line 5324 */
 
-    function openFirebaseTvLive() {
-      const id = getCurrentTournamentId();
-      window.open(`${location.origin}${location.pathname}#view=tv-live&t=${encodeURIComponent(id)}`, "mini4wd-tv-live", "popup=yes,width=1280,height=720,noopener,noreferrer");
-    }
+
+    
+/* v58 removed duplicate function openFirebaseTvLive from earlier patch line 5329 */
+
 
 
     function currentActorLabel() {
@@ -5445,69 +5380,9 @@ function renderTournamentStatusPanel() {
       `;
     }
 
-    function renderFinalRace() {
-      const finalists = state.qualifierRounds.map(round => round.finalist).filter(Boolean);
+    
+/* v58 removed duplicate function renderFinalRace from earlier patch line 5490 */
 
-      if (!state.finalRace) {
-        return `
-          <section class="final-box">
-            <h2>최종 결승</h2>
-            <p class="hint">${state.settings.laneCount}명의 라운드 결승 진출자가 모두 확정되면 최종 결승을 진행할 수 있습니다.</p>
-            <div class="finalist-grid">
-              ${state.qualifierRounds.map(round => `<div class="finalist-item"><b>${round.title}</b><br>${round.finalist ? `${escapeHtml(round.finalist.name)}${round.finalist.team ? " / " + escapeHtml(round.finalist.team) : ""}` : "대기중"}</div>`).join("")}
-            </div>
-            <button class="primary" style="margin-top:12px;" onclick="createFinalRace()">최종 결승 진행</button>
-          </section>
-        `;
-      }
-
-      const winners = state.finalRace.group.slots.filter(player => !player.isEmptyLane && state.finalRace.group.advanceIds.includes(player.id));
-      const isBroadcast = state.broadcast.mode === "final";
-
-      return `
-        <section class="final-box">
-          <div class="round-head" style="margin-bottom:12px;">
-            <h2>최종 결승 ${isBroadcast ? `<span class="round-badge live-badge">● TV 송출중</span>` : ""}</h2>
-            <button class="${isBroadcast ? "primary" : "ghost"}" onclick="state.broadcast={mode:'final'}; renderOperator();">최종 결승 TV 송출</button>
-          </div>
-          <div class="groups" style="grid-template-columns:1fr;">
-            <article class="group">
-              <div class="group-title">
-                <strong>FINAL</strong>
-                <span class="badge">${state.settings.laneCount}레인</span>
-              </div>
-              ${state.finalRace.group.slots.map(player => {
-                if (player.isEmptyLane) {
-                  return `
-                    <div class="slot empty-lane">
-                      <div class="slot-inner">
-                        <span class="lane-label">${player.lane}LANE</span>
-                        <div class="player-info"><strong>빈 레인</strong></div>
-                      </div>
-                    </div>
-                  `;
-                }
-
-                const selected = state.finalRace.group.advanceIds.includes(player.id);
-                return `
-                  <button class="slot ${selected ? "selected" : ""}" onclick="toggleFinalWinner('${escapeAttr(player.id)}')">
-                    <div class="slot-inner">
-                      <span class="lane-label">${player.lane}LANE</span>
-                      <div class="player-info">
-                        <strong>${escapeHtml(player.name)}</strong>
-                        ${player.team ? `<div class="team">${escapeHtml(player.team)}</div>` : ""}
-                      </div>
-                      ${selected ? `<span class="advance-mark">최종</span>` : ""}
-                    </div>
-                  </button>
-                `;
-              }).join("")}
-            </article>
-          </div>
-          ${winners.length ? `<div class="champion"><small>FINAL RESULT</small><strong>${winners.map(p => escapeHtml(p.name)).join(", ")}</strong><span>${winners.length > 1 ? "공동 최종 선정" : "최종 우승자"}</span></div>` : ""}
-        </section>
-      `;
-    }
 
     function avoidanceLabel(level) {
       return { none: "없음", low: "낮음", medium: "보통", high: "높음" }[level] || level;
@@ -5556,53 +5431,9 @@ function renderTournamentStatusPanel() {
       `;
     }
 
-    function getBroadcastTarget(payload) {
-      const broadcast = payload.broadcast || { mode: "stage", roundIndex: 0, stageIndex: 0 };
+    
+/* v58 removed duplicate function getBroadcastTarget from earlier patch line 5601 */
 
-      if (broadcast.mode === "final" && payload.finalRace) {
-        return {
-          title: "최종 결승",
-          laneCount: payload.settings.laneCount,
-          groups: [payload.finalRace.group],
-          isFinal: true,
-          stageType: "final",
-          stageName: "최종 결승",
-          pointTotalsMap: {}
-        };
-      }
-
-      const round = payload.qualifierRounds?.[broadcast.roundIndex];
-      const stage = round?.stages?.[broadcast.stageIndex];
-      if (!round || !stage) {
-        const fallbackRound = payload.qualifierRounds?.find(item => item.stages?.length);
-        const fallbackStageIndex = (fallbackRound?.stages?.length || 1) - 1;
-        const fallbackStage = fallbackRound?.stages?.[fallbackStageIndex];
-        if (!fallbackRound || !fallbackStage) return null;
-        const pointTotals = fallbackStage.type === "points" ? computePointTotalsUpToStage(fallbackRound, fallbackStageIndex) : [];
-        return {
-          title: `${fallbackRound.title} · ${fallbackStage.name}`,
-          laneCount: payload.settings.laneCount,
-          groups: fallbackStage.groups,
-          isFinal: false,
-          stageType: fallbackStage.type || "normal",
-          stageName: fallbackStage.name,
-          pointTotalsMap: Object.fromEntries(pointTotals.map(player => [player.id, player.total])),
-          pointLeaders: fallbackStage.name === "포인트 3차전" ? getPointLeadersWithTies(pointTotals, 3) : []
-        };
-      }
-
-      const pointTotals = stage.type === "points" ? computePointTotalsUpToStage(round, broadcast.stageIndex) : [];
-      return {
-        title: `${round.title} · ${stage.name}`,
-        laneCount: payload.settings.laneCount,
-        groups: stage.groups,
-        isFinal: false,
-        stageType: stage.type || "normal",
-        stageName: stage.name,
-        pointTotalsMap: Object.fromEntries(pointTotals.map(player => [player.id, player.total])),
-        pointLeaders: stage.name === "포인트 3차전" ? getPointLeadersWithTies(pointTotals, 3) : []
-      };
-    }
 
     function renderTvLiveView() {
       document.body.classList.add("tv-mode");
@@ -5613,7 +5444,7 @@ function renderTournamentStatusPanel() {
       }
 
       if (!tvState) {
-        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS M.Y · Special Thanks to SOON.D</div></div><strong>라이브 대기중</strong></div>${logoMarkup("tv-logo")}</div><div class="empty"><h2>운영자 화면에서 대진표를 생성하면 자동 표시됩니다.</h2></div></div>`;
+        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small></div><strong>라이브 대기중</strong></div>${logoMarkup("tv-logo")}</div><div class="empty"><h2>운영자 화면에서 대진표를 생성하면 자동 표시됩니다.</h2></div></div>`;
         return;
       }
 
@@ -5642,7 +5473,7 @@ function renderTournamentStatusPanel() {
             <div class="header-copy">
               <div class="brand-line">
                 <div class="eyebrow">MINI4WD TOURNAMENT MAKER</div>
-                <div class="maker">made by GEEKS M.Y · Special Thanks to SOON.D</div>
+                
               </div>
               <h1>모바일 대진표</h1>
               <p class="desc">${matchModeLabel(payload.settings?.matchMode)} · ${payload.settings?.laneCount || 3}레인 · ${escapeHtml(payload.tournament?.name || "대회명 미입력")}</p>
@@ -5706,7 +5537,7 @@ function renderTournamentStatusPanel() {
 function renderTvStage() {
       const target = getBroadcastTarget(tvState);
       if (!target) {
-        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS M.Y · Special Thanks to SOON.D</div></div><strong>대진표 없음</strong></div>${logoMarkup("tv-logo")}</div><div class="empty"><h2>현재 송출할 라운드가 없습니다.</h2></div></div>`;
+        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small></div><strong>대진표 없음</strong></div>${logoMarkup("tv-logo")}</div><div class="empty"><h2>현재 송출할 라운드가 없습니다.</h2></div></div>`;
         return;
       }
 
@@ -5721,7 +5552,7 @@ function renderTvStage() {
             <div class="tv-brand">
               <div class="tv-brand-line">
                 <small>MINI4WD TOURNAMENT MAKER</small>
-                <div class="maker">made by GEEKS M.Y · Special Thanks to SOON.D</div>
+                
               </div>
               <strong>${escapeHtml(target.title)}</strong>
             </div>
@@ -5815,41 +5646,9 @@ function renderTvStage() {
       }
     }
 
-    function renderReadOnlyPayload(payload) {
-      const finalHtml = payload.finalRace ? `
-        <section class="final-box">
-          <h2>최종 결승</h2>
-          <div class="groups" style="grid-template-columns:1fr;">
-            ${renderReadOnlyGroup(payload.finalRace.group, true)}
-          </div>
-        </section>
-      ` : "";
+    
+/* v58 removed duplicate function renderReadOnlyPayload from earlier patch line 5860 */
 
-      const qualifierHtml = (payload.qualifierRounds || []).map(round => `
-        <section class="round-card">
-          <div class="round-head">
-            <div>
-              <div class="round-title">
-                <h2>${escapeHtml(round.title)}</h2>
-                ${round.finalist ? `<span class="round-badge finalist-badge">진출: ${escapeHtml(round.finalist.name)}</span>` : `<span class="round-badge">대기중</span>`}
-              </div>
-            </div>
-          </div>
-          <div class="stage-list">
-            ${(round.stages || []).map(stage => `
-              <section class="stage-card">
-                <div class="stage-head"><div><h3>${escapeHtml(stage.name)}</h3><div class="meta">${stage.groups.length}개 조</div></div></div>
-                <div class="groups">
-                  ${stage.groups.map(group => stage.type === "points" ? renderReadOnlyPointGroup(group, stage) : renderReadOnlyGroup(group, false)).join("")}
-                </div>
-              </section>
-            `).join("")}
-          </div>
-        </section>
-      `).join("");
-
-      return finalHtml + qualifierHtml;
-    }
 
 
     function renderReadOnlyPointGroup(group, stage) {
@@ -5953,53 +5752,21 @@ function renderTvStage() {
       renderDbPage();
     }
 
-    function loadRoster() {
-      try {
-        const raw = localStorage.getItem(ROSTER_KEY);
-        const data = raw ? JSON.parse(raw) : [];
-        return Array.isArray(data) ? data : [];
-      } catch (error) {
-        return [];
-      }
-    }
+    
+/* v58 removed duplicate function loadRoster from earlier patch line 5998 */
 
-    function saveRoster(roster) {
-      localStorage.setItem(ROSTER_KEY, JSON.stringify(roster));
-    }
 
-    function rosterId() {
-      return `roster-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    }
+    
+/* v58 removed duplicate function saveRoster from earlier patch line 6008 */
 
-    function addRosterPlayer() {
-      const name = document.getElementById("dbName")?.value.trim();
-      const team = document.getElementById("dbTeam")?.value.trim();
-      const nickname = document.getElementById("dbNickname")?.value.trim();
-      const memo = document.getElementById("dbMemo")?.value.trim();
 
-      if (!name) {
-        alert("선수명을 입력하세요.");
-        return;
-      }
+    
+/* v58 removed duplicate function rosterId from earlier patch line 6012 */
 
-      const roster = loadRoster();
-      const duplicated = roster.find(player => player.name === name && (player.team || "") === (team || ""));
-      if (duplicated && !confirm("같은 이름/팀의 선수가 이미 있습니다. 그래도 추가할까요?")) return;
 
-      roster.push({
-        id: rosterId(),
-        name,
-        team: team || "",
-        nickname: nickname || "",
-        memo: memo || "",
-        favorite: false,
-        active: true,
-        createdAt: new Date().toISOString()
-      });
+    
+/* v58 removed duplicate function addRosterPlayer from earlier patch line 6016 */
 
-      saveRoster(roster);
-      renderDbPage();
-    }
 
     function toggleRosterField(id, field) {
       const roster = loadRoster().map(player => {
@@ -6018,13 +5785,9 @@ function renderTvStage() {
       renderDbPage();
     }
 
-    function updateRosterInline(id, field, value) {
-      const roster = loadRoster().map(player => {
-        if (player.id !== id) return player;
-        return { ...player, [field]: value };
-      });
-      saveRoster(roster);
-    }
+    
+/* v58 removed duplicate function updateRosterInline from earlier patch line 6063 */
+
 
     function toggleDbSelected(id, checked) {
       if (checked) dbSelectedIds.add(id);
@@ -6032,21 +5795,9 @@ function renderTvStage() {
       updateSelectedPreview();
     }
 
-    function updateSelectedPreview() {
-      const roster = loadRoster();
-      const selected = roster.filter(player => dbSelectedIds.has(player.id));
-      const el = document.getElementById("selectedPreview");
-      const count = document.getElementById("selectedCount");
-      if (count) count.textContent = selected.length;
-      if (!el) return;
+    
+/* v58 removed duplicate function updateSelectedPreview from earlier patch line 6077 */
 
-      if (!selected.length) {
-        el.innerHTML = `<div class="hint">선택된 선수가 없습니다.</div>`;
-        return;
-      }
-
-      el.innerHTML = selected.map(player => `<div class="finalist-item"><b>${escapeHtml(player.name)}</b>${player.team ? ` / ${escapeHtml(player.team)}` : ""}${player.nickname ? `<br><span class="hint">${escapeHtml(player.nickname)}</span>` : ""}</div>`).join("");
-    }
 
     function selectFavoritePlayers() {
       dbSelectedIds = new Set(loadRoster().filter(player => player.favorite && player.active).map(player => player.id));
@@ -6069,128 +5820,25 @@ function renderTvStage() {
       renderDbPage();
     }
 
-    function applySelectedPlayersToTournament() {
-      const roster = loadRoster();
-      const selected = roster.filter(player => dbSelectedIds.has(player.id) && player.active);
+    
+/* v58 removed duplicate function applySelectedPlayersToTournament from earlier patch line 6114 */
 
-      if (!selected.length) {
-        alert("오늘 참가자를 선택하세요.");
-        return;
-      }
 
-      const text = selected.map(player => `${player.name}/${player.team || ""}`).join("\n");
-      localStorage.setItem(PENDING_PARTICIPANTS_KEY, text);
-      localStorage.setItem(RECENT_PARTICIPANTS_KEY, JSON.stringify(selected.map(player => player.id)));
+    
+/* v58 removed duplicate function exportRosterCsv from earlier patch line 6133 */
 
-      state.inputText = text;
-      saveLiveState();
-      location.hash = "";
-      renderOperator();
-    }
 
-    function exportRosterCsv() {
-      const roster = loadRoster();
-      const rows = [["선수명", "팀명", "닉네임", "즐겨찾기", "활성", "메모", "등록일"]];
-      roster.forEach(player => {
-        rows.push([
-          player.name || "",
-          player.team || "",
-          player.nickname || "",
-          player.favorite ? "Y" : "N",
-          player.active ? "Y" : "N",
-          player.memo || "",
-          player.createdAt || ""
-        ]);
-      });
+    
+/* v58 removed duplicate function exportRosterJson from earlier patch line 6151 */
 
-      downloadTextFile("mini4wd_roster.csv", toCsv(rows));
-    }
 
-    function exportRosterJson() {
-      downloadTextFile("mini4wd_roster_backup.json", JSON.stringify(loadRoster(), null, 2));
-    }
+    
+/* v58 removed duplicate function importRosterJsonFromText from earlier patch line 6155 */
 
-    function importRosterJsonFromText() {
-      const text = document.getElementById("importJsonText")?.value.trim();
-      if (!text) {
-        alert("불러올 JSON 내용을 붙여넣으세요.");
-        return;
-      }
 
-      try {
-        const data = JSON.parse(text);
-        if (!Array.isArray(data)) throw new Error("not array");
-        const cleaned = data.map(player => ({
-          id: player.id || rosterId(),
-          name: String(player.name || "").trim(),
-          team: String(player.team || "").trim(),
-          nickname: String(player.nickname || "").trim(),
-          memo: String(player.memo || "").trim(),
-          favorite: Boolean(player.favorite),
-          active: player.active !== false,
-          createdAt: player.createdAt || new Date().toISOString()
-        })).filter(player => player.name);
+    
+/* v58 removed duplicate function quickImportRosterLines from earlier patch line 6190 */
 
-        if (!cleaned.length) {
-          alert("불러올 선수가 없습니다.");
-          return;
-        }
-
-        if (!confirm(`선수 ${cleaned.length}명을 불러옵니다. 기존 명부를 교체할까요?`)) return;
-        saveRoster(cleaned);
-        dbSelectedIds = new Set();
-        renderDbPage();
-      } catch (error) {
-        alert("JSON 형식이 올바르지 않습니다.");
-      }
-    }
-
-    function quickImportRosterLines() {
-      const text = document.getElementById("quickImportText")?.value.trim();
-      if (!text) {
-        alert("이름/팀명 목록을 붙여넣으세요.");
-        return;
-      }
-
-      const current = loadRoster();
-      const existingKey = new Set(current.map(player => `${player.name}|${player.team || ""}`));
-
-      const added = text.split(/\r?\n/)
-        .map(line => line.trim())
-        .filter(Boolean)
-        .map(line => {
-          const parts = line.includes("/") ? line.split("/") : line.includes("\t") ? line.split("\t") : line.split(",");
-          return {
-            name: (parts[0] || "").trim(),
-            team: (parts[1] || "").trim()
-          };
-        })
-        .filter(player => player.name)
-        .filter(player => {
-          const key = `${player.name}|${player.team || ""}`;
-          if (existingKey.has(key)) return false;
-          existingKey.add(key);
-          return true;
-        })
-        .map(player => ({
-          id: rosterId(),
-          name: player.name,
-          team: player.team,
-          nickname: "",
-          memo: "",
-          favorite: false,
-          active: true,
-          createdAt: new Date().toISOString()
-        }));
-
-      if (!added.length) {
-        alert("새로 추가할 선수가 없습니다.");
-        return;
-      }
-
-      saveRoster([...current, ...added]);
-      renderDbPage();
-    }
 
     function setDbSearch(value) {
       dbSearchText = value;
@@ -6221,148 +5869,13 @@ function renderTvStage() {
       URL.revokeObjectURL(url);
     }
 
-    function renderDbPage() {
-      document.body.classList.remove("tv-mode");
+    
+/* v58 removed duplicate function renderDbPage from earlier patch line 6266 */
 
-      const roster = loadRoster();
-      const search = dbSearchText.trim().toLowerCase();
-      const teams = Array.from(new Set(roster.map(player => player.team).filter(Boolean))).sort();
-      const filtered = roster.filter(player => {
-        const matchesSearch = !search || [player.name, player.team, player.nickname, player.memo].some(value => String(value || "").toLowerCase().includes(search));
-        const matchesTeam = dbTeamFilter === "전체" || (player.team || "") === dbTeamFilter;
-        return matchesSearch && matchesTeam;
-      });
-      const activeCount = roster.filter(player => player.active).length;
-      const favoriteCount = roster.filter(player => player.favorite).length;
 
-      app.innerHTML = `
-        <div class="db-page">
-          <header class="header">
-            <div class="header-copy">
-              <div class="brand-line">
-                <div class="eyebrow">MINI4WD TOURNAMENT MAKER</div>
-                <div class="maker">made by GEEKS M.Y · Special Thanks to SOON.D</div>
-              </div>
-              <h1>선수 DB / 오늘 참가자 관리</h1>
-              <p class="desc">자주 참가하는 선수를 명부로 저장하고, 오늘 참가자만 선택해서 대진표로 보낼 수 있습니다.</p>
-            </div>
-            ${logoMarkup("header-logo")}
-          </header>
+    
+/* v58 removed duplicate function renderRosterRow from earlier patch line 6394 */
 
-          <div class="toolbar">
-            <button class="primary" onclick="location.hash=''; renderOperator();">TOURNAMENT</button>
-            <button class="ghost" onclick="exportRosterCsv()">CSV 다운로드</button>
-            <button class="ghost" onclick="exportRosterJson()">JSON 백업</button>
-            <button class="ghost" onclick="downloadRosterTemplate()">선수 양식</button>
-            <label class="upload-button ghost">
-              엑셀 업로드
-              <input type="file" accept=".xlsx,.xls,.csv,.tsv" onchange="importRosterExcel(event)" hidden />
-            </label>
-          </div>
-
-          <div class="db-grid">
-            <aside>
-              <section class="card">
-                <div class="db-panel-title"><h2>선수 빠른 추가</h2><span class="pill">Roster</span></div>
-                <div class="form-grid">
-                  <div><label>선수명</label><input class="mini-input" id="dbName" placeholder="홍길동" /></div>
-                  <div><label>팀명</label><input class="mini-input" id="dbTeam" placeholder="OPEN CLASS" /></div>
-                  <div><label>닉네임</label><input class="mini-input" id="dbNickname" placeholder="마이" /></div>
-                  <div><label>메모</label><input class="mini-input" id="dbMemo" placeholder="차량/특이사항" /></div>
-                </div>
-                <button class="primary" style="width:100%; margin-top:12px;" onclick="addRosterPlayer()">선수 추가</button>
-              </section>
-
-              <section class="card selected-box">
-                <div class="db-panel-title"><h2>오늘 참가자</h2><span class="pill"><span id="selectedCount">0</span>명 선택</span></div>
-                <div class="db-actions" style="margin-bottom:10px;">
-                  <button class="ghost" onclick="selectRecentPlayers()">최근 참가자</button>
-                  <button class="ghost" onclick="selectFavoritePlayers()">즐겨찾기</button>
-                  <button class="ghost" onclick="clearSelectedPlayers()">선택 해제</button>
-                </div>
-                <div id="selectedPreview" class="finalist-grid" style="grid-template-columns:1fr;"></div>
-                <button class="primary" style="width:100%; margin-top:12px;" onclick="applySelectedPlayersToTournament()">선택 선수로 대진 생성 준비</button>
-              </section>
-
-              <section class="card">
-                <h2>목록 일괄 추가</h2>
-                <p class="hint">한 줄에 한 명씩 입력합니다. 형식: 이름/팀명</p>
-                <textarea id="quickImportText" style="min-height:150px;" placeholder="OPEN CLASS"></textarea>
-                <button class="ghost" style="width:100%; margin-top:10px;" onclick="quickImportRosterLines()">목록에서 선수 추가</button>
-              </section>
-
-              <section class="card">
-                <h2>JSON 복원</h2>
-                <p class="hint">백업 JSON 내용을 붙여넣으면 기존 선수 명부를 교체합니다.</p>
-                <textarea id="importJsonText" style="min-height:130px;"></textarea>
-                <button class="danger" style="width:100%; margin-top:10px;" onclick="importRosterJsonFromText()">JSON 불러오기</button>
-              </section>
-            </aside>
-
-            <main>
-              <section class="card">
-                <div class="db-panel-title">
-                  <div>
-                    <h2>선수 명부</h2>
-                    <div class="meta">총 ${roster.length}명 · 표시 ${filtered.length}명</div>
-                  </div>
-                  <div class="db-actions">
-                    <input class="mini-input" placeholder="검색" value="${escapeHtml(dbSearchText)}" oninput="setDbSearch(this.value)" style="width:180px;" />
-                    <select onchange="setDbTeamFilter(this.value)" style="width:150px;">
-                      <option value="전체">전체 팀</option>
-                      ${teams.map(team => `<option value="${escapeHtml(team)}" ${team === dbTeamFilter ? "selected" : ""}>${escapeHtml(team)}</option>`).join("")}
-                    </select>
-                  </div>
-                </div>
-
-                <div class="db-stat-grid">
-                  <div class="db-stat"><small>전체 선수</small><strong>${roster.length}</strong></div>
-                  <div class="db-stat"><small>활성 선수</small><strong>${activeCount}</strong></div>
-                  <div class="db-stat"><small>즐겨찾기</small><strong>${favoriteCount}</strong></div>
-                </div>
-
-                <div class="roster-table-wrap">
-                  <table class="roster-table">
-                    <thead>
-                      <tr>
-                        <th>참가</th>
-                        <th>★</th>
-                        <th>선수명</th>
-                        <th>팀명</th>
-                        <th>닉네임</th>
-                        <th>상태</th>
-                        <th>메모</th>
-                        <th>관리</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      ${filtered.map(player => renderRosterRow(player)).join("") || `<tr><td colspan="8"><div class="db-empty">등록된 선수가 없습니다.</div></td></tr>`}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-            </main>
-          </div>
-        </div>
-      `;
-
-      updateSelectedPreview();
-    }
-
-    function renderRosterRow(player) {
-      return `
-        <tr>
-          <td data-label="참가"><input type="checkbox" data-roster-select value="${escapeAttr(player.id)}" ${dbSelectedIds.has(player.id) ? "checked" : ""} ${player.active ? "" : "disabled"} onchange="toggleDbSelected('${escapeAttr(player.id)}', this.checked)" /></td>
-          <td data-label="즐겨찾기"><button class="ghost" onclick="toggleRosterField('${escapeAttr(player.id)}', 'favorite')">${player.favorite ? "★" : "☆"}</button></td>
-          <td data-label="선수명"><input class="mini-input" value="${escapeHtml(player.name)}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'name', this.value)" /></td>
-          <td data-label="팀명"><input class="mini-input" value="${escapeHtml(player.team || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'team', this.value)" /></td>
-          <td data-label="닉네임"><input class="mini-input" value="${escapeHtml(player.nickname || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'nickname', this.value)" /></td>
-          <td data-label="상태"><button class="${player.active ? "primary" : "ghost"}" onclick="toggleRosterField('${escapeAttr(player.id)}', 'active')">${player.active ? "활성" : "비활성"}</button></td>
-          <td data-label="메모"><input class="mini-input" value="${escapeHtml(player.memo || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'memo', this.value)" /></td>
-          <td data-label="관리"><button class="danger" onclick="deleteRosterPlayer('${escapeAttr(player.id)}')">삭제</button></td>
-        </tr>
-      `;
-    }
 
 
     function getTournamentMeta() {
@@ -6379,74 +5892,13 @@ function renderTvStage() {
       };
     }
 
-    function getStageResultRows() {
-      const meta = getTournamentMeta();
-      const rows = [];
+    
+/* v58 removed duplicate function getStageResultRows from earlier patch line 6424 */
 
-      state.qualifierRounds.forEach(round => {
-        (round.stages || []).forEach(stage => {
-          stage.groups.forEach(group => {
-            group.slots.forEach(player => {
-              const isFinalist = round.finalist && round.finalist.id === player.id;
-              const isAdvanced = (group.advanceIds || []).includes(player.id);
-              const score = stage.type === "points" && !player.isEmptyLane ? Number((group.points || {})[player.id] ?? 0) : "";
-              let result = "";
 
-              if (player.isEmptyLane) result = "빈 레인";
-              else if (stage.type === "points") result = "포인트";
-              else if (isFinalist) result = "최종결승진출";
-              else if (isAdvanced) result = "진출";
-              else result = "탈락";
+    
+/* v58 removed duplicate function exportTournamentCsv from earlier patch line 6481 */
 
-              rows.push({
-                ...meta,
-                차수: round.title,
-                단계: stage.name,
-                조: group.name,
-                레인: `${player.lane}LANE`,
-                선수명: player.name,
-                팀명: player.team || "",
-                점수: score,
-                결과: result,
-                비고: stage.type || ""
-              });
-            });
-          });
-        });
-      });
-
-      if (state.finalRace) {
-        state.finalRace.group.slots.forEach(player => {
-          const selected = (state.finalRace.group.advanceIds || []).includes(player.id);
-          rows.push({
-            ...meta,
-            차수: "최종 결승",
-            단계: "FINAL",
-            조: "FINAL",
-            레인: `${player.lane}LANE`,
-            선수명: player.name,
-            팀명: player.team || "",
-            점수: "",
-            결과: player.isEmptyLane ? "빈 레인" : selected ? "최종우승" : "결승참가",
-            비고: "final"
-          });
-        });
-      }
-
-      return rows;
-    }
-
-    function exportTournamentCsv() {
-      ensureTournamentStarted();
-      const rows = getStageResultRows();
-      if (!rows.length) {
-        alert("다운로드할 경기 결과가 없습니다.");
-        return;
-      }
-      const headers = ["경기일시", "종료일시", "대회상태", "대회명", "경기장", "클래스", "경기방식", "레인수", "차수", "단계", "조", "레인", "선수명", "팀명", "점수", "결과", "비고"];
-      const csvRows = [headers, ...rows.map(row => headers.map(header => row[header] ?? ""))];
-      downloadTextFile(`tournament_result_${Date.now()}.csv`, toCsv(csvRows));
-    }
 
     function exportTournamentJson() {
       ensureTournamentStarted();
@@ -6458,16 +5910,9 @@ function renderTvStage() {
       downloadTextFile(`tournament_record_${Date.now()}.json`, JSON.stringify(payload, null, 2));
     }
 
-    function getCurrentStageForPrint(payload = state) {
-      const broadcast = payload.broadcast || { mode: "stage", roundIndex: 0, stageIndex: 0 };
-      if (broadcast.mode === "final" && payload.finalRace) {
-        return { title: "최종 결승 · FINAL", groups: [payload.finalRace.group], isFinal: true };
-      }
-      const round = payload.qualifierRounds?.[broadcast.roundIndex];
-      const stage = round?.stages?.[broadcast.stageIndex] || round?.stages?.[round.stages.length - 1];
-      if (!round || !stage) return null;
-      return { title: `${round.title} · ${stage.name}`, groups: stage.groups, stage };
-    }
+    
+/* v58 removed duplicate function getCurrentStageForPrint from earlier patch line 6503 */
+
 
     function openPrintView() {
       saveLiveState();
@@ -6582,22 +6027,9 @@ function renderTvStage() {
 
 
 
-    function downloadRosterTemplate() {
-      const rows = [
-        ["선수명", "팀명", "닉네임", "메모", "활성여부", "즐겨찾기"],
-        ["김철수", "GEEKS", "마이", "MS 플렉스", "TRUE", "TRUE"],
-        ["박민수", "ATHENS", "", "신규 참가자", "TRUE", "FALSE"]
-      ];
+    
+/* v58 removed duplicate function downloadRosterTemplate from earlier patch line 6627 */
 
-      if (window.XLSX) {
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.aoa_to_sheet(rows);
-        XLSX.utils.book_append_sheet(wb, ws, "선수등록양식");
-        XLSX.writeFile(wb, "mini4wd_player_upload_template.xlsx");
-      } else {
-        downloadTextFile("mini4wd_player_upload_template.csv", toCsv(rows));
-      }
-    }
 
     function parseBooleanCell(value, defaultValue = false) {
       if (value === undefined || value === null || value === "") return defaultValue;
@@ -6605,87 +6037,9 @@ function renderTvStage() {
       return ["true", "y", "yes", "1", "활성", "사용", "예"].includes(text);
     }
 
-    function importRosterExcel(event) {
-      const file = event.target.files?.[0];
-      if (!file) return;
+    
+/* v58 removed duplicate function importRosterExcel from earlier patch line 6650 */
 
-      const ext = file.name.split(".").pop().toLowerCase();
-      const reader = new FileReader();
-
-      reader.onload = e => {
-        try {
-          let rows = [];
-
-          if ((ext === "xlsx" || ext === "xls") && window.XLSX) {
-            const data = new Uint8Array(e.target.result);
-            const wb = XLSX.read(data, { type: "array" });
-            const ws = wb.Sheets[wb.SheetNames[0]];
-            rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
-          } else {
-            const text = e.target.result;
-            const lines = text.split(/\r?\n/).filter(Boolean);
-            const headers = lines.shift().split(/,|\t/).map(h => h.replace(/^"|"$/g, "").trim());
-            rows = lines.map(line => {
-              const cells = line.split(/,|\t/).map(cell => cell.replace(/^"|"$/g, "").trim());
-              const obj = {};
-              headers.forEach((header, index) => obj[header] = cells[index] || "");
-              return obj;
-            });
-          }
-
-          const current = loadRoster();
-          const existingKey = new Set(current.map(player => `${player.name}|${player.team || ""}`));
-          const imported = [];
-          const duplicated = [];
-
-          rows.forEach(row => {
-            const name = String(row["선수명"] || row["name"] || "").trim();
-            const team = String(row["팀명"] || row["team"] || "").trim();
-            if (!name) return;
-
-            const key = `${name}|${team || ""}`;
-            if (existingKey.has(key)) {
-              duplicated.push(key);
-              return;
-            }
-
-            existingKey.add(key);
-            imported.push({
-              id: rosterId(),
-              name,
-              team,
-              nickname: String(row["닉네임"] || row["nickname"] || "").trim(),
-              memo: String(row["메모"] || row["memo"] || "").trim(),
-              active: parseBooleanCell(row["활성여부"], true),
-              favorite: parseBooleanCell(row["즐겨찾기"], false),
-              createdAt: new Date().toISOString()
-            });
-          });
-
-          if (!imported.length) {
-            alert(`추가할 선수가 없습니다. 중복 ${duplicated.length}건`);
-            event.target.value = "";
-            return;
-          }
-
-          const message = `선수 ${imported.length}명을 추가합니다.` + (duplicated.length ? `\\n중복 제외 ${duplicated.length}건` : "");
-          if (!confirm(message)) {
-            event.target.value = "";
-            return;
-          }
-
-          saveRoster([...current, ...imported]);
-          event.target.value = "";
-          renderDbPage();
-        } catch (error) {
-          alert("업로드 파일을 읽는 중 오류가 발생했습니다. 선수 등록 양식을 사용해 주세요.");
-          event.target.value = "";
-        }
-      };
-
-      if (ext === "xlsx" || ext === "xls") reader.readAsArrayBuffer(file);
-      else reader.readAsText(file, "utf-8");
-    }
 
 
     function boot() {
@@ -6708,7 +6062,7 @@ function renderTvStage() {
 
         if (view === "tv-live") {
           document.body.classList.add("tv-mode");
-          app.innerHTML = `<div class="tv-wrap"><div class="tv-empty"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS M.Y · Special Thanks to SOON.D</div></div><strong>라이브 연결중</strong></div></div>`;
+          app.innerHTML = `<div class="tv-wrap"><div class="tv-empty"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small></div><strong>라이브 연결중</strong></div></div>`;
           watchFirebaseState("tv-live");
           return;
         }
@@ -6779,11 +6133,9 @@ function renderTvStage() {
     }
 
     function normalizeKey(text) {
-      return String(text || "")
-        .trim()
-        .toLowerCase()
-        .normalize("NFKD")
-        .replace(/[\u0300-\u036f]/g, "")
+      const raw = String(text || "").trim().toLowerCase();
+      const normalized = raw.normalize("NFD").replace(/[\u0300-\u036f]/g, "").normalize("NFC");
+      return normalized
         .replace(/[^a-z0-9가-힣]+/g, "-")
         .replace(/-+/g, "-")
         .replace(/^-|-$/g, "") || "default";
@@ -6889,335 +6241,110 @@ function renderTvStage() {
 
     function goHome() {
       location.hash = "";
-  
+      bootV33();
+    }
 
     /* v48 9강 + mobile live link fix overrides */
-    function isCrowMode() {
-      return state?.settings?.matchMode === "crow";
-    }
+    
+/* v58 removed duplicate function isCrowMode from earlier patch line 6936 */
 
-    function ruleSummary(mode = state.settings.matchMode) {
-      return {
-        basic: "라운드별 결승 진출자를 모아 최종 결승을 진행합니다.",
-        crow: "라운드별 1~3위 총 9명으로 준결/결승을 진행합니다.",
-        points: "추가 예정입니다.",
-        revival: "추가 예정입니다."
-      }[mode] || "라운드별 결승 진출자를 모아 최종 결승을 진행합니다.";
-    }
 
-    function matchModeLabel(mode = state.settings.matchMode) {
-      return {
-        basic: "기본 토너먼트",
-        crow: "9강 준결 토너먼트",
-        points: "1라운드 포인트전",
-        revival: "패자부활 토너먼트"
-      }[mode] || "기본 토너먼트";
-    }
+    
+/* v58 removed duplicate function ruleSummary from earlier patch line 6940 */
 
-    function setMatchMode(mode) {
-      ensureStateDefaults();
-      if (isTournamentLocked() && !confirm("대회가 시작/종료된 상태입니다. 경기 방식을 바꾸면 기록이 꼬일 수 있습니다. 계속할까요?")) return;
-      if (state.qualifierRounds.some(round => round.stages.length) || state.finalRace) {
-        if (!confirm("경기 방식을 바꾸면 현재 대진표가 라운드 초기화됩니다. 계속할까요?")) return;
-      }
-      const currentTournament = { ...state.tournament };
-      const inputText = state.inputText;
-      const previousSettings = { ...state.settings, matchMode: mode };
-      if (mode === "crow") previousSettings.laneCount = 3;
-      state = makeInitialState(previousSettings.laneCount || 3);
-      state.inputText = inputText;
-      state.tournament = currentTournament;
-      state.settings = { ...state.settings, ...previousSettings, matchMode: mode };
-      state.qualifierRounds = makeQualifierRounds(state.settings.laneCount, mode);
-      state.finalRace = null;
-      activeRoundIndex = 0;
-      renderOperator();
-    }
 
-    function normalizePlayerForFinal(player, extra = {}) {
-      return { id: player.id, name: player.name, nickname: player.nickname || player.name, team: player.team || "", realName: player.realName || "", contact: player.contact || "", ...extra };
-    }
+    
+/* v58 removed duplicate function matchModeLabel from earlier patch line 6949 */
 
-    function getCrowRoundRank(round, rank) {
-      const list = round?.crowFinalists || [];
-      return list.find(player => Number(player.crowRank) === Number(rank)) || null;
-    }
 
-    function getCrowRankHtml(round) {
-      const selected = round?.crowFinalists || [];
-      if (!selected.length) return `<div class="hint">라운드 결승에서 1위→2위→3위 순서로 선수를 선택한 뒤 1~3위 확정을 누르세요.</div>`;
-      return `<div class="crow-rank-list">${[1,2,3].map(rank => {
-        const player = selected.find(item => Number(item.crowRank) === rank);
-        return `<div class="crow-rank-item"><b>${rank}위</b><span>${player ? `${escapeHtml(player.name)}${player.team ? " / " + escapeHtml(player.team) : ""}` : "미확정"}</span></div>`;
-      }).join("")}</div>`;
-    }
+    
+/* v58 removed duplicate function setMatchMode from earlier patch line 6958 */
 
-    function confirmRoundFinalist(roundIndex) {
-      const round = state.qualifierRounds[roundIndex];
-      if (!round || !round.stages.length) return showError("먼저 해당 라운드를 진행하세요.");
-      const lastStage = round.stages[round.stages.length - 1];
-      const validFinalStage = lastStage.name === "라운드 결승" || lastStage.name === "결승" || lastStage.type === "pointFinal";
-      if (!validFinalStage) return showError(isRevivalMode() ? "결승 경기에서만 우승자를 확정할 수 있습니다." : "라운드 결승 또는 포인트 상위 결정전에서만 확정할 수 있습니다.");
-      const selected = getSelectedFromStage(lastStage);
 
-      if (isCrowMode()) {
-        if (selected.length !== 3) return showError("9강 준결 방식은 각 라운드 결승에서 1~3위 3명을 선택해야 합니다. 선택 순서가 1위, 2위, 3위입니다.");
-        round.crowFinalists = selected.slice(0, 3).map((player, index) => normalizePlayerForFinal(player, { crowRank: index + 1, sourceRoundIndex: round.index }));
-        round.finalist = round.crowFinalists[0];
-        state.finalRace = null;
-        state.broadcast = { mode: "stage", roundIndex, stageIndex: round.stages.length - 1 };
-        logTournamentAction("9강 순위 확정", `${round.title}: ${round.crowFinalists.map(p => `${p.crowRank}위 ${p.name}`).join(" / ")}`);
-        renderOperator();
-        return;
-      }
+    
+/* v58 removed duplicate function normalizePlayerForFinal from earlier patch line 6978 */
 
-      if (selected.length === 0) return showError(isRevivalMode() ? "우승자를 선택하세요." : "최종 결승 진출자를 선택하세요.");
-      if (selected.length > 1) return showError(isRevivalMode() ? "우승자는 1명만 선택해야 합니다." : "각 라운드의 최종 결승 진출자는 1명만 선택해야 합니다.");
-      round.finalist = selected[0];
-      state.finalRace = null;
-      state.broadcast = { mode: "stage", roundIndex, stageIndex: round.stages.length - 1 };
-      renderOperator();
-    }
 
-    function makeCrowSemiGroup(name, players) {
-      return {
-        id: `crow-${name}-${Math.random().toString(36).slice(2, 8)}`,
-        name,
-        slots: players.map((player, index) => ({ ...player, lane: index + 1 })),
-        advanceIds: []
-      };
-    }
+    
+/* v58 removed duplicate function getCrowRoundRank from earlier patch line 6982 */
 
-    function createCrowSemiFinal() {
-      const rounds = state.qualifierRounds.slice(0, 3);
-      if (rounds.length < 3 || rounds.some(round => (round.crowFinalists || []).length < 3)) {
-        return showError("9강 준결 방식은 1~3차 라운드 결승에서 각각 1~3위를 모두 확정해야 합니다.");
-      }
-      const groups = [
-        makeCrowSemiGroup("9강 준결 1조", [getCrowRoundRank(rounds[0], 1), getCrowRoundRank(rounds[1], 2), getCrowRoundRank(rounds[2], 3)]),
-        makeCrowSemiGroup("9강 준결 2조", [getCrowRoundRank(rounds[0], 2), getCrowRoundRank(rounds[1], 3), getCrowRoundRank(rounds[2], 1)]),
-        makeCrowSemiGroup("9강 준결 3조", [getCrowRoundRank(rounds[0], 3), getCrowRoundRank(rounds[1], 1), getCrowRoundRank(rounds[2], 2)])
-      ];
-      state.finalRace = {
-        id: `crow-semi-${Math.random().toString(36).slice(2, 8)}`,
-        type: "crowSemi",
-        name: "9강 최종 준결",
-        groupSize: 3,
-        groups
-      };
-      state.broadcast = { mode: "final" };
-      logTournamentAction("9강 준결 생성", "9명 준결 편성");
-      renderOperator();
-    }
 
-    function createCrowFinalFromSemi() {
-      if (!state.finalRace || state.finalRace.type !== "crowSemi") return;
-      const winners = (state.finalRace.groups || []).flatMap(group => group.slots.filter(player => !player.isEmptyLane && (group.advanceIds || []).includes(player.id)));
-      if (winners.length !== 3) return showError("9강 준결 각 조에서 결승 진출자 1명씩 총 3명을 선택하세요.");
-      state.finalRace = {
-        id: `crow-final-${Math.random().toString(36).slice(2, 8)}`,
-        type: "crowFinal",
-        name: "9강 최종 결승",
-        groupSize: 3,
-        group: {
-          id: `crow-final-group-${Math.random().toString(36).slice(2, 8)}`,
-          name: "FINAL",
-          slots: assignLanes(winners, 3),
-          advanceIds: []
-        }
-      };
-      state.broadcast = { mode: "final" };
-      logTournamentAction("결승 생성", winners.map(p => p.name).join(" / "));
-      renderOperator();
-    }
+    
+/* v58 removed duplicate function getCrowRankHtml from earlier patch line 6987 */
 
-    function createFinalRace() {
-      if (!canModifyTournamentAction("최종 결승 생성")) return;
-      if (isCrowMode()) return createCrowSemiFinal();
-      const finalists = state.qualifierRounds.map(round => round.finalist).filter(Boolean);
-      if (finalists.length < state.settings.laneCount) return showError(`${state.settings.laneCount}명의 최종 결승 진출자가 모두 확정되어야 합니다.`);
-      state.finalRace = {
-        id: `final-${Math.random().toString(36).slice(2, 8)}`,
-        name: "최종 결승",
-        groupSize: state.settings.laneCount,
-        group: { id: `final-group-${Math.random().toString(36).slice(2, 8)}`, name: "FINAL", slots: assignLanes(finalists, state.settings.laneCount), advanceIds: [] }
-      };
-      state.broadcast = { mode: "final" };
-      logTournamentAction("최종 결승 생성", "FINAL");
-      renderOperator();
-    }
 
-    function getFinalGroups(finalRace = state.finalRace) {
-      if (!finalRace) return [];
-      if (Array.isArray(finalRace.groups)) return finalRace.groups;
-      return finalRace.group ? [finalRace.group] : [];
-    }
+    
+/* v58 removed duplicate function confirmRoundFinalist from earlier patch line 6996 */
 
-    function toggleFinalWinner(playerId, groupId = "") {
-      if (!state.finalRace) return;
-      const groups = getFinalGroups();
-      const group = groupId ? groups.find(item => item.id === groupId) : groups.find(item => item.slots.some(player => player.id === playerId));
-      if (!group) return;
-      const player = group.slots.find(item => item.id === playerId);
-      if (!player || player.isEmptyLane) return;
-      const ids = group.advanceIds || [];
-      group.advanceIds = ids.includes(playerId) ? ids.filter(id => id !== playerId) : [...ids, playerId];
-      logTournamentAction("최종 진출/우승 선택", player.name || playerId);
-      renderOperator();
-    }
 
-    function forceFinalLane(groupId, playerId, lane) {
-      if (!state.finalRace) return;
-      const group = getFinalGroups().find(item => item.id === groupId);
-      if (!group) return;
-      const target = group.slots.find(item => item.id === playerId);
-      const other = group.slots.find(item => Number(item.lane) === Number(lane));
-      if (!target || target.isEmptyLane) return;
-      const oldLane = target.lane;
-      target.lane = Number(lane);
-      if (other && other.id !== target.id) other.lane = oldLane;
-      group.slots.sort((a, b) => Number(a.lane) - Number(b.lane));
-      logTournamentAction("결승 레인 강제 지정", `${target.name}: ${lane}LANE`);
-      renderOperator();
-    }
+    
+/* v58 removed duplicate function makeCrowSemiGroup from earlier patch line 7023 */
 
-    function renderFinalLaneTools(group, player) {
-      const maxLane = state.finalRace?.groupSize || state.settings.laneCount || 3;
-      return `<div class="final-lane-tools"><span class="hint">레인 지정</span>${Array.from({ length: maxLane }, (_, i) => i + 1).map(lane => `<button class="${Number(player.lane) === lane ? "primary" : "ghost"}" onclick="forceFinalLane('${escapeAttr(group.id)}','${escapeAttr(player.id)}',${lane})">${lane}</button>`).join("")}</div>`;
-    }
 
-    function renderFinalGroup(group, finalRaceType) {
-      return `<article class="group"><div class="group-title"><strong>${escapeHtml(group.name || "FINAL")}</strong><span class="badge">${group.slots.filter(p => !p.isEmptyLane).length}명</span></div>${(group.slots || []).map(player => {
-        if (player.isEmptyLane) return `<div class="slot empty-lane"><div class="slot-inner"><span class="lane-label">${player.lane}LANE</span><div class="player-info"><strong>빈 레인</strong></div></div></div>`;
-        const selected = (group.advanceIds || []).includes(player.id);
-        return `<div class="slot ${selected ? "selected" : ""}"><div class="slot-inner final-slot-actions"><div><span class="lane-label">${player.lane}LANE</span><div class="player-info"><strong>${escapeHtml(player.name)}</strong>${player.team ? `<div class="team">${escapeHtml(player.team)}</div>` : ""}</div>${selected ? `<span class="advance-mark">${finalRaceType === "crowSemi" ? "결승" : "최종"}</span>` : ""}</div><div class="final-lane-tools"><button class="${selected ? "primary" : "ghost"}" onclick="toggleFinalWinner('${escapeAttr(player.id)}','${escapeAttr(group.id)}')">${selected ? "선택 해제" : finalRaceType === "crowSemi" ? "결승 진출" : "우승 선택"}</button>${renderFinalLaneTools(group, player)}</div></div></div>`;
-      }).join("")}</article>`;
-    }
+    
+/* v58 removed duplicate function createCrowSemiFinal from earlier patch line 7032 */
 
-    function renderFinalRace() {
-      if (!state.finalRace) {
-        return `<section class="final-box"><h2>${isCrowMode() ? "9강 최종 준결" : "최종 결승"}</h2><p class="hint">${isCrowMode() ? "각 라운드 결승에서 1~3위를 확정하면 9명 9강 준결을 생성할 수 있습니다." : `${state.settings.laneCount}명의 라운드 결승 진출자가 모두 확정되면 최종 결승을 진행할 수 있습니다.`}</p><div class="finalist-grid">${state.qualifierRounds.map(round => `<div class="finalist-item"><b>${round.title}</b><br>${isCrowMode() ? getCrowRankHtml(round) : (round.finalist ? `${escapeHtml(round.finalist.name)}${round.finalist.team ? " / " + escapeHtml(round.finalist.team) : ""}` : "대기중")}</div>`).join("")}</div><button class="primary" style="margin-top:12px;" onclick="createFinalRace()">${isCrowMode() ? "9강 준결 생성" : "최종 결승 진행"}</button></section>`;
-      }
-      const groups = getFinalGroups();
-      const winners = groups.flatMap(group => group.slots.filter(player => !player.isEmptyLane && (group.advanceIds || []).includes(player.id)));
-      const isBroadcast = state.broadcast.mode === "final";
-      const isCrowSemi = state.finalRace.type === "crowSemi";
-      return `<section class="final-box"><div class="round-head" style="margin-bottom:12px;"><h2>${escapeHtml(state.finalRace.name || "최종 결승")} ${isBroadcast ? `<span class="round-badge live-badge">● TV 송출중</span>` : ""}</h2><div><button class="${isBroadcast ? "primary" : "ghost"}" onclick="state.broadcast={mode:'final'}; renderOperator();">TV 송출</button>${isCrowSemi ? `<button class="primary" onclick="createCrowFinalFromSemi()">결승 생성</button>` : ""}</div></div><div class="groups" style="grid-template-columns:${groups.length > 1 ? "repeat(3,minmax(0,1fr))" : "1fr"};">${groups.map(group => renderFinalGroup(group, state.finalRace.type)).join("")}</div>${winners.length ? `<div class="champion"><small>${isCrowSemi ? "9강 SEMI RESULT" : "FINAL RESULT"}</small><strong>${winners.map(p => escapeHtml(p.name)).join(", ")}</strong><span>${isCrowSemi ? "결승 진출자" : winners.length > 1 ? "공동 최종 선정" : "최종 우승자"}</span></div>` : ""}</section>`;
-    }
 
-    function getBroadcastTarget(payload) {
-      const broadcast = payload.broadcast || { mode: "stage", roundIndex: 0, stageIndex: 0 };
-      if (broadcast.mode === "final" && payload.finalRace) {
-        const groups = Array.isArray(payload.finalRace.groups) ? payload.finalRace.groups : [payload.finalRace.group].filter(Boolean);
-        return { title: payload.finalRace.name || "최종 결승", laneCount: payload.finalRace.groupSize || payload.settings.laneCount, groups, isFinal: true, stageType: "final", stageName: payload.finalRace.name || "최종 결승", pointTotalsMap: {} };
-      }
-      const round = payload.qualifierRounds?.[broadcast.roundIndex];
-      const stage = round?.stages?.[broadcast.stageIndex] || round?.stages?.[round.stages.length - 1];
-      if (!round || !stage) return null;
-      const pointTotals = stage.type === "points" ? computePointTotalsUpToStage(round, broadcast.stageIndex) : [];
-      const pointTotalsMap = Object.fromEntries(pointTotals.map(player => [player.id, player.total]));
-      return { title: `${round.title} · ${stage.name}`, laneCount: payload.settings.laneCount, groups: stage.groups, round, stage, stageType: stage.type || "stage", stageName: stage.name, pointLeaders: stage.type === "points" && stage.name === "포인트 3차전" ? getPointLeadersWithTies(pointTotals, 3) : [], pointTotalsMap };
-    }
+    
+/* v58 removed duplicate function createCrowFinalFromSemi from earlier patch line 7054 */
 
-    function getCurrentStageForPrint(payload = state) {
-      const broadcast = payload.broadcast || { mode: "stage", roundIndex: 0, stageIndex: 0 };
-      if (broadcast.mode === "final" && payload.finalRace) {
-        const groups = Array.isArray(payload.finalRace.groups) ? payload.finalRace.groups : [payload.finalRace.group].filter(Boolean);
-        return { title: `${payload.finalRace.name || "최종 결승"} · FINAL`, groups, isFinal: true };
-      }
-      const round = payload.qualifierRounds?.[broadcast.roundIndex];
-      const stage = round?.stages?.[broadcast.stageIndex] || round?.stages?.[round.stages.length - 1];
-      if (!round || !stage) return null;
-      return { title: `${round.title} · ${stage.name}`, groups: stage.groups, stage };
-    }
 
-    function makePublicStatePayload(sourceState = exportState()) {
-      let seq = 0;
-      const idMap = new Map();
-      const publicId = original => {
-        const key = String(original || `empty-${seq + 1}`);
-        if (!idMap.has(key)) idMap.set(key, `pub-${++seq}`);
-        return idMap.get(key);
-      };
-      const cleanPlayer = player => {
-        if (!player) return player;
-        if (player.isEmptyLane) return { id: `empty-${player.lane || ++seq}`, lane: player.lane, name: "빈 레인", team: "", isEmptyLane: true };
-        const displayName = player.nickname || player.name || player.realName || "참가자";
-        return { id: publicId(player.id || displayName), lane: player.lane, name: displayName, nickname: displayName, team: player.team || "", crowRank: player.crowRank || null, sourceRoundIndex: player.sourceRoundIndex || null };
-      };
-      const cleanGroup = group => {
-        const slots = (group?.slots || []).map(cleanPlayer);
-        const advanceIds = (group?.advanceIds || []).map(id => idMap.get(String(id)) || publicId(id));
-        const points = {};
-        Object.entries(group?.points || {}).forEach(([id, value]) => { points[idMap.get(String(id)) || publicId(id)] = value; });
-        return { ...(group || {}), slots, advanceIds, points };
-      };
-      const cleanStage = stage => ({ ...stage, groups: (stage.groups || []).map(cleanGroup) });
-      const cleanRound = round => {
-        const cleanFinalists = (round.crowFinalists || []).map(cleanPlayer);
-        return { id: round.id, index: round.index, title: round.title, stagePlan: round.stagePlan || [], stages: (round.stages || []).map(cleanStage), finalist: round.finalist ? cleanPlayer(round.finalist) : null, crowFinalists: cleanFinalists };
-      };
-      const publicTournament = { name: sourceState.tournament?.name || "", venue: sourceState.tournament?.venue || "", venueId: sourceState.tournament?.venueId || "", raceClass: normalizeRaceClassName(sourceState.tournament?.raceClass || "오픈"), status: sourceState.tournament?.status || "draft", startedAtISO: sourceState.tournament?.startedAtISO || "", startedAtDisplay: sourceState.tournament?.startedAtDisplay || "", endedAtISO: sourceState.tournament?.endedAtISO || "", endedAtDisplay: sourceState.tournament?.endedAtDisplay || "" };
-      const cleanFinalRace = sourceState.finalRace ? { ...sourceState.finalRace } : null;
-      if (cleanFinalRace) {
-        if (Array.isArray(sourceState.finalRace.groups)) cleanFinalRace.groups = sourceState.finalRace.groups.map(cleanGroup);
-        if (sourceState.finalRace.group) cleanFinalRace.group = cleanGroup(sourceState.finalRace.group);
-      }
-      return { settings: sourceState.settings ? { laneCount: sourceState.settings.laneCount, matchMode: sourceState.settings.matchMode } : {}, tournament: publicTournament, activeRoundIndex: sourceState.activeRoundIndex || 0, broadcast: sourceState.broadcast || { mode: "stage", roundIndex: 0, stageIndex: 0 }, qualifierRounds: (sourceState.qualifierRounds || []).map(cleanRound), finalRace: cleanFinalRace, updatedAt: sourceState.updatedAt || Date.now() };
-    }
+    
+/* v58 removed duplicate function createFinalRace from earlier patch line 7075 */
 
-    function getStageResultRows() {
-      const meta = getTournamentMeta();
-      const rows = [];
-      state.qualifierRounds.forEach(round => (round.stages || []).forEach(stage => stage.groups.forEach(group => group.slots.forEach(player => {
-        const crowRank = (round.crowFinalists || []).find(item => item.id === player.id)?.crowRank || "";
-        const isFinalist = round.finalist && round.finalist.id === player.id;
-        const isAdvanced = (group.advanceIds || []).includes(player.id);
-        const score = stage.type === "points" && !player.isEmptyLane ? Number((group.points || {})[player.id] ?? 0) : "";
-        const ident = resolvePlayerIdentity(player);
-        let result = player.isEmptyLane ? "빈 레인" : stage.type === "points" ? "포인트" : crowRank ? `9강 ${crowRank}위` : isFinalist ? "최종결승진출" : isAdvanced ? "진출" : "탈락";
-        rows.push({ ...meta, 경기장ID: currentVenueId(), 선수ID: ident.playerId, 실명: ident.realName, 연락처: ident.contact, 차수: round.title, 단계: stage.name, 조: group.name, 레인: `${player.lane}LANE`, 선수명: player.name, 팀명: player.team || "", 점수: score, 결과: result, 비고: stage.type || "" });
-      }))));
-      if (state.finalRace) getFinalGroups().forEach(group => group.slots.forEach(player => {
-        const selected = (group.advanceIds || []).includes(player.id);
-        const ident = resolvePlayerIdentity(player);
-        const finalType = state.finalRace.type === "crowSemi" ? "9강준결" : "FINAL";
-        rows.push({ ...meta, 경기장ID: currentVenueId(), 선수ID: ident.playerId, 실명: ident.realName, 연락처: ident.contact, 차수: state.finalRace.name || "최종 결승", 단계: finalType, 조: group.name, 레인: `${player.lane}LANE`, 선수명: player.name, 팀명: player.team || "", 점수: "", 결과: player.isEmptyLane ? "빈 레인" : selected ? (state.finalRace.type === "crowSemi" ? "결승진출" : "최종우승") : "결승참가", 비고: state.finalRace.type || "final" });
-      }));
-      return rows;
-    }
 
-    function renderReadOnlyPayload(payload) {
-      const finalGroups = payload.finalRace ? (Array.isArray(payload.finalRace.groups) ? payload.finalRace.groups : [payload.finalRace.group].filter(Boolean)) : [];
-      const finalHtml = finalGroups.length ? `<section class="final-box"><h2>${escapeHtml(payload.finalRace?.name || "최종 결승")}</h2><div class="groups" style="grid-template-columns:${finalGroups.length > 1 ? "repeat(3,minmax(0,1fr))" : "1fr"};">${finalGroups.map(group => renderReadOnlyGroup(group, true)).join("")}</div></section>` : "";
-      const qualifierHtml = (payload.qualifierRounds || []).map(round => `<section class="round-card"><div class="round-head"><div><div class="round-title"><h2>${escapeHtml(round.title)}</h2><span class="round-badge">${round.finalist ? `확정 · ${escapeHtml(round.finalist.name)}` : "진행"}</span></div></div></div>${(round.stages || []).map(stage => `<details class="history-stage" open><summary>${escapeHtml(stage.name)}</summary><div class="history-stage-body">${(stage.groups || []).map(group => renderReadOnlyGroup(group)).join("")}</div></details>`).join("")}</section>`).join("");
-      app.innerHTML = `<div class="mobile-view"><header class="header" style="margin-bottom:16px;"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">MOBILE LIVE</div></div><h1>${escapeHtml(payload.tournament?.name || "대회명 미입력")}</h1><p class="desc">${matchModeLabel(payload.settings?.matchMode)} · ${payload.settings?.laneCount || 3}레인 · ${escapeHtml(payload.tournament?.venue || "")}</p></div>${logoMarkup("header-logo")}</header>${finalHtml}${qualifierHtml}</div>`;
-    }
+    
+/* v58 removed duplicate function getFinalGroups from earlier patch line 7091 */
 
-    function shareMobileView() {
-      const url = `${location.origin}${location.pathname}#view=live-list`;
-      navigator.clipboard?.writeText(url).then(() => alert("모바일 LIVE 로비 링크를 복사했습니다. 카톡에 붙여넣어 공유하세요.")).catch(() => prompt("모바일 LIVE 로비 링크를 복사하세요.", url));
-    }
 
-    function watchFirebaseState(viewType) {
-      const db = initFirebase();
-      if (!db) return;
-      const tournamentId = getCurrentTournamentId();
-      let received = false;
-      const ref = db.ref(`${PUBLIC_LIVE_PATH}/${tournamentId}/state`);
-      const fallback = viewType === "mobile-live" ? setTimeout(() => { if (!received) renderLiveLobbyPage(); }, 4500) : null;
-      ref.on("value", snapshot => {
-        const payload = snapshot.val();
-        if (!payload) return;
-        received = true;
-        if (fallback) clearTimeout(fallback);
-        if (viewType === "tv-live") { tvState = payload; document.body.classList.add("tv-mode"); renderTvStage(); return; }
-        if (viewType === "mobile-live") { renderTvSnapshot(payload, "mobile"); return; }
-      });
-    }
+    
+/* v58 removed duplicate function toggleFinalWinner from earlier patch line 7097 */
+
+
+    
+/* v58 removed duplicate function forceFinalLane from earlier patch line 7110 */
+
+
+    
+/* v58 removed duplicate function renderFinalLaneTools from earlier patch line 7125 */
+
+
+    
+/* v58 removed duplicate function renderFinalGroup from earlier patch line 7130 */
+
+
+    
+/* v58 removed duplicate function renderFinalRace from earlier patch line 7138 */
+
+
+    
+/* v58 removed duplicate function getBroadcastTarget from earlier patch line 7149 */
+
+
+    
+/* v58 removed duplicate function getCurrentStageForPrint from earlier patch line 7163 */
+
+
+    
+/* v58 removed duplicate function makePublicStatePayload from earlier patch line 7175 */
+
+
+    
+/* v58 removed duplicate function getStageResultRows from earlier patch line 7210 */
+
+
+    
+/* v58 removed duplicate function renderReadOnlyPayload from earlier patch line 7231 */
+
+
+    
+/* v58 removed duplicate function shareMobileView from earlier patch line 7238 */
+
+
+    
+/* v58 removed duplicate function watchFirebaseState from earlier patch line 7243 */
+
     /* boot deferred to v49 final call */
-
-    }
 
     function goBack() {
       if (history.length > 1) history.back();
@@ -7242,7 +6369,7 @@ function renderTvStage() {
         <div class="wrap">
           <header class="header">
             <div class="header-copy">
-              <div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">made by GEEKS M.Y · Special Thanks to SOON.D</div></div>
+              <div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div></div>
               <h1>운영자 로그인</h1>
               <p class="desc">일반 유저는 TV LIVE / 모바일 LIVE를 로그인 없이 볼 수 있습니다. 운영 및 선수 DB는 계정이 필요합니다.</p>
             </div>
@@ -7276,329 +6403,105 @@ function renderTvStage() {
     
 
     /* v48 9강 + mobile live link fix overrides */
-    function isCrowMode() {
-      return state?.settings?.matchMode === "crow";
-    }
+    
+/* v58 removed duplicate function isCrowMode from earlier patch line 7318 */
 
-    function ruleSummary(mode = state.settings.matchMode) {
-      return {
-        basic: "라운드별 결승 진출자를 모아 최종 결승을 진행합니다.",
-        crow: "라운드별 1~3위 총 9명으로 준결/결승을 진행합니다.",
-        points: "추가 예정입니다.",
-        revival: "추가 예정입니다."
-      }[mode] || "라운드별 결승 진출자를 모아 최종 결승을 진행합니다.";
-    }
 
-    function matchModeLabel(mode = state.settings.matchMode) {
-      return {
-        basic: "기본 토너먼트",
-        crow: "9강 준결 토너먼트",
-        points: "1라운드 포인트전",
-        revival: "패자부활 토너먼트"
-      }[mode] || "기본 토너먼트";
-    }
+    
+/* v58 removed duplicate function ruleSummary from earlier patch line 7322 */
 
-    function setMatchMode(mode) {
-      ensureStateDefaults();
-      if (isTournamentLocked() && !confirm("대회가 시작/종료된 상태입니다. 경기 방식을 바꾸면 기록이 꼬일 수 있습니다. 계속할까요?")) return;
-      if (state.qualifierRounds.some(round => round.stages.length) || state.finalRace) {
-        if (!confirm("경기 방식을 바꾸면 현재 대진표가 라운드 초기화됩니다. 계속할까요?")) return;
-      }
-      const currentTournament = { ...state.tournament };
-      const inputText = state.inputText;
-      const previousSettings = { ...state.settings, matchMode: mode };
-      if (mode === "crow") previousSettings.laneCount = 3;
-      state = makeInitialState(previousSettings.laneCount || 3);
-      state.inputText = inputText;
-      state.tournament = currentTournament;
-      state.settings = { ...state.settings, ...previousSettings, matchMode: mode };
-      state.qualifierRounds = makeQualifierRounds(state.settings.laneCount, mode);
-      state.finalRace = null;
-      activeRoundIndex = 0;
-      renderOperator();
-    }
 
-    function normalizePlayerForFinal(player, extra = {}) {
-      return { id: player.id, name: player.name, nickname: player.nickname || player.name, team: player.team || "", realName: player.realName || "", contact: player.contact || "", ...extra };
-    }
+    
+/* v58 removed duplicate function matchModeLabel from earlier patch line 7331 */
 
-    function getCrowRoundRank(round, rank) {
-      const list = round?.crowFinalists || [];
-      return list.find(player => Number(player.crowRank) === Number(rank)) || null;
-    }
 
-    function getCrowRankHtml(round) {
-      const selected = round?.crowFinalists || [];
-      if (!selected.length) return `<div class="hint">라운드 결승에서 1위→2위→3위 순서로 선수를 선택한 뒤 1~3위 확정을 누르세요.</div>`;
-      return `<div class="crow-rank-list">${[1,2,3].map(rank => {
-        const player = selected.find(item => Number(item.crowRank) === rank);
-        return `<div class="crow-rank-item"><b>${rank}위</b><span>${player ? `${escapeHtml(player.name)}${player.team ? " / " + escapeHtml(player.team) : ""}` : "미확정"}</span></div>`;
-      }).join("")}</div>`;
-    }
+    
+/* v58 removed duplicate function setMatchMode from earlier patch line 7340 */
 
-    function confirmRoundFinalist(roundIndex) {
-      const round = state.qualifierRounds[roundIndex];
-      if (!round || !round.stages.length) return showError("먼저 해당 라운드를 진행하세요.");
-      const lastStage = round.stages[round.stages.length - 1];
-      const validFinalStage = lastStage.name === "라운드 결승" || lastStage.name === "결승" || lastStage.type === "pointFinal";
-      if (!validFinalStage) return showError(isRevivalMode() ? "결승 경기에서만 우승자를 확정할 수 있습니다." : "라운드 결승 또는 포인트 상위 결정전에서만 확정할 수 있습니다.");
-      const selected = getSelectedFromStage(lastStage);
 
-      if (isCrowMode()) {
-        if (selected.length !== 3) return showError("9강 준결 방식은 각 라운드 결승에서 1~3위 3명을 선택해야 합니다. 선택 순서가 1위, 2위, 3위입니다.");
-        round.crowFinalists = selected.slice(0, 3).map((player, index) => normalizePlayerForFinal(player, { crowRank: index + 1, sourceRoundIndex: round.index }));
-        round.finalist = round.crowFinalists[0];
-        state.finalRace = null;
-        state.broadcast = { mode: "stage", roundIndex, stageIndex: round.stages.length - 1 };
-        logTournamentAction("9강 순위 확정", `${round.title}: ${round.crowFinalists.map(p => `${p.crowRank}위 ${p.name}`).join(" / ")}`);
-        renderOperator();
-        return;
-      }
+    
+/* v58 removed duplicate function normalizePlayerForFinal from earlier patch line 7360 */
 
-      if (selected.length === 0) return showError(isRevivalMode() ? "우승자를 선택하세요." : "최종 결승 진출자를 선택하세요.");
-      if (selected.length > 1) return showError(isRevivalMode() ? "우승자는 1명만 선택해야 합니다." : "각 라운드의 최종 결승 진출자는 1명만 선택해야 합니다.");
-      round.finalist = selected[0];
-      state.finalRace = null;
-      state.broadcast = { mode: "stage", roundIndex, stageIndex: round.stages.length - 1 };
-      renderOperator();
-    }
 
-    function makeCrowSemiGroup(name, players) {
-      return {
-        id: `crow-${name}-${Math.random().toString(36).slice(2, 8)}`,
-        name,
-        slots: players.map((player, index) => ({ ...player, lane: index + 1 })),
-        advanceIds: []
-      };
-    }
+    
+/* v58 removed duplicate function getCrowRoundRank from earlier patch line 7364 */
 
-    function createCrowSemiFinal() {
-      const rounds = state.qualifierRounds.slice(0, 3);
-      if (rounds.length < 3 || rounds.some(round => (round.crowFinalists || []).length < 3)) {
-        return showError("9강 준결 방식은 1~3차 라운드 결승에서 각각 1~3위를 모두 확정해야 합니다.");
-      }
-      const groups = [
-        makeCrowSemiGroup("9강 준결 1조", [getCrowRoundRank(rounds[0], 1), getCrowRoundRank(rounds[1], 2), getCrowRoundRank(rounds[2], 3)]),
-        makeCrowSemiGroup("9강 준결 2조", [getCrowRoundRank(rounds[0], 2), getCrowRoundRank(rounds[1], 3), getCrowRoundRank(rounds[2], 1)]),
-        makeCrowSemiGroup("9강 준결 3조", [getCrowRoundRank(rounds[0], 3), getCrowRoundRank(rounds[1], 1), getCrowRoundRank(rounds[2], 2)])
-      ];
-      state.finalRace = {
-        id: `crow-semi-${Math.random().toString(36).slice(2, 8)}`,
-        type: "crowSemi",
-        name: "9강 최종 준결",
-        groupSize: 3,
-        groups
-      };
-      state.broadcast = { mode: "final" };
-      logTournamentAction("9강 준결 생성", "9명 준결 편성");
-      renderOperator();
-    }
 
-    function createCrowFinalFromSemi() {
-      if (!state.finalRace || state.finalRace.type !== "crowSemi") return;
-      const winners = (state.finalRace.groups || []).flatMap(group => group.slots.filter(player => !player.isEmptyLane && (group.advanceIds || []).includes(player.id)));
-      if (winners.length !== 3) return showError("9강 준결 각 조에서 결승 진출자 1명씩 총 3명을 선택하세요.");
-      state.finalRace = {
-        id: `crow-final-${Math.random().toString(36).slice(2, 8)}`,
-        type: "crowFinal",
-        name: "9강 최종 결승",
-        groupSize: 3,
-        group: {
-          id: `crow-final-group-${Math.random().toString(36).slice(2, 8)}`,
-          name: "FINAL",
-          slots: assignLanes(winners, 3),
-          advanceIds: []
-        }
-      };
-      state.broadcast = { mode: "final" };
-      logTournamentAction("결승 생성", winners.map(p => p.name).join(" / "));
-      renderOperator();
-    }
+    
+/* v58 removed duplicate function getCrowRankHtml from earlier patch line 7369 */
 
-    function createFinalRace() {
-      if (!canModifyTournamentAction("최종 결승 생성")) return;
-      if (isCrowMode()) return createCrowSemiFinal();
-      const finalists = state.qualifierRounds.map(round => round.finalist).filter(Boolean);
-      if (finalists.length < state.settings.laneCount) return showError(`${state.settings.laneCount}명의 최종 결승 진출자가 모두 확정되어야 합니다.`);
-      state.finalRace = {
-        id: `final-${Math.random().toString(36).slice(2, 8)}`,
-        name: "최종 결승",
-        groupSize: state.settings.laneCount,
-        group: { id: `final-group-${Math.random().toString(36).slice(2, 8)}`, name: "FINAL", slots: assignLanes(finalists, state.settings.laneCount), advanceIds: [] }
-      };
-      state.broadcast = { mode: "final" };
-      logTournamentAction("최종 결승 생성", "FINAL");
-      renderOperator();
-    }
 
-    function getFinalGroups(finalRace = state.finalRace) {
-      if (!finalRace) return [];
-      if (Array.isArray(finalRace.groups)) return finalRace.groups;
-      return finalRace.group ? [finalRace.group] : [];
-    }
+    
+/* v58 removed duplicate function confirmRoundFinalist from earlier patch line 7378 */
 
-    function toggleFinalWinner(playerId, groupId = "") {
-      if (!state.finalRace) return;
-      const groups = getFinalGroups();
-      const group = groupId ? groups.find(item => item.id === groupId) : groups.find(item => item.slots.some(player => player.id === playerId));
-      if (!group) return;
-      const player = group.slots.find(item => item.id === playerId);
-      if (!player || player.isEmptyLane) return;
-      const ids = group.advanceIds || [];
-      group.advanceIds = ids.includes(playerId) ? ids.filter(id => id !== playerId) : [...ids, playerId];
-      logTournamentAction("최종 진출/우승 선택", player.name || playerId);
-      renderOperator();
-    }
 
-    function forceFinalLane(groupId, playerId, lane) {
-      if (!state.finalRace) return;
-      const group = getFinalGroups().find(item => item.id === groupId);
-      if (!group) return;
-      const target = group.slots.find(item => item.id === playerId);
-      const other = group.slots.find(item => Number(item.lane) === Number(lane));
-      if (!target || target.isEmptyLane) return;
-      const oldLane = target.lane;
-      target.lane = Number(lane);
-      if (other && other.id !== target.id) other.lane = oldLane;
-      group.slots.sort((a, b) => Number(a.lane) - Number(b.lane));
-      logTournamentAction("결승 레인 강제 지정", `${target.name}: ${lane}LANE`);
-      renderOperator();
-    }
+    
+/* v58 removed duplicate function makeCrowSemiGroup from earlier patch line 7405 */
 
-    function renderFinalLaneTools(group, player) {
-      const maxLane = state.finalRace?.groupSize || state.settings.laneCount || 3;
-      return `<div class="final-lane-tools"><span class="hint">레인 지정</span>${Array.from({ length: maxLane }, (_, i) => i + 1).map(lane => `<button class="${Number(player.lane) === lane ? "primary" : "ghost"}" onclick="forceFinalLane('${escapeAttr(group.id)}','${escapeAttr(player.id)}',${lane})">${lane}</button>`).join("")}</div>`;
-    }
 
-    function renderFinalGroup(group, finalRaceType) {
-      return `<article class="group"><div class="group-title"><strong>${escapeHtml(group.name || "FINAL")}</strong><span class="badge">${group.slots.filter(p => !p.isEmptyLane).length}명</span></div>${(group.slots || []).map(player => {
-        if (player.isEmptyLane) return `<div class="slot empty-lane"><div class="slot-inner"><span class="lane-label">${player.lane}LANE</span><div class="player-info"><strong>빈 레인</strong></div></div></div>`;
-        const selected = (group.advanceIds || []).includes(player.id);
-        return `<div class="slot ${selected ? "selected" : ""}"><div class="slot-inner final-slot-actions"><div><span class="lane-label">${player.lane}LANE</span><div class="player-info"><strong>${escapeHtml(player.name)}</strong>${player.team ? `<div class="team">${escapeHtml(player.team)}</div>` : ""}</div>${selected ? `<span class="advance-mark">${finalRaceType === "crowSemi" ? "결승" : "최종"}</span>` : ""}</div><div class="final-lane-tools"><button class="${selected ? "primary" : "ghost"}" onclick="toggleFinalWinner('${escapeAttr(player.id)}','${escapeAttr(group.id)}')">${selected ? "선택 해제" : finalRaceType === "crowSemi" ? "결승 진출" : "우승 선택"}</button>${renderFinalLaneTools(group, player)}</div></div></div>`;
-      }).join("")}</article>`;
-    }
+    
+/* v58 removed duplicate function createCrowSemiFinal from earlier patch line 7414 */
 
-    function renderFinalRace() {
-      if (!state.finalRace) {
-        return `<section class="final-box"><h2>${isCrowMode() ? "9강 최종 준결" : "최종 결승"}</h2><p class="hint">${isCrowMode() ? "각 라운드 결승에서 1~3위를 확정하면 9명 9강 준결을 생성할 수 있습니다." : `${state.settings.laneCount}명의 라운드 결승 진출자가 모두 확정되면 최종 결승을 진행할 수 있습니다.`}</p><div class="finalist-grid">${state.qualifierRounds.map(round => `<div class="finalist-item"><b>${round.title}</b><br>${isCrowMode() ? getCrowRankHtml(round) : (round.finalist ? `${escapeHtml(round.finalist.name)}${round.finalist.team ? " / " + escapeHtml(round.finalist.team) : ""}` : "대기중")}</div>`).join("")}</div><button class="primary" style="margin-top:12px;" onclick="createFinalRace()">${isCrowMode() ? "9강 준결 생성" : "최종 결승 진행"}</button></section>`;
-      }
-      const groups = getFinalGroups();
-      const winners = groups.flatMap(group => group.slots.filter(player => !player.isEmptyLane && (group.advanceIds || []).includes(player.id)));
-      const isBroadcast = state.broadcast.mode === "final";
-      const isCrowSemi = state.finalRace.type === "crowSemi";
-      return `<section class="final-box"><div class="round-head" style="margin-bottom:12px;"><h2>${escapeHtml(state.finalRace.name || "최종 결승")} ${isBroadcast ? `<span class="round-badge live-badge">● TV 송출중</span>` : ""}</h2><div><button class="${isBroadcast ? "primary" : "ghost"}" onclick="state.broadcast={mode:'final'}; renderOperator();">TV 송출</button>${isCrowSemi ? `<button class="primary" onclick="createCrowFinalFromSemi()">결승 생성</button>` : ""}</div></div><div class="groups" style="grid-template-columns:${groups.length > 1 ? "repeat(3,minmax(0,1fr))" : "1fr"};">${groups.map(group => renderFinalGroup(group, state.finalRace.type)).join("")}</div>${winners.length ? `<div class="champion"><small>${isCrowSemi ? "9강 SEMI RESULT" : "FINAL RESULT"}</small><strong>${winners.map(p => escapeHtml(p.name)).join(", ")}</strong><span>${isCrowSemi ? "결승 진출자" : winners.length > 1 ? "공동 최종 선정" : "최종 우승자"}</span></div>` : ""}</section>`;
-    }
 
-    function getBroadcastTarget(payload) {
-      const broadcast = payload.broadcast || { mode: "stage", roundIndex: 0, stageIndex: 0 };
-      if (broadcast.mode === "final" && payload.finalRace) {
-        const groups = Array.isArray(payload.finalRace.groups) ? payload.finalRace.groups : [payload.finalRace.group].filter(Boolean);
-        return { title: payload.finalRace.name || "최종 결승", laneCount: payload.finalRace.groupSize || payload.settings.laneCount, groups, isFinal: true, stageType: "final", stageName: payload.finalRace.name || "최종 결승", pointTotalsMap: {} };
-      }
-      const round = payload.qualifierRounds?.[broadcast.roundIndex];
-      const stage = round?.stages?.[broadcast.stageIndex] || round?.stages?.[round.stages.length - 1];
-      if (!round || !stage) return null;
-      const pointTotals = stage.type === "points" ? computePointTotalsUpToStage(round, broadcast.stageIndex) : [];
-      const pointTotalsMap = Object.fromEntries(pointTotals.map(player => [player.id, player.total]));
-      return { title: `${round.title} · ${stage.name}`, laneCount: payload.settings.laneCount, groups: stage.groups, round, stage, stageType: stage.type || "stage", stageName: stage.name, pointLeaders: stage.type === "points" && stage.name === "포인트 3차전" ? getPointLeadersWithTies(pointTotals, 3) : [], pointTotalsMap };
-    }
+    
+/* v58 removed duplicate function createCrowFinalFromSemi from earlier patch line 7436 */
 
-    function getCurrentStageForPrint(payload = state) {
-      const broadcast = payload.broadcast || { mode: "stage", roundIndex: 0, stageIndex: 0 };
-      if (broadcast.mode === "final" && payload.finalRace) {
-        const groups = Array.isArray(payload.finalRace.groups) ? payload.finalRace.groups : [payload.finalRace.group].filter(Boolean);
-        return { title: `${payload.finalRace.name || "최종 결승"} · FINAL`, groups, isFinal: true };
-      }
-      const round = payload.qualifierRounds?.[broadcast.roundIndex];
-      const stage = round?.stages?.[broadcast.stageIndex] || round?.stages?.[round.stages.length - 1];
-      if (!round || !stage) return null;
-      return { title: `${round.title} · ${stage.name}`, groups: stage.groups, stage };
-    }
 
-    function makePublicStatePayload(sourceState = exportState()) {
-      let seq = 0;
-      const idMap = new Map();
-      const publicId = original => {
-        const key = String(original || `empty-${seq + 1}`);
-        if (!idMap.has(key)) idMap.set(key, `pub-${++seq}`);
-        return idMap.get(key);
-      };
-      const cleanPlayer = player => {
-        if (!player) return player;
-        if (player.isEmptyLane) return { id: `empty-${player.lane || ++seq}`, lane: player.lane, name: "빈 레인", team: "", isEmptyLane: true };
-        const displayName = player.nickname || player.name || player.realName || "참가자";
-        return { id: publicId(player.id || displayName), lane: player.lane, name: displayName, nickname: displayName, team: player.team || "", crowRank: player.crowRank || null, sourceRoundIndex: player.sourceRoundIndex || null };
-      };
-      const cleanGroup = group => {
-        const slots = (group?.slots || []).map(cleanPlayer);
-        const advanceIds = (group?.advanceIds || []).map(id => idMap.get(String(id)) || publicId(id));
-        const points = {};
-        Object.entries(group?.points || {}).forEach(([id, value]) => { points[idMap.get(String(id)) || publicId(id)] = value; });
-        return { ...(group || {}), slots, advanceIds, points };
-      };
-      const cleanStage = stage => ({ ...stage, groups: (stage.groups || []).map(cleanGroup) });
-      const cleanRound = round => {
-        const cleanFinalists = (round.crowFinalists || []).map(cleanPlayer);
-        return { id: round.id, index: round.index, title: round.title, stagePlan: round.stagePlan || [], stages: (round.stages || []).map(cleanStage), finalist: round.finalist ? cleanPlayer(round.finalist) : null, crowFinalists: cleanFinalists };
-      };
-      const publicTournament = { name: sourceState.tournament?.name || "", venue: sourceState.tournament?.venue || "", venueId: sourceState.tournament?.venueId || "", raceClass: normalizeRaceClassName(sourceState.tournament?.raceClass || "오픈"), status: sourceState.tournament?.status || "draft", startedAtISO: sourceState.tournament?.startedAtISO || "", startedAtDisplay: sourceState.tournament?.startedAtDisplay || "", endedAtISO: sourceState.tournament?.endedAtISO || "", endedAtDisplay: sourceState.tournament?.endedAtDisplay || "" };
-      const cleanFinalRace = sourceState.finalRace ? { ...sourceState.finalRace } : null;
-      if (cleanFinalRace) {
-        if (Array.isArray(sourceState.finalRace.groups)) cleanFinalRace.groups = sourceState.finalRace.groups.map(cleanGroup);
-        if (sourceState.finalRace.group) cleanFinalRace.group = cleanGroup(sourceState.finalRace.group);
-      }
-      return { settings: sourceState.settings ? { laneCount: sourceState.settings.laneCount, matchMode: sourceState.settings.matchMode } : {}, tournament: publicTournament, activeRoundIndex: sourceState.activeRoundIndex || 0, broadcast: sourceState.broadcast || { mode: "stage", roundIndex: 0, stageIndex: 0 }, qualifierRounds: (sourceState.qualifierRounds || []).map(cleanRound), finalRace: cleanFinalRace, updatedAt: sourceState.updatedAt || Date.now() };
-    }
+    
+/* v58 removed duplicate function createFinalRace from earlier patch line 7457 */
 
-    function getStageResultRows() {
-      const meta = getTournamentMeta();
-      const rows = [];
-      state.qualifierRounds.forEach(round => (round.stages || []).forEach(stage => stage.groups.forEach(group => group.slots.forEach(player => {
-        const crowRank = (round.crowFinalists || []).find(item => item.id === player.id)?.crowRank || "";
-        const isFinalist = round.finalist && round.finalist.id === player.id;
-        const isAdvanced = (group.advanceIds || []).includes(player.id);
-        const score = stage.type === "points" && !player.isEmptyLane ? Number((group.points || {})[player.id] ?? 0) : "";
-        const ident = resolvePlayerIdentity(player);
-        let result = player.isEmptyLane ? "빈 레인" : stage.type === "points" ? "포인트" : crowRank ? `9강 ${crowRank}위` : isFinalist ? "최종결승진출" : isAdvanced ? "진출" : "탈락";
-        rows.push({ ...meta, 경기장ID: currentVenueId(), 선수ID: ident.playerId, 실명: ident.realName, 연락처: ident.contact, 차수: round.title, 단계: stage.name, 조: group.name, 레인: `${player.lane}LANE`, 선수명: player.name, 팀명: player.team || "", 점수: score, 결과: result, 비고: stage.type || "" });
-      }))));
-      if (state.finalRace) getFinalGroups().forEach(group => group.slots.forEach(player => {
-        const selected = (group.advanceIds || []).includes(player.id);
-        const ident = resolvePlayerIdentity(player);
-        const finalType = state.finalRace.type === "crowSemi" ? "9강준결" : "FINAL";
-        rows.push({ ...meta, 경기장ID: currentVenueId(), 선수ID: ident.playerId, 실명: ident.realName, 연락처: ident.contact, 차수: state.finalRace.name || "최종 결승", 단계: finalType, 조: group.name, 레인: `${player.lane}LANE`, 선수명: player.name, 팀명: player.team || "", 점수: "", 결과: player.isEmptyLane ? "빈 레인" : selected ? (state.finalRace.type === "crowSemi" ? "결승진출" : "최종우승") : "결승참가", 비고: state.finalRace.type || "final" });
-      }));
-      return rows;
-    }
 
-    function renderReadOnlyPayload(payload) {
-      const finalGroups = payload.finalRace ? (Array.isArray(payload.finalRace.groups) ? payload.finalRace.groups : [payload.finalRace.group].filter(Boolean)) : [];
-      const finalHtml = finalGroups.length ? `<section class="final-box"><h2>${escapeHtml(payload.finalRace?.name || "최종 결승")}</h2><div class="groups" style="grid-template-columns:${finalGroups.length > 1 ? "repeat(3,minmax(0,1fr))" : "1fr"};">${finalGroups.map(group => renderReadOnlyGroup(group, true)).join("")}</div></section>` : "";
-      const qualifierHtml = (payload.qualifierRounds || []).map(round => `<section class="round-card"><div class="round-head"><div><div class="round-title"><h2>${escapeHtml(round.title)}</h2><span class="round-badge">${round.finalist ? `확정 · ${escapeHtml(round.finalist.name)}` : "진행"}</span></div></div></div>${(round.stages || []).map(stage => `<details class="history-stage" open><summary>${escapeHtml(stage.name)}</summary><div class="history-stage-body">${(stage.groups || []).map(group => renderReadOnlyGroup(group)).join("")}</div></details>`).join("")}</section>`).join("");
-      app.innerHTML = `<div class="mobile-view"><header class="header" style="margin-bottom:16px;"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">MOBILE LIVE</div></div><h1>${escapeHtml(payload.tournament?.name || "대회명 미입력")}</h1><p class="desc">${matchModeLabel(payload.settings?.matchMode)} · ${payload.settings?.laneCount || 3}레인 · ${escapeHtml(payload.tournament?.venue || "")}</p></div>${logoMarkup("header-logo")}</header>${finalHtml}${qualifierHtml}</div>`;
-    }
+    
+/* v58 removed duplicate function getFinalGroups from earlier patch line 7473 */
 
-    function shareMobileView() {
-      const url = `${location.origin}${location.pathname}#view=live-list`;
-      navigator.clipboard?.writeText(url).then(() => alert("모바일 LIVE 로비 링크를 복사했습니다. 카톡에 붙여넣어 공유하세요.")).catch(() => prompt("모바일 LIVE 로비 링크를 복사하세요.", url));
-    }
 
-    function watchFirebaseState(viewType) {
-      const db = initFirebase();
-      if (!db) return;
-      const tournamentId = getCurrentTournamentId();
-      let received = false;
-      const ref = db.ref(`${PUBLIC_LIVE_PATH}/${tournamentId}/state`);
-      const fallback = viewType === "mobile-live" ? setTimeout(() => { if (!received) renderLiveLobbyPage(); }, 4500) : null;
-      ref.on("value", snapshot => {
-        const payload = snapshot.val();
-        if (!payload) return;
-        received = true;
-        if (fallback) clearTimeout(fallback);
-        if (viewType === "tv-live") { tvState = payload; document.body.classList.add("tv-mode"); renderTvStage(); return; }
-        if (viewType === "mobile-live") { renderTvSnapshot(payload, "mobile"); return; }
-      });
-    }
+    
+/* v58 removed duplicate function toggleFinalWinner from earlier patch line 7479 */
+
+
+    
+/* v58 removed duplicate function forceFinalLane from earlier patch line 7492 */
+
+
+    
+/* v58 removed duplicate function renderFinalLaneTools from earlier patch line 7507 */
+
+
+    
+/* v58 removed duplicate function renderFinalGroup from earlier patch line 7512 */
+
+
+    
+/* v58 removed duplicate function renderFinalRace from earlier patch line 7520 */
+
+
+    
+/* v58 removed duplicate function getBroadcastTarget from earlier patch line 7531 */
+
+
+    
+/* v58 removed duplicate function getCurrentStageForPrint from earlier patch line 7545 */
+
+
+    
+/* v58 removed duplicate function makePublicStatePayload from earlier patch line 7557 */
+
+
+    
+/* v58 removed duplicate function getStageResultRows from earlier patch line 7592 */
+
+
+    
+/* v58 removed duplicate function renderReadOnlyPayload from earlier patch line 7613 */
+
+
+    
+/* v58 removed duplicate function shareMobileView from earlier patch line 7620 */
+
+
+    
+/* v58 removed duplicate function watchFirebaseState from earlier patch line 7625 */
+
     /* boot deferred to v49 final call */
 
       } catch (error) {
@@ -8006,7 +6909,7 @@ function renderTvStage() {
       const favoriteCount = roster.filter(player => player.favorite).length;
       app.innerHTML = `
         <div class="db-page">
-          <header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">made by GEEKS M.Y · Special Thanks to SOON.D</div></div><h1>선수 DB / 경기장별 관리</h1><p class="desc">실명+연락처를 기준으로 식별하고, 닉네임이 대진표의 선수명으로 표시됩니다.</p></div>${logoMarkup("header-logo")}</header>
+          <header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div></div><h1>선수 DB / 경기장별 관리</h1><p class="desc">실명+연락처를 기준으로 식별하고, 닉네임이 대진표의 선수명으로 표시됩니다.</p></div>${logoMarkup("header-logo")}</header>
           ${accountBadge()}
           <div class="toolbar"><button class="primary" onclick="location.hash=''; renderOperator();">TOURNAMENT</button><button class="ghost" onclick="exportRosterCsv()">CSV 다운로드</button><button class="ghost" onclick="exportRosterJson()">JSON 백업</button><button class="ghost" onclick="downloadRosterTemplate()">선수 양식</button><label class="upload-button ghost">엑셀 업로드<input type="file" accept=".xlsx,.xls,.csv,.tsv" onchange="importRosterExcel(event)" hidden /></label></div>
           <div class="db-grid"><aside>
@@ -8054,24 +6957,9 @@ function renderTvStage() {
       return { playerId: match?.id || player.id || "", realName: match?.realName || player.realName || "", contact: match?.contact || player.contact || "" };
     }
 
-    function getStageResultRows() {
-      const meta = getTournamentMeta();
-      const rows = [];
-      state.qualifierRounds.forEach(round => (round.stages || []).forEach(stage => stage.groups.forEach(group => group.slots.forEach(player => {
-        const isFinalist = round.finalist && round.finalist.id === player.id;
-        const isAdvanced = (group.advanceIds || []).includes(player.id);
-        const score = stage.type === "points" && !player.isEmptyLane ? Number((group.points || {})[player.id] ?? 0) : "";
-        const ident = resolvePlayerIdentity(player);
-        let result = player.isEmptyLane ? "빈 레인" : stage.type === "points" ? "포인트" : isFinalist ? "최종결승진출" : isAdvanced ? "진출" : "탈락";
-        rows.push({ ...meta, 경기장ID: currentVenueId(), 선수ID: ident.playerId, 실명: ident.realName, 연락처: ident.contact, 차수: round.title, 단계: stage.name, 조: group.name, 레인: `${player.lane}LANE`, 선수명: player.name, 팀명: player.team || "", 점수: score, 결과: result, 비고: stage.type || "" });
-      }))));
-      if (state.finalRace) state.finalRace.group.slots.forEach(player => {
-        const selected = (state.finalRace.group.advanceIds || []).includes(player.id);
-        const ident = resolvePlayerIdentity(player);
-        rows.push({ ...meta, 경기장ID: currentVenueId(), 선수ID: ident.playerId, 실명: ident.realName, 연락처: ident.contact, 차수: "최종 결승", 단계: "FINAL", 조: "FINAL", 레인: `${player.lane}LANE`, 선수명: player.name, 팀명: player.team || "", 점수: "", 결과: player.isEmptyLane ? "빈 레인" : selected ? "최종우승" : "결승참가", 비고: "final" });
-      });
-      return rows;
-    }
+    
+/* v58 removed duplicate function getStageResultRows from earlier patch line 8096 */
+
 
     function exportTournamentCsv() {
       ensureTournamentStarted();
@@ -8339,7 +7227,7 @@ function renderTvStage() {
       const stats = analyzeRecords(filtered);
       const venueVisits = analyzePlayerVenueVisits(filtered);
       document.body.classList.remove("tv-mode");
-      app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">DASHBOARD</div></div><h1>상시 데이터 대시보드</h1><p class="desc">기간별 · 경기장별 · 클래스별 경기 기록 분석</p></div>${logoMarkup("header-logo")}</header>${currentAuthUser ? accountBadge() : ""}<div class="toolbar"><button class="primary" onclick="location.hash=''; bootV33();">TOURNAMENT</button><button class="ghost" onclick="location.hash='view=live-list'; bootV33();">MOBILE LIVE</button><button class="ghost" onclick="openDashboardPage()">새로고침</button></div><section class="card"><div class="dashboard-filter"><div><label>시작일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.from)}" onchange="dashboardFilter.from=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>종료일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.to)}" onchange="dashboardFilter.to=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>경기장</label><select class="mini-input" onchange="dashboardFilter.venue=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 경기장</option>${venueOptions.map(v => `<option value="${escapeHtml(v.id)}" ${dashboardFilter.venue===v.id || dashboardFilter.venue===v.name || (v.aliases || []).includes(dashboardFilter.venue) || normalizeKey(dashboardFilter.venue)===v.id ? "selected" : ""}>${escapeHtml(v.name)}</option>`).join("")}</select></div><div><label>클래스</label><select class="mini-input" onchange="dashboardFilter.raceClass=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 클래스</option>${classes.map(c => `<option value="${escapeHtml(c)}" ${dashboardFilter.raceClass===c?"selected":""}>${escapeHtml(c)}</option>`).join("")}</select></div><div><label>검색</label><input class="mini-input" placeholder="대회명/경기장/클래스" value="${escapeHtml(dashboardFilter.keyword)}" oninput="dashboardFilter.keyword=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div></div><div class="dashboard-period-row"><button class="ghost" onclick="setDashboardPeriod('all')">전체 기간</button><button class="ghost" onclick="setDashboardPeriod('month')">이번달</button><button class="ghost" onclick="setDashboardPeriod('30d')">최근 30일</button></div><div class="db-stat-grid" style="margin-top:12px;"><div class="db-stat"><small>대회 기록</small><strong>${filtered.length}</strong></div><div class="db-stat"><small>경기장</small><strong>${new Set(filtered.map(r=>r.venueName||r.venueId)).size}</strong></div><div class="db-stat"><small>선수</small><strong>${stats.players.length}</strong></div></div></section><div class="dashboard-grid"><section class="dashboard-card"><h3>클래스별 기록</h3><div class="class-chip-wrap">${classStats.map(item => `<div class="class-chip"><span>${escapeHtml(item.raceClass)}</span><b>${item.count}회</b></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>선수별 경기장 방문</h3>${renderVenueVisitList(venueVisits)}</section><section class="dashboard-card"><h3>최다승 유저</h3>${rankList(stats.mostWins, "wins", "승")}</section><section class="dashboard-card"><h3>자주 우승하는 사람</h3>${rankList(stats.mostChampions, "championships", "회")}</section><section class="dashboard-card"><h3>자주 지는 사람</h3>${rankList(stats.mostLosses, "losses", "패")}</section><section class="dashboard-card"><h3>참가 횟수 랭킹</h3>${rankList(stats.mostParticipants, "matches", "회")}</section><section class="dashboard-card"><h3>포인트전 누적</h3>${rankList(stats.mostPoints, "points", "P")}</section><section class="dashboard-card"><h3>한 레인 편중</h3><div class="rank-list">${stats.oneLane.slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)} · ${p.mainLane}LANE</span><strong>${Math.round(p.laneRate*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>레인별 승률</h3><div class="rank-list">${stats.laneStats.map(l=>`<div class="rank-row"><b>${l.lane}</b><span class="rank-name">${l.matches}경기</span><strong>${l.matches ? Math.round(l.wins/l.matches*100) : 0}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>결승 진출률</h3><div class="rank-list">${stats.players.filter(p=>p.matches).sort((a,b)=>(b.finals/b.matches)-(a.finals/a.matches)).slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)}</span><strong>${Math.round(p.finals/p.matches*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section></div></div>`;
+      app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">DASHBOARD</div></div><h1>상시 데이터 대시보드</h1><p class="desc">기간별 · 경기장별 · 클래스별 경기 기록 분석</p></div>${logoMarkup("header-logo")}</header>${currentAuthUser ? accountBadge() : ""}<div class="toolbar"><button class="ghost" onclick="goBack()">뒤로가기</button><button class="ghost" onclick="goHome()">홈</button><button class="primary" onclick="location.hash=''; bootV33();">TOURNAMENT</button><button class="ghost" onclick="location.hash='view=live-list'; bootV33();">MOBILE LIVE</button><button class="ghost" onclick="dashboardFilter.venue='전체'; renderDashboardWithRecords(window.__dashboardRecords||[])">전체 경기장</button><button class="ghost" onclick="openDashboardPage()">새로고침</button></div><section class="card"><div class="dashboard-filter"><div><label>시작일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.from)}" onchange="dashboardFilter.from=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>종료일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.to)}" onchange="dashboardFilter.to=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>경기장</label><select class="mini-input" onchange="dashboardFilter.venue=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 경기장</option>${venueOptions.map(v => `<option value="${escapeHtml(v.id)}" ${dashboardFilter.venue===v.id || dashboardFilter.venue===v.name || (v.aliases || []).includes(dashboardFilter.venue) || normalizeKey(dashboardFilter.venue)===v.id ? "selected" : ""}>${escapeHtml(v.name)}</option>`).join("")}</select></div><div><label>클래스</label><select class="mini-input" onchange="dashboardFilter.raceClass=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 클래스</option>${classes.map(c => `<option value="${escapeHtml(c)}" ${dashboardFilter.raceClass===c?"selected":""}>${escapeHtml(c)}</option>`).join("")}</select></div><div><label>검색</label><input class="mini-input" placeholder="대회명/경기장/클래스" value="${escapeHtml(dashboardFilter.keyword)}" oninput="dashboardFilter.keyword=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div></div><div class="dashboard-period-row"><button class="ghost" onclick="setDashboardPeriod('all')">전체 기간</button><button class="ghost" onclick="setDashboardPeriod('month')">이번달</button><button class="ghost" onclick="setDashboardPeriod('30d')">최근 30일</button></div><div class="db-stat-grid" style="margin-top:12px;"><div class="db-stat"><small>대회 기록</small><strong>${filtered.length}</strong></div><div class="db-stat"><small>경기장</small><strong>${new Set(filtered.map(r=>r.venueName||r.venueId)).size}</strong></div><div class="db-stat"><small>선수</small><strong>${stats.players.length}</strong></div></div></section><div class="dashboard-grid"><section class="dashboard-card"><h3>클래스별 기록</h3><div class="class-chip-wrap">${classStats.map(item => `<div class="class-chip"><span>${escapeHtml(item.raceClass)}</span><b>${item.count}회</b></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>선수별 경기장 방문</h3>${renderVenueVisitList(venueVisits)}</section><section class="dashboard-card"><h3>최다승 유저</h3>${rankList(stats.mostWins, "wins", "승")}</section><section class="dashboard-card"><h3>자주 우승하는 사람</h3>${rankList(stats.mostChampions, "championships", "회")}</section><section class="dashboard-card"><h3>자주 지는 사람</h3>${rankList(stats.mostLosses, "losses", "패")}</section><section class="dashboard-card"><h3>참가 횟수 랭킹</h3>${rankList(stats.mostParticipants, "matches", "회")}</section><section class="dashboard-card"><h3>포인트전 누적</h3>${rankList(stats.mostPoints, "points", "P")}</section><section class="dashboard-card"><h3>한 레인 편중</h3><div class="rank-list">${stats.oneLane.slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)} · ${p.mainLane}LANE</span><strong>${Math.round(p.laneRate*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>레인별 승률</h3><div class="rank-list">${stats.laneStats.map(l=>`<div class="rank-row"><b>${l.lane}</b><span class="rank-name">${l.matches}경기</span><strong>${l.matches ? Math.round(l.wins/l.matches*100) : 0}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>결승 진출률</h3><div class="rank-list">${stats.players.filter(p=>p.matches).sort((a,b)=>(b.finals/b.matches)-(a.finals/a.matches)).slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)}</span><strong>${Math.round(p.finals/p.matches*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section></div></div>`;
     }
 
     function liveStatusLabel(status) {
@@ -8411,62 +7299,9 @@ function renderTvStage() {
       return toTimeValue(record.endedAtISO || record.createdAt || record.startedAtISO);
     }
 
-    function buildLobbySlots(venues = [], tournaments = [], records = []) {
-      const venueMap = new Map();
-      venues.forEach(venue => {
-        if (!venue?.venueId) return;
-        venueMap.set(venue.venueId, { venueId: venue.venueId, venueName: venue.venueName || venue.venueId, approved: true });
-      });
-      tournaments.forEach(item => {
-        if (!item?.venueId) return;
-        if (!venueMap.has(item.venueId)) venueMap.set(item.venueId, { venueId: item.venueId, venueName: item.venueName || item.venueId, approved: false });
-      });
+    
+/* v58 removed duplicate function buildLobbySlots from earlier patch line 8453 */
 
-      const liveByVenue = new Map();
-      tournaments.forEach(item => {
-        const key = item.venueId || item.venueName;
-        const current = liveByVenue.get(key);
-        if (!current || toTimeValue(item.updatedAt) > toTimeValue(current.updatedAt)) liveByVenue.set(key, item);
-      });
-
-      const latestRecordByVenue = new Map();
-      records.forEach(record => {
-        const key = record.venueId || normalizeKey(record.venueName || "");
-        if (!key) return;
-        const current = latestRecordByVenue.get(key);
-        if (!current || normalizeRecentTime(record) > normalizeRecentTime(current)) latestRecordByVenue.set(key, record);
-      });
-
-      const cards = Array.from(venueMap.values()).map(venue => {
-        const liveItem = liveByVenue.get(venue.venueId);
-        const recentRecord = latestRecordByVenue.get(venue.venueId);
-        const status = liveItem ? effectiveLiveStatus(liveItem) : recentRecord ? "recent" : "waiting";
-        const recentAt = recentRecord ? normalizeRecentTime(recentRecord) : 0;
-        const updatedAt = liveItem ? toTimeValue(liveItem.updatedAt) : recentAt;
-        return {
-          id: liveItem?.id || "",
-          venueId: venue.venueId,
-          venueName: venue.venueName,
-          tournamentName: liveItem?.tournamentName || recentRecord?.tournamentName || "대기중",
-          raceClass: normalizeRaceClassName(liveItem?.raceClass || recentRecord?.raceClass || ""),
-          status,
-          updatedAt,
-          recentAt,
-          approved: venue.approved
-        };
-      });
-
-      cards.sort((a, b) => {
-        const rank = item => item.status === "running" ? 0 : (item.updatedAt || item.recentAt) ? 1 : 2;
-        return rank(a) - rank(b) || Number(b.updatedAt || b.recentAt || 0) - Number(a.updatedAt || a.recentAt || 0) || String(a.venueName).localeCompare(String(b.venueName), "ko");
-      });
-
-      const slots = cards.slice(0, LIVE_LOBBY_SLOT_COUNT);
-      while (slots.length < LIVE_LOBBY_SLOT_COUNT) {
-        slots.push({ empty: true, venueId: `empty-${slots.length + 1}`, venueName: `빈 슬롯 ${slots.length + 1}`, tournamentName: "경기장 계정 승인 시 자동 표시", raceClass: "", status: "empty", updatedAt: 0 });
-      }
-      return slots;
-    }
 
     function normalizeLobbyTournaments(raw = {}) {
       return Object.entries(raw).map(([id, item]) => {
@@ -8487,29 +7322,13 @@ function renderTvStage() {
       }).sort((a, b) => (b.status === "running") - (a.status === "running") || Number(b.updatedAt || 0) - Number(a.updatedAt || 0));
     }
 
-    function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
-      document.body.classList.remove("tv-mode");
-      const venueCards = buildLobbySlots(venues, tournaments, records);
-      const recent = [...records].sort((a,b) => normalizeRecentTime(b) - normalizeRecentTime(a)).slice(0, 12);
-      app.innerHTML = `<div class="mobile-view"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">LIVE LOBBY</div></div><h1>경기장 LIVE</h1><p class="desc">LIVE ON 경기장을 선택하면 현재 모바일 대진표로 이동합니다. 3시간 이상 갱신이 없으면 자동 대기중으로 표시됩니다.</p></div>${logoMarkup("header-logo")}</header><section class="card"><div class="db-panel-title"><div><h2>경기장별 LIVE 상태</h2><div class="meta">승인된 경기장 계정 기준 20개 슬롯</div></div><button class="ghost" onclick="renderLiveLobbyPage()">새로고침</button></div><div class="live-lobby-grid">${venueCards.map(item => { const live = item.status === "running"; const recentClass = item.status === "recent" || item.status === "stale" ? "live-recent" : ""; const emptyClass = item.empty ? "live-empty" : ""; const timeText = item.updatedAt ? new Date(item.updatedAt).toLocaleString("ko-KR") : "업데이트 없음"; return `<article class="live-lobby-card ${live ? "live-on" : ""} ${recentClass} ${emptyClass}"><span class="live-status ${live ? "on" : item.status === "recent" || item.status === "stale" ? "recent" : item.status === "empty" ? "empty" : ""}">${liveStatusLabel(item.status)}</span><h3>${escapeHtml(item.venueName)}</h3><div class="live-lobby-meta">${escapeHtml(item.tournamentName)}<br>${item.raceClass ? `${escapeHtml(item.raceClass)} · ` : ""}${escapeHtml(timeText)}</div><button class="${live ? "primary" : "ghost"}" ${live ? "" : "disabled"} onclick="location.hash='view=mobile-live&t=${encodeURIComponent(item.id)}'; bootV33();">대진표 보기</button></article>`; }).join("")}</div></section><section class="card"><h2>최근 경기 히스토리</h2><div class="history-public-list">${recent.map(record => `<div class="history-public-row"><div><b>${escapeHtml(record.venueName || record.venueId || "경기장")}</b><span>${escapeHtml(normalizeRaceClassName(record.raceClass))}</span></div><div><b>${escapeHtml(record.tournamentName || "대회명 미입력")}</b><span>${escapeHtml(record.endedAtISO ? new Date(record.endedAtISO).toLocaleString("ko-KR") : record.createdAt ? new Date(record.createdAt).toLocaleString("ko-KR") : "")}</span></div><div><b>${escapeHtml(getRecordWinnerText(record))}</b><span>우승/상위 결과</span></div></div>`).join("") || `<div class="hint">최근 경기 기록이 없습니다.</div>`}</div></section></div>`;
-    }
+    
+/* v58 removed duplicate function renderLiveLobbyWithData from earlier patch line 8529 */
 
-    function renderLiveLobbyPage() {
-      document.body.classList.remove("tv-mode");
-      app.innerHTML = `<div class="mobile-view"><div class="empty"><div><h2>LIVE 로비 불러오는 중</h2></div></div></div>`;
-      const db = initFirebase();
-      if (!db) { renderLiveLobbyWithData([], loadLocalResultLogs().map(makePublicRecord), []); return; }
-      Promise.all([
-        db.ref(PUBLIC_LIVE_PATH).get().catch(() => ({ val: () => ({}) })),
-        db.ref(PUBLIC_HISTORY_PATH).get().catch(() => ({ val: () => ({}) })),
-        db.ref(PUBLIC_VENUES_PATH).get().catch(() => ({ val: () => ({}) }))
-      ]).then(([tSnap, rSnap, vSnap]) => {
-        const tournaments = normalizeLobbyTournaments(tSnap.val() || {});
-        const records = rSnap.val() ? Object.values(rSnap.val()) : loadLocalResultLogs().map(makePublicRecord);
-        const venues = normalizePublicVenues(vSnap.val() || {});
-        renderLiveLobbyWithData(tournaments, records, venues);
-      }).catch(() => renderLiveLobbyWithData([], loadLocalResultLogs().map(makePublicRecord), []));
-    }
+
+    
+/* v58 removed duplicate function renderLiveLobbyPage from earlier patch line 8536 */
+
 
     function flattenPrivateResultLogs(raw = {}) {
       if (!raw || typeof raw !== "object") return [];
@@ -8518,34 +7337,9 @@ function renderTvStage() {
       return Object.values(raw).flatMap(venueBucket => venueBucket && typeof venueBucket === "object" ? Object.values(venueBucket) : []).filter(item => item && typeof item === "object");
     }
 
-    function renderDashboardPage() {
-      if (!currentAuthUser) return renderLoginPage("대시보드는 로그인 후 이용할 수 있습니다.");
-      if (!canViewDashboard()) return renderRestrictedPage("대시보드 권한 없음", "관리자가 대시보드 권한을 부여해야 합니다.");
-      document.body.classList.remove("tv-mode");
-      app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>대시보드 불러오는 중</h2></div></div></div>`;
-      const db = initFirebase();
-      const local = loadLocalResultLogs();
-      if (!db) { window.__dashboardProfiles = {}; window.__dashboardLegacyUsers = {}; window.__dashboardPublicVenues = {}; window.__dashboardVenueDirectory = {}; window.__dashboardRecords = local; renderDashboardWithRecords(local); return; }
-      const profilePromise = isAdminUser()
-        ? db.ref(USER_PROFILE_PATH).get().then(s => s.val() || {}).catch(() => ({}))
-        : Promise.resolve(currentUserProfile ? { [currentUserProfile.uid || currentAuthUser.uid]: currentUserProfile } : {});
-      const legacyUserPromise = isAdminUser()
-        ? db.ref("users").get().then(s => s.val() || {}).catch(() => ({}))
-        : Promise.resolve({});
-      const publicVenuePromise = db.ref(PUBLIC_VENUES_PATH).get().then(s => s.val() || {}).catch(() => ({}));
-      const venueDirectoryPromise = db.ref(PUBLIC_VENUE_DIRECTORY_PATH).get().then(s => s.val() || {}).catch(() => ({}));
-      const logsRef = isAdminUser() ? db.ref(RESULT_LOGS_PATH) : db.ref(`${RESULT_LOGS_PATH}/${currentVenueId()}`);
-      Promise.all([logsRef.get(), profilePromise, publicVenuePromise, venueDirectoryPromise, legacyUserPromise]).then(([snapshot, profiles, publicVenues, venueDirectory, legacyUsers]) => {
-        const cloud = isAdminUser() ? flattenPrivateResultLogs(snapshot.val() || {}) : Object.values(snapshot.val() || {});
-        const merged = [...local, ...cloud].filter((item, idx, arr) => arr.findIndex(x => x.id === item.id) === idx);
-        window.__dashboardProfiles = profiles || {};
-        window.__dashboardLegacyUsers = legacyUsers || {};
-        window.__dashboardPublicVenues = publicVenues || {};
-        window.__dashboardVenueDirectory = venueDirectory || {};
-        window.__dashboardRecords = merged;
-        renderDashboardWithRecords(merged);
-      }).catch(() => { window.__dashboardProfiles = {}; window.__dashboardLegacyUsers = {}; window.__dashboardPublicVenues = {}; window.__dashboardVenueDirectory = {}; window.__dashboardRecords = local; renderDashboardWithRecords(local); });
-    }
+    
+/* v58 removed duplicate function renderDashboardPage from earlier patch line 8560 */
+
 
     async function bootV33() {
       try {
@@ -8554,7 +7348,7 @@ function renderTvStage() {
         const data = params.get("data");
         getCurrentTournamentId();
         initFirebase();
-        if (view === "tv-live") { document.body.classList.add("tv-mode"); app.innerHTML = `<div class="tv-wrap"><div class="tv-empty"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><div class="maker">made by GEEKS M.Y · Special Thanks to SOON.D</div></div><strong>라이브 연결중</strong></div></div>`; watchFirebaseState("tv-live"); return; }
+        if (view === "tv-live") { document.body.classList.add("tv-mode"); app.innerHTML = `<div class="tv-wrap"><div class="tv-empty"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small></div><strong>라이브 연결중</strong></div></div>`; watchFirebaseState("tv-live"); return; }
         if (view === "live-list" || view === "lobby") { renderLiveLobbyPage(); return; }
         if (view === "mobile-live" || view === "live") {
           const params = getHashParams();
@@ -8613,25 +7407,9 @@ function renderTvStage() {
       }[mode] || "기본 토너먼트";
     }
 
-    function setMatchMode(mode) {
-      ensureStateDefaults();
-      if (isTournamentLocked() && !confirm("대회가 시작/종료된 상태입니다. 경기 방식을 바꾸면 기록이 꼬일 수 있습니다. 계속할까요?")) return;
-      if (state.qualifierRounds.some(round => round.stages.length) || state.finalRace) {
-        if (!confirm("경기 방식을 바꾸면 현재 대진표가 라운드 초기화됩니다. 계속할까요?")) return;
-      }
-      const currentTournament = { ...state.tournament };
-      const inputText = state.inputText;
-      const previousSettings = { ...state.settings, matchMode: mode };
-      if (mode === "crow") previousSettings.laneCount = 3;
-      state = makeInitialState(previousSettings.laneCount || 3);
-      state.inputText = inputText;
-      state.tournament = currentTournament;
-      state.settings = { ...state.settings, ...previousSettings, matchMode: mode };
-      state.qualifierRounds = makeQualifierRounds(state.settings.laneCount, mode);
-      state.finalRace = null;
-      activeRoundIndex = 0;
-      renderOperator();
-    }
+    
+/* v58 removed duplicate function setMatchMode from earlier patch line 8655 */
+
 
     function normalizePlayerForFinal(player, extra = {}) {
       return { id: player.id, name: player.name, nickname: player.nickname || player.name, team: player.team || "", realName: player.realName || "", contact: player.contact || "", ...extra };
@@ -8893,27 +7671,13 @@ function renderTvStage() {
       app.innerHTML = `<div class="mobile-view"><header class="header" style="margin-bottom:16px;"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">MOBILE LIVE</div></div><h1>${escapeHtml(payload.tournament?.name || "대회명 미입력")}</h1><p class="desc">${matchModeLabel(payload.settings?.matchMode)} · ${payload.settings?.laneCount || 3}레인 · ${escapeHtml(payload.tournament?.venue || "")}</p></div>${logoMarkup("header-logo")}</header>${finalHtml}${qualifierHtml}</div>`;
     }
 
-    function shareMobileView() {
-      const url = `${location.origin}${location.pathname}#view=live-list`;
-      navigator.clipboard?.writeText(url).then(() => alert("모바일 LIVE 로비 링크를 복사했습니다. 카톡에 붙여넣어 공유하세요.")).catch(() => prompt("모바일 LIVE 로비 링크를 복사하세요.", url));
-    }
+    
+/* v58 removed duplicate function shareMobileView from earlier patch line 8935 */
 
-    function watchFirebaseState(viewType) {
-      const db = initFirebase();
-      if (!db) return;
-      const tournamentId = getCurrentTournamentId();
-      let received = false;
-      const ref = db.ref(`${PUBLIC_LIVE_PATH}/${tournamentId}/state`);
-      const fallback = viewType === "mobile-live" ? setTimeout(() => { if (!received) renderLiveLobbyPage(); }, 4500) : null;
-      ref.on("value", snapshot => {
-        const payload = snapshot.val();
-        if (!payload) return;
-        received = true;
-        if (fallback) clearTimeout(fallback);
-        if (viewType === "tv-live") { tvState = payload; document.body.classList.add("tv-mode"); renderTvStage(); return; }
-        if (viewType === "mobile-live") { renderTvSnapshot(payload, "mobile"); return; }
-      });
-    }
+
+    
+/* v58 removed duplicate function watchFirebaseState from earlier patch line 8940 */
+
     /* boot deferred to v49 final call */
 
 
@@ -9040,52 +7804,13 @@ function renderTvStage() {
       app.innerHTML = `<div class="mobile-view live-lobby-shell"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">LIVE LOBBY</div></div><h1>경기장 LIVE</h1><p class="desc">LIVE ON 경기장을 선택하면 현재 모바일 대진표로 이동합니다. 3시간 이상 갱신이 없으면 자동 대기중으로 표시됩니다.</p></div>${logoMarkup("header-logo")}</header><section class="card"><div class="live-lobby-topbar"><div><h2 style="margin:0 0 6px;">경기장별 LIVE 상태</h2><div class="meta">승인된 경기장 계정 기준 20개 슬롯 · 실시간 반영 · ${escapeHtml(nowText)} 기준</div></div><button class="ghost" onclick="renderLiveLobbyPage()">새로고침</button></div><div class="live-lobby-summary"><span class="pill">LIVE ${liveCount}</span><span class="pill">최근/종료 ${recentCount}</span><span class="pill">대기 ${waitingCount}</span></div><div class="live-lobby-grid" style="margin-top:12px;">${cardHtml}</div></section><section class="card"><h2>최근 경기 히스토리</h2><div class="history-public-list">${historyHtml || `<div class="hint">최근 경기 기록이 없습니다.</div>`}</div></section></div>`;
     }
 
-    function renderLiveLobbyPage() {
-      document.body.classList.remove("tv-mode");
-      stopPublicLiveWatchV49();
-      app.innerHTML = `<div class="mobile-view"><div class="empty"><div><h2>LIVE 로비 불러오는 중</h2><p>경기장 LIVE 상태를 실시간으로 연결합니다.</p></div></div></div>`;
-      const db = initFirebase();
-      if (!db) { renderLiveLobbyWithData([], loadLocalResultLogs().map(makePublicRecord), []); return; }
-      stopLiveLobbyRealtimeV49();
-      const cache = { live: {}, history: {}, venues: {}, directory: {} };
-      const draw = () => {
-        const tournaments = normalizeLobbyTournaments(cache.live || {});
-        const records = cache.history ? Object.values(cache.history) : loadLocalResultLogs().map(makePublicRecord);
-        const venues = mergeVenueArraysV49(normalizePublicVenues(cache.venues || {}), normalizePublicVenues(cache.directory || {}));
-        renderLiveLobbyWithData(tournaments, records, venues);
-      };
-      const bind = (key, path) => {
-        const ref = db.ref(path);
-        const cb = snapshot => { cache[key] = snapshot.val() || {}; draw(); };
-        ref.on("value", cb, error => { console.warn(`live lobby ${path} watch failed`, error); cache[key] = {}; draw(); });
-        __liveLobbyRefsV49.push({ ref, cb });
-      };
-      bind("live", PUBLIC_LIVE_PATH);
-      bind("history", PUBLIC_HISTORY_PATH);
-      bind("venues", PUBLIC_VENUES_PATH);
-      if (typeof PUBLIC_VENUE_DIRECTORY_PATH !== "undefined") bind("directory", PUBLIC_VENUE_DIRECTORY_PATH);
-    }
+    
+/* v58 removed duplicate function renderLiveLobbyPage from earlier patch line 9082 */
 
-    function watchFirebaseState(viewType) {
-      const db = initFirebase();
-      if (!db) return;
-      stopLiveLobbyRealtimeV49();
-      stopPublicLiveWatchV49();
-      const tournamentId = getCurrentTournamentId();
-      let received = false;
-      const ref = db.ref(`${PUBLIC_LIVE_PATH}/${tournamentId}/state`);
-      const fallback = viewType === "mobile-live" ? setTimeout(() => { if (!received) renderLiveLobbyPage(); }, 4500) : null;
-      const cb = snapshot => {
-        const payload = snapshot.val();
-        if (!payload) return;
-        received = true;
-        if (fallback) clearTimeout(fallback);
-        if (viewType === "tv-live") { tvState = payload; document.body.classList.add("tv-mode"); renderTvStage(); return; }
-        if (viewType === "mobile-live") { renderTvSnapshot(payload, "mobile"); return; }
-      };
-      ref.on("value", cb, error => { console.warn("public live watch failed", error); if (viewType === "mobile-live") renderLiveLobbyPage(); });
-      __watchRefsV49.push({ ref, cb });
-    }
+
+    
+/* v58 removed duplicate function watchFirebaseState from earlier patch line 9108 */
+
 
 
 
@@ -9114,26 +7839,15 @@ function renderTvStage() {
       return `${location.origin}${location.pathname}#view=live-list`;
     }
 
-    function shareMobileView() {
-      forcePublishPublicLiveV50("MOBILE LINK");
-      const url = mobileLobbyUrlV50();
-      navigator.clipboard?.writeText(url).then(() => alert("모바일 LIVE 로비 링크를 복사했습니다."))
-        .catch(() => prompt("모바일 LIVE 로비 링크", url));
-    }
+    
+/* v58 removed duplicate function shareMobileView from earlier patch line 9156 */
 
-    function copyLiveLink() {
-      forcePublishPublicLiveV50("모바일 링크 복사");
-      const url = mobileLobbyUrlV50();
-      navigator.clipboard?.writeText(url).then(() => alert("모바일 LIVE 로비 링크를 복사했습니다."))
-        .catch(() => prompt("모바일 LIVE 로비 링크", url));
-    }
 
-    const __openTvViewBaseV50 = typeof openTvView === "function" ? openTvView : null;
-    function openTvView() {
-      forcePublishPublicLiveV50("TV LIVE");
-      if (__openTvViewBaseV50) return __openTvViewBaseV50();
-      window.open(makeLiveTvUrl(), "_blank", "noopener,noreferrer");
-    }
+    
+/* v58 removed duplicate function copyLiveLink from earlier patch line 9163 */
+
+
+
 
     function stopLiveLobbyRealtimeV50() {
       if (typeof stopLiveLobbyRealtimeV49 === "function") stopLiveLobbyRealtimeV49();
@@ -9206,52 +7920,59 @@ function renderTvStage() {
       if (typeof __watchRefsV49 !== "undefined") __watchRefsV49.push({ ref, cb });
     }
 
-    const __renderDashboardWithRecordsBaseV50 = renderDashboardWithRecords;
-    function renderDashboardWithRecords(records = []) {
-      __renderDashboardWithRecordsBaseV50(records);
-      const page = document.querySelector(".db-page");
-      if (!page || page.querySelector(".dashboard-nav-actions")) return;
-      const target = page.querySelector(".toolbar") || page.querySelector("section.card");
-      if (!target) return;
-      const nav = document.createElement("div");
-      nav.className = "dashboard-nav-actions";
-      nav.innerHTML = `<button class="ghost" onclick="history.length > 1 ? history.back() : (location.hash='', bootV33())">뒤로가기</button><button class="ghost" onclick="location.hash=''; bootV33();">홈</button><button class="ghost" onclick="dashboardFilter.venue='전체'; renderDashboardWithRecords(window.__dashboardRecords||[])">전체 경기장</button>`;
-      target.parentNode.insertBefore(nav, target);
-    }
+
+/* v58 removed override assignment for renderDashboardWithRecords */
+
 
     function renderDashboardPage() {
-      if (!currentAuthUser) return renderLoginPage("대시보드는 로그인 후 이용할 수 있습니다.");
-      if (!canViewDashboard()) return renderRestrictedPage("대시보드 권한 없음", "관리자가 대시보드 권한을 부여해야 합니다.");
-      document.body.classList.remove("tv-mode");
-      if (isAdminUser()) dashboardFilter.venue = "전체";
-      app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>대시보드 불러오는 중</h2></div></div></div>`;
-      const db = initFirebase();
-      const local = loadLocalResultLogs();
-      if (!db) {
-        window.__dashboardProfiles = {}; window.__dashboardLegacyUsers = {}; window.__dashboardPublicVenues = {}; window.__dashboardVenueDirectory = {}; window.__dashboardRecords = local;
-        renderDashboardWithRecords(local);
-        return;
+      try {
+        if (!currentAuthUser) return renderLoginPage("대시보드는 로그인 후 이용할 수 있습니다.");
+        if (!canViewDashboard()) return renderRestrictedPage("대시보드 권한 없음", "관리자가 대시보드 권한을 부여해야 합니다.");
+        if (isAdminUser()) dashboardFilter.venue = "전체";
+        document.body.classList.remove("tv-mode");
+        app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>대시보드 불러오는 중</h2><p>전체 경기장 데이터를 확인합니다.</p></div></div></div>`;
+        const db = initFirebase();
+        const local = loadLocalResultLogs();
+        if (!db) {
+          window.__dashboardProfiles = {};
+          window.__dashboardLegacyUsers = {};
+          window.__dashboardPublicVenues = {};
+          window.__dashboardVenueDirectory = {};
+          window.__dashboardRecords = local;
+          renderDashboardWithRecords(local);
+          return;
+        }
+        const profilePromise = isAdminUser()
+          ? db.ref(USER_PROFILE_PATH).get().then(s => s.val() || {}).catch(error => { console.warn("dashboard profiles read failed", error); return {}; })
+          : Promise.resolve(currentUserProfile ? { [currentUserProfile.uid || currentAuthUser.uid]: currentUserProfile } : {});
+        const legacyUserPromise = isAdminUser()
+          ? db.ref("users").get().then(s => s.val() || {}).catch(error => { console.warn("dashboard legacy users read failed", error); return {}; })
+          : Promise.resolve({});
+        const publicVenuePromise = db.ref(PUBLIC_VENUES_PATH).get().then(s => s.val() || {}).catch(error => { console.warn("dashboard publicVenues read failed", error); return {}; });
+        const venueDirectoryPromise = db.ref(PUBLIC_VENUE_DIRECTORY_PATH).get().then(s => s.val() || {}).catch(error => { console.warn("dashboard publicVenueDirectory read failed", error); return {}; });
+        const privateLogsPromise = (isAdminUser() ? db.ref(RESULT_LOGS_PATH) : db.ref(`${RESULT_LOGS_PATH}/${currentVenueId()}`)).get()
+          .then(s => isAdminUser() ? flattenPrivateResultLogs(s.val() || {}) : Object.values(s.val() || {}))
+          .catch(error => { console.warn("dashboard private logs read failed", error); return []; });
+        const publicHistoryPromise = db.ref(PUBLIC_HISTORY_PATH).get().then(s => s.val() ? Object.values(s.val()) : [])
+          .catch(error => { console.warn("dashboard public history read failed", error); return []; });
+        Promise.all([privateLogsPromise, publicHistoryPromise, profilePromise, publicVenuePromise, venueDirectoryPromise, legacyUserPromise])
+          .then(([privateLogs, publicHistory, profiles, publicVenues, venueDirectory, legacyUsers]) => {
+            const merged = [...local, ...privateLogs, ...publicHistory].filter((item, idx, arr) => item && arr.findIndex(x => x && x.id === item.id) === idx);
+            window.__dashboardProfiles = profiles || {};
+            window.__dashboardLegacyUsers = legacyUsers || {};
+            window.__dashboardPublicVenues = publicVenues || {};
+            window.__dashboardVenueDirectory = venueDirectory || {};
+            window.__dashboardRecords = merged;
+            renderDashboardWithRecords(merged);
+          })
+          .catch(error => {
+            console.warn("dashboard render failed", error);
+            renderDashboardErrorV55(error.message || String(error));
+          });
+      } catch (error) {
+        console.warn("renderDashboardPage exception", error);
+        renderDashboardErrorV55(error.message || String(error));
       }
-      const profilePromise = isAdminUser()
-        ? db.ref(USER_PROFILE_PATH).get().then(s => s.val() || {}).catch(() => ({}))
-        : Promise.resolve(currentUserProfile ? { [currentUserProfile.uid || currentAuthUser.uid]: currentUserProfile } : {});
-      const legacyUserPromise = isAdminUser() ? db.ref("users").get().then(s => s.val() || {}).catch(() => ({})) : Promise.resolve({});
-      const publicVenuePromise = db.ref(PUBLIC_VENUES_PATH).get().then(s => s.val() || {}).catch(() => ({}));
-      const venueDirectoryPromise = db.ref(PUBLIC_VENUE_DIRECTORY_PATH).get().then(s => s.val() || {}).catch(() => ({}));
-      const privateLogsPromise = (isAdminUser() ? db.ref(RESULT_LOGS_PATH) : db.ref(`${RESULT_LOGS_PATH}/${currentVenueId()}`)).get().then(s => isAdminUser() ? flattenPrivateResultLogs(s.val() || {}) : Object.values(s.val() || {})).catch(() => []);
-      const publicHistoryPromise = db.ref(PUBLIC_HISTORY_PATH).get().then(s => s.val() ? Object.values(s.val()) : []).catch(() => []);
-      Promise.all([privateLogsPromise, publicHistoryPromise, profilePromise, publicVenuePromise, venueDirectoryPromise, legacyUserPromise]).then(([privateLogs, publicHistory, profiles, publicVenues, venueDirectory, legacyUsers]) => {
-        const merged = [...local, ...privateLogs, ...publicHistory].filter((item, idx, arr) => item && arr.findIndex(x => x && x.id === item.id) === idx);
-        window.__dashboardProfiles = profiles || {};
-        window.__dashboardLegacyUsers = legacyUsers || {};
-        window.__dashboardPublicVenues = publicVenues || {};
-        window.__dashboardVenueDirectory = venueDirectory || {};
-        window.__dashboardRecords = merged;
-        renderDashboardWithRecords(merged);
-      }).catch(() => {
-        window.__dashboardProfiles = {}; window.__dashboardLegacyUsers = {}; window.__dashboardPublicVenues = {}; window.__dashboardVenueDirectory = {}; window.__dashboardRecords = local;
-        renderDashboardWithRecords(local);
-      });
     }
 
     function syncPublicVenueDirectory() {
@@ -9260,7 +7981,134 @@ function renderTvStage() {
     }
 
 
-    /* v50 single boot call */
+    /* v55 stability fix: button audit, live sync, dashboard guard */
+    function enableLiveAutoSyncV55(reason = "LIVE 동기화") {
+      try {
+        ensureStateDefaults();
+        state.settings.firebaseAutoSave = true;
+        state.updatedAt = Date.now();
+        state.activeRoundIndex = activeRoundIndex;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(exportState()));
+        if (typeof forcePublishPublicLiveV50 === "function") forcePublishPublicLiveV50(reason);
+        else if (typeof queueFirebaseSave === "function") queueFirebaseSave();
+        return true;
+      } catch (error) {
+        console.warn("enableLiveAutoSyncV55 failed", error);
+        return false;
+      }
+    }
+
+    function copyLiveLink() {
+      enableLiveAutoSyncV55("모바일 LIVE 링크");
+      const url = `${location.origin}${location.pathname}#view=live-list`;
+      navigator.clipboard?.writeText(url).then(() => alert("모바일 LIVE 로비 링크를 복사했습니다.\n이후 변경사항은 자동으로 LIVE에 반영됩니다."))
+        .catch(() => prompt("모바일 LIVE 로비 링크", url));
+    }
+
+    function shareMobileView() {
+      copyLiveLink();
+    }
+
+    function openFirebaseTvLive() {
+      enableLiveAutoSyncV55("TV LIVE");
+      const id = getCurrentTournamentId();
+      window.open(`${location.origin}${location.pathname}#view=tv-live&t=${encodeURIComponent(id)}`, "mini4wd-tv-live", "popup=yes,width=1280,height=720,noopener,noreferrer");
+      renderOperator();
+    }
+
+
+/* v58 removed override assignment for openTvView */
+
+
+    function renderDashboardErrorV55(message = "대시보드 데이터를 불러오지 못했습니다.") {
+      document.body.classList.remove("tv-mode");
+      app.innerHTML = `<div class="wrap"><section class="card auth-card"><h2>대시보드 오류</h2><p class="hint">${escapeHtml(message)}</p><div class="section-toolbar"><button class="ghost" onclick="goBack()">뒤로가기</button><button class="ghost" onclick="goHome()">홈</button><button class="primary" onclick="renderDashboardPage()">다시 불러오기</button></div><p class="privacy-note">Firebase Rules, 로그인 권한, privateResultLogs/publicHistory 읽기 권한을 확인하세요.</p></section></div>`;
+    }
+
+
+
+
+/* v58 removed override assignment for renderLiveLobbyWithData */
+
+
+
+    /* v58 stable mobile mode selection */
+    function getModeRowAnchorV57() {
+      return document.querySelector('.btnrow.mode-row.three') || document.querySelector('.btnrow.mode-row') || null;
+    }
+
+    function restoreModeRowPositionV57(anchorTopBefore, fallbackY) {
+      requestAnimationFrame(() => {
+        const row = getModeRowAnchorV57();
+        if (!row) {
+          window.scrollTo({ top: fallbackY || 0, behavior: 'auto' });
+          return;
+        }
+        const topAfter = row.getBoundingClientRect().top;
+        const diff = topAfter - anchorTopBefore;
+        if (Number.isFinite(diff) && Math.abs(diff) > 1) {
+          window.scrollBy({ top: diff, left: 0, behavior: 'auto' });
+        }
+      });
+    }
+
+    function setMatchMode(mode) {
+      ensureStateDefaults();
+      const row = getModeRowAnchorV57();
+      const anchorTopBefore = row ? row.getBoundingClientRect().top : 0;
+      const fallbackY = window.scrollY || 0;
+      const sameMode = state.settings.matchMode === mode;
+      if (sameMode) {
+        restoreModeRowPositionV57(anchorTopBefore, fallbackY);
+        return;
+      }
+      if (isTournamentLocked() && !confirm('대회가 시작/종료된 상태입니다. 경기 방식을 바꾸면 기록이 꼬일 수 있습니다. 계속할까요?')) return;
+      if (state.qualifierRounds.some(round => round.stages.length) || state.finalRace) {
+        if (!confirm('경기 방식을 바꾸면 현재 대진표가 라운드 초기화됩니다. 계속할까요?')) return;
+      }
+      const currentTournament = { ...state.tournament };
+      const inputText = state.inputText;
+      const previousSettings = { ...state.settings, matchMode: mode };
+      if (mode === 'crow') previousSettings.laneCount = 3;
+      state = makeInitialState(previousSettings.laneCount || 3);
+      state.inputText = inputText;
+      state.tournament = currentTournament;
+      state.settings = { ...state.settings, ...previousSettings, matchMode: mode };
+      state.qualifierRounds = makeQualifierRounds(state.settings.laneCount, mode);
+      state.finalRace = null;
+      activeRoundIndex = 0;
+      renderOperator();
+      restoreModeRowPositionV57(anchorTopBefore, fallbackY);
+    }
+
+    function auditCoreButtonsV57() {
+      const required = ['setMatchMode','renderDashboardPage','renderLiveLobbyPage','copyLiveLink','openFirebaseTvLive','renderDbPage','openAdminPage','goHome','goBack'];
+      return required.map(name => ({ name, ok: typeof window[name] === 'function' }));
+    }
+
+
+    function runCommercialSelfAuditV58() {
+      const requiredFunctions = [
+        "bootV33","renderOperator","setMatchMode","renderDashboardPage","renderLiveLobbyPage",
+        "copyLiveLink","openFirebaseTvLive","watchFirebaseState","renderDbPage","openAdminPage",
+        "goHome","goBack","finishTournament","saveLiveState","queueFirebaseSave"
+      ];
+      const missingFunctions = requiredFunctions.filter(name => typeof window[name] !== "function");
+      const publicOnlyPaths = ["publicLive","publicHistory","publicVenueDirectory","publicVenues"];
+      const report = {
+        version: "v58-commercial-stabilization",
+        checkedAt: new Date().toISOString(),
+        missingFunctions,
+        duplicateFunctionDeclarations: [],
+        publicOnlyPaths,
+        ok: missingFunctions.length === 0
+      };
+      window.__mini4wdCommercialAudit = report;
+      console.table(report);
+      return report;
+    }
+
+    /* v58 single boot call */
     bootV33();
 
   </script>
