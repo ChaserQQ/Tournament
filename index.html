@@ -3438,6 +3438,143 @@
 
 
 
+
+    /* v61 mobile layout / lobby / match metrics polish */
+    .live-lobby-shell,
+    .live-lobby-shell * {
+      min-width: 0;
+      box-sizing: border-box;
+    }
+    .live-lobby-grid {
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)) !important;
+      align-items: stretch;
+    }
+    .live-lobby-card {
+      overflow: hidden;
+      min-width: 0;
+    }
+    .live-lobby-card h3,
+    .live-lobby-meta,
+    .live-lobby-result,
+    .history-public-row {
+      overflow-wrap: anywhere;
+      word-break: keep-all;
+    }
+    .live-lobby-result {
+      display: grid;
+      gap: 3px;
+      padding: 8px 9px;
+      border-radius: 12px;
+      background: rgba(238,233,223,.035);
+      border: 1px solid rgba(238,233,223,.07);
+    }
+    .live-lobby-result span {
+      color: var(--dim);
+      font-size: 11px;
+      font-weight: 1000;
+    }
+    .live-lobby-result b {
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .live-lobby-result small {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+    .slot-metrics {
+      display: grid;
+      gap: 4px;
+      margin-top: 5px;
+    }
+    .slot-metric {
+      display: inline-flex;
+      align-items: center;
+      width: max-content;
+      max-width: 100%;
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(238,233,223,.08);
+      background: rgba(238,233,223,.04);
+      color: var(--dim);
+      font-size: 10px;
+      font-weight: 900;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+    .slot-h2h-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .slot-metric.h2h {
+      color: rgba(238,233,223,.86);
+      background: rgba(248,213,107,.07);
+      border-color: rgba(248,213,107,.16);
+    }
+    .slot-metric.h2h-empty {
+      opacity: .72;
+    }
+    .stage-progress-dock {
+      position: sticky;
+      bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+      z-index: 80;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin: 12px 0 8px;
+      padding: 10px;
+      border: 1px solid rgba(238,233,223,.10);
+      border-radius: 18px;
+      background: rgba(8, 18, 15, .92);
+      box-shadow: 0 14px 34px rgba(0,0,0,.28);
+      backdrop-filter: blur(10px);
+    }
+    .stage-progress-dock button {
+      width: 100%;
+      min-height: 44px;
+      border-radius: 14px;
+    }
+    .credit-mark span,
+    .credit-mark small {
+      display: block;
+      white-space: nowrap;
+    }
+    @media (max-width: 760px) {
+      .live-lobby-shell .header {
+        gap: 10px;
+      }
+      .live-lobby-card {
+        padding: 13px;
+        border-radius: 18px;
+      }
+      .live-lobby-card h3 {
+        font-size: 17px;
+        line-height: 1.25;
+      }
+      .live-lobby-meta {
+        font-size: 12px;
+      }
+      .stage-progress-dock {
+        grid-template-columns: 1fr;
+        margin-left: -2px;
+        margin-right: -2px;
+      }
+      .stage-progress-dock .secondary-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .slot-metric {
+        font-size: 9.5px;
+      }
+      .credit-mark {
+        align-items: flex-start !important;
+        text-align: left !important;
+      }
+    }
+
+
     /* v58 mobile interaction stabilization */
     .mode-row {
       scroll-margin-top: 18px;
@@ -4926,6 +5063,23 @@
       return `<div class="finalist-item"><b>현재 TV 송출</b><br>${escapeHtml(target.title)}</div>`;
     }
 
+
+    function renderRoundProgressDock(roundIndex, currentStage) {
+      if (!currentStage) return "";
+      const nextLabel = currentStage?.type === "revival" ? "패자부활 진출자 합류" : "다음 경기 진행";
+      const confirmLabel = isRevivalMode() ? "우승자 확정" : isCrowMode() ? "1~3위 확정" : "결승 진출자 확정";
+      return `
+        <div class="stage-progress-dock" aria-label="진행 단계 빠른 실행">
+          <button class="ghost" onclick="createNextStage(${roundIndex})">${nextLabel}</button>
+          <button class="primary" onclick="confirmRoundFinalist(${roundIndex})">${confirmLabel}</button>
+          <div class="secondary-row">
+            <button class="ghost" onclick="setBroadcastStage(${roundIndex}, ${(state.qualifierRounds[roundIndex]?.stages?.length || 1) - 1})">TV 송출</button>
+            <button class="ghost" onclick="document.querySelector('.operator-control-pages')?.scrollIntoView({behavior:'smooth', block:'start'})">설정 보기</button>
+          </div>
+        </div>
+      `;
+    }
+
     function renderActiveRound(round, roundIndex) {
       const currentStageIndex = round.stages.length ? round.stages.length - 1 : -1;
       const currentStage = currentStageIndex >= 0 ? round.stages[currentStageIndex] : null;
@@ -4958,6 +5112,7 @@
             <div id="currentStageTop" class="current-stage-area">
               <div class="section-label">현재 진행</div>
               ${renderStage(currentStage, roundIndex, currentStageIndex, false)}
+              ${renderRoundProgressDock(roundIndex, currentStage)}
             </div>
             ${pastStages.length ? `
               <details class="history-panel">
@@ -5101,32 +5256,131 @@
       return stages;
     }
 
-    function getGroupMatchStatsForPlayer(player, currentGroup) {
-      if (!player || player.isEmptyLane || !currentGroup) return { opponents: 0, matches: 0, wins: 0, rateText: "-" };
-      const opponentIds = new Set((currentGroup.slots || []).filter(slot => slot && !slot.isEmptyLane && slot.id !== player.id).map(slot => slot.id));
-      if (!opponentIds.size) return { opponents: 0, matches: 0, wins: 0, rateText: "-" };
-      let matches = 0;
-      let wins = 0;
-      getAllTournamentStagesForMetrics().forEach(stage => {
-        (stage.groups || []).forEach(group => {
-          const slots = group.slots || [];
-          const hasPlayer = slots.some(slot => slot && !slot.isEmptyLane && slot.id === player.id);
-          if (!hasPlayer) return;
-          const matchedOpponent = slots.some(slot => slot && !slot.isEmptyLane && opponentIds.has(slot.id));
-          if (!matchedOpponent) return;
-          matches += 1;
-          const advanceIds = group.advanceIds || [];
-          const points = group.points || null;
-          if (advanceIds.includes(player.id)) wins += 1;
-          else if (points && Object.prototype.hasOwnProperty.call(points, player.id)) {
-            const score = Number(points[player.id] || 0);
-            const maxScore = Math.max(...slots.filter(slot => slot && !slot.isEmptyLane).map(slot => Number(points[slot.id] || 0)));
-            if (score > 0 && score === maxScore) wins += 1;
-          }
-        });
+    function getResultRecordDateMs(record = {}) {
+      const raw = record.endedAtISO || record.startedAtISO || record.createdAt || record.updatedAt || "";
+      const ms = raw ? new Date(raw).getTime() : 0;
+      return Number.isFinite(ms) ? ms : 0;
+    }
+
+    function getRecentMetricRecords(months = 3) {
+      const cutoff = Date.now() - months * 31 * 24 * 60 * 60 * 1000;
+      const records = [];
+      try {
+        if (typeof loadLocalResultLogs === "function") records.push(...loadLocalResultLogs());
+      } catch (error) {}
+      try {
+        if (Array.isArray(window.__dashboardRecords)) records.push(...window.__dashboardRecords);
+      } catch (error) {}
+      try {
+        const currentRows = typeof getStageResultRows === "function" ? getStageResultRows() : [];
+        if (currentRows && currentRows.length) {
+          records.push({
+            id: `current-${state.tournament?.recordId || state.tournament?.id || "active"}`,
+            createdAt: new Date().toISOString(),
+            rows: currentRows
+          });
+        }
+      } catch (error) {}
+
+      const seen = new Set();
+      return records.filter(record => {
+        if (!record || !Array.isArray(record.rows)) return false;
+        const id = record.id || `${record.createdAt || ""}-${record.rows.length}`;
+        if (seen.has(id)) return false;
+        seen.add(id);
+        const dateMs = getResultRecordDateMs(record) || Date.now();
+        return dateMs >= cutoff;
       });
+    }
+
+    function playerMetricKeys(player = {}) {
+      if (!player || player.isEmptyLane) return [];
+      let ident = {};
+      try { ident = resolvePlayerIdentity(player) || {}; } catch (error) {}
+      return Array.from(new Set([
+        ident.playerId,
+        player.id,
+        player.playerId,
+        player.name ? `${player.name}|${player.team || ""}` : "",
+        player.name || ""
+      ].filter(Boolean).map(value => String(value).trim())));
+    }
+
+    function rowMetricKeys(row = {}) {
+      return Array.from(new Set([
+        row.선수ID,
+        row.playerId,
+        row.선수명 ? `${row.선수명}|${row.팀명 || ""}` : "",
+        row.선수명 || row.닉네임 || ""
+      ].filter(Boolean).map(value => String(value).trim())));
+    }
+
+    function rowMatchesMetricPlayer(row, player) {
+      const pKeys = playerMetricKeys(player);
+      const rKeys = rowMetricKeys(row);
+      return pKeys.some(key => rKeys.includes(key));
+    }
+
+    function isMetricWinRow(row, peerRows = []) {
+      const result = String(row?.결과 || "");
+      if (["진출", "최종결승진출", "최종우승", "결승진출"].includes(result)) return true;
+      if (/9강\s*1위/.test(result)) return true;
+      const rowScore = Number(row?.점수 ?? "");
+      if (Number.isFinite(rowScore) && rowScore > 0) {
+        const scores = peerRows.map(item => Number(item?.점수 ?? "")).filter(value => Number.isFinite(value));
+        if (scores.length && rowScore === Math.max(...scores)) return true;
+      }
+      return false;
+    }
+
+    function getRecentHeadToHeadStats(player, currentGroup) {
+      if (!player || player.isEmptyLane || !currentGroup) return [];
+      const opponents = (currentGroup.slots || [])
+        .filter(slot => slot && !slot.isEmptyLane && slot.id !== player.id)
+        .slice(0, 2);
+      if (!opponents.length) return [];
+
+      const records = getRecentMetricRecords(3);
+      return opponents.map(opponent => {
+        let matches = 0;
+        let wins = 0;
+        records.forEach(record => {
+          const groups = new Map();
+          (record.rows || []).forEach(row => {
+            if (!row || row.결과 === "빈 레인") return;
+            const key = `${row.차수 || ""}|${row.단계 || ""}|${row.조 || ""}`;
+            if (!groups.has(key)) groups.set(key, []);
+            groups.get(key).push(row);
+          });
+          groups.forEach(rows => {
+            const myRow = rows.find(row => rowMatchesMetricPlayer(row, player));
+            const opponentRow = rows.find(row => rowMatchesMetricPlayer(row, opponent));
+            if (!myRow || !opponentRow) return;
+            matches += 1;
+            if (isMetricWinRow(myRow, rows)) wins += 1;
+          });
+        });
+        const losses = Math.max(0, matches - wins);
+        const rate = matches ? Math.round((wins / matches) * 100) : null;
+        return {
+          opponent,
+          name: opponent.name || "상대",
+          matches,
+          wins,
+          losses,
+          rate,
+          rateText: matches ? `${rate}%` : "-"
+        };
+      });
+    }
+
+    function getGroupMatchStatsForPlayer(player, currentGroup) {
+      const opponents = (currentGroup?.slots || []).filter(slot => slot && !slot.isEmptyLane && slot.id !== player?.id);
+      const h2h = getRecentHeadToHeadStats(player, currentGroup);
+      const matches = h2h.reduce((sum, item) => sum + item.matches, 0);
+      const wins = h2h.reduce((sum, item) => sum + item.wins, 0);
       const rateText = matches ? `${Math.round((wins / matches) * 100)}%` : "-";
-      return { opponents: opponentIds.size, matches, wins, rateText };
+      return { opponents: opponents.length, matches, wins, rateText, h2h };
     }
 
     function getTodayLaneWinRate(lane) {
@@ -5158,7 +5412,13 @@
 
     function renderPlayerMatchMetrics(player, group) {
       const stats = getGroupMatchStatsForPlayer(player, group);
-      return `<div class="slot-metrics"><span class="slot-metric">같은조 ${stats.opponents}명</span><span class="slot-metric">VS ${escapeHtml(stats.rateText)}</span></div>`;
+      const h2hRows = (stats.h2h || []).map(item => {
+        const label = item.matches
+          ? `${item.name} ${item.wins}승${item.losses}패 ${item.rateText}`
+          : `${item.name} 전적없음`;
+        return `<span class="slot-metric h2h ${item.matches ? "" : "h2h-empty"}">최근3M ${escapeHtml(label)}</span>`;
+      }).join("");
+      return `<div class="slot-metrics"><span class="slot-metric">같은조 ${stats.opponents}명</span><div class="slot-h2h-list">${h2hRows || `<span class="slot-metric h2h-empty">최근3M 상대전적 없음</span>`}</div></div>`;
     }
 
     function renderGroup(group, roundIndex, stageIndex) {
