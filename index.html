@@ -3160,6 +3160,25 @@
     }
     .history-public-row b { display:block; }
     .history-public-row span { color:var(--dim); font-size:12px; font-weight:800; }
+
+    /* v43 live lobby slots */
+    .live-lobby-card.live-recent {
+      border-color: rgba(248,213,107,.28);
+    }
+    .live-lobby-card.live-empty {
+      opacity:.55;
+      border-style:dashed;
+      background:rgba(238,233,223,.025);
+    }
+    .live-status.recent {
+      background:rgba(248,213,107,.12);
+      color:var(--gold);
+      border-color:rgba(248,213,107,.25);
+    }
+    .live-status.empty {
+      color:var(--dim);
+    }
+
     @media (max-width:760px) {
       .live-lobby-grid { grid-template-columns:1fr; }
       .history-public-row { grid-template-columns:1fr; align-items:start; }
@@ -4223,14 +4242,86 @@
     }
 
     function exportState() {
+      const tournament = {
+        ...state.tournament,
+        venueId: typeof currentVenueId === "function" ? currentVenueId() : (state.tournament?.venueId || ""),
+        venue: state.tournament?.venue || (typeof currentVenueName === "function" ? currentVenueName() : ""),
+        raceClass: typeof normalizeRaceClassName === "function" ? normalizeRaceClassName(state.tournament?.raceClass || "오픈") : (state.tournament?.raceClass || "오픈")
+      };
       return {
         settings: state.settings,
-        tournament: state.tournament,
+        tournament,
         activeRoundIndex,
         broadcast: state.broadcast,
         qualifierRounds: state.qualifierRounds,
         finalRace: state.finalRace,
         updatedAt: state.updatedAt || Date.now()
+      };
+    }
+
+    function makePublicStatePayload(sourceState = exportState()) {
+      let seq = 0;
+      const idMap = new Map();
+      const publicId = original => {
+        const key = String(original || `empty-${seq + 1}`);
+        if (!idMap.has(key)) idMap.set(key, `pub-${++seq}`);
+        return idMap.get(key);
+      };
+      const cleanPlayer = player => {
+        if (!player) return player;
+        if (player.isEmptyLane) return { id: `empty-${player.lane || ++seq}`, lane: player.lane, name: "빈 레인", team: "", isEmptyLane: true };
+        const displayName = player.nickname || player.name || player.realName || "참가자";
+        return { id: publicId(player.id || displayName), lane: player.lane, name: displayName, nickname: displayName, team: player.team || "" };
+      };
+      const cleanGroup = group => {
+        const slots = (group.slots || []).map(cleanPlayer);
+        const advanceIds = (group.advanceIds || []).map(id => idMap.get(String(id)) || publicId(id));
+        const points = {};
+        Object.entries(group.points || {}).forEach(([id, value]) => { points[idMap.get(String(id)) || publicId(id)] = value; });
+        return { ...group, slots, advanceIds, points };
+      };
+      const cleanStage = stage => ({ ...stage, groups: (stage.groups || []).map(cleanGroup) });
+      const cleanRound = round => ({
+        id: round.id,
+        index: round.index,
+        title: round.title,
+        stagePlan: round.stagePlan || [],
+        stages: (round.stages || []).map(cleanStage),
+        finalist: round.finalist ? cleanPlayer(round.finalist) : null
+      });
+      const publicTournament = {
+        name: sourceState.tournament?.name || "",
+        venue: sourceState.tournament?.venue || "",
+        venueId: sourceState.tournament?.venueId || "",
+        raceClass: normalizeRaceClassName(sourceState.tournament?.raceClass || "오픈"),
+        status: sourceState.tournament?.status || "draft",
+        startedAtISO: sourceState.tournament?.startedAtISO || "",
+        startedAtDisplay: sourceState.tournament?.startedAtDisplay || "",
+        endedAtISO: sourceState.tournament?.endedAtISO || "",
+        endedAtDisplay: sourceState.tournament?.endedAtDisplay || ""
+      };
+      return {
+        settings: sourceState.settings ? { laneCount: sourceState.settings.laneCount, matchMode: sourceState.settings.matchMode } : {},
+        tournament: publicTournament,
+        activeRoundIndex: sourceState.activeRoundIndex || 0,
+        broadcast: sourceState.broadcast || { mode: "stage", roundIndex: 0, stageIndex: 0 },
+        qualifierRounds: (sourceState.qualifierRounds || []).map(cleanRound),
+        finalRace: sourceState.finalRace ? { ...sourceState.finalRace, group: cleanGroup(sourceState.finalRace.group || {}) } : null,
+        updatedAt: sourceState.updatedAt || Date.now()
+      };
+    }
+
+    function makePublicLivePayload(sourceState = exportState()) {
+      const publicState = makePublicStatePayload(sourceState);
+      return {
+        id: getCurrentTournamentId(),
+        venueId: publicState.tournament.venueId || currentVenueId(),
+        venueName: publicState.tournament.venue || currentVenueName(),
+        tournamentName: publicState.tournament.name || "대회명 미입력",
+        raceClass: publicState.tournament.raceClass || "오픈",
+        status: publicState.tournament.status || "draft",
+        updatedAt: publicState.updatedAt || Date.now(),
+        state: publicState
       };
     }
 
@@ -4842,11 +4933,16 @@
       }
       clearTimeout(firebaseSaveTimer);
       firebaseSaveTimer = setTimeout(() => {
-        ref.child("state").set(exportState()).catch(error => {
+        const privateState = exportState();
+        privateState.updatedAt = Date.now();
+        const publicLive = makePublicLivePayload(privateState);
+        ref.child("state").set(privateState).catch(error => {
           firebaseOnline = false;
-          console.warn("Firebase save failed", error);
+          console.warn("Firebase private save failed", error);
         });
         ref.child("updatedAt").set(firebase.database.ServerValue.TIMESTAMP).catch(() => {});
+        const db = initFirebase();
+        if (db) db.ref(`${PUBLIC_LIVE_PATH}/${getCurrentTournamentId()}`).set(publicLive).catch(error => console.warn("public live save failed", error));
       }, 450);
     }
 
@@ -4887,9 +4983,9 @@
     }
 
     function watchFirebaseState(viewType) {
-      const ref = tournamentRef();
-      if (!ref) return;
-      ref.child("state").on("value", snapshot => {
+      const db = initFirebase();
+      if (!db) return;
+      db.ref(`${PUBLIC_LIVE_PATH}/${getCurrentTournamentId()}/state`).on("value", snapshot => {
         const payload = snapshot.val();
         if (!payload) return;
         if (viewType === "tv-live") {
@@ -6255,7 +6351,12 @@ function renderTvStage() {
     /* v33 login, venue roster, dashboard */
     const ADMIN_EMAILS = ["chaser.escane@gmail.com"];
     const USER_PROFILE_PATH = "userProfiles";
-    const RESULT_LOGS_PATH = "resultLogs";
+    const RESULT_LOGS_PATH = "privateResultLogs";
+    const PUBLIC_LIVE_PATH = "publicLive";
+    const PUBLIC_HISTORY_PATH = "publicHistory";
+    const PUBLIC_VENUES_PATH = "publicVenues";
+    const LIVE_LOBBY_SLOT_COUNT = 20;
+    const LIVE_STALE_MS = 3 * 60 * 60 * 1000;
     const LOCAL_RESULT_LOGS_KEY = "mini4wdResultLogsV33";
     const DB_VENUE_KEY = "mini4wdDbVenueId";
     let firebaseAuth = null;
@@ -6533,6 +6634,7 @@ function renderTvStage() {
       if (!db) return;
       db.ref(USER_PROFILE_PATH).get().then(snapshot => {
         const profiles = snapshot.val() || {};
+        syncPublicVenuesFromProfiles(profiles);
         const rows = Object.entries(profiles).sort((a,b) => String(a[1].email || "").localeCompare(String(b[1].email || "")));
         app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar"><button class="primary" onclick="location.hash=''; renderOperator();">TOURNAMENT</button>${canViewDashboard() ? `<button class="ghost" onclick="openDashboardPage()">DASHBOARD</button>` : ``}<button class="ghost" onclick="renderAdminPage()">새로고침</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section></div>`;
       }).catch(error => alert(`사용자 목록 로드 실패: ${error.message || error}`));
@@ -6923,20 +7025,54 @@ function renderTvStage() {
       downloadTextFile(`tournament_result_${Date.now()}.csv`, toCsv([headers, ...rows.map(row => headers.map(header => row[header] ?? ""))]));
     }
 
+    function makePublicRecord(record) {
+      const publicRows = (record.rows || []).map(row => ({
+        차수: row.차수 || "",
+        단계: row.단계 || "",
+        조: row.조 || "",
+        레인: row.레인 || "",
+        선수명: row.선수명 || row.닉네임 || "",
+        팀명: row.팀명 || "",
+        점수: row.점수 ?? "",
+        결과: row.결과 || "",
+        비고: row.비고 || ""
+      }));
+      const winners = publicRows.filter(row => row.결과 === "최종우승").map(row => row.선수명).filter(Boolean);
+      return {
+        id: record.id,
+        venueId: record.venueId || "",
+        venueName: record.venueName || "",
+        raceClass: normalizeRaceClassName(record.raceClass || "오픈"),
+        tournamentName: record.tournamentName || "",
+        startedAtISO: record.startedAtISO || "",
+        endedAtISO: record.endedAtISO || "",
+        createdAt: record.createdAt || new Date().toISOString(),
+        mode: record.mode || "",
+        laneCount: record.laneCount || 3,
+        participantCount: new Set(publicRows.filter(row => row.결과 !== "빈 레인").map(row => `${row.선수명}|${row.팀명}`)).size,
+        winners,
+        rows: publicRows
+      };
+    }
+
     function makeTournamentRecord() {
       ensureStateDefaults();
       const id = state.tournament.recordId || state.tournament.id || `record-${Date.now()}`;
       state.tournament.recordId = id;
-      return { id, venueId: currentVenueId(), venueName: state.tournament.venue || currentVenueName(), raceClass: normalizeRaceClassName(state.tournament.raceClass), tournamentName: state.tournament.name || "", startedAtISO: state.tournament.startedAtISO || "", endedAtISO: state.tournament.endedAtISO || "", createdAt: new Date().toISOString(), mode: state.settings.matchMode, laneCount: state.settings.laneCount, rows: getStageResultRows().map(row => ({ ...row, 연락처: "" })) };
+      return { id, venueId: currentVenueId(), venueName: state.tournament.venue || currentVenueName(), raceClass: normalizeRaceClassName(state.tournament.raceClass), tournamentName: state.tournament.name || "", startedAtISO: state.tournament.startedAtISO || "", endedAtISO: state.tournament.endedAtISO || "", createdAt: new Date().toISOString(), mode: state.settings.matchMode, laneCount: state.settings.laneCount, rows: getStageResultRows() };
     }
 
     function saveTournamentRecord() {
       const record = makeTournamentRecord();
+      const publicRecord = makePublicRecord(record);
       const local = loadLocalResultLogs().filter(item => item.id !== record.id);
       local.push(record);
       localStorage.setItem(LOCAL_RESULT_LOGS_KEY, JSON.stringify(local));
       const db = initFirebase();
-      if (db && currentAuthUser) db.ref(`${RESULT_LOGS_PATH}/${record.id}`).set(record).catch(error => console.warn("result log save failed", error));
+      if (db && currentAuthUser) {
+        db.ref(`${RESULT_LOGS_PATH}/${record.venueId}/${record.id}`).set(record).catch(error => console.warn("private result log save failed", error));
+        db.ref(`${PUBLIC_HISTORY_PATH}/${record.id}`).set(publicRecord).catch(error => console.warn("public history save failed", error));
+      }
     }
 
     function loadLocalResultLogs() {
@@ -7105,16 +7241,127 @@ function renderTvStage() {
 
     function liveStatusLabel(status) {
       if (status === "running") return "LIVE ON";
-      if (status === "finished" || status === "archived") return "종료";
+      if (status === "recent") return "최근 종료";
+      if (status === "stale") return "대기중";
+      if (status === "empty") return "빈 슬롯";
+      if (status === "finished" || status === "archived") return "최근 종료";
       return "대기중";
     }
 
     function getRecordWinnerText(record) {
       const rows = record?.rows || [];
-      const winners = rows.filter(row => row.결과 === "최종우승").map(row => row.선수명 || row.닉네임 || row.실명).filter(Boolean);
+      const winners = rows.filter(row => row.결과 === "최종우승").map(row => row.선수명 || row.닉네임).filter(Boolean);
       if (winners.length) return winners.join(", ");
-      const advanced = rows.filter(row => ["최종결승진출", "진출"].includes(row.결과)).map(row => row.선수명 || row.닉네임 || row.실명).filter(Boolean).slice(0, 3);
+      const advanced = rows.filter(row => ["최종결승진출", "진출"].includes(row.결과)).map(row => row.선수명 || row.닉네임).filter(Boolean).slice(0, 3);
       return advanced.length ? advanced.join(", ") : "결과 기록 없음";
+    }
+
+    function buildPublicVenuesFromProfiles(profiles = {}) {
+      const map = new Map();
+      Object.values(profiles || {}).forEach(profile => {
+        const flags = profilePermissionFlags(profile);
+        const venueName = String(profile?.venueName || "").trim();
+        const venueId = String(profile?.venueId || normalizeKey(venueName)).trim();
+        if (!venueName || !venueId || flags.role !== "venue" || !flags.approved || flags.suspended) return;
+        if (!map.has(venueId)) map.set(venueId, { venueId, venueName, source: "approved-account", updatedAt: profile.approvedAt || profile.requestedAt || "" });
+      });
+      return Array.from(map.values()).sort((a, b) => String(a.venueName).localeCompare(String(b.venueName), "ko"));
+    }
+
+    function syncPublicVenuesFromProfiles(profiles = {}) {
+      if (!isAdminUser()) return;
+      const db = initFirebase();
+      if (!db) return;
+      const venues = buildPublicVenuesFromProfiles(profiles);
+      const payload = Object.fromEntries(venues.map(venue => [venue.venueId, venue]));
+      db.ref(PUBLIC_VENUES_PATH).set(payload).catch(error => console.warn("public venue sync failed", error));
+    }
+
+    function normalizePublicVenues(raw = {}) {
+      if (!raw || typeof raw !== "object") return [];
+      return Object.entries(raw).map(([id, item]) => ({
+        venueId: item?.venueId || id,
+        venueName: item?.venueName || id,
+        source: item?.source || "public-venue",
+        updatedAt: item?.updatedAt || ""
+      })).filter(item => item.venueId && item.venueName);
+    }
+
+    function toTimeValue(value) {
+      if (!value) return 0;
+      if (typeof value === "number") return value;
+      const parsed = Date.parse(value);
+      return Number.isFinite(parsed) ? parsed : Number(value) || 0;
+    }
+
+    function effectiveLiveStatus(item = {}) {
+      const status = item.status || "draft";
+      const updatedAt = toTimeValue(item.updatedAt);
+      if (status === "running" && updatedAt && Date.now() - updatedAt <= LIVE_STALE_MS) return "running";
+      if (status === "running") return "stale";
+      if (status === "finished" || status === "archived") return "recent";
+      return "waiting";
+    }
+
+    function normalizeRecentTime(record = {}) {
+      return toTimeValue(record.endedAtISO || record.createdAt || record.startedAtISO);
+    }
+
+    function buildLobbySlots(venues = [], tournaments = [], records = []) {
+      const venueMap = new Map();
+      venues.forEach(venue => {
+        if (!venue?.venueId) return;
+        venueMap.set(venue.venueId, { venueId: venue.venueId, venueName: venue.venueName || venue.venueId, approved: true });
+      });
+      tournaments.forEach(item => {
+        if (!item?.venueId) return;
+        if (!venueMap.has(item.venueId)) venueMap.set(item.venueId, { venueId: item.venueId, venueName: item.venueName || item.venueId, approved: false });
+      });
+
+      const liveByVenue = new Map();
+      tournaments.forEach(item => {
+        const key = item.venueId || item.venueName;
+        const current = liveByVenue.get(key);
+        if (!current || toTimeValue(item.updatedAt) > toTimeValue(current.updatedAt)) liveByVenue.set(key, item);
+      });
+
+      const latestRecordByVenue = new Map();
+      records.forEach(record => {
+        const key = record.venueId || normalizeKey(record.venueName || "");
+        if (!key) return;
+        const current = latestRecordByVenue.get(key);
+        if (!current || normalizeRecentTime(record) > normalizeRecentTime(current)) latestRecordByVenue.set(key, record);
+      });
+
+      const cards = Array.from(venueMap.values()).map(venue => {
+        const liveItem = liveByVenue.get(venue.venueId);
+        const recentRecord = latestRecordByVenue.get(venue.venueId);
+        const status = liveItem ? effectiveLiveStatus(liveItem) : recentRecord ? "recent" : "waiting";
+        const recentAt = recentRecord ? normalizeRecentTime(recentRecord) : 0;
+        const updatedAt = liveItem ? toTimeValue(liveItem.updatedAt) : recentAt;
+        return {
+          id: liveItem?.id || "",
+          venueId: venue.venueId,
+          venueName: venue.venueName,
+          tournamentName: liveItem?.tournamentName || recentRecord?.tournamentName || "대기중",
+          raceClass: normalizeRaceClassName(liveItem?.raceClass || recentRecord?.raceClass || ""),
+          status,
+          updatedAt,
+          recentAt,
+          approved: venue.approved
+        };
+      });
+
+      cards.sort((a, b) => {
+        const rank = item => item.status === "running" ? 0 : (item.updatedAt || item.recentAt) ? 1 : 2;
+        return rank(a) - rank(b) || Number(b.updatedAt || b.recentAt || 0) - Number(a.updatedAt || a.recentAt || 0) || String(a.venueName).localeCompare(String(b.venueName), "ko");
+      });
+
+      const slots = cards.slice(0, LIVE_LOBBY_SLOT_COUNT);
+      while (slots.length < LIVE_LOBBY_SLOT_COUNT) {
+        slots.push({ empty: true, venueId: `empty-${slots.length + 1}`, venueName: `빈 슬롯 ${slots.length + 1}`, tournamentName: "경기장 계정 승인 시 자동 표시", raceClass: "", status: "empty", updatedAt: 0 });
+      }
+      return slots;
     }
 
     function normalizeLobbyTournaments(raw = {}) {
@@ -7136,32 +7383,35 @@ function renderTvStage() {
       }).sort((a, b) => (b.status === "running") - (a.status === "running") || Number(b.updatedAt || 0) - Number(a.updatedAt || 0));
     }
 
-    function renderLiveLobbyWithData(tournaments = [], records = []) {
+    function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
       document.body.classList.remove("tv-mode");
-      const activeByVenue = new Map();
-      tournaments.forEach(item => {
-        const key = item.venueId || item.venueName;
-        const current = activeByVenue.get(key);
-        if (!current || item.status === "running" || Number(item.updatedAt || 0) > Number(current.updatedAt || 0)) activeByVenue.set(key, item);
-      });
-      const venueCards = Array.from(activeByVenue.values());
-      const recent = [...records].sort((a,b) => String(b.endedAtISO || b.createdAt || "").localeCompare(String(a.endedAtISO || a.createdAt || ""))).slice(0, 12);
-      app.innerHTML = `<div class="mobile-view"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">LIVE LOBBY</div></div><h1>경기장 LIVE</h1><p class="desc">경기장을 선택하면 현재 진행 중인 모바일 대진표로 이동합니다.</p></div>${logoMarkup("header-logo")}</header><section class="card"><div class="db-panel-title"><h2>경기장별 LIVE 상태</h2><button class="ghost" onclick="renderLiveLobbyPage()">새로고침</button></div><div class="live-lobby-grid">${venueCards.map(item => { const live = item.status === "running"; return `<article class="live-lobby-card ${live ? "live-on" : ""}"><span class="live-status ${live ? "on" : ""}">${liveStatusLabel(item.status)}</span><h3>${escapeHtml(item.venueName)}</h3><div class="live-lobby-meta">${escapeHtml(item.tournamentName)}<br>${escapeHtml(item.raceClass)} · ${item.updatedAt ? new Date(item.updatedAt).toLocaleString("ko-KR") : "업데이트 없음"}</div><button class="${live ? "primary" : "ghost"}" ${live ? "" : "disabled"} onclick="location.hash='view=mobile-live&t=${encodeURIComponent(item.id)}'; bootV33();">대진표 보기</button></article>`; }).join("") || `<div class="hint">표시할 경기장이 없습니다.</div>`}</div></section><section class="card"><h2>최근 경기 히스토리</h2><div class="history-public-list">${recent.map(record => `<div class="history-public-row"><div><b>${escapeHtml(record.venueName || record.venueId || "경기장")}</b><span>${escapeHtml(normalizeRaceClassName(record.raceClass))}</span></div><div><b>${escapeHtml(record.tournamentName || "대회명 미입력")}</b><span>${escapeHtml(record.endedAtISO ? new Date(record.endedAtISO).toLocaleString("ko-KR") : record.createdAt ? new Date(record.createdAt).toLocaleString("ko-KR") : "")}</span></div><div><b>${escapeHtml(getRecordWinnerText(record))}</b><span>우승/상위 결과</span></div></div>`).join("") || `<div class="hint">최근 경기 기록이 없습니다.</div>`}</div></section></div>`;
+      const venueCards = buildLobbySlots(venues, tournaments, records);
+      const recent = [...records].sort((a,b) => normalizeRecentTime(b) - normalizeRecentTime(a)).slice(0, 12);
+      app.innerHTML = `<div class="mobile-view"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">LIVE LOBBY</div></div><h1>경기장 LIVE</h1><p class="desc">LIVE ON 경기장을 선택하면 현재 모바일 대진표로 이동합니다. 3시간 이상 갱신이 없으면 자동 대기중으로 표시됩니다.</p></div>${logoMarkup("header-logo")}</header><section class="card"><div class="db-panel-title"><div><h2>경기장별 LIVE 상태</h2><div class="meta">승인된 경기장 계정 기준 20개 슬롯</div></div><button class="ghost" onclick="renderLiveLobbyPage()">새로고침</button></div><div class="live-lobby-grid">${venueCards.map(item => { const live = item.status === "running"; const recentClass = item.status === "recent" || item.status === "stale" ? "live-recent" : ""; const emptyClass = item.empty ? "live-empty" : ""; const timeText = item.updatedAt ? new Date(item.updatedAt).toLocaleString("ko-KR") : "업데이트 없음"; return `<article class="live-lobby-card ${live ? "live-on" : ""} ${recentClass} ${emptyClass}"><span class="live-status ${live ? "on" : item.status === "recent" || item.status === "stale" ? "recent" : item.status === "empty" ? "empty" : ""}">${liveStatusLabel(item.status)}</span><h3>${escapeHtml(item.venueName)}</h3><div class="live-lobby-meta">${escapeHtml(item.tournamentName)}<br>${item.raceClass ? `${escapeHtml(item.raceClass)} · ` : ""}${escapeHtml(timeText)}</div><button class="${live ? "primary" : "ghost"}" ${live ? "" : "disabled"} onclick="location.hash='view=mobile-live&t=${encodeURIComponent(item.id)}'; bootV33();">대진표 보기</button></article>`; }).join("")}</div></section><section class="card"><h2>최근 경기 히스토리</h2><div class="history-public-list">${recent.map(record => `<div class="history-public-row"><div><b>${escapeHtml(record.venueName || record.venueId || "경기장")}</b><span>${escapeHtml(normalizeRaceClassName(record.raceClass))}</span></div><div><b>${escapeHtml(record.tournamentName || "대회명 미입력")}</b><span>${escapeHtml(record.endedAtISO ? new Date(record.endedAtISO).toLocaleString("ko-KR") : record.createdAt ? new Date(record.createdAt).toLocaleString("ko-KR") : "")}</span></div><div><b>${escapeHtml(getRecordWinnerText(record))}</b><span>우승/상위 결과</span></div></div>`).join("") || `<div class="hint">최근 경기 기록이 없습니다.</div>`}</div></section></div>`;
     }
 
     function renderLiveLobbyPage() {
       document.body.classList.remove("tv-mode");
       app.innerHTML = `<div class="mobile-view"><div class="empty"><div><h2>LIVE 로비 불러오는 중</h2></div></div></div>`;
       const db = initFirebase();
-      if (!db) { renderLiveLobbyWithData([], loadLocalResultLogs()); return; }
+      if (!db) { renderLiveLobbyWithData([], loadLocalResultLogs().map(makePublicRecord), []); return; }
       Promise.all([
-        db.ref("tournaments").get().catch(() => ({ val: () => ({}) })),
-        db.ref(RESULT_LOGS_PATH).get().catch(() => ({ val: () => ({}) }))
-      ]).then(([tSnap, rSnap]) => {
+        db.ref(PUBLIC_LIVE_PATH).get().catch(() => ({ val: () => ({}) })),
+        db.ref(PUBLIC_HISTORY_PATH).get().catch(() => ({ val: () => ({}) })),
+        db.ref(PUBLIC_VENUES_PATH).get().catch(() => ({ val: () => ({}) }))
+      ]).then(([tSnap, rSnap, vSnap]) => {
         const tournaments = normalizeLobbyTournaments(tSnap.val() || {});
-        const records = rSnap.val() ? Object.values(rSnap.val()) : loadLocalResultLogs();
-        renderLiveLobbyWithData(tournaments, records);
-      }).catch(() => renderLiveLobbyWithData([], loadLocalResultLogs()));
+        const records = rSnap.val() ? Object.values(rSnap.val()) : loadLocalResultLogs().map(makePublicRecord);
+        const venues = normalizePublicVenues(vSnap.val() || {});
+        renderLiveLobbyWithData(tournaments, records, venues);
+      }).catch(() => renderLiveLobbyWithData([], loadLocalResultLogs().map(makePublicRecord), []));
+    }
+
+    function flattenPrivateResultLogs(raw = {}) {
+      if (!raw || typeof raw !== "object") return [];
+      const values = Object.values(raw);
+      if (values.some(item => item && typeof item === "object" && Array.isArray(item.rows))) return values;
+      return Object.values(raw).flatMap(venueBucket => venueBucket && typeof venueBucket === "object" ? Object.values(venueBucket) : []).filter(item => item && typeof item === "object");
     }
 
     function renderDashboardPage() {
@@ -7175,8 +7425,9 @@ function renderTvStage() {
       const profilePromise = isAdminUser()
         ? db.ref(USER_PROFILE_PATH).get().then(s => s.val() || {}).catch(() => ({}))
         : Promise.resolve(currentUserProfile ? { [currentUserProfile.uid || currentAuthUser.uid]: currentUserProfile } : {});
-      Promise.all([db.ref(RESULT_LOGS_PATH).get(), profilePromise]).then(([snapshot, profiles]) => {
-        const cloud = snapshot.val() ? Object.values(snapshot.val()) : [];
+      const logsRef = isAdminUser() ? db.ref(RESULT_LOGS_PATH) : db.ref(`${RESULT_LOGS_PATH}/${currentVenueId()}`);
+      Promise.all([logsRef.get(), profilePromise]).then(([snapshot, profiles]) => {
+        const cloud = isAdminUser() ? flattenPrivateResultLogs(snapshot.val() || {}) : Object.values(snapshot.val() || {});
         const merged = [...local, ...cloud].filter((item, idx, arr) => arr.findIndex(x => x.id === item.id) === idx);
         window.__dashboardProfiles = profiles || {};
         window.__dashboardRecords = merged;
