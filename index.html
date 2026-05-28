@@ -3228,6 +3228,114 @@
       .final-lane-tools { justify-content:flex-start; }
     }
 
+
+    /* v49 live lobby realtime + button UI stabilization */
+    .btnrow.mode-row.three {
+      display: grid !important;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      gap: 10px !important;
+    }
+    .btnrow.mode-row button {
+      min-height: 52px !important;
+      border-radius: 16px !important;
+      font-size: 14px !important;
+      font-weight: 1000 !important;
+      letter-spacing: -.01em;
+    }
+    .btnrow.mode-row .crow-mode-btn {
+      width: 100%;
+      min-height: 62px !important;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      font-size: 14px !important;
+    }
+    .btnrow.mode-row .crow-mode-btn span { line-height: 1.1; }
+    .btnrow.mode-row .crow-mode-btn strong { display:block; font-size: 17px; letter-spacing: .08em; }
+    .live-lobby-shell { display:grid; gap: 14px; }
+    .live-lobby-topbar {
+      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      margin: 0 0 12px;
+    }
+    .live-lobby-summary { display:flex; gap:8px; flex-wrap:wrap; }
+    .live-lobby-summary .pill { background:rgba(238,233,223,.06); }
+    .live-lobby-grid {
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .live-lobby-card {
+      position:relative;
+      display:grid;
+      grid-template-rows:auto 1fr auto;
+      min-height: 180px;
+      padding: 16px;
+      border-radius: 22px;
+      border: 1px solid rgba(238,233,223,.09);
+      background: linear-gradient(180deg, rgba(14,27,21,.92), rgba(7,16,13,.92));
+      box-shadow: 0 14px 32px rgba(0,0,0,.22);
+      overflow:hidden;
+    }
+    .live-lobby-card.live-on {
+      border-color: rgba(52,211,153,.48);
+      background: linear-gradient(180deg, rgba(18,58,43,.96), rgba(7,24,18,.96));
+      box-shadow: 0 18px 46px rgba(52,211,153,.12);
+    }
+    .live-lobby-card.live-recent { border-color: rgba(251,191,36,.25); }
+    .live-lobby-card.live-empty { opacity:.58; border-style:dashed; }
+    .live-lobby-card h3 {
+      margin: 10px 0 8px;
+      font-size: 19px;
+      line-height: 1.22;
+      word-break: keep-all;
+    }
+    .live-lobby-meta { color: var(--muted); font-size: 12px; line-height:1.52; min-height: 54px; }
+    .live-status {
+      width:max-content;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(238,233,223,.08);
+      background:rgba(238,233,223,.05);
+      font-size: 11px;
+      font-weight: 1000;
+      letter-spacing:.04em;
+    }
+    .live-status.on { color:#04130d; background:#34d399; border-color:#34d399; }
+    .live-status.recent { color:#2b1d04; background:#fbbf24; border-color:#fbbf24; }
+    .live-status.empty { color:var(--dim); background:rgba(238,233,223,.035); }
+    .live-lobby-card button { width:100%; min-height:42px; margin-top: 12px; border-radius:14px; }
+    .live-lobby-card button[disabled] { opacity:.45; cursor:not-allowed; }
+    .history-public-list { display:grid; gap:8px; }
+    .history-public-row {
+      display:grid;
+      grid-template-columns: .9fr 1.2fr 1fr;
+      gap:10px;
+      padding:12px;
+      border:1px solid rgba(238,233,223,.08);
+      border-radius:16px;
+      background:rgba(238,233,223,.03);
+    }
+    .history-public-row b { display:block; color:var(--text); font-size:13px; }
+    .history-public-row span { display:block; color:var(--dim); font-size:11px; margin-top:2px; }
+    @media (max-width: 1080px) {
+      .live-lobby-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 760px) {
+      .btnrow.mode-row.three { grid-template-columns: 1fr !important; }
+      .btnrow.mode-row button { min-height: 48px !important; }
+      .live-lobby-grid { grid-template-columns: 1fr; gap:10px; }
+      .live-lobby-card { min-height: 148px; padding:14px; }
+      .live-lobby-card h3 { font-size:18px; }
+      .history-public-row { grid-template-columns:1fr; }
+      .live-lobby-topbar { display:grid; grid-template-columns:1fr; }
+      .live-lobby-topbar button { width:100%; }
+    }
+
   </style>
 </head>
 <body>
@@ -4551,7 +4659,7 @@
                   <button class="${state.settings.matchMode === 'revival' ? "active" : ""}" onclick="setMatchMode('revival')">패자부활</button>
                 </div>
                 <div class="btnrow mode-row" style="margin-top:-8px;">
-                  <button class="${state.settings.matchMode === 'crow' ? "active" : ""}" onclick="setMatchMode('crow')">기본 토너먼트 CROW</button>
+                  <button class="crow-mode-btn ${state.settings.matchMode === 'crow' ? "active" : ""}" onclick="setMatchMode('crow')"><span>기본 토너먼트</span><strong>CROW</strong></button>
                 </div>
                 ${state.settings.matchMode === 'crow' ? `<p class="hint">CROW: 각 라운드 결승에서 1~3위를 확정하고, 9명으로 최종 준결 > 결승을 진행합니다.</p>` : ""}
 
@@ -7007,9 +7115,8 @@ function renderTvStage() {
         if (viewType === "mobile-live") { renderTvSnapshot(payload, "mobile"); return; }
       });
     }
+    /* boot deferred to v49 final call */
 
-
-    bootV33();
     }
 
     function goBack() {
@@ -7392,9 +7499,8 @@ function renderTvStage() {
         if (viewType === "mobile-live") { renderTvSnapshot(payload, "mobile"); return; }
       });
     }
+    /* boot deferred to v49 final call */
 
-
-    bootV33();
       } catch (error) {
         alert(`로그인 실패: ${error.message || error}`);
       }
@@ -8708,9 +8814,182 @@ function renderTvStage() {
         if (viewType === "mobile-live") { renderTvSnapshot(payload, "mobile"); return; }
       });
     }
+    /* boot deferred to v49 final call */
 
 
+
+    /* v49 live lobby realtime + final stabilization overrides */
+    let __liveLobbyRefsV49 = [];
+    let __watchRefsV49 = [];
+
+    function stopLiveLobbyRealtimeV49() {
+      (__liveLobbyRefsV49 || []).forEach(item => {
+        try { item.ref.off("value", item.cb); } catch (error) {}
+      });
+      __liveLobbyRefsV49 = [];
+    }
+
+    function stopPublicLiveWatchV49() {
+      (__watchRefsV49 || []).forEach(item => {
+        try { item.ref.off("value", item.cb); } catch (error) {}
+      });
+      __watchRefsV49 = [];
+    }
+
+    function mergeVenueArraysV49(...arrays) {
+      const map = new Map();
+      arrays.flat().forEach(item => {
+        if (!item) return;
+        const name = String(item.venueName || item.name || item.displayName || item.venueId || "").trim();
+        const id = String(item.venueId || item.id || normalizeKey(name) || "").trim();
+        if (!name && !id) return;
+        if (id === "all" || name === "전체") return;
+        const key = normalizeKey(name || id);
+        const current = map.get(key) || { venueId: id || key, venueName: name || id, updatedAt: item.updatedAt || "" };
+        current.venueId = current.venueId || id || key;
+        current.venueName = name || current.venueName || id;
+        current.updatedAt = item.updatedAt || current.updatedAt || "";
+        map.set(key, current);
+      });
+      return Array.from(map.values()).sort((a,b)=>String(a.venueName).localeCompare(String(b.venueName), "ko"));
+    }
+
+    function buildLobbySlots(venues = [], tournaments = [], records = []) {
+      const venueMap = new Map();
+      const venueKey = item => normalizeKey(item?.venueName || item?.venueId || "");
+      venues.forEach(venue => {
+        const key = venueKey(venue);
+        if (!key) return;
+        venueMap.set(key, { venueId: venue.venueId || key, venueName: venue.venueName || venue.venueId || key, approved: true });
+      });
+      tournaments.forEach(item => {
+        const key = venueKey(item);
+        if (!key) return;
+        if (!venueMap.has(key)) venueMap.set(key, { venueId: item.venueId || key, venueName: item.venueName || item.venueId || key, approved: false });
+      });
+      records.forEach(record => {
+        const key = venueKey(record);
+        if (!key) return;
+        if (!venueMap.has(key)) venueMap.set(key, { venueId: record.venueId || key, venueName: record.venueName || record.venueId || key, approved: false });
+      });
+
+      const liveByVenue = new Map();
+      tournaments.forEach(item => {
+        const key = venueKey(item);
+        if (!key) return;
+        const current = liveByVenue.get(key);
+        if (!current || toTimeValue(item.updatedAt) > toTimeValue(current.updatedAt)) liveByVenue.set(key, item);
+      });
+
+      const latestRecordByVenue = new Map();
+      records.forEach(record => {
+        const key = venueKey(record);
+        if (!key) return;
+        const current = latestRecordByVenue.get(key);
+        if (!current || normalizeRecentTime(record) > normalizeRecentTime(current)) latestRecordByVenue.set(key, record);
+      });
+
+      const cards = Array.from(venueMap.entries()).map(([key, venue]) => {
+        const liveItem = liveByVenue.get(key);
+        const recentRecord = latestRecordByVenue.get(key);
+        const status = liveItem ? effectiveLiveStatus(liveItem) : recentRecord ? "recent" : "waiting";
+        const recentAt = recentRecord ? normalizeRecentTime(recentRecord) : 0;
+        const updatedAt = liveItem ? toTimeValue(liveItem.updatedAt) : recentAt;
+        return {
+          id: liveItem?.id || "",
+          venueId: venue.venueId,
+          venueName: venue.venueName,
+          tournamentName: liveItem?.tournamentName || recentRecord?.tournamentName || "대기중",
+          raceClass: normalizeRaceClassName(liveItem?.raceClass || recentRecord?.raceClass || ""),
+          status,
+          updatedAt,
+          recentAt,
+          approved: venue.approved
+        };
+      });
+
+      cards.sort((a, b) => {
+        const rank = item => item.status === "running" ? 0 : (item.updatedAt || item.recentAt) ? 1 : 2;
+        return rank(a) - rank(b) || Number(b.updatedAt || b.recentAt || 0) - Number(a.updatedAt || a.recentAt || 0) || String(a.venueName).localeCompare(String(b.venueName), "ko");
+      });
+
+      const slots = cards.slice(0, LIVE_LOBBY_SLOT_COUNT);
+      while (slots.length < LIVE_LOBBY_SLOT_COUNT) {
+        slots.push({ empty: true, venueId: `empty-${slots.length + 1}`, venueName: `빈 슬롯 ${slots.length + 1}`, tournamentName: "경기장 계정 승인 시 자동 표시", raceClass: "", status: "empty", updatedAt: 0 });
+      }
+      return slots;
+    }
+
+    function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
+      document.body.classList.remove("tv-mode");
+      const venueCards = buildLobbySlots(venues, tournaments, records);
+      const recent = [...records].sort((a,b) => normalizeRecentTime(b) - normalizeRecentTime(a)).slice(0, 12);
+      const liveCount = venueCards.filter(item => item.status === "running").length;
+      const recentCount = venueCards.filter(item => item.status === "recent" || item.status === "stale").length;
+      const waitingCount = venueCards.filter(item => item.status === "waiting").length;
+      const nowText = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+      const cardHtml = venueCards.map(item => {
+        const live = item.status === "running";
+        const recentState = item.status === "recent" || item.status === "stale";
+        const empty = item.empty || item.status === "empty";
+        const timeText = item.updatedAt ? new Date(item.updatedAt).toLocaleString("ko-KR") : "업데이트 없음";
+        const metaLine = empty ? item.tournamentName : `${item.tournamentName}<br>${item.raceClass ? `${escapeHtml(item.raceClass)} · ` : ""}${escapeHtml(timeText)}`;
+        return `<article class="live-lobby-card ${live ? "live-on" : ""} ${recentState ? "live-recent" : ""} ${empty ? "live-empty" : ""}"><div><span class="live-status ${live ? "on" : recentState ? "recent" : empty ? "empty" : ""}">${liveStatusLabel(item.status)}</span><h3>${escapeHtml(item.venueName)}</h3><div class="live-lobby-meta">${metaLine}</div></div><button class="${live ? "primary" : "ghost"}" ${live ? "" : "disabled"} onclick="location.hash='view=mobile-live&t=${encodeURIComponent(item.id)}'; bootV33();">${live ? "대진표 보기" : "대기중"}</button></article>`;
+      }).join("");
+      const historyHtml = recent.map(record => `<div class="history-public-row"><div><b>${escapeHtml(record.venueName || record.venueId || "경기장")}</b><span>${escapeHtml(normalizeRaceClassName(record.raceClass))}</span></div><div><b>${escapeHtml(record.tournamentName || "대회명 미입력")}</b><span>${escapeHtml(record.endedAtISO ? new Date(record.endedAtISO).toLocaleString("ko-KR") : record.createdAt ? new Date(record.createdAt).toLocaleString("ko-KR") : "")}</span></div><div><b>${escapeHtml(getRecordWinnerText(record))}</b><span>우승/상위 결과</span></div></div>`).join("");
+      app.innerHTML = `<div class="mobile-view live-lobby-shell"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">LIVE LOBBY</div></div><h1>경기장 LIVE</h1><p class="desc">LIVE ON 경기장을 선택하면 현재 모바일 대진표로 이동합니다. 3시간 이상 갱신이 없으면 자동 대기중으로 표시됩니다.</p></div>${logoMarkup("header-logo")}</header><section class="card"><div class="live-lobby-topbar"><div><h2 style="margin:0 0 6px;">경기장별 LIVE 상태</h2><div class="meta">승인된 경기장 계정 기준 20개 슬롯 · 실시간 반영 · ${escapeHtml(nowText)} 기준</div></div><button class="ghost" onclick="renderLiveLobbyPage()">새로고침</button></div><div class="live-lobby-summary"><span class="pill">LIVE ${liveCount}</span><span class="pill">최근/종료 ${recentCount}</span><span class="pill">대기 ${waitingCount}</span></div><div class="live-lobby-grid" style="margin-top:12px;">${cardHtml}</div></section><section class="card"><h2>최근 경기 히스토리</h2><div class="history-public-list">${historyHtml || `<div class="hint">최근 경기 기록이 없습니다.</div>`}</div></section></div>`;
+    }
+
+    function renderLiveLobbyPage() {
+      document.body.classList.remove("tv-mode");
+      stopPublicLiveWatchV49();
+      app.innerHTML = `<div class="mobile-view"><div class="empty"><div><h2>LIVE 로비 불러오는 중</h2><p>경기장 LIVE 상태를 실시간으로 연결합니다.</p></div></div></div>`;
+      const db = initFirebase();
+      if (!db) { renderLiveLobbyWithData([], loadLocalResultLogs().map(makePublicRecord), []); return; }
+      stopLiveLobbyRealtimeV49();
+      const cache = { live: {}, history: {}, venues: {}, directory: {} };
+      const draw = () => {
+        const tournaments = normalizeLobbyTournaments(cache.live || {});
+        const records = cache.history ? Object.values(cache.history) : loadLocalResultLogs().map(makePublicRecord);
+        const venues = mergeVenueArraysV49(normalizePublicVenues(cache.venues || {}), normalizePublicVenues(cache.directory || {}));
+        renderLiveLobbyWithData(tournaments, records, venues);
+      };
+      const bind = (key, path) => {
+        const ref = db.ref(path);
+        const cb = snapshot => { cache[key] = snapshot.val() || {}; draw(); };
+        ref.on("value", cb, error => { console.warn(`live lobby ${path} watch failed`, error); cache[key] = {}; draw(); });
+        __liveLobbyRefsV49.push({ ref, cb });
+      };
+      bind("live", PUBLIC_LIVE_PATH);
+      bind("history", PUBLIC_HISTORY_PATH);
+      bind("venues", PUBLIC_VENUES_PATH);
+      if (typeof PUBLIC_VENUE_DIRECTORY_PATH !== "undefined") bind("directory", PUBLIC_VENUE_DIRECTORY_PATH);
+    }
+
+    function watchFirebaseState(viewType) {
+      const db = initFirebase();
+      if (!db) return;
+      stopLiveLobbyRealtimeV49();
+      stopPublicLiveWatchV49();
+      const tournamentId = getCurrentTournamentId();
+      let received = false;
+      const ref = db.ref(`${PUBLIC_LIVE_PATH}/${tournamentId}/state`);
+      const fallback = viewType === "mobile-live" ? setTimeout(() => { if (!received) renderLiveLobbyPage(); }, 4500) : null;
+      const cb = snapshot => {
+        const payload = snapshot.val();
+        if (!payload) return;
+        received = true;
+        if (fallback) clearTimeout(fallback);
+        if (viewType === "tv-live") { tvState = payload; document.body.classList.add("tv-mode"); renderTvStage(); return; }
+        if (viewType === "mobile-live") { renderTvSnapshot(payload, "mobile"); return; }
+      };
+      ref.on("value", cb, error => { console.warn("public live watch failed", error); if (viewType === "mobile-live") renderLiveLobbyPage(); });
+      __watchRefsV49.push({ ref, cb });
+    }
+
+    /* v49 single boot call */
     bootV33();
+
   </script>
 </body>
 </html>
