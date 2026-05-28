@@ -4547,8 +4547,8 @@
                 <label>경기 방식</label>
                 <div class="btnrow mode-row three">
                   <button class="${state.settings.matchMode === 'basic' ? "active" : ""}" onclick="setMatchMode('basic')">기본 토너먼트</button>
-                  <button class="ghost" disabled title="추가 예정">추가 예정</button>
-                  <button class="ghost" disabled title="추가 예정">추가 예정</button>
+                  <button class="${state.settings.matchMode === 'points' ? "active" : ""}" onclick="setMatchMode('points')">포인트전</button>
+                  <button class="${state.settings.matchMode === 'revival' ? "active" : ""}" onclick="setMatchMode('revival')">패자부활</button>
                 </div>
                 <div class="btnrow mode-row" style="margin-top:-8px;">
                   <button class="${state.settings.matchMode === 'crow' ? "active" : ""}" onclick="setMatchMode('crow')">기본 토너먼트 CROW</button>
@@ -6545,6 +6545,7 @@ function renderTvStage() {
     const PUBLIC_LIVE_PATH = "publicLive";
     const PUBLIC_HISTORY_PATH = "publicHistory";
     const PUBLIC_VENUES_PATH = "publicVenues";
+    const PUBLIC_VENUE_DIRECTORY_PATH = "publicVenueDirectory";
     const LIVE_LOBBY_SLOT_COUNT = 20;
     const LIVE_STALE_MS = 3 * 60 * 60 * 1000;
     const OPERATION_LOCK_PATH = "operationLocks";
@@ -6700,14 +6701,13 @@ function renderTvStage() {
       return {
         basic: "기본 토너먼트",
         crow: "기본 토너먼트 CROW",
-        points: "추가 예정",
-        revival: "추가 예정"
+        points: "1라운드 포인트전",
+        revival: "패자부활 토너먼트"
       }[mode] || "기본 토너먼트";
     }
 
     function setMatchMode(mode) {
       ensureStateDefaults();
-      if (["points", "revival"].includes(mode)) return alert("해당 경기 방식은 추가 예정입니다.");
       if (isTournamentLocked() && !confirm("대회가 시작/종료된 상태입니다. 경기 방식을 바꾸면 기록이 꼬일 수 있습니다. 계속할까요?")) return;
       if (state.qualifierRounds.some(round => round.stages.length) || state.finalRace) {
         if (!confirm("경기 방식을 바꾸면 현재 대진표가 라운드 초기화됩니다. 계속할까요?")) return;
@@ -7086,14 +7086,13 @@ function renderTvStage() {
       return {
         basic: "기본 토너먼트",
         crow: "기본 토너먼트 CROW",
-        points: "추가 예정",
-        revival: "추가 예정"
+        points: "1라운드 포인트전",
+        revival: "패자부활 토너먼트"
       }[mode] || "기본 토너먼트";
     }
 
     function setMatchMode(mode) {
       ensureStateDefaults();
-      if (["points", "revival"].includes(mode)) return alert("해당 경기 방식은 추가 예정입니다.");
       if (isTournamentLocked() && !confirm("대회가 시작/종료된 상태입니다. 경기 방식을 바꾸면 기록이 꼬일 수 있습니다. 계속할까요?")) return;
       if (state.qualifierRounds.some(round => round.stages.length) || state.finalRace) {
         if (!confirm("경기 방식을 바꾸면 현재 대진표가 라운드 초기화됩니다. 계속할까요?")) return;
@@ -8053,27 +8052,46 @@ function renderTvStage() {
     function dashboardVenueOptions(records = []) {
       const map = new Map();
       const addVenue = (id, name, source = "") => {
-        const venueId = String(id || "").trim();
-        const venueName = String(name || venueId || "").trim();
+        let venueId = String(id || "").trim();
+        let venueName = String(name || "").trim();
+        if (!venueName && venueId) venueName = venueId;
+        if (!venueId && venueName) venueId = normalizeKey(venueName);
         if (!venueId && !venueName) return;
         if (venueId === "all" || venueName === "전체") return;
-        const key = venueSelectKey(venueId, venueName);
+        const nameKey = normalizeKey(venueName || venueId);
+        const idKey = normalizeKey(venueId || venueName);
+        const key = nameKey || idKey || `${source}-${map.size}`;
         const current = map.get(key) || { id: key, name: venueName || venueId, aliases: new Set(), sourceList: new Set() };
-        if (venueName && (!current.name || current.name === current.id)) current.name = venueName;
-        [venueId, venueName, key].filter(Boolean).forEach(value => current.aliases.add(value));
+        if (venueName && (!current.name || current.name === current.id || current.name === venueId)) current.name = venueName;
+        [venueId, venueName, nameKey, idKey, key].filter(Boolean).forEach(value => current.aliases.add(String(value)));
         if (source) current.sourceList.add(source);
         map.set(key, current);
       };
+
+      const addVenueObjectMap = (raw = {}, source = "") => {
+        if (!raw || typeof raw !== "object") return;
+        Object.entries(raw).forEach(([id, item]) => {
+          if (!item || typeof item !== "object") return;
+          addVenue(item.venueId || item.id || id, item.venueName || item.name || item.displayName || id, source);
+        });
+      };
+
       if (isAdminUser()) {
-        Object.values(window.__dashboardPublicVenues || {}).forEach(venue => addVenue(venue.venueId, venue.venueName, "publicVenues"));
+        addVenueObjectMap(window.__dashboardPublicVenues || {}, "publicVenues");
+        addVenueObjectMap(window.__dashboardVenueDirectory || {}, "publicVenueDirectory");
         Object.values(window.__dashboardProfiles || {}).forEach(profile => {
           if (!profile || profile.role === "suspended") return;
-          if (profile.venueName && profile.venueName !== "전체") addVenue(profile.venueId, profile.venueName, "userProfiles");
+          if (profile.venueName || profile.venueId) addVenue(profile.venueId, profile.venueName, "userProfiles");
+        });
+        Object.values(window.__dashboardLegacyUsers || {}).forEach(profile => {
+          if (!profile || profile.role === "suspended") return;
+          if (profile.venueName || profile.venueId) addVenue(profile.venueId, profile.venueName, "legacyUsers");
         });
         records.forEach(record => addVenue(record.venueId, record.venueName, "records"));
       } else if (isVenueUser()) {
         addVenue(currentVenueId(), currentVenueName(), "currentUser");
       }
+
       return Array.from(map.values())
         .map(item => ({ id: item.id, name: item.name, aliases: Array.from(item.aliases), sourceList: Array.from(item.sourceList) }))
         .sort((a, b) => a.name.localeCompare(b.name, "ko"));
@@ -8154,6 +8172,7 @@ function renderTvStage() {
       const venues = buildPublicVenuesFromProfiles(profiles);
       const payload = Object.fromEntries(venues.map(venue => [venue.venueId, venue]));
       db.ref(PUBLIC_VENUES_PATH).set(payload).catch(error => console.warn("public venue sync failed", error));
+      db.ref(PUBLIC_VENUE_DIRECTORY_PATH).set(payload).catch(error => console.warn("public venue directory sync failed", error));
     }
 
     function normalizePublicVenues(raw = {}) {
@@ -8300,20 +8319,26 @@ function renderTvStage() {
       app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>대시보드 불러오는 중</h2></div></div></div>`;
       const db = initFirebase();
       const local = loadLocalResultLogs();
-      if (!db) { window.__dashboardProfiles = {}; window.__dashboardPublicVenues = {}; window.__dashboardRecords = local; renderDashboardWithRecords(local); return; }
+      if (!db) { window.__dashboardProfiles = {}; window.__dashboardLegacyUsers = {}; window.__dashboardPublicVenues = {}; window.__dashboardVenueDirectory = {}; window.__dashboardRecords = local; renderDashboardWithRecords(local); return; }
       const profilePromise = isAdminUser()
         ? db.ref(USER_PROFILE_PATH).get().then(s => s.val() || {}).catch(() => ({}))
         : Promise.resolve(currentUserProfile ? { [currentUserProfile.uid || currentAuthUser.uid]: currentUserProfile } : {});
+      const legacyUserPromise = isAdminUser()
+        ? db.ref("users").get().then(s => s.val() || {}).catch(() => ({}))
+        : Promise.resolve({});
       const publicVenuePromise = db.ref(PUBLIC_VENUES_PATH).get().then(s => s.val() || {}).catch(() => ({}));
+      const venueDirectoryPromise = db.ref(PUBLIC_VENUE_DIRECTORY_PATH).get().then(s => s.val() || {}).catch(() => ({}));
       const logsRef = isAdminUser() ? db.ref(RESULT_LOGS_PATH) : db.ref(`${RESULT_LOGS_PATH}/${currentVenueId()}`);
-      Promise.all([logsRef.get(), profilePromise, publicVenuePromise]).then(([snapshot, profiles, publicVenues]) => {
+      Promise.all([logsRef.get(), profilePromise, publicVenuePromise, venueDirectoryPromise, legacyUserPromise]).then(([snapshot, profiles, publicVenues, venueDirectory, legacyUsers]) => {
         const cloud = isAdminUser() ? flattenPrivateResultLogs(snapshot.val() || {}) : Object.values(snapshot.val() || {});
         const merged = [...local, ...cloud].filter((item, idx, arr) => arr.findIndex(x => x.id === item.id) === idx);
         window.__dashboardProfiles = profiles || {};
+        window.__dashboardLegacyUsers = legacyUsers || {};
         window.__dashboardPublicVenues = publicVenues || {};
+        window.__dashboardVenueDirectory = venueDirectory || {};
         window.__dashboardRecords = merged;
         renderDashboardWithRecords(merged);
-      }).catch(() => { window.__dashboardProfiles = {}; window.__dashboardPublicVenues = {}; window.__dashboardRecords = local; renderDashboardWithRecords(local); });
+      }).catch(() => { window.__dashboardProfiles = {}; window.__dashboardLegacyUsers = {}; window.__dashboardPublicVenues = {}; window.__dashboardVenueDirectory = {}; window.__dashboardRecords = local; renderDashboardWithRecords(local); });
     }
 
     async function bootV33() {
@@ -8377,14 +8402,13 @@ function renderTvStage() {
       return {
         basic: "기본 토너먼트",
         crow: "기본 토너먼트 CROW",
-        points: "추가 예정",
-        revival: "추가 예정"
+        points: "1라운드 포인트전",
+        revival: "패자부활 토너먼트"
       }[mode] || "기본 토너먼트";
     }
 
     function setMatchMode(mode) {
       ensureStateDefaults();
-      if (["points", "revival"].includes(mode)) return alert("해당 경기 방식은 추가 예정입니다.");
       if (isTournamentLocked() && !confirm("대회가 시작/종료된 상태입니다. 경기 방식을 바꾸면 기록이 꼬일 수 있습니다. 계속할까요?")) return;
       if (state.qualifierRounds.some(round => round.stages.length) || state.finalRace) {
         if (!confirm("경기 방식을 바꾸면 현재 대진표가 라운드 초기화됩니다. 계속할까요?")) return;
