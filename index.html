@@ -7308,16 +7308,31 @@ function renderTvStage() {
       return `<div class="rank-list">${items.slice(0, 10).map((item, index) => `<div class="rank-row"><b>${index + 1}</b><span class="rank-name">${escapeHtml(item.name)}${item.team ? ` / ${escapeHtml(item.team)}` : ""}</span><strong>${item[field]}${suffix}</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div>`;
     }
 
+    function venueSelectKey(id, name) {
+      const venueName = String(name || "").trim();
+      const venueId = String(id || "").trim();
+      return normalizeKey(venueName || venueId || "unknown-venue");
+    }
+
+    function venueMatchesFilter(record = {}, selected = "전체") {
+      if (!selected || selected === "전체") return true;
+      const id = String(record.venueId || "").trim();
+      const name = String(record.venueName || "").trim();
+      const selectedText = String(selected || "").trim();
+      const selectedKey = normalizeKey(selectedText);
+      return selectedText === id || selectedText === name || selectedKey === normalizeKey(id) || selectedKey === normalizeKey(name) || selectedKey === venueSelectKey(id, name);
+    }
+
     function filterRecords(records) {
       const limitedVenueId = !isAdminUser() && isVenueUser() ? currentVenueId() : "";
       const limitedVenueName = !isAdminUser() && isVenueUser() ? currentVenueName() : "";
       return records.filter(record => {
         const date = String(record.endedAtISO || record.startedAtISO || record.createdAt || "").slice(0, 10);
         const recordClass = normalizeRaceClassName(record.raceClass || "미분류");
-        if (limitedVenueId && record.venueId !== limitedVenueId && record.venueName !== limitedVenueName) return false;
+        if (limitedVenueId && !venueMatchesFilter(record, limitedVenueId) && !venueMatchesFilter(record, limitedVenueName)) return false;
         if (dashboardFilter.from && date < dashboardFilter.from) return false;
         if (dashboardFilter.to && date > dashboardFilter.to) return false;
-        if (dashboardFilter.venue !== "전체" && record.venueName !== dashboardFilter.venue && record.venueId !== dashboardFilter.venue) return false;
+        if (!venueMatchesFilter(record, dashboardFilter.venue)) return false;
         if (dashboardFilter.raceClass !== "전체" && recordClass !== dashboardFilter.raceClass) return false;
         if (dashboardFilter.keyword && !`${record.tournamentName} ${record.venueName} ${recordClass}`.toLowerCase().includes(dashboardFilter.keyword.toLowerCase())) return false;
         return true;
@@ -7359,24 +7374,31 @@ function renderTvStage() {
 
     function dashboardVenueOptions(records = []) {
       const map = new Map();
-      const addVenue = (id, name) => {
-        const venueId = String(id || name || "").trim();
-        const venueName = String(name || id || "").trim();
+      const addVenue = (id, name, source = "") => {
+        const venueId = String(id || "").trim();
+        const venueName = String(name || venueId || "").trim();
         if (!venueId && !venueName) return;
-        const key = venueId || venueName;
-        if (!map.has(key)) map.set(key, { id: key, name: venueName || venueId });
+        if (venueId === "all" || venueName === "전체") return;
+        const key = venueSelectKey(venueId, venueName);
+        const current = map.get(key) || { id: key, name: venueName || venueId, aliases: new Set(), sourceList: new Set() };
+        if (venueName && (!current.name || current.name === current.id)) current.name = venueName;
+        [venueId, venueName, key].filter(Boolean).forEach(value => current.aliases.add(value));
+        if (source) current.sourceList.add(source);
+        map.set(key, current);
       };
       if (isAdminUser()) {
-        Object.values(window.__dashboardPublicVenues || {}).forEach(venue => addVenue(venue.venueId, venue.venueName));
+        Object.values(window.__dashboardPublicVenues || {}).forEach(venue => addVenue(venue.venueId, venue.venueName, "publicVenues"));
         Object.values(window.__dashboardProfiles || {}).forEach(profile => {
           if (!profile || profile.role === "suspended") return;
-          if (profile.venueName && profile.venueName !== "전체") addVenue(profile.venueId, profile.venueName);
+          if (profile.venueName && profile.venueName !== "전체") addVenue(profile.venueId, profile.venueName, "userProfiles");
         });
-        records.forEach(record => addVenue(record.venueId, record.venueName));
+        records.forEach(record => addVenue(record.venueId, record.venueName, "records"));
       } else if (isVenueUser()) {
-        addVenue(currentVenueId(), currentVenueName());
+        addVenue(currentVenueId(), currentVenueName(), "currentUser");
       }
-      return Array.from(map.values()).filter(v => v.id !== "all" && v.name !== "전체").sort((a, b) => a.name.localeCompare(b.name, "ko"));
+      return Array.from(map.values())
+        .map(item => ({ id: item.id, name: item.name, aliases: Array.from(item.aliases), sourceList: Array.from(item.sourceList) }))
+        .sort((a, b) => a.name.localeCompare(b.name, "ko"));
     }
 
     function analyzePlayerVenueVisits(records) {
@@ -7408,14 +7430,14 @@ function renderTvStage() {
 
     function renderDashboardWithRecords(records) {
       const venueOptions = dashboardVenueOptions(records);
-      if (dashboardFilter.venue !== "전체" && !venueOptions.some(v => v.id === dashboardFilter.venue || v.name === dashboardFilter.venue)) dashboardFilter.venue = "전체";
+      if (dashboardFilter.venue !== "전체" && !venueOptions.some(v => v.id === dashboardFilter.venue || v.name === dashboardFilter.venue || (v.aliases || []).includes(dashboardFilter.venue) || normalizeKey(dashboardFilter.venue) === v.id)) dashboardFilter.venue = "전체";
       const filtered = filterRecords(records);
       const classes = Array.from(new Set([...CLASS_OPTIONS, ...records.map(r => normalizeRaceClassName(r.raceClass || "미분류")).filter(Boolean)]));
       const classStats = summarizeClasses(filtered);
       const stats = analyzeRecords(filtered);
       const venueVisits = analyzePlayerVenueVisits(filtered);
       document.body.classList.remove("tv-mode");
-      app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">DASHBOARD</div></div><h1>상시 데이터 대시보드</h1><p class="desc">기간별 · 경기장별 · 클래스별 경기 기록 분석</p></div>${logoMarkup("header-logo")}</header>${currentAuthUser ? accountBadge() : ""}<div class="toolbar"><button class="primary" onclick="location.hash=''; bootV33();">TOURNAMENT</button><button class="ghost" onclick="location.hash='view=live-list'; bootV33();">MOBILE LIVE</button><button class="ghost" onclick="openDashboardPage()">새로고침</button></div><section class="card"><div class="dashboard-filter"><div><label>시작일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.from)}" onchange="dashboardFilter.from=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>종료일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.to)}" onchange="dashboardFilter.to=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>경기장</label><select class="mini-input" onchange="dashboardFilter.venue=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 경기장</option>${venueOptions.map(v => `<option value="${escapeHtml(v.id)}" ${dashboardFilter.venue===v.id || dashboardFilter.venue===v.name ? "selected" : ""}>${escapeHtml(v.name)}</option>`).join("")}</select></div><div><label>클래스</label><select class="mini-input" onchange="dashboardFilter.raceClass=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 클래스</option>${classes.map(c => `<option value="${escapeHtml(c)}" ${dashboardFilter.raceClass===c?"selected":""}>${escapeHtml(c)}</option>`).join("")}</select></div><div><label>검색</label><input class="mini-input" placeholder="대회명/경기장/클래스" value="${escapeHtml(dashboardFilter.keyword)}" oninput="dashboardFilter.keyword=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div></div><div class="dashboard-period-row"><button class="ghost" onclick="setDashboardPeriod('all')">전체 기간</button><button class="ghost" onclick="setDashboardPeriod('month')">이번달</button><button class="ghost" onclick="setDashboardPeriod('30d')">최근 30일</button></div><div class="db-stat-grid" style="margin-top:12px;"><div class="db-stat"><small>대회 기록</small><strong>${filtered.length}</strong></div><div class="db-stat"><small>경기장</small><strong>${new Set(filtered.map(r=>r.venueName||r.venueId)).size}</strong></div><div class="db-stat"><small>선수</small><strong>${stats.players.length}</strong></div></div></section><div class="dashboard-grid"><section class="dashboard-card"><h3>클래스별 기록</h3><div class="class-chip-wrap">${classStats.map(item => `<div class="class-chip"><span>${escapeHtml(item.raceClass)}</span><b>${item.count}회</b></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>선수별 경기장 방문</h3>${renderVenueVisitList(venueVisits)}</section><section class="dashboard-card"><h3>최다승 유저</h3>${rankList(stats.mostWins, "wins", "승")}</section><section class="dashboard-card"><h3>자주 우승하는 사람</h3>${rankList(stats.mostChampions, "championships", "회")}</section><section class="dashboard-card"><h3>자주 지는 사람</h3>${rankList(stats.mostLosses, "losses", "패")}</section><section class="dashboard-card"><h3>참가 횟수 랭킹</h3>${rankList(stats.mostParticipants, "matches", "회")}</section><section class="dashboard-card"><h3>포인트전 누적</h3>${rankList(stats.mostPoints, "points", "P")}</section><section class="dashboard-card"><h3>한 레인 편중</h3><div class="rank-list">${stats.oneLane.slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)} · ${p.mainLane}LANE</span><strong>${Math.round(p.laneRate*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>레인별 승률</h3><div class="rank-list">${stats.laneStats.map(l=>`<div class="rank-row"><b>${l.lane}</b><span class="rank-name">${l.matches}경기</span><strong>${l.matches ? Math.round(l.wins/l.matches*100) : 0}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>결승 진출률</h3><div class="rank-list">${stats.players.filter(p=>p.matches).sort((a,b)=>(b.finals/b.matches)-(a.finals/a.matches)).slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)}</span><strong>${Math.round(p.finals/p.matches*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section></div></div>`;
+      app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">DASHBOARD</div></div><h1>상시 데이터 대시보드</h1><p class="desc">기간별 · 경기장별 · 클래스별 경기 기록 분석</p></div>${logoMarkup("header-logo")}</header>${currentAuthUser ? accountBadge() : ""}<div class="toolbar"><button class="primary" onclick="location.hash=''; bootV33();">TOURNAMENT</button><button class="ghost" onclick="location.hash='view=live-list'; bootV33();">MOBILE LIVE</button><button class="ghost" onclick="openDashboardPage()">새로고침</button></div><section class="card"><div class="dashboard-filter"><div><label>시작일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.from)}" onchange="dashboardFilter.from=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>종료일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.to)}" onchange="dashboardFilter.to=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>경기장</label><select class="mini-input" onchange="dashboardFilter.venue=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 경기장</option>${venueOptions.map(v => `<option value="${escapeHtml(v.id)}" ${dashboardFilter.venue===v.id || dashboardFilter.venue===v.name || (v.aliases || []).includes(dashboardFilter.venue) || normalizeKey(dashboardFilter.venue)===v.id ? "selected" : ""}>${escapeHtml(v.name)}</option>`).join("")}</select></div><div><label>클래스</label><select class="mini-input" onchange="dashboardFilter.raceClass=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 클래스</option>${classes.map(c => `<option value="${escapeHtml(c)}" ${dashboardFilter.raceClass===c?"selected":""}>${escapeHtml(c)}</option>`).join("")}</select></div><div><label>검색</label><input class="mini-input" placeholder="대회명/경기장/클래스" value="${escapeHtml(dashboardFilter.keyword)}" oninput="dashboardFilter.keyword=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div></div><div class="dashboard-period-row"><button class="ghost" onclick="setDashboardPeriod('all')">전체 기간</button><button class="ghost" onclick="setDashboardPeriod('month')">이번달</button><button class="ghost" onclick="setDashboardPeriod('30d')">최근 30일</button></div><div class="db-stat-grid" style="margin-top:12px;"><div class="db-stat"><small>대회 기록</small><strong>${filtered.length}</strong></div><div class="db-stat"><small>경기장</small><strong>${new Set(filtered.map(r=>r.venueName||r.venueId)).size}</strong></div><div class="db-stat"><small>선수</small><strong>${stats.players.length}</strong></div></div></section><div class="dashboard-grid"><section class="dashboard-card"><h3>클래스별 기록</h3><div class="class-chip-wrap">${classStats.map(item => `<div class="class-chip"><span>${escapeHtml(item.raceClass)}</span><b>${item.count}회</b></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>선수별 경기장 방문</h3>${renderVenueVisitList(venueVisits)}</section><section class="dashboard-card"><h3>최다승 유저</h3>${rankList(stats.mostWins, "wins", "승")}</section><section class="dashboard-card"><h3>자주 우승하는 사람</h3>${rankList(stats.mostChampions, "championships", "회")}</section><section class="dashboard-card"><h3>자주 지는 사람</h3>${rankList(stats.mostLosses, "losses", "패")}</section><section class="dashboard-card"><h3>참가 횟수 랭킹</h3>${rankList(stats.mostParticipants, "matches", "회")}</section><section class="dashboard-card"><h3>포인트전 누적</h3>${rankList(stats.mostPoints, "points", "P")}</section><section class="dashboard-card"><h3>한 레인 편중</h3><div class="rank-list">${stats.oneLane.slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)} · ${p.mainLane}LANE</span><strong>${Math.round(p.laneRate*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>레인별 승률</h3><div class="rank-list">${stats.laneStats.map(l=>`<div class="rank-row"><b>${l.lane}</b><span class="rank-name">${l.matches}경기</span><strong>${l.matches ? Math.round(l.wins/l.matches*100) : 0}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>결승 진출률</h3><div class="rank-list">${stats.players.filter(p=>p.matches).sort((a,b)=>(b.finals/b.matches)-(a.finals/a.matches)).slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)}</span><strong>${Math.round(p.finals/p.matches*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section></div></div>`;
     }
 
     function liveStatusLabel(status) {
