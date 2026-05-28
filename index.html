@@ -7363,17 +7363,20 @@ function renderTvStage() {
         const venueId = String(id || name || "").trim();
         const venueName = String(name || id || "").trim();
         if (!venueId && !venueName) return;
-        map.set(venueId || venueName, { id: venueId || venueName, name: venueName || venueId });
+        const key = venueId || venueName;
+        if (!map.has(key)) map.set(key, { id: key, name: venueName || venueId });
       };
       if (isAdminUser()) {
+        Object.values(window.__dashboardPublicVenues || {}).forEach(venue => addVenue(venue.venueId, venue.venueName));
         Object.values(window.__dashboardProfiles || {}).forEach(profile => {
-          if (profile && profile.role !== "pending" && profile.role !== "suspended") addVenue(profile.venueId, profile.venueName);
+          if (!profile || profile.role === "suspended") return;
+          if (profile.venueName && profile.venueName !== "전체") addVenue(profile.venueId, profile.venueName);
         });
         records.forEach(record => addVenue(record.venueId, record.venueName));
       } else if (isVenueUser()) {
         addVenue(currentVenueId(), currentVenueName());
       }
-      return Array.from(map.values()).filter(v => v.id !== "all" && v.name !== "전체").sort((a, b) => a.name.localeCompare(b.name));
+      return Array.from(map.values()).filter(v => v.id !== "all" && v.name !== "전체").sort((a, b) => a.name.localeCompare(b.name, "ko"));
     }
 
     function analyzePlayerVenueVisits(records) {
@@ -7597,18 +7600,20 @@ function renderTvStage() {
       app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>대시보드 불러오는 중</h2></div></div></div>`;
       const db = initFirebase();
       const local = loadLocalResultLogs();
-      if (!db) { window.__dashboardProfiles = {}; window.__dashboardRecords = local; renderDashboardWithRecords(local); return; }
+      if (!db) { window.__dashboardProfiles = {}; window.__dashboardPublicVenues = {}; window.__dashboardRecords = local; renderDashboardWithRecords(local); return; }
       const profilePromise = isAdminUser()
         ? db.ref(USER_PROFILE_PATH).get().then(s => s.val() || {}).catch(() => ({}))
         : Promise.resolve(currentUserProfile ? { [currentUserProfile.uid || currentAuthUser.uid]: currentUserProfile } : {});
+      const publicVenuePromise = db.ref(PUBLIC_VENUES_PATH).get().then(s => s.val() || {}).catch(() => ({}));
       const logsRef = isAdminUser() ? db.ref(RESULT_LOGS_PATH) : db.ref(`${RESULT_LOGS_PATH}/${currentVenueId()}`);
-      Promise.all([logsRef.get(), profilePromise]).then(([snapshot, profiles]) => {
+      Promise.all([logsRef.get(), profilePromise, publicVenuePromise]).then(([snapshot, profiles, publicVenues]) => {
         const cloud = isAdminUser() ? flattenPrivateResultLogs(snapshot.val() || {}) : Object.values(snapshot.val() || {});
         const merged = [...local, ...cloud].filter((item, idx, arr) => arr.findIndex(x => x.id === item.id) === idx);
         window.__dashboardProfiles = profiles || {};
+        window.__dashboardPublicVenues = publicVenues || {};
         window.__dashboardRecords = merged;
         renderDashboardWithRecords(merged);
-      }).catch(() => { window.__dashboardProfiles = {}; window.__dashboardRecords = local; renderDashboardWithRecords(local); });
+      }).catch(() => { window.__dashboardProfiles = {}; window.__dashboardPublicVenues = {}; window.__dashboardRecords = local; renderDashboardWithRecords(local); });
     }
 
     async function bootV33() {
