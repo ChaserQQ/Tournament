@@ -3336,6 +3336,64 @@
       .live-lobby-topbar button { width:100%; }
     }
 
+
+
+    /* v50 final functional/UI stabilization */
+    .btnrow.mode-row.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      gap: 12px !important;
+    }
+    .btnrow.mode-row button {
+      min-height: 56px !important;
+      padding: 12px 14px !important;
+      border-radius: 18px !important;
+      font-size: 14px !important;
+    }
+    .btnrow.mode-row .crow-mode-btn {
+      min-height: 58px !important;
+      padding: 10px 14px !important;
+      gap: 2px !important;
+    }
+    .btnrow.mode-row .crow-mode-btn span {
+      font-size: 13px !important;
+      line-height: 1.05 !important;
+    }
+    .btnrow.mode-row .crow-mode-btn strong {
+      font-size: 13px !important;
+      letter-spacing: .04em !important;
+      line-height: 1.05 !important;
+    }
+    .live-lobby-shell .header { margin-bottom: 10px !important; }
+    .live-lobby-topbar {
+      align-items: flex-start !important;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(238,233,223,.08);
+    }
+    .live-lobby-summary { margin: 10px 0 2px; }
+    .live-lobby-card {
+      min-height: 168px !important;
+      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+    }
+    .live-lobby-card.live-on:hover { transform: translateY(-2px); }
+    .live-lobby-card h3 { font-size: 18px !important; margin-top: 12px !important; }
+    .live-lobby-card .live-lobby-meta { min-height: 48px !important; }
+    .live-lobby-card button { min-height: 44px !important; font-size: 13px !important; }
+    .dashboard-nav-actions {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin: 0 0 12px;
+    }
+    .dashboard-nav-actions button { min-height: 38px; }
+    @media (max-width: 760px) {
+      .btnrow.mode-row.three { grid-template-columns: 1fr !important; gap: 8px !important; }
+      .btnrow.mode-row button { min-height: 50px !important; }
+      .btnrow.mode-row .crow-mode-btn { min-height: 52px !important; }
+      .live-lobby-card { min-height: 138px !important; }
+      .dashboard-nav-actions { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .dashboard-nav-actions button { width:100%; }
+    }
+
   </style>
 </head>
 <body>
@@ -8987,7 +9045,180 @@ function renderTvStage() {
       __watchRefsV49.push({ ref, cb });
     }
 
-    /* v49 single boot call */
+
+
+    /* v50 final fixes: public live publishing, realtime lobby, dashboard admin scope */
+    function forcePublishPublicLiveV50(reason = "수동 LIVE 동기화") {
+      try {
+        ensureStateDefaults();
+        state.updatedAt = Date.now();
+        state.activeRoundIndex = activeRoundIndex;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(exportState()));
+        const db = initFirebase();
+        if (!db) return false;
+        const privateState = exportState();
+        privateState.updatedAt = Date.now();
+        const publicLive = makePublicLivePayload(privateState);
+        db.ref(`${PUBLIC_LIVE_PATH}/${getCurrentTournamentId()}`).set(publicLive).catch(error => console.warn(`public live sync failed: ${reason}`, error));
+        db.ref(`tournaments/${getCurrentTournamentId()}/updatedAt`).set(firebase.database.ServerValue.TIMESTAMP).catch(() => {});
+        return true;
+      } catch (error) {
+        console.warn("forcePublishPublicLiveV50 failed", error);
+        return false;
+      }
+    }
+
+    function mobileLobbyUrlV50() {
+      return `${location.origin}${location.pathname}#view=live-list`;
+    }
+
+    function shareMobileView() {
+      forcePublishPublicLiveV50("MOBILE LINK");
+      const url = mobileLobbyUrlV50();
+      navigator.clipboard?.writeText(url).then(() => alert("모바일 LIVE 로비 링크를 복사했습니다."))
+        .catch(() => prompt("모바일 LIVE 로비 링크", url));
+    }
+
+    function copyLiveLink() {
+      forcePublishPublicLiveV50("모바일 링크 복사");
+      const url = mobileLobbyUrlV50();
+      navigator.clipboard?.writeText(url).then(() => alert("모바일 LIVE 로비 링크를 복사했습니다."))
+        .catch(() => prompt("모바일 LIVE 로비 링크", url));
+    }
+
+    const __openTvViewBaseV50 = typeof openTvView === "function" ? openTvView : null;
+    function openTvView() {
+      forcePublishPublicLiveV50("TV LIVE");
+      if (__openTvViewBaseV50) return __openTvViewBaseV50();
+      window.open(makeLiveTvUrl(), "_blank", "noopener,noreferrer");
+    }
+
+    function stopLiveLobbyRealtimeV50() {
+      if (typeof stopLiveLobbyRealtimeV49 === "function") stopLiveLobbyRealtimeV49();
+      if (typeof stopPublicLiveWatchV49 === "function") stopPublicLiveWatchV49();
+    }
+
+    function renderLiveLobbyPage() {
+      document.body.classList.remove("tv-mode");
+      stopLiveLobbyRealtimeV50();
+      app.innerHTML = `<div class="mobile-view"><div class="empty"><div><h2>LIVE 로비 연결중</h2><p>경기장 LIVE 상태를 실시간으로 불러오는 중입니다.</p></div></div></div>`;
+      const db = initFirebase();
+      if (!db) { renderLiveLobbyWithData([], loadLocalResultLogs().map(makePublicRecord), []); return; }
+
+      const cache = { live: {}, history: {}, venues: {}, directory: {} };
+      let loaded = { live:false, history:false, venues:false, directory:false };
+      let drawTimer = null;
+      const draw = () => {
+        clearTimeout(drawTimer);
+        drawTimer = setTimeout(() => {
+          const tournaments = normalizeLobbyTournaments(cache.live || {});
+          const records = cache.history && Object.keys(cache.history).length ? Object.values(cache.history) : loadLocalResultLogs().map(makePublicRecord);
+          const venues = mergeVenueArraysV49(normalizePublicVenues(cache.venues || {}), normalizePublicVenues(cache.directory || {}));
+          renderLiveLobbyWithData(tournaments, records, venues);
+        }, 80);
+      };
+      const bind = (key, path) => {
+        const ref = db.ref(path);
+        const cb = snapshot => {
+          cache[key] = snapshot.val() || {};
+          loaded[key] = true;
+          draw();
+        };
+        ref.on("value", cb, error => {
+          console.warn(`live lobby watch failed: ${path}`, error);
+          cache[key] = {};
+          loaded[key] = true;
+          draw();
+        });
+        if (typeof __liveLobbyRefsV49 !== "undefined") __liveLobbyRefsV49.push({ ref, cb });
+      };
+      bind("live", PUBLIC_LIVE_PATH);
+      bind("history", PUBLIC_HISTORY_PATH);
+      bind("venues", PUBLIC_VENUES_PATH);
+      if (typeof PUBLIC_VENUE_DIRECTORY_PATH !== "undefined") bind("directory", PUBLIC_VENUE_DIRECTORY_PATH);
+    }
+
+    function watchFirebaseState(viewType) {
+      const db = initFirebase();
+      if (!db) return;
+      stopLiveLobbyRealtimeV50();
+      const params = getHashParams();
+      const requestedId = params.get("t") || params.get("tournamentId") || "";
+      if ((viewType === "mobile-live" || viewType === "tv-live") && !requestedId && viewType === "mobile-live") {
+        renderLiveLobbyPage();
+        return;
+      }
+      const tournamentId = getCurrentTournamentId();
+      let received = false;
+      const ref = db.ref(`${PUBLIC_LIVE_PATH}/${tournamentId}/state`);
+      const fallback = viewType === "mobile-live" ? setTimeout(() => { if (!received) renderLiveLobbyPage(); }, 4200) : null;
+      const cb = snapshot => {
+        const payload = snapshot.val();
+        if (!payload) return;
+        received = true;
+        if (fallback) clearTimeout(fallback);
+        if (viewType === "tv-live") { tvState = payload; document.body.classList.add("tv-mode"); renderTvStage(); return; }
+        if (viewType === "mobile-live") { renderTvSnapshot(payload, "mobile"); return; }
+      };
+      ref.on("value", cb, error => { console.warn("public live watch failed", error); if (viewType === "mobile-live") renderLiveLobbyPage(); });
+      if (typeof __watchRefsV49 !== "undefined") __watchRefsV49.push({ ref, cb });
+    }
+
+    const __renderDashboardWithRecordsBaseV50 = renderDashboardWithRecords;
+    function renderDashboardWithRecords(records = []) {
+      __renderDashboardWithRecordsBaseV50(records);
+      const page = document.querySelector(".db-page");
+      if (!page || page.querySelector(".dashboard-nav-actions")) return;
+      const target = page.querySelector(".toolbar") || page.querySelector("section.card");
+      if (!target) return;
+      const nav = document.createElement("div");
+      nav.className = "dashboard-nav-actions";
+      nav.innerHTML = `<button class="ghost" onclick="history.length > 1 ? history.back() : (location.hash='', bootV33())">뒤로가기</button><button class="ghost" onclick="location.hash=''; bootV33();">홈</button><button class="ghost" onclick="dashboardFilter.venue='전체'; renderDashboardWithRecords(window.__dashboardRecords||[])">전체 경기장</button>`;
+      target.parentNode.insertBefore(nav, target);
+    }
+
+    function renderDashboardPage() {
+      if (!currentAuthUser) return renderLoginPage("대시보드는 로그인 후 이용할 수 있습니다.");
+      if (!canViewDashboard()) return renderRestrictedPage("대시보드 권한 없음", "관리자가 대시보드 권한을 부여해야 합니다.");
+      document.body.classList.remove("tv-mode");
+      if (isAdminUser()) dashboardFilter.venue = "전체";
+      app.innerHTML = `<div class="wrap"><div class="empty"><div><h2>대시보드 불러오는 중</h2></div></div></div>`;
+      const db = initFirebase();
+      const local = loadLocalResultLogs();
+      if (!db) {
+        window.__dashboardProfiles = {}; window.__dashboardLegacyUsers = {}; window.__dashboardPublicVenues = {}; window.__dashboardVenueDirectory = {}; window.__dashboardRecords = local;
+        renderDashboardWithRecords(local);
+        return;
+      }
+      const profilePromise = isAdminUser()
+        ? db.ref(USER_PROFILE_PATH).get().then(s => s.val() || {}).catch(() => ({}))
+        : Promise.resolve(currentUserProfile ? { [currentUserProfile.uid || currentAuthUser.uid]: currentUserProfile } : {});
+      const legacyUserPromise = isAdminUser() ? db.ref("users").get().then(s => s.val() || {}).catch(() => ({})) : Promise.resolve({});
+      const publicVenuePromise = db.ref(PUBLIC_VENUES_PATH).get().then(s => s.val() || {}).catch(() => ({}));
+      const venueDirectoryPromise = db.ref(PUBLIC_VENUE_DIRECTORY_PATH).get().then(s => s.val() || {}).catch(() => ({}));
+      const privateLogsPromise = (isAdminUser() ? db.ref(RESULT_LOGS_PATH) : db.ref(`${RESULT_LOGS_PATH}/${currentVenueId()}`)).get().then(s => isAdminUser() ? flattenPrivateResultLogs(s.val() || {}) : Object.values(s.val() || {})).catch(() => []);
+      const publicHistoryPromise = db.ref(PUBLIC_HISTORY_PATH).get().then(s => s.val() ? Object.values(s.val()) : []).catch(() => []);
+      Promise.all([privateLogsPromise, publicHistoryPromise, profilePromise, publicVenuePromise, venueDirectoryPromise, legacyUserPromise]).then(([privateLogs, publicHistory, profiles, publicVenues, venueDirectory, legacyUsers]) => {
+        const merged = [...local, ...privateLogs, ...publicHistory].filter((item, idx, arr) => item && arr.findIndex(x => x && x.id === item.id) === idx);
+        window.__dashboardProfiles = profiles || {};
+        window.__dashboardLegacyUsers = legacyUsers || {};
+        window.__dashboardPublicVenues = publicVenues || {};
+        window.__dashboardVenueDirectory = venueDirectory || {};
+        window.__dashboardRecords = merged;
+        renderDashboardWithRecords(merged);
+      }).catch(() => {
+        window.__dashboardProfiles = {}; window.__dashboardLegacyUsers = {}; window.__dashboardPublicVenues = {}; window.__dashboardVenueDirectory = {}; window.__dashboardRecords = local;
+        renderDashboardWithRecords(local);
+      });
+    }
+
+    function syncPublicVenueDirectory() {
+      if (typeof syncPublicVenuesFromProfiles === "function") return syncPublicVenuesFromProfiles();
+      return false;
+    }
+
+
+    /* v50 single boot call */
     bootV33();
 
   </script>
