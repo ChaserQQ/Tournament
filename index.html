@@ -4018,6 +4018,131 @@
       .slot-h2h-list { gap: 2px !important; }
     }
 
+  
+
+    /* v65: compact player line, all-opponent H2H, stable status/title layout */
+    .slot-player-line,
+    .tv-player-line {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+      flex-wrap: wrap;
+    }
+    .slot-player-line > strong,
+    .tv-player-line > strong {
+      flex: 0 1 auto;
+      min-width: 0;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .team-inline,
+    .tv-team-inline {
+      flex: 0 0 auto;
+      display: inline-flex !important;
+      align-items: center;
+      max-width: 110px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(245,158,11,.12);
+      color: rgba(245,158,11,.95) !important;
+      font-size: 11px;
+      font-weight: 1000;
+      line-height: 1.1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .slot-metrics-inline {
+      flex: 999 1 280px;
+      display: flex !important;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
+      margin-top: 0 !important;
+      min-width: 160px;
+    }
+    .slot-metrics-inline .slot-metric {
+      max-width: min(190px, 48vw);
+      padding: 2px 6px;
+      font-size: 10px;
+      line-height: 1.15;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    body.tv-mode .tv-player-line {
+      display: grid;
+      grid-template-columns: minmax(0, auto) auto minmax(0, 1fr);
+      column-gap: .55vw;
+      row-gap: .2vw;
+      width: 100%;
+    }
+    body.tv-mode .tv-player-line > strong {
+      font-size: clamp(22px, 2.35vw, 40px);
+      line-height: 1;
+      letter-spacing: -.055em;
+    }
+    body.tv-mode .tv-team-inline {
+      max-width: 8.5vw;
+      padding: .22vw .45vw;
+      font-size: clamp(9px, .8vw, 13px);
+    }
+    body.tv-mode .tv-h2h-inline {
+      display: flex !important;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: .25vw;
+      margin-top: 0 !important;
+      min-width: 0;
+    }
+    body.tv-mode .tv-h2h-inline .tv-h2h-line {
+      display: inline-flex;
+      max-width: 10.5vw;
+      padding: .13vw .35vw;
+      border-radius: 999px;
+      background: rgba(238,233,223,.06);
+      border: 1px solid rgba(238,233,223,.08);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    body.tv-mode .tv-stage-all .tv-player-line > strong { font-size: clamp(13px, 1.25vw, 22px) !important; }
+    body.tv-mode .tv-stage-all .tv-h2h-inline .tv-h2h-line { max-width: 8.2vw; font-size: clamp(7px, .56vw, 9px) !important; }
+    body.tv-mode .tv-stage-all .tv-team-inline { max-width: 6vw; font-size: clamp(7px, .58vw, 9px); }
+    .status-panel {
+      grid-template-columns: minmax(0, 1fr) auto auto !important;
+      align-items: center !important;
+      overflow: hidden;
+    }
+    .status-main,
+    .status-title-block { min-width: 0; }
+    .status-title-block strong {
+      display: block;
+      max-width: 100%;
+      white-space: normal !important;
+      overflow-wrap: anywhere;
+      word-break: keep-all;
+      line-height: 1.12;
+    }
+    .status-time-block {
+      flex: 0 0 auto;
+      min-width: max-content;
+    }
+    .status-actions { flex: 0 0 auto; }
+    @media (max-width: 760px) {
+      .slot-player-line { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 6px; }
+      .slot-player-line > strong { font-size: 18px; }
+      .slot-player-line .slot-metrics-inline { grid-column: 1 / -1; min-width: 0; }
+      .team-inline { max-width: 92px; font-size: 10px; padding: 2px 6px; }
+      .slot-metrics-inline .slot-metric { max-width: 100%; font-size: 9.5px; }
+      .status-panel { grid-template-columns: 1fr !important; gap: 8px !important; }
+      .status-time-block, .status-actions { min-width: 0; width: 100%; }
+      .status-actions { display: grid !important; grid-template-columns: 1fr; }
+    }
+
   </style>
 </head>
 <body>
@@ -5463,9 +5588,11 @@
           <div class="slot-inner">
             ${renderLaneLabelWithRate(player.lane)}
             <div class="player-info">
-              <strong>${escapeHtml(player.name)}</strong>
-              ${renderPlayerMatchMetrics(player, group)}
-              ${player.team ? `<div class="team">${escapeHtml(player.team)}</div>` : ""}
+              <div class="slot-player-line">
+                <strong>${escapeHtml(player.name)}</strong>
+                ${renderPlayerTeamInline(player)}
+                ${renderPlayerMatchMetrics(player, group)}
+              </div>
             </div>
           </div>
           <div class="point-buttons">
@@ -5568,7 +5695,7 @@
     function getRecentHeadToHeadStats(player, currentGroup) {
       if (!player || player.isEmptyLane || !currentGroup) return [];
       if (Array.isArray(player.h2hMetrics)) {
-        return player.h2hMetrics.slice(0, 2).map(item => ({
+        return player.h2hMetrics.map(item => ({
           name: item.name || "상대",
           matches: Number(item.matches || 0),
           wins: Number(item.wins || 0),
@@ -5578,8 +5705,7 @@
         }));
       }
       const opponents = (currentGroup.slots || [])
-        .filter(slot => slot && !slot.isEmptyLane && slot.id !== player.id)
-        .slice(0, 2);
+        .filter(slot => slot && !slot.isEmptyLane && slot.id !== player.id);
       if (!opponents.length) return [];
 
       const records = getRecentMetricRecords(3);
@@ -5652,15 +5778,19 @@
       return `<span class="lane-label">${escapeHtml(lane)}LANE<span class="lane-win-rate">오늘 ${escapeHtml(getTodayLaneWinRate(lane))}</span></span>`;
     }
 
+    function renderPlayerTeamInline(player = {}) {
+      return player.team ? `<span class="team team-inline">${escapeHtml(player.team)}</span>` : "";
+    }
+
     function renderPlayerMatchMetrics(player, group) {
       const stats = getGroupMatchStatsForPlayer(player, group);
       const h2hRows = (stats.h2h || []).map(item => {
         const label = item.matches
           ? `${item.name} ${item.wins}승${item.losses}패 ${item.rateText}`
           : `${item.name} 전적없음`;
-        return `<span class="slot-metric h2h ${item.matches ? "" : "h2h-empty"}">최근3M ${escapeHtml(label)}</span>`;
+        return `<span class="slot-metric h2h ${item.matches ? "" : "h2h-empty"}">${escapeHtml(label)}</span>`;
       }).join("");
-      return `<div class="slot-metrics"><span class="slot-metric">같은조 ${stats.opponents}명</span><div class="slot-h2h-list">${h2hRows || `<span class="slot-metric h2h-empty">최근3M 상대전적 없음</span>`}</div></div>`;
+      return `<div class="slot-metrics slot-metrics-inline" title="최근 3개월 상대 전적">${h2hRows || `<span class="slot-metric h2h-empty">상대전적 없음</span>`}</div>`;
     }
 
     function renderGroup(group, roundIndex, stageIndex) {
@@ -5695,9 +5825,11 @@
           <div class="slot-inner">
             ${renderLaneLabelWithRate(player.lane)}
             <div class="player-info">
-              <strong>${escapeHtml(player.name)}</strong>
-              ${renderPlayerMatchMetrics(player, group)}
-              ${player.team ? `<div class="team">${escapeHtml(player.team)}</div>` : ""}
+              <div class="slot-player-line">
+                <strong>${escapeHtml(player.name)}</strong>
+                ${renderPlayerTeamInline(player)}
+                ${renderPlayerMatchMetrics(player, group)}
+              </div>
             </div>
             ${selected ? `<span class="advance-mark">진출</span>` : ""}
           </div>
@@ -5881,8 +6013,28 @@
       renderOperator();
     }
 
+    function currentSnapshotKey() {
+      return `${currentVenueId()}::${getCurrentTournamentId()}`;
+    }
+
+    function loadSnapshotMap() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(LOCAL_SNAPSHOT_KEY) || "{}");
+        if (Array.isArray(raw)) {
+          const migrated = {};
+          raw.forEach(item => {
+            const key = item?.tournamentId || item?.state?.tournament?.id || currentSnapshotKey();
+            migrated[key] = item;
+          });
+          return migrated;
+        }
+        return raw && typeof raw === "object" ? raw : {};
+      } catch (e) { return {}; }
+    }
+
     function loadSnapshots() {
-      try { const data = JSON.parse(localStorage.getItem(LOCAL_SNAPSHOT_KEY) || "[]"); return Array.isArray(data) ? data : []; } catch (e) { return []; }
+      const snap = loadSnapshotMap()[currentSnapshotKey()];
+      return snap ? [snap] : [];
     }
 
     let lastAutoSnapshotAt = 0;
@@ -5891,19 +6043,20 @@
       const now = Date.now();
       if (label === "자동 저장" && now - lastAutoSnapshotAt < 60000) return;
       lastAutoSnapshotAt = now;
-      const snapshots = loadSnapshots();
-      snapshots.unshift({ id: `snap-${now}`, label, createdAt: new Date().toISOString(), state: exportState() });
-      localStorage.setItem(LOCAL_SNAPSHOT_KEY, JSON.stringify(snapshots.slice(0, 8)));
+      const key = currentSnapshotKey();
+      const snapshotMap = loadSnapshotMap();
+      snapshotMap[key] = { id: `snap-${key}`, key, tournamentId: getCurrentTournamentId(), label, createdAt: new Date().toISOString(), state: exportState() };
+      localStorage.setItem(LOCAL_SNAPSHOT_KEY, JSON.stringify(snapshotMap));
     }
 
     function createManualSnapshot() {
-      createAutoSnapshot("수동 백업");
-      alert("현재 대회 상태를 백업했습니다.");
+      createAutoSnapshot("현재 상태 저장");
+      alert("현재 대회 ID 기준으로 마지막 상태를 저장했습니다.");
       renderOperator();
     }
 
     function restoreSnapshot(snapshotId) {
-      const snap = loadSnapshots().find(item => item.id === snapshotId);
+      const snap = loadSnapshots().find(item => item.id === snapshotId || item.key === snapshotId);
       if (!snap) return alert("복구할 백업을 찾지 못했습니다.");
       if (!confirm(`${snap.label} / ${formatSnapshotTime(snap.createdAt)} 상태로 복구할까요?`)) return;
       state = normalizeImportedState(snap.state);
@@ -5921,7 +6074,7 @@
     function renderOperationPanel() {
       const lock = operationLockText();
       const snapshots = loadSnapshots().slice(0, 3);
-      return `<section class="ops-panel"><div class="ops-row"><div><strong>운영 안정화</strong><br><span class="${lock.on ? 'lock-on' : 'lock-off'}">${escapeHtml(lock.text)}</span></div><div class="ops-buttons"><button class="${lock.on ? 'ghost' : 'primary'}" onclick="acquireOperationLock()">운영 잠금</button><button class="ghost" onclick="releaseOperationLock(false)">잠금 해제</button><button class="ghost" onclick="createManualSnapshot()">수동 백업</button></div></div>${snapshots.length ? `<div class="snapshot-list">${snapshots.map(s => `<div class="snapshot-item"><span>${escapeHtml(s.label)} · ${escapeHtml(formatSnapshotTime(s.createdAt))}</span><button class="ghost" onclick="restoreSnapshot('${escapeAttr(s.id)}')">복구</button></div>`).join("")}</div>` : `<div class="hint">아직 백업 스냅샷이 없습니다.</div>`}</section>`;
+      return `<section class="ops-panel"><div class="ops-row"><div><strong>운영 안정화</strong><br><span class="${lock.on ? 'lock-on' : 'lock-off'}">${escapeHtml(lock.text)}</span></div><div class="ops-buttons"><button class="${lock.on ? 'ghost' : 'primary'}" onclick="acquireOperationLock()">운영 잠금</button><button class="ghost" onclick="releaseOperationLock(false)">잠금 해제</button><button class="ghost" onclick="createManualSnapshot()">현재 상태 저장</button></div></div>${snapshots.length ? `<div class="snapshot-list">${snapshots.map(s => `<div class="snapshot-item"><span>${escapeHtml(s.label)} · ${escapeHtml(formatSnapshotTime(s.createdAt))}</span><button class="ghost" onclick="restoreSnapshot('${escapeAttr(s.id)}')">복구</button></div>`).join("")}</div>` : `<div class="hint">아직 임시 저장 상태가 없습니다.</div>`}</section>`;
     }
 
     function logTournamentAction(action, detail = "") {
@@ -6154,11 +6307,11 @@ function getTvWindowGroups(target) {
 
     function renderTvH2hMetrics(player, group) {
       const stats = getGroupMatchStatsForPlayer(player, group);
-      const rows = (stats.h2h || []).slice(0, 2).map(item => {
+      const rows = (stats.h2h || []).map(item => {
         const label = item.matches ? `${item.name} ${item.wins}승${item.losses}패 ${item.rateText}` : `${item.name} 전적없음`;
-        return `<span class="tv-h2h-line">최근3M ${escapeHtml(label)}</span>`;
+        return `<span class="tv-h2h-line">${escapeHtml(label)}</span>`;
       }).join("");
-      return `<div class="tv-h2h-list">${rows || `<span class="tv-h2h-line">최근3M 상대전적 없음</span>`}</div>`;
+      return `<div class="tv-h2h-list tv-h2h-inline">${rows || `<span class="tv-h2h-line">상대전적 없음</span>`}</div>`;
     }
 
     function renderTvLaneLabel(lane) {
@@ -6241,9 +6394,11 @@ function getTvWindowGroups(target) {
               <div class="tv-lane ${selected ? "selected" : ""}">
                 ${renderTvLaneLabel(player.lane)}
                 <div class="tv-player">
-                  <strong>${escapeHtml(player.name)}</strong>
-                  ${renderTvH2hMetrics(player, group)}
-                  ${player.team ? `<span>${escapeHtml(player.team)}</span>` : ""}
+                  <div class="tv-player-line">
+                    <strong>${escapeHtml(player.name)}</strong>
+                    ${player.team ? `<span class="tv-team-inline">${escapeHtml(player.team)}</span>` : ""}
+                    ${renderTvH2hMetrics(player, group)}
+                  </div>
                 </div>
                 <div class="tv-adv ${stageType === "points" ? "tv-point-value" : ""}">${stageType === "points" ? `${Number(pointTotalsMap[player.id] ?? (group.points || {})[player.id] ?? 0)}P` : (selected ? (isFinal ? "최종" : "진출") : "")}</div>
               </div>
@@ -8262,7 +8417,7 @@ function getTvWindowGroups(target) {
         const slots = originalSlots.map(player => {
           const cleaned = cleanPlayer(player);
           if (player && !player.isEmptyLane) {
-            const h2h = getRecentHeadToHeadStats(player, group).slice(0, 2).map(item => ({
+            const h2h = getRecentHeadToHeadStats(player, group).map(item => ({
               name: item.name || "상대",
               matches: Number(item.matches || 0),
               wins: Number(item.wins || 0),
