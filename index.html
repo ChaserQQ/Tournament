@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v70 RECHECK PATCH</title>
-  <!-- v70 RECHECK PATCH · index-only · Rules/images/OG files unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v74 CSS AUDIT CLEANUP</title>
+  <!-- v74 CSS AUDIT CLEANUP · index-only · Rules/images/OG files unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -2487,139 +2487,8 @@
       padding: 0 !important;
     }
 
+    /* v74 removed obsolete legacy TV block: v24 TV one-screen fit for Chromecast */
 
-    /* v24 TV one-screen fit for Chromecast */
-    body.tv-mode {
-      overflow: hidden !important;
-      height: 100vh !important;
-      max-height: 100vh !important;
-    }
-    body.tv-mode #app {
-      height: 100vh !important;
-      max-height: 100vh !important;
-      overflow: hidden !important;
-    }
-    body.tv-mode .tv-wrap {
-      height: 100vh !important;
-      max-height: 100vh !important;
-      overflow: hidden !important;
-      display: grid !important;
-      grid-template-rows: auto minmax(0, 1fr) auto !important;
-      padding: clamp(10px, 1.4vw, 22px) !important;
-      gap: clamp(8px, 1vw, 14px) !important;
-      box-sizing: border-box !important;
-    }
-    body.tv-mode .tv-head {
-      min-height: 0 !important;
-      margin: 0 !important;
-      padding: clamp(6px, .8vw, 12px) 0 !important;
-      gap: clamp(10px, 1.2vw, 22px) !important;
-    }
-    body.tv-mode .tv-brand strong {
-      font-size: clamp(22px, 3.2vw, 46px) !important;
-      line-height: .98 !important;
-      max-width: 72vw;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    body.tv-mode .tv-brand-line small {
-      font-size: clamp(10px, 1vw, 14px) !important;
-    }
-    body.tv-mode .tv-brand-line .maker {
-      font-size: clamp(9px, .85vw, 12px) !important;
-    }
-    body.tv-mode .tv-logo {
-      width: clamp(52px, 6vw, 88px) !important;
-      height: clamp(52px, 6vw, 88px) !important;
-      flex: 0 0 auto;
-    }
-    body.tv-mode .tv-stage {
-      min-height: 0 !important;
-      height: 100% !important;
-      overflow: hidden !important;
-      display: grid !important;
-      gap: clamp(8px, 1vw, 14px) !important;
-      align-content: stretch !important;
-    }
-    body.tv-mode .tv-stage[style*="repeat(3"] {
-      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    }
-    body.tv-mode .tv-group {
-      min-height: 0 !important;
-      overflow: hidden !important;
-      padding: clamp(8px, .9vw, 14px) !important;
-      border-radius: clamp(14px, 1.5vw, 22px) !important;
-      display: flex !important;
-      flex-direction: column !important;
-    }
-    body.tv-mode .tv-group-title {
-      margin: 0 0 clamp(5px, .7vw, 10px) !important;
-      flex: 0 0 auto;
-    }
-    body.tv-mode .tv-group-title strong {
-      font-size: clamp(16px, 1.6vw, 26px) !important;
-      line-height: 1 !important;
-    }
-    body.tv-mode .tv-group-title .badge {
-      font-size: clamp(9px, .8vw, 12px) !important;
-      padding: 3px 7px !important;
-      min-height: 20px !important;
-    }
-    body.tv-mode .tv-lane {
-      min-height: 0 !important;
-      flex: 1 1 0 !important;
-      display: grid !important;
-      grid-template-columns: minmax(58px, .34fr) minmax(0, 1fr) minmax(44px, .22fr) !important;
-      gap: clamp(6px, .8vw, 12px) !important;
-      align-items: center !important;
-      padding: clamp(5px, .65vw, 10px) !important;
-      border-radius: clamp(10px, 1vw, 16px) !important;
-      margin-top: clamp(4px, .5vw, 7px) !important;
-    }
-    body.tv-mode .tv-lane-no {
-      font-size: clamp(12px, 1.25vw, 21px) !important;
-      padding-right: clamp(5px, .6vw, 10px) !important;
-      line-height: 1 !important;
-    }
-    body.tv-mode .tv-player {
-      min-width: 0 !important;
-    }
-    body.tv-mode .tv-player strong {
-      display: block !important;
-      font-size: clamp(18px, 2.3vw, 38px) !important;
-      line-height: .98 !important;
-      letter-spacing: -.06em !important;
-      white-space: nowrap !important;
-      overflow: hidden !important;
-      text-overflow: ellipsis !important;
-    }
-    body.tv-mode .tv-player span {
-      display: block !important;
-      font-size: clamp(9px, .95vw, 14px) !important;
-      margin-top: 3px !important;
-      white-space: nowrap !important;
-      overflow: hidden !important;
-      text-overflow: ellipsis !important;
-    }
-    body.tv-mode .tv-adv {
-      min-height: clamp(20px, 2vw, 30px) !important;
-      font-size: clamp(10px, .9vw, 15px) !important;
-      padding: 3px 6px !important;
-    }
-    body.tv-mode .tv-pager {
-      flex: 0 0 auto !important;
-      font-size: clamp(10px, .95vw, 13px) !important;
-      padding: 0 !important;
-      margin: 0 !important;
-      min-height: 18px !important;
-      color: rgba(238,233,223,.62);
-    }
-    @media (max-width: 900px) {
-      body.tv-mode .tv-stage {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-      }
-    }
 
 
     /* v25 hard page logo separation */
@@ -2657,123 +2526,8 @@
       mix-blend-mode: normal !important;
     }
 
-    /* v29 TV 16 groups + cumulative point display + logo fail-safe */
-    body.tv-mode .tv-wrap {
-      display: flex !important;
-      flex-direction: column !important;
-      height: 100vh !important;
-      max-height: 100vh !important;
-      overflow: hidden !important;
-      padding: clamp(8px, 1vw, 16px) !important;
-      gap: clamp(6px, .7vw, 10px) !important;
-    }
-    body.tv-mode .tv-controls {
-      flex: 0 0 auto !important;
-      min-height: 0 !important;
-      padding: clamp(5px, .55vw, 8px) clamp(8px, .8vw, 12px) !important;
-      border-radius: 14px !important;
-      font-size: clamp(10px, .9vw, 13px) !important;
-    }
-    body.tv-mode .tv-controls button {
-      min-height: 28px !important;
-      padding: 5px 8px !important;
-      border-radius: 10px !important;
-      font-size: clamp(9px, .8vw, 12px) !important;
-    }
-    body.tv-mode .tv-stage {
-      flex: 1 1 auto !important;
-      min-height: 0 !important;
-      height: auto !important;
-      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-      grid-auto-rows: minmax(0, 1fr) !important;
-      gap: clamp(5px, .55vw, 9px) !important;
-    }
-    body.tv-mode .tv-group {
-      padding: clamp(6px, .65vw, 10px) !important;
-      gap: clamp(3px, .35vw, 5px) !important;
-      border-radius: clamp(12px, 1vw, 18px) !important;
-    }
-    body.tv-mode .tv-group-title {
-      margin-bottom: 2px !important;
-    }
-    body.tv-mode .tv-group-title strong {
-      font-size: clamp(13px, 1.15vw, 20px) !important;
-    }
-    body.tv-mode .tv-lane {
-      grid-template-columns: minmax(48px, .32fr) minmax(0, 1fr) minmax(54px, .28fr) !important;
-      padding: clamp(4px, .45vw, 7px) !important;
-      gap: clamp(4px, .5vw, 8px) !important;
-      margin-top: 3px !important;
-      border-radius: clamp(8px, .8vw, 13px) !important;
-    }
-    body.tv-mode .tv-lane-no {
-      font-size: clamp(10px, .95vw, 16px) !important;
-      padding-right: 5px !important;
-    }
-    body.tv-mode .tv-player strong {
-      font-size: clamp(13px, 1.45vw, 24px) !important;
-      line-height: 1 !important;
-    }
-    body.tv-mode .tv-player span {
-      font-size: clamp(8px, .75vw, 11px) !important;
-      margin-top: 2px !important;
-    }
-    body.tv-mode .tv-adv.tv-point-value {
-      min-width: clamp(42px, 3.8vw, 76px) !important;
-      min-height: clamp(26px, 2.6vw, 46px) !important;
-      font-size: clamp(18px, 2.2vw, 36px) !important;
-      line-height: 1 !important;
-      color: #170810 !important;
-      background: linear-gradient(135deg, #f8d56b, #f06aa3) !important;
-      border-radius: 999px !important;
-      font-weight: 1000 !important;
-      box-shadow: 0 8px 20px rgba(0,0,0,.22) !important;
-    }
-    .tv-point-leaders {
-      flex: 0 0 auto;
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
-      align-items: center;
-      gap: clamp(8px, .9vw, 14px);
-      padding: clamp(6px, .7vw, 10px) clamp(10px, 1vw, 16px);
-      border: 1px solid rgba(248,213,107,.35);
-      border-radius: 16px;
-      background: linear-gradient(135deg, rgba(248,213,107,.14), rgba(216,77,137,.13));
-    }
-    .tv-point-leaders-title {
-      color: #f8d56b;
-      font-size: clamp(12px, 1.05vw, 18px);
-      font-weight: 1000;
-      white-space: nowrap;
-    }
-    .tv-point-leaders-list {
-      display: flex;
-      align-items: center;
-      gap: clamp(5px, .55vw, 9px);
-      overflow: hidden;
-      white-space: nowrap;
-    }
-    .tv-point-leader {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: clamp(5px, .55vw, 9px) clamp(8px, .8vw, 12px);
-      border-radius: 999px;
-      background: rgba(238,233,223,.08);
-      border: 1px solid rgba(238,233,223,.12);
-      font-size: clamp(12px, 1.15vw, 19px);
-      font-weight: 1000;
-      min-width: 0;
-    }
-    .tv-point-leader b {
-      color: #f8d56b;
-    }
-    @media (max-width: 900px) {
-      body.tv-mode .tv-stage {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        overflow: auto !important;
-      }
-    }
+    /* v74 removed obsolete legacy TV block: v29 TV 16 groups + cumulative point display + logo fail-safe */
+
 
 
     /* v33 auth + venue dashboard */
@@ -3902,47 +3656,8 @@
       overflow: hidden !important;
       align-items: stretch !important;
     }
-    body.tv-mode .tv-stage.tv-stage-all {
-      grid-auto-rows: minmax(0, 1fr) !important;
-    }
     body.tv-mode .tv-stage.tv-stage-focus {
       grid-auto-rows: minmax(0, 1fr) !important;
-    }
-    body.tv-mode .tv-stage.tv-stage-all .tv-group {
-      padding: clamp(6px, .65vw, 10px) !important;
-      border-radius: 15px !important;
-    }
-    body.tv-mode .tv-stage.tv-stage-all .tv-group-title strong {
-      font-size: clamp(12px, 1.08vw, 18px) !important;
-    }
-    body.tv-mode .tv-stage.tv-stage-all .tv-group-title .badge {
-      font-size: clamp(8px, .62vw, 10px) !important;
-      padding: 2px 5px !important;
-    }
-    body.tv-mode .tv-stage.tv-stage-all .tv-lane {
-      grid-template-columns: minmax(44px, .28fr) minmax(0, 1fr) minmax(34px, .18fr) !important;
-      gap: clamp(4px, .45vw, 7px) !important;
-      padding: clamp(4px, .45vw, 7px) !important;
-      margin-top: clamp(3px, .35vw, 5px) !important;
-      border-radius: 10px !important;
-    }
-    body.tv-mode .tv-stage.tv-stage-all .tv-lane-no {
-      font-size: clamp(9px, .82vw, 13px) !important;
-      padding-right: 5px !important;
-    }
-    body.tv-mode .tv-stage.tv-stage-all .tv-player strong {
-      font-size: clamp(12px, 1.3vw, 21px) !important;
-    }
-    body.tv-mode .tv-stage.tv-stage-all .tv-player span,
-    body.tv-mode .tv-stage.tv-stage-all .tv-h2h-line,
-    body.tv-mode .tv-stage.tv-stage-all .tv-lane-rate {
-      font-size: clamp(7px, .58vw, 9px) !important;
-      line-height: 1.05 !important;
-    }
-    body.tv-mode .tv-stage.tv-stage-all .tv-adv {
-      min-height: 18px !important;
-      font-size: clamp(8px, .68vw, 10px) !important;
-      padding: 2px 4px !important;
     }
     body.tv-mode .tv-stage.tv-stage-focus .tv-player strong {
       font-size: clamp(18px, 2.15vw, 34px) !important;
@@ -4110,9 +3825,6 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    body.tv-mode .tv-stage-all .tv-player-line > strong { font-size: clamp(13px, 1.25vw, 22px) !important; }
-    body.tv-mode .tv-stage-all .tv-h2h-inline .tv-h2h-line { max-width: 8.2vw; font-size: clamp(7px, .56vw, 9px) !important; }
-    body.tv-mode .tv-stage-all .tv-team-inline { max-width: 6vw; font-size: clamp(7px, .58vw, 9px); }
     .status-panel {
       grid-template-columns: minmax(0, 1fr) auto auto !important;
       align-items: center !important;
@@ -4265,19 +3977,6 @@
       overflow: hidden !important;
       text-overflow: ellipsis !important;
     }
-    body.tv-mode .tv-stage-all .tv-player-line {
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr) !important;
-    }
-    body.tv-mode .tv-stage-all .tv-player-identity-block > strong {
-      font-size: clamp(14px, 1.35vw, 22px) !important;
-    }
-    body.tv-mode .tv-stage-all .tv-team-under-name {
-      font-size: clamp(7px, .58vw, 9px) !important;
-    }
-    body.tv-mode .tv-stage-all .tv-h2h-inline .tv-h2h-line {
-      font-size: clamp(6.5px, .52vw, 8.5px) !important;
-      padding: .08vw .2vw !important;
-    }
     @media (max-width: 760px) {
       .slot-inner { align-items: flex-start !important; gap: 8px !important; }
       .lane-label { min-width: 82px !important; font-size: 16px !important; gap: 3px !important; }
@@ -4399,31 +4098,6 @@
       white-space: nowrap !important;
       overflow: hidden !important;
       text-overflow: ellipsis !important;
-    }
-    body.tv-mode .tv-stage-all .tv-lane-name-first {
-      grid-template-columns: minmax(0, 1fr) minmax(28px, auto) !important;
-      gap: clamp(4px, .4vw, 7px) !important;
-    }
-    body.tv-mode .tv-stage-all .tv-lane-meta strong {
-      font-size: clamp(9px, .82vw, 13px) !important;
-    }
-    body.tv-mode .tv-stage-all .tv-lane-meta span {
-      font-size: clamp(7px, .58vw, 9px) !important;
-    }
-    body.tv-mode .tv-stage-all .tv-player-line-vertical {
-      grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr) !important;
-      gap: .35vw !important;
-    }
-    body.tv-mode .tv-stage-all .tv-player-line-vertical .tv-player-identity-block > strong {
-      font-size: clamp(17px, 1.75vw, 30px) !important;
-    }
-    body.tv-mode .tv-stage-all .tv-team-under-name {
-      font-size: clamp(7px, .66vw, 10px) !important;
-    }
-    body.tv-mode .tv-stage-all .tv-h2h-rows .tv-h2h-line {
-      font-size: clamp(6.2px, .52vw, 8px) !important;
-      padding: .07vw .18vw !important;
-      border-radius: 4px !important;
     }
     body.tv-mode .tv-empty-lane .tv-player-identity-block > strong {
       font-size: clamp(24px, 2.4vw, 42px) !important;
@@ -4604,28 +4278,6 @@
       color: rgba(22,8,17,.82) !important;
       border-left-color: rgba(22,8,17,.38) !important;
     }
-    body.tv-mode .tv-stage-all .tv-player-line-vertical {
-      grid-template-columns: minmax(0, 1.38fr) minmax(0, .82fr) !important;
-    }
-    body.tv-mode .tv-stage-all .tv-player-line-vertical .tv-player-identity-block > .player-name-fit.name-fit-short {
-      font-size: clamp(20px, 2.05vw, 35px) !important;
-    }
-    body.tv-mode .tv-stage-all .tv-player-line-vertical .tv-player-identity-block > .player-name-fit.name-fit-medium {
-      font-size: clamp(18px, 1.75vw, 30px) !important;
-    }
-    body.tv-mode .tv-stage-all .tv-player-line-vertical .tv-player-identity-block > .player-name-fit.name-fit-long {
-      font-size: clamp(15px, 1.35vw, 23px) !important;
-    }
-    body.tv-mode .tv-stage-all .tv-player-line-vertical .tv-player-identity-block > .player-name-fit.name-fit-xlong {
-      font-size: clamp(12px, 1.05vw, 18px) !important;
-    }
-    body.tv-mode .tv-stage-all .tv-h2h-title {
-      font-size: clamp(6.8px, .56vw, 8.5px) !important;
-    }
-    body.tv-mode .tv-stage-all .tv-h2h-rows .tv-h2h-line {
-      font-size: clamp(6.2px, .52vw, 8px) !important;
-      padding-left: .24vw !important;
-    }
 
     @media (max-width: 760px) {
       .slot-inner-name-first {
@@ -4767,7 +4419,496 @@
       grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 
-  </style>
+
+    /* v71 CLEANUP TV UI · consolidated final overrides, no Rules/image/OG changes */
+    :root {
+      --tv-card-gap: clamp(8px, 1vw, 16px);
+      --tv-lane-gap: clamp(6px, .65vw, 10px);
+    }
+    body.tv-mode {
+      width: 100vw !important;
+      height: 100vh !important;
+      overflow: hidden !important;
+      background: #06100c !important;
+    }
+    body.tv-mode .tv-wrap {
+      width: 100vw !important;
+      height: 100vh !important;
+      min-height: 0 !important;
+      padding: clamp(10px, 1.3vw, 22px) !important;
+      display: grid !important;
+      grid-template-rows: auto auto minmax(0, 1fr) auto !important;
+      gap: clamp(7px, .9vw, 14px) !important;
+      overflow: hidden !important;
+    }
+    body.tv-mode .tv-wrap.tv-wrap-has-leaders {
+      grid-template-rows: auto auto auto minmax(0, 1fr) auto !important;
+    }
+    body.tv-mode .tv-head {
+      min-height: 0 !important;
+      padding: 0 0 clamp(7px, .75vw, 13px) !important;
+      border-bottom: 1px solid rgba(216,77,137,.46) !important;
+    }
+    body.tv-mode .tv-brand { min-width: 0 !important; }
+    body.tv-mode .tv-brand-line {
+      display: flex !important;
+      align-items: center !important;
+      gap: clamp(8px, .85vw, 14px) !important;
+      flex-wrap: nowrap !important;
+      margin-bottom: clamp(4px, .45vw, 7px) !important;
+    }
+    body.tv-mode .tv-brand-line small {
+      font-size: clamp(11px, .9vw, 18px) !important;
+      letter-spacing: .21em !important;
+      white-space: nowrap !important;
+    }
+    body.tv-mode .tv-view-mode-note {
+      display: inline-flex !important;
+      align-items: center !important;
+      min-width: 0 !important;
+      max-width: 38vw !important;
+      padding: .28em .7em !important;
+      border: 1px solid rgba(216,77,137,.36) !important;
+      border-radius: 999px !important;
+      color: #ff8dbb !important;
+      background: rgba(216,77,137,.12) !important;
+      font-size: clamp(10px, .76vw, 15px) !important;
+      font-weight: 1000 !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+    body.tv-mode .tv-brand > strong {
+      display: block !important;
+      max-width: 100% !important;
+      font-size: clamp(28px, 3.9vw, 64px) !important;
+      line-height: .98 !important;
+      letter-spacing: -.065em !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+    body.tv-mode .tv-stage-title {
+      margin-top: clamp(3px, .45vw, 8px) !important;
+      color: rgba(238,233,223,.72) !important;
+      font-size: clamp(14px, 1.35vw, 25px) !important;
+      line-height: 1.05 !important;
+      font-weight: 900 !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+    body.tv-mode .tv-logo {
+      width: clamp(66px, 8vw, 138px) !important;
+      max-height: clamp(48px, 7vw, 106px) !important;
+      flex: 0 0 auto !important;
+      object-fit: contain !important;
+    }
+    body.tv-mode .tv-controls {
+      min-height: 0 !important;
+      padding: clamp(6px, .7vw, 10px) clamp(8px, .9vw, 12px) !important;
+      border-radius: clamp(12px, 1vw, 18px) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 8px !important;
+      font-size: clamp(10px, .8vw, 14px) !important;
+    }
+    body.tv-mode .tv-controls button {
+      min-height: 0 !important;
+      padding: .48em .72em !important;
+      border-radius: 10px !important;
+      font-size: clamp(10px, .72vw, 13px) !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+    }
+    body.tv-mode .tv-point-leaders {
+      margin: 0 !important;
+      padding: clamp(6px, .7vw, 10px) !important;
+      border-radius: clamp(12px, 1vw, 18px) !important;
+    }
+    body.tv-mode .tv-point-leaders .scoreboard-list {
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+      gap: 6px !important;
+    }
+    body.tv-mode .tv-stage {
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+      gap: var(--tv-card-gap) !important;
+      align-items: stretch !important;
+    }
+    body.tv-mode .tv-group {
+      min-height: 0 !important;
+      height: 100% !important;
+      padding: clamp(9px, 1vw, 16px) !important;
+      border-radius: clamp(16px, 1.4vw, 26px) !important;
+      display: grid !important;
+      grid-template-rows: auto repeat(5, minmax(0, 1fr)) !important;
+      gap: var(--tv-lane-gap) !important;
+      overflow: hidden !important;
+      background: linear-gradient(180deg, rgba(18,30,24,.96), rgba(4,11,9,.98)) !important;
+      border: 1px solid rgba(238,233,223,.12) !important;
+    }
+    body.tv-mode .tv-group-title {
+      min-height: 0 !important;
+      padding-bottom: clamp(5px, .55vw, 9px) !important;
+      border-bottom: 1px solid rgba(238,233,223,.075) !important;
+    }
+    body.tv-mode .tv-group-title strong {
+      font-size: clamp(18px, 1.65vw, 31px) !important;
+      line-height: 1 !important;
+      letter-spacing: -.055em !important;
+      white-space: nowrap !important;
+    }
+    body.tv-mode .tv-group-title .badge {
+      flex: 0 0 auto !important;
+      font-size: clamp(8px, .62vw, 11px) !important;
+      padding: .28em .56em !important;
+    }
+    body.tv-mode .tv-lane {
+      min-height: 0 !important;
+      height: 100% !important;
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) minmax(38px, auto) !important;
+      align-items: stretch !important;
+      gap: clamp(5px, .6vw, 10px) !important;
+      padding: clamp(6px, .7vw, 12px) clamp(7px, .82vw, 13px) !important;
+      border-radius: clamp(11px, .95vw, 17px) !important;
+      overflow: hidden !important;
+      background: rgba(238,233,223,.04) !important;
+      border: 1px solid rgba(238,233,223,.085) !important;
+    }
+    body.tv-mode .tv-lane.selected {
+      background: linear-gradient(135deg, #f06aa3, #d84d89) !important;
+      color: #170810 !important;
+      border-color: transparent !important;
+    }
+    body.tv-mode .tv-player {
+      min-width: 0 !important;
+      display: grid !important;
+      grid-template-rows: auto minmax(0, 1fr) !important;
+      gap: clamp(4px, .42vw, 8px) !important;
+      overflow: hidden !important;
+      padding: 0 !important;
+    }
+    body.tv-mode .tv-lane-meta {
+      display: flex !important;
+      align-items: baseline !important;
+      gap: .45em !important;
+      min-width: 0 !important;
+      color: rgba(245,158,11,.98) !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.tv-mode .tv-lane-meta strong {
+      font-size: clamp(11px, .9vw, 18px) !important;
+      line-height: 1 !important;
+      letter-spacing: -.055em !important;
+    }
+    body.tv-mode .tv-lane-meta span {
+      font-size: clamp(8px, .62vw, 12px) !important;
+      line-height: 1 !important;
+      color: rgba(238,233,223,.68) !important;
+      font-weight: 900 !important;
+    }
+    body.tv-mode .tv-lane.selected .tv-lane-meta,
+    body.tv-mode .tv-lane.selected .tv-lane-meta span {
+      color: rgba(22,8,17,.82) !important;
+    }
+    body.tv-mode .tv-player-line-vertical {
+      min-width: 0 !important;
+      min-height: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      display: grid !important;
+      grid-template-columns: minmax(0, 1.5fr) minmax(74px, .82fr) !important;
+      gap: clamp(5px, .6vw, 10px) !important;
+      align-items: center !important;
+      overflow: hidden !important;
+    }
+    body.tv-mode .tv-player-identity-block {
+      min-width: 0 !important;
+      overflow: hidden !important;
+      display: grid !important;
+      align-content: center !important;
+      gap: clamp(2px, .28vw, 5px) !important;
+    }
+    body.tv-mode .tv-player-identity-block > .player-name-fit,
+    body.tv-mode .tv-player-identity-block > strong:not(.player-name-fit) {
+      display: block !important;
+      max-width: 100% !important;
+      line-height: .91 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      letter-spacing: -.075em !important;
+      font-weight: 1000 !important;
+    }
+    body.tv-mode .tv-player-identity-block > .name-fit-short { font-size: clamp(31px, 3.2vw, 60px) !important; }
+    body.tv-mode .tv-player-identity-block > .name-fit-medium { font-size: clamp(26px, 2.55vw, 48px) !important; }
+    body.tv-mode .tv-player-identity-block > .name-fit-long { font-size: clamp(20px, 1.95vw, 36px) !important; letter-spacing: -.058em !important; }
+    body.tv-mode .tv-player-identity-block > .name-fit-xlong { font-size: clamp(16px, 1.5vw, 28px) !important; letter-spacing: -.045em !important; }
+    body.tv-mode .tv-empty-lane .tv-player-identity-block > strong {
+      font-size: clamp(18px, 1.6vw, 31px) !important;
+      color: rgba(238,233,223,.46) !important;
+    }
+    body.tv-mode .tv-team-under-name {
+      color: inherit !important;
+      opacity: .72 !important;
+      font-size: clamp(9px, .75vw, 14px) !important;
+      line-height: 1.05 !important;
+      font-weight: 900 !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+    body.tv-mode .tv-h2h-list {
+      min-width: 0 !important;
+      height: 100% !important;
+      display: grid !important;
+      grid-template-rows: auto repeat(4, minmax(0, 1fr)) !important;
+      gap: clamp(1px, .18vw, 3px) !important;
+      align-content: center !important;
+      overflow: hidden !important;
+    }
+    body.tv-mode .tv-h2h-title {
+      color: rgba(245,158,11,.98) !important;
+      font-size: clamp(7px, .58vw, 10.5px) !important;
+      line-height: 1 !important;
+      font-weight: 1000 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      padding-left: clamp(3px, .35vw, 6px) !important;
+    }
+    body.tv-mode .tv-h2h-line {
+      min-width: 0 !important;
+      color: rgba(238,233,223,.75) !important;
+      border-left: 2px solid rgba(245,158,11,.32) !important;
+      padding-left: clamp(3px, .35vw, 6px) !important;
+      font-size: clamp(7px, .57vw, 10.5px) !important;
+      line-height: 1.08 !important;
+      font-weight: 850 !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+    body.tv-mode .tv-lane.selected .tv-h2h-title,
+    body.tv-mode .tv-lane.selected .tv-h2h-line {
+      color: rgba(22,8,17,.80) !important;
+      border-left-color: rgba(22,8,17,.34) !important;
+    }
+    body.tv-mode .tv-adv {
+      min-width: 0 !important;
+      min-height: 0 !important;
+      align-self: stretch !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 0 !important;
+      font-size: clamp(10px, .95vw, 18px) !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+    }
+    body.tv-mode .tv-foot {
+      min-height: 0 !important;
+      padding-top: 0 !important;
+      font-size: clamp(9px, .72vw, 14px) !important;
+      line-height: 1 !important;
+    }
+    .player-info-name-first-card {
+      grid-template-columns: minmax(0, 1.55fr) minmax(96px, .78fr) !important;
+    }
+    .slot-h2h-rows {
+      min-width: 0 !important;
+      overflow: hidden !important;
+    }
+    .slot-h2h-title {
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    .slot-h2h-rows .slot-metric.h2h {
+      display: block !important;
+      min-width: 0 !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+    .final-slot-actions {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) auto !important;
+      align-items: center !important;
+      gap: 8px !important;
+      width: 100% !important;
+    }
+    .final-slot-actions .player-card-main { min-width: 0 !important; }
+    .final-card-actions {
+      display: grid !important;
+      gap: 5px !important;
+      justify-items: stretch !important;
+      min-width: 112px !important;
+    }
+    @media (max-width: 960px) {
+      body.tv-mode .tv-wrap {
+        overflow: auto !important;
+        height: auto !important;
+        min-height: 100vh !important;
+      }
+      body.tv-mode .tv-stage {
+        grid-template-columns: 1fr !important;
+        overflow: visible !important;
+      }
+      body.tv-mode .tv-group {
+        height: auto !important;
+        grid-template-rows: auto !important;
+      }
+    }
+    @media (max-width: 760px) {
+      .player-info-name-first-card {
+        grid-template-columns: minmax(0, 1.42fr) minmax(88px, .72fr) !important;
+      }
+      .player-name-fit.name-fit-short { font-size: 25px !important; }
+      .player-name-fit.name-fit-medium { font-size: 22px !important; }
+      .player-name-fit.name-fit-long { font-size: 17px !important; }
+      .player-name-fit.name-fit-xlong { font-size: 14px !important; }
+      .slot-h2h-title { font-size: 8px !important; }
+      .slot-h2h-rows .slot-metric.h2h { font-size: 7.7px !important; }
+      .final-slot-actions { grid-template-columns: 1fr !important; }
+      .final-card-actions { min-width: 0 !important; }
+    }
+
+
+    /* v72 CARD CORE CLEANUP · shared player-card shell + TV lane-count fit */
+    .player-card-main-active,
+    .player-card-main-empty {
+      min-width: 0 !important;
+      width: 100% !important;
+    }
+    .slot-h2h-rows,
+    body.tv-mode .tv-h2h-list {
+      grid-template-rows: auto repeat(var(--h2h-row-count, 4), minmax(0, 1fr)) !important;
+    }
+    .slot-h2h-rows .slot-metric.h2h-empty,
+    body.tv-mode .tv-h2h-line:only-child {
+      opacity: .66 !important;
+    }
+    body.tv-mode .tv-stage-3-lane .tv-group {
+      grid-template-rows: auto repeat(3, minmax(0, 1fr)) !important;
+    }
+    body.tv-mode .tv-stage-5-lane .tv-group {
+      grid-template-rows: auto repeat(5, minmax(0, 1fr)) !important;
+    }
+    body.tv-mode .tv-player-active,
+    body.tv-mode .tv-player-empty {
+      min-width: 0 !important;
+      height: 100% !important;
+    }
+    body.tv-mode .tv-stage-3-lane .tv-player-line-vertical {
+      grid-template-columns: minmax(0, 1.68fr) minmax(70px, .72fr) !important;
+    }
+    body.tv-mode .tv-stage-5-lane .tv-player-line-vertical {
+      grid-template-columns: minmax(0, 1.5fr) minmax(74px, .82fr) !important;
+    }
+    body.tv-mode .tv-stage-3-lane .tv-player-identity-block > .name-fit-short {
+      font-size: clamp(36px, 4vw, 70px) !important;
+    }
+    body.tv-mode .tv-stage-3-lane .tv-player-identity-block > .name-fit-medium {
+      font-size: clamp(30px, 3.2vw, 56px) !important;
+    }
+    body.tv-mode .tv-stage-3-lane .tv-player-identity-block > .name-fit-long {
+      font-size: clamp(23px, 2.45vw, 42px) !important;
+    }
+    body.tv-mode .tv-stage-3-lane .tv-player-identity-block > .name-fit-xlong {
+      font-size: clamp(18px, 1.85vw, 32px) !important;
+    }
+    body.tv-mode .tv-stage-3-lane .tv-h2h-list {
+      grid-template-rows: auto repeat(var(--h2h-row-count, 2), minmax(0, 1fr)) !important;
+    }
+    @media (max-width: 960px) {
+      body.tv-mode .tv-stage-3-lane .tv-group,
+      body.tv-mode .tv-stage-5-lane .tv-group {
+        grid-template-rows: auto !important;
+      }
+    }
+
+  
+
+    /* v73 LEGACY UI CLEANUP · navigation/actions consolidation */
+    .account-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 0 0 12px;
+    }
+    .account-left,
+    .account-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+    .page-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .db-actions-toolbar,
+    .admin-actions-toolbar,
+    .dashboard-actions-toolbar {
+      grid-template-columns: repeat(auto-fit, minmax(132px, max-content));
+      justify-content: start;
+    }
+    .tv-head .tv-logo + .tv-logo {
+      display: none !important;
+    }
+    @media (max-width: 760px) {
+      .account-strip,
+      .account-left,
+      .account-actions,
+      .page-nav {
+        display: grid;
+        grid-template-columns: 1fr;
+        width: 100%;
+      }
+      .account-actions button,
+      .page-nav button,
+      .db-actions-toolbar button,
+      .admin-actions-toolbar button,
+      .dashboard-actions-toolbar button,
+      .db-actions-toolbar .upload-button {
+        width: 100%;
+      }
+    }
+
+    /* v74 CSS AUDIT CLEANUP · final guardrails after legacy removals */
+    body.tv-mode .tv-stage {
+      max-width: 100% !important;
+    }
+    body.tv-mode .tv-stage-groups-1 { grid-template-columns: 1fr !important; }
+    body.tv-mode .tv-stage-groups-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    body.tv-mode .tv-stage-groups-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+    body.tv-mode .tv-stage-groups-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+    body.tv-mode .tv-stage .tv-group:nth-of-type(n+5) {
+      display: none !important;
+    }
+    body.tv-mode .tv-player-line-vertical,
+    .player-info-name-first-card {
+      isolation: isolate;
+    }
+    .account-actions .current-page-action,
+    .page-nav .current-page-action {
+      display: none !important;
+    }
+
+</style>
 </head>
 <body>
   <div id="app"></div>
@@ -4843,7 +4984,7 @@
     let activeRoundIndex = 0;
     let tvState = null;
     let tvPage = 0;
-    let tvGroupsPerPage = 16;
+    let tvGroupsPerPage = 4;
     let tvTimer = null;
     let dbSelectedIds = new Set();
     let dbSearchText = "";
@@ -4923,12 +5064,7 @@
       createAutoSnapshot("자동 저장");
       if (state.settings.firebaseAutoSave) queueFirebaseSave();
     }
-
-    
-/* v58 removed duplicate function parseParticipants from earlier patch line 3638 */
-
-
-    function shuffle(array) {
+function shuffle(array) {
       const result = [...array];
       for (let i = result.length - 1; i > 0; i -= 1) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -5284,12 +5420,7 @@
         archived: "저장 완료"
       }[status] || "준비중";
     }
-
-    
-/* v58 removed duplicate function validateTournamentMetaRequired from earlier patch line 4008 */
-
-
-    function startTournament() {
+function startTournament() {
       ensureStateDefaults();
       if (!canModifyTournamentAction("대회 시작")) return;
       if (!validateTournamentMetaRequired()) return;
@@ -5305,12 +5436,7 @@
       logTournamentAction("대회 시작", state.tournament.name || "");
       renderOperator();
     }
-
-    
-/* v58 removed duplicate function finishTournament from earlier patch line 4041 */
-
-
-    function reopenTournament() {
+function reopenTournament() {
       ensureStateDefaults();
       if (!confirm("종료 상태를 해제하고 다시 진행중으로 변경할까요?")) return;
       state.tournament.status = "running";
@@ -5318,12 +5444,7 @@
       state.tournament.endedAtDisplay = "";
       renderOperator();
     }
-
-    
-/* v58 removed duplicate function archiveTournament from earlier patch line 4063 */
-
-
-    function isTournamentLocked() {
+function isTournamentLocked() {
       ensureStateDefaults();
       return state.tournament.status === "running" || state.tournament.status === "finished" || state.tournament.status === "archived";
     }
@@ -5347,23 +5468,9 @@
       }
     }
 
-    
-/* v58 removed duplicate function setTournamentField from earlier patch line 4093 */
 
 
-    
-/* v58 removed duplicate function ruleSummary from earlier patch line 4099 */
-
-
-    
-/* v58 removed duplicate function matchModeLabel from earlier patch line 4107 */
-
-
-    
-/* v58 removed duplicate function setMatchMode from earlier patch line 4115 */
-
-
-    function isPointRound(roundIndex) {
+function isPointRound(roundIndex) {
       return state.settings.matchMode === "points" && roundIndex === 0;
     }
 
@@ -5629,12 +5736,7 @@
       renderOperator();
       requestAnimationFrame(() => document.getElementById("currentStageTop")?.scrollIntoView({ behavior: "smooth", block: "start" }));
     }
-
-    
-/* v58 removed duplicate function confirmRoundFinalist from earlier patch line 4404 */
-
-
-    function setBroadcastStage(roundIndex, stageIndex) {
+function setBroadcastStage(roundIndex, stageIndex) {
       state.broadcast = { mode: "stage", roundIndex, stageIndex };
       activeRoundIndex = roundIndex;
       renderOperator();
@@ -5662,15 +5764,7 @@
       renderOperator();
     }
 
-    
-/* v58 removed duplicate function createFinalRace from earlier patch line 4450 */
-
-
-    
-/* v58 removed duplicate function toggleFinalWinner from earlier patch line 4474 */
-
-
-    function resetTournament() {
+function resetTournament() {
       if (!canModifyTournamentAction("라운드 초기화")) return;
       if (!confirm("현재 라운드/결승 기록을 초기화할까요?")) return;
       createAutoSnapshot("초기화 전 백업");
@@ -5754,12 +5848,7 @@
         updatedAt: state.updatedAt || Date.now()
       };
     }
-
-    
-/* v58 removed duplicate function makePublicStatePayload from earlier patch line 4573 */
-
-
-    function makePublicLivePayload(sourceState = exportState()) {
+function makePublicLivePayload(sourceState = exportState()) {
       const publicState = makePublicStatePayload(sourceState);
       return {
         id: getCurrentTournamentId(),
@@ -5784,13 +5873,7 @@
     function openTvView() {
       return openFirebaseTvLive();
     }
-
-    
-/* v58 removed duplicate function shareMobileView from earlier patch line 4652 */
-
-
-    
-    function copyOrShare(url, label) {
+function copyOrShare(url, label) {
       if (navigator.share) {
         navigator.share({ title: "MINI4WD TOURNAMENT MAKER", url }).catch(() => copyText(url, label));
       } else {
@@ -6229,12 +6312,7 @@
         return `
           <div class="slot empty-lane point-slot">
             <div class="slot-inner slot-inner-name-first">
-              <div class="player-card-main">
-                <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
-                <div class="player-info">
-                  <strong class="player-name-fit name-fit-empty">빈 레인</strong>
-                </div>
-              </div>
+              ${renderPlayerCardMain(player, group)}
             </div>
           </div>
         `;
@@ -6244,16 +6322,7 @@
       return `
         <div class="slot point-slot">
           <div class="slot-inner slot-inner-name-first">
-            <div class="player-card-main">
-              <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
-              <div class="player-info player-info-with-h2h player-info-name-first-card">
-                <div class="player-identity-block">
-                  <strong class="player-name-fit ${getPlayerNameFitClass(player.name)}">${escapeHtml(player.name)}</strong>
-                  ${renderPlayerTeamInline(player)}
-                </div>
-                ${renderPlayerMatchMetrics(player, group)}
-              </div>
-            </div>
+            ${renderPlayerCardMain(player, group)}
           </div>
           <div class="point-buttons">
             ${stage.pointOptions.map(score => `
@@ -6443,8 +6512,14 @@
       return matches ? `${Math.round((wins / matches) * 100)}%` : "-";
     }
 
-    function renderLaneLabelWithRate(lane) {
-      return `<span class="lane-label">${escapeHtml(lane)}LANE<span class="lane-win-rate">오늘 ${escapeHtml(getTodayLaneWinRate(lane))}</span></span>`;
+    function getDisplayLaneWinRate(lane, player = null) {
+      const direct = player && player.todayLaneWinRate != null ? String(player.todayLaneWinRate) : "";
+      if (direct) return direct;
+      return getTodayLaneWinRate(lane);
+    }
+
+    function renderLaneLabelWithRate(lane, player = null) {
+      return `<span class="lane-label">${escapeHtml(lane)}LANE<span class="lane-win-rate">오늘 ${escapeHtml(getDisplayLaneWinRate(lane, player))}</span></span>`;
     }
 
     function getPlayerNameFitClass(name) {
@@ -6461,13 +6536,40 @@
 
     function renderPlayerMatchMetrics(player, group) {
       const stats = getGroupMatchStatsForPlayer(player, group);
+      const h2hCount = Math.max(1, Math.min(4, (stats.h2h || []).length || 1));
       const h2hRows = (stats.h2h || []).map(item => {
         const label = item.matches
           ? `${item.name} · ${item.wins}승 ${item.losses}패 · ${item.rateText}`
           : `${item.name} · 전적없음`;
         return `<span class="slot-metric h2h ${item.matches ? "" : "h2h-empty"}">${escapeHtml(label)}</span>`;
       }).join("");
-      return `<div class="slot-metrics slot-metrics-inline slot-h2h-rows" title="최근 3개월 전적"><div class="slot-h2h-title">최근 3개월 전적</div>${h2hRows || `<span class="slot-metric h2h-empty">상대전적 없음</span>`}</div>`;
+      return `<div class="slot-metrics slot-metrics-inline slot-h2h-rows" title="최근 3개월 전적" style="--h2h-row-count:${h2hCount}"><div class="slot-h2h-title">최근 3개월 전적</div>${h2hRows || `<span class="slot-metric h2h h2h-empty">상대전적 없음</span>`}</div>`;
+    }
+
+    function renderPlayerCardMain(player, group) {
+      if (player?.isEmptyLane) {
+        return `
+          <div class="player-card-main player-card-main-empty">
+            <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane, player)}</div>
+            <div class="player-info">
+              <strong class="player-name-fit name-fit-empty">빈 레인</strong>
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="player-card-main player-card-main-active">
+          <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane, player)}</div>
+          <div class="player-info player-info-with-h2h player-info-name-first-card">
+            <div class="player-identity-block">
+              <strong class="player-name-fit ${getPlayerNameFitClass(player.name)}">${escapeHtml(player.name)}</strong>
+              ${renderPlayerTeamInline(player)}
+            </div>
+            ${renderPlayerMatchMetrics(player, group)}
+          </div>
+        </div>
+      `;
     }
 
     function renderGroup(group, roundIndex, stageIndex) {
@@ -6487,12 +6589,7 @@
         return `
           <div class="slot empty-lane">
             <div class="slot-inner slot-inner-name-first">
-              <div class="player-card-main">
-                <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
-                <div class="player-info">
-                  <strong class="player-name-fit name-fit-empty">빈 레인</strong>
-                </div>
-              </div>
+              ${renderPlayerCardMain(player, group)}
             </div>
           </div>
         `;
@@ -6502,29 +6599,13 @@
       return `
         <button class="slot ${selected ? "selected" : ""}" onclick="toggleAdvance(${roundIndex}, ${stageIndex}, '${escapeAttr(group.id)}', '${escapeAttr(player.id)}')">
           <div class="slot-inner slot-inner-name-first">
-            <div class="player-card-main">
-              <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
-              <div class="player-info player-info-with-h2h player-info-name-first-card">
-                <div class="player-identity-block">
-                  <strong class="player-name-fit ${getPlayerNameFitClass(player.name)}">${escapeHtml(player.name)}</strong>
-                  ${renderPlayerTeamInline(player)}
-                </div>
-                ${renderPlayerMatchMetrics(player, group)}
-              </div>
-            </div>
+            ${renderPlayerCardMain(player, group)}
             ${selected ? `<span class="advance-mark">진출</span>` : ""}
           </div>
         </button>
       `;
     }
-
-
-    
-    
-/* v58 removed duplicate function getCurrentTournamentId from earlier patch line 5197 */
-
-
-    function setTournamentIdDraft(value) {
+function setTournamentIdDraft(value) {
       const nextId = String(value || "").trim().toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
       firebaseTournamentId = nextId || DEFAULT_TOURNAMENT_ID;
       localStorage.setItem("mini4wdTournamentId", firebaseTournamentId);
@@ -6618,25 +6699,11 @@
         return false;
       });
     }
-
-    
-/* v58 removed duplicate function watchFirebaseState from earlier patch line 5301 */
-
-
-    function firebaseStatusText() {
+function firebaseStatusText() {
       return firebaseOnline ? `연결됨 · ${escapeHtml(getCurrentTournamentId())}` : `대기 · ${escapeHtml(getCurrentTournamentId())}`;
     }
 
-    
-/* v58 removed duplicate function copyLiveLink from earlier patch line 5324 */
-
-
-    
-/* v58 removed duplicate function openFirebaseTvLive from earlier patch line 5329 */
-
-
-
-    function currentActorLabel() {
+function currentActorLabel() {
       return currentAuthUser?.email || currentUserProfile?.email || "local";
     }
 
@@ -6811,12 +6878,7 @@ function renderTournamentStatusPanel() {
         </section>
       `;
     }
-
-    
-/* v58 removed duplicate function renderFinalRace from earlier patch line 5490 */
-
-
-    function avoidanceLabel(level) {
+function avoidanceLabel(level) {
       return { none: "없음", low: "낮음", medium: "보통", high: "높음" }[level] || level;
     }
 
@@ -6862,12 +6924,7 @@ function renderTournamentStatusPanel() {
         </section>
       `;
     }
-
-    
-/* v58 removed duplicate function getBroadcastTarget from earlier patch line 5601 */
-
-
-    function renderTvLiveView() {
+function renderTvLiveView() {
       document.body.classList.add("tv-mode");
 
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -6905,10 +6962,10 @@ function renderTournamentStatusPanel() {
             <div class="header-copy">
               <div class="brand-line">
                 <div class="eyebrow">MINI4WD TOURNAMENT MAKER</div>
-                
+                <div class="maker">대회 LIVE</div>
               </div>
-              <h1>모바일 대진표</h1>
-              <p class="desc">${matchModeLabel(payload.settings?.matchMode)} · ${payload.settings?.laneCount || 3}레인 · ${escapeHtml(payload.tournament?.name || "대회명 미입력")}</p>
+              <h1>${escapeHtml(payload.tournament?.name || "대회명 미입력")}</h1>
+              <p class="desc">${matchModeLabel(payload.settings?.matchMode)} · ${payload.settings?.laneCount || 3}레인 · ${escapeHtml(payload.tournament?.venue || "")}</p>
             </div>
             ${logoMarkup("header-logo")}
           </header>
@@ -6970,11 +7027,18 @@ function getTvWindowGroups(target) {
       const groups = target?.groups || [];
       if (!groups.length) return { groups: [], mode: "empty", startIndex: 0, currentIndex: 0, pageCount: 1 };
 
-      const pageSize = 4;
-      const hasAnyAdvance = groups.some(group => (group.advanceIds || []).length > 0);
+      const pageSize = Math.max(1, Number(tvGroupsPerPage) || 4);
+      const groupHasProgress = group => {
+        if ((group.advanceIds || []).length > 0) return true;
+        if (target?.stageType === "points") {
+          return Object.values(group.points || {}).some(value => value !== "" && value != null && Number(value) >= 0);
+        }
+        return false;
+      };
+      const lastProgressIndex = groups.reduce((last, group, index) => groupHasProgress(group) ? index : last, -1);
+      const pageCount = Math.max(1, Math.ceil(groups.length / pageSize));
 
-      if (!hasAnyAdvance) {
-        const pageCount = Math.max(1, Math.ceil(groups.length / pageSize));
+      if (lastProgressIndex < 0) {
         tvPage = Math.max(0, Math.min(tvPage || 0, pageCount - 1));
         const startIndex = tvPage * pageSize;
         return {
@@ -6986,30 +7050,53 @@ function getTvWindowGroups(target) {
         };
       }
 
-      let currentIndex = groups.findIndex(group => !(group.advanceIds || []).length);
-      if (currentIndex < 0) currentIndex = groups.length - 1;
-      let startIndex = Math.max(0, currentIndex - 1);
+      let startIndex = lastProgressIndex;
       if (startIndex + pageSize > groups.length) startIndex = Math.max(0, groups.length - pageSize);
       return {
         groups: groups.slice(startIndex, startIndex + pageSize),
         mode: "focus",
         startIndex,
-        currentIndex,
-        pageCount: Math.max(1, Math.ceil(groups.length / pageSize))
+        currentIndex: Math.min(lastProgressIndex + 1, groups.length - 1),
+        pageCount
       };
     }
 
-        function renderTvH2hMetrics(player, group) {
+    function renderTvH2hMetrics(player, group) {
       const stats = getGroupMatchStatsForPlayer(player, group);
+      const h2hCount = Math.max(1, Math.min(4, (stats.h2h || []).length || 1));
       const rows = (stats.h2h || []).map(item => {
         const label = item.matches ? `${item.name} · ${item.wins}승 ${item.losses}패 · ${item.rateText}` : `${item.name} · 전적없음`;
         return `<div class="tv-h2h-line">${escapeHtml(label)}</div>`;
       }).join("");
-      return `<div class="tv-h2h-list tv-h2h-rows" title="최근 3개월 전적"><div class="tv-h2h-title">최근 3개월 전적</div>${rows || `<div class="tv-h2h-line">상대전적 없음</div>`}</div>`;
+      return `<div class="tv-h2h-list tv-h2h-rows" title="최근 3개월 전적" style="--h2h-row-count:${h2hCount}"><div class="tv-h2h-title">최근 3개월 전적</div>${rows || `<div class="tv-h2h-line">상대전적 없음</div>`}</div>`;
     }
 
-    function renderTvLaneLabel(lane) {
-      return `<div class="tv-lane-meta"><strong>${escapeHtml(lane)}LANE</strong><span>오늘 ${escapeHtml(getTodayLaneWinRate(lane))}</span></div>`;
+    function renderTvLaneLabel(lane, player = null) {
+      return `<div class="tv-lane-meta"><strong>${escapeHtml(lane)}LANE</strong><span>오늘 ${escapeHtml(getDisplayLaneWinRate(lane, player))}</span></div>`;
+    }
+
+    function renderTvPlayerCore(player, group) {
+      if (player?.isEmptyLane) {
+        return `
+          <div class="tv-player tv-player-empty">
+            ${renderTvLaneLabel(player.lane, player)}
+            <div class="tv-player-identity-block"><strong>빈 레인</strong></div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="tv-player tv-player-active">
+          ${renderTvLaneLabel(player.lane, player)}
+          <div class="tv-player-line tv-player-line-vertical">
+            <div class="tv-player-identity-block">
+              <strong class="player-name-fit ${getPlayerNameFitClass(player.name)}">${escapeHtml(player.name)}</strong>
+              ${player.team ? `<div class="tv-team-under-name">${escapeHtml(player.team)}</div>` : ""}
+            </div>
+            ${renderTvH2hMetrics(player, group)}
+          </div>
+        </div>
+      `;
     }
 
     function renderTvStage() {
@@ -7021,14 +7108,15 @@ function getTvWindowGroups(target) {
 
       const windowInfo = getTvWindowGroups(target);
       const currentGroups = windowInfo.groups;
-      const columns = windowInfo.mode === "all" ? Math.min(4, Math.max(1, currentGroups.length)) : Math.min(4, Math.max(1, currentGroups.length));
+      const columns = Math.min(4, Math.max(1, currentGroups.length));
       const modeLabel = windowInfo.mode === "pending"
         ? `진행 대기 · ${windowInfo.startIndex + 1}-${windowInfo.startIndex + currentGroups.length}조`
         : `진행 포커스 · ${windowInfo.startIndex + 1}-${windowInfo.startIndex + currentGroups.length}조`;
       const tvTournamentName = target.tournamentName || tvState?.tournament?.name || "";
+      const pointLeadersHtml = renderTvPointLeaders(target);
 
       app.innerHTML = `
-        <div class="tv-wrap">
+        <div class="tv-wrap ${pointLeadersHtml ? "tv-wrap-has-leaders" : ""}">
           <header class="tv-head">
             <div class="tv-brand">
               <div class="tv-brand-line">
@@ -7053,9 +7141,9 @@ function getTvWindowGroups(target) {
             </div>
           </section>
 
-          ${renderTvPointLeaders(target)}
+          ${pointLeadersHtml}
 
-          <main class="tv-stage tv-stage-focus" style="grid-template-columns: repeat(${columns}, minmax(0,1fr));">
+          <main class="tv-stage tv-stage-focus tv-stage-groups-${columns} tv-stage-${target.laneCount || 3}-lane" style="grid-template-columns: repeat(${columns}, minmax(0,1fr));">
             ${currentGroups.map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap)).join("")}
           </main>
 
@@ -7069,7 +7157,7 @@ function getTvWindowGroups(target) {
 
     function renderTvGroup(group, isFinal, stageType = "normal", pointTotalsMap = {}) {
       return `
-        <article class="tv-group">
+        <article class="tv-group tv-group-${stageType || "stage"}">
           <div class="tv-group-title">
             <strong>${escapeHtml(group.name)}</strong>
             <span class="badge">${group.slots.filter(slot => !slot.isEmptyLane).length}명 경기</span>
@@ -7078,29 +7166,18 @@ function getTvWindowGroups(target) {
             if (player.isEmptyLane) {
               return `
                 <div class="tv-lane tv-empty-lane tv-lane-name-first">
-                  <div class="tv-player">
-                    ${renderTvLaneLabel(player.lane)}
-                    <div class="tv-player-identity-block"><strong>빈 레인</strong></div>
-                  </div>
+                  ${renderTvPlayerCore(player, group)}
                   <div class="tv-adv"></div>
                 </div>
               `;
             }
 
             const selected = (group.advanceIds || []).includes(player.id);
+            const pointValue = Number(pointTotalsMap[player.id] ?? (group.points || {})[player.id] ?? 0);
             return `
               <div class="tv-lane ${selected ? "selected" : ""} tv-lane-name-first">
-                <div class="tv-player">
-                  ${renderTvLaneLabel(player.lane)}
-                  <div class="tv-player-line tv-player-line-vertical">
-                    <div class="tv-player-identity-block">
-                      <strong class="player-name-fit ${getPlayerNameFitClass(player.name)}">${escapeHtml(player.name)}</strong>
-                      ${player.team ? `<div class="tv-team-under-name">${escapeHtml(player.team)}</div>` : ""}
-                    </div>
-                    ${renderTvH2hMetrics(player, group)}
-                  </div>
-                </div>
-                <div class="tv-adv ${stageType === "points" ? "tv-point-value" : ""}">${stageType === "points" ? `${Number(pointTotalsMap[player.id] ?? (group.points || {})[player.id] ?? 0)}P` : (selected ? (isFinal ? "최종" : "진출") : "")}</div>
+                ${renderTvPlayerCore(player, group)}
+                <div class="tv-adv ${stageType === "points" ? "tv-point-value" : ""}">${stageType === "points" ? `${pointValue}P` : (selected ? (isFinal ? "최종" : "진출") : "")}</div>
               </div>
             `;
           }).join("")}
@@ -7134,13 +7211,7 @@ function getTvWindowGroups(target) {
         alert("자동 넘김을 시작했습니다. 10초마다 다음 페이지로 이동합니다.");
       }
     }
-
-    
-/* v58 removed duplicate function renderReadOnlyPayload from earlier patch line 5860 */
-
-
-
-    function renderReadOnlyPointGroup(group, stage) {
+function renderReadOnlyPointGroup(group, stage) {
       return `
         <article class="group">
           <div class="group-title"><strong>${escapeHtml(group.name)}</strong><span class="badge">포인트전</span></div>
@@ -7149,10 +7220,7 @@ function getTvWindowGroups(target) {
               return `
                 <div class="slot empty-lane" style="cursor:default;">
                   <div class="slot-inner slot-inner-name-first">
-                    <div class="player-card-main">
-                      <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
-                      <div class="player-info"><strong class="player-name-fit name-fit-empty">빈 레인</strong></div>
-                    </div>
+                    ${renderPlayerCardMain(player, group)}
                   </div>
                 </div>
               `;
@@ -7161,16 +7229,7 @@ function getTvWindowGroups(target) {
             return `
               <div class="slot" style="cursor:default;">
                 <div class="slot-inner slot-inner-name-first">
-                  <div class="player-card-main">
-                    <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
-                    <div class="player-info player-info-with-h2h player-info-name-first-card">
-                      <div class="player-identity-block">
-                        <strong class="player-name-fit ${getPlayerNameFitClass(player.name)}">${escapeHtml(player.name)}</strong>
-                        ${renderPlayerTeamInline(player)}
-                      </div>
-                      ${renderPlayerMatchMetrics(player, group)}
-                    </div>
-                  </div>
+                  ${renderPlayerCardMain(player, group)}
                   <span class="advance-mark">${score}P</span>
                 </div>
               </div>
@@ -7189,10 +7248,7 @@ function getTvWindowGroups(target) {
               return `
                 <div class="slot empty-lane" style="cursor:default;">
                   <div class="slot-inner slot-inner-name-first">
-                    <div class="player-card-main">
-                      <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
-                      <div class="player-info"><strong class="player-name-fit name-fit-empty">빈 레인</strong></div>
-                    </div>
+                    ${renderPlayerCardMain(player, group)}
                   </div>
                 </div>
               `;
@@ -7202,16 +7258,7 @@ function getTvWindowGroups(target) {
             return `
               <div class="slot ${selected ? "selected" : ""}" style="cursor:default;">
                 <div class="slot-inner slot-inner-name-first">
-                  <div class="player-card-main">
-                    <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
-                    <div class="player-info player-info-with-h2h player-info-name-first-card">
-                      <div class="player-identity-block">
-                        <strong class="player-name-fit ${getPlayerNameFitClass(player.name)}">${escapeHtml(player.name)}</strong>
-                        ${renderPlayerTeamInline(player)}
-                      </div>
-                      ${renderPlayerMatchMetrics(player, group)}
-                    </div>
-                  </div>
+                  ${renderPlayerCardMain(player, group)}
                   ${selected ? `<span class="advance-mark">${isFinal ? "최종" : "진출"}</span>` : ""}
                 </div>
               </div>
@@ -7255,23 +7302,9 @@ function getTvWindowGroups(target) {
       renderDbPage();
     }
 
-    
-/* v58 removed duplicate function loadRoster from earlier patch line 5998 */
 
 
-    
-/* v58 removed duplicate function saveRoster from earlier patch line 6008 */
-
-
-    
-/* v58 removed duplicate function rosterId from earlier patch line 6012 */
-
-
-    
-/* v58 removed duplicate function addRosterPlayer from earlier patch line 6016 */
-
-
-    function toggleRosterField(id, field) {
+function toggleRosterField(id, field) {
       const roster = loadRoster().map(player => {
         if (player.id !== id) return player;
         return { ...player, [field]: !player[field] };
@@ -7287,22 +7320,12 @@ function getTvWindowGroups(target) {
       saveRoster(roster);
       renderDbPage();
     }
-
-    
-/* v58 removed duplicate function updateRosterInline from earlier patch line 6063 */
-
-
-    function toggleDbSelected(id, checked) {
+function toggleDbSelected(id, checked) {
       if (checked) dbSelectedIds.add(id);
       else dbSelectedIds.delete(id);
       updateSelectedPreview();
     }
-
-    
-/* v58 removed duplicate function updateSelectedPreview from earlier patch line 6077 */
-
-
-    function selectFavoritePlayers() {
+function selectFavoritePlayers() {
       dbSelectedIds = new Set(loadRoster().filter(player => player.favorite && player.active).map(player => player.id));
       renderDbPage();
     }
@@ -7323,27 +7346,10 @@ function getTvWindowGroups(target) {
       renderDbPage();
     }
 
-    
-/* v58 removed duplicate function applySelectedPlayersToTournament from earlier patch line 6114 */
 
 
-    
-/* v58 removed duplicate function exportRosterCsv from earlier patch line 6133 */
 
-
-    
-/* v58 removed duplicate function exportRosterJson from earlier patch line 6151 */
-
-
-    
-/* v58 removed duplicate function importRosterJsonFromText from earlier patch line 6155 */
-
-
-    
-/* v58 removed duplicate function quickImportRosterLines from earlier patch line 6190 */
-
-
-    function setDbSearch(value) {
+function setDbSearch(value) {
       dbSearchText = value;
       renderDbPage();
     }
@@ -7372,16 +7378,7 @@ function getTvWindowGroups(target) {
       URL.revokeObjectURL(url);
     }
 
-    
-/* v58 removed duplicate function renderDbPage from earlier patch line 6266 */
-
-
-    
-/* v58 removed duplicate function renderRosterRow from earlier patch line 6394 */
-
-
-
-    function getTournamentMeta() {
+function getTournamentMeta() {
       ensureStateDefaults();
       return {
         경기일시: state.tournament.startedAtDisplay || "",
@@ -7395,15 +7392,7 @@ function getTvWindowGroups(target) {
       };
     }
 
-    
-/* v58 removed duplicate function getStageResultRows from earlier patch line 6424 */
-
-
-    
-/* v58 removed duplicate function exportTournamentCsv from earlier patch line 6481 */
-
-
-    function exportTournamentJson() {
+function exportTournamentJson() {
       ensureTournamentStarted();
       const payload = {
         meta: getTournamentMeta(),
@@ -7412,12 +7401,7 @@ function getTvWindowGroups(target) {
       };
       downloadTextFile(`tournament_record_${Date.now()}.json`, JSON.stringify(payload, null, 2));
     }
-
-    
-/* v58 removed duplicate function getCurrentStageForPrint from earlier patch line 6503 */
-
-
-    function openPrintView() {
+function openPrintView() {
       saveLiveState();
       window.open(`${location.origin}${location.pathname}#view=print`, "_blank", "noopener,noreferrer");
     }
@@ -7527,25 +7511,12 @@ function getTvWindowGroups(target) {
         </div>
       `;
     }
-
-
-
-    
-/* v58 removed duplicate function downloadRosterTemplate from earlier patch line 6627 */
-
-
-    function parseBooleanCell(value, defaultValue = false) {
+function parseBooleanCell(value, defaultValue = false) {
       if (value === undefined || value === null || value === "") return defaultValue;
       const text = String(value).trim().toLowerCase();
       return ["true", "y", "yes", "1", "활성", "사용", "예"].includes(text);
     }
-
-    
-/* v58 removed duplicate function importRosterExcel from earlier patch line 6650 */
-
-
-
-    function boot() {
+function boot() {
       try {
         const params = getHashParams();
         const view = params.get("view");
@@ -7748,106 +7719,31 @@ function getTvWindowGroups(target) {
     }
 
     /* v48 9강 + mobile live link fix overrides */
-    
-/* v58 removed duplicate function isCrowMode from earlier patch line 6936 */
 
 
-    
-/* v58 removed duplicate function ruleSummary from earlier patch line 6940 */
 
 
-    
-/* v58 removed duplicate function matchModeLabel from earlier patch line 6949 */
 
 
-    
-/* v58 removed duplicate function setMatchMode from earlier patch line 6958 */
 
 
-    
-/* v58 removed duplicate function normalizePlayerForFinal from earlier patch line 6978 */
 
 
-    
-/* v58 removed duplicate function getCrowRoundRank from earlier patch line 6982 */
 
 
-    
-/* v58 removed duplicate function getCrowRankHtml from earlier patch line 6987 */
 
 
-    
-/* v58 removed duplicate function confirmRoundFinalist from earlier patch line 6996 */
 
 
-    
-/* v58 removed duplicate function makeCrowSemiGroup from earlier patch line 7023 */
 
 
-    
-/* v58 removed duplicate function createCrowSemiFinal from earlier patch line 7032 */
 
 
-    
-/* v58 removed duplicate function createCrowFinalFromSemi from earlier patch line 7054 */
 
 
-    
-/* v58 removed duplicate function createFinalRace from earlier patch line 7075 */
 
 
-    
-/* v58 removed duplicate function getFinalGroups from earlier patch line 7091 */
-
-
-    
-/* v58 removed duplicate function toggleFinalWinner from earlier patch line 7097 */
-
-
-    
-/* v58 removed duplicate function forceFinalLane from earlier patch line 7110 */
-
-
-    
-/* v58 removed duplicate function renderFinalLaneTools from earlier patch line 7125 */
-
-
-    
-/* v58 removed duplicate function renderFinalGroup from earlier patch line 7130 */
-
-
-    
-/* v58 removed duplicate function renderFinalRace from earlier patch line 7138 */
-
-
-    
-/* v58 removed duplicate function getBroadcastTarget from earlier patch line 7149 */
-
-
-    
-/* v58 removed duplicate function getCurrentStageForPrint from earlier patch line 7163 */
-
-
-    
-/* v58 removed duplicate function makePublicStatePayload from earlier patch line 7175 */
-
-
-    
-/* v58 removed duplicate function getStageResultRows from earlier patch line 7210 */
-
-
-    
-/* v58 removed duplicate function renderReadOnlyPayload from earlier patch line 7231 */
-
-
-    
-/* v58 removed duplicate function shareMobileView from earlier patch line 7238 */
-
-
-    
-/* v58 removed duplicate function watchFirebaseState from earlier patch line 7243 */
-
-    /* boot deferred to v49 final call */
+/* boot deferred to v49 final call */
 
     function goBack() {
       if (history.length > 1) history.back();
@@ -7863,7 +7759,15 @@ function getTvWindowGroups(target) {
       const flags = profilePermissionFlags(currentUserProfile);
       const role = isAdminUser() ? "ADMIN" : flags.approved ? "VENUE" : flags.suspended ? "SUSPENDED" : "PENDING";
       const venue = isVenueUser() ? ` · ${escapeHtml(currentVenueName())}` : "";
-      return `<div class="account-strip"><div class="account-left">${renderPageNav()}<span class="pill">${role}${venue} · ${escapeHtml(currentAuthUser.email || "")}</span></div><div>${canViewDashboard() ? `<button class="ghost" onclick="openDashboardPage()">DASHBOARD</button>` : ""} ${isAdminUser() ? `<button class="ghost" onclick="openAdminPage()">ADMIN</button>` : ""} <button class="ghost" onclick="logoutUser()">LOGOUT</button></div></div>`;
+      const hash = String(location.hash || "");
+      const onDashboard = hash.includes("view=dashboard");
+      const onAdmin = hash.includes("view=admin");
+      const actionButtons = [
+        canViewDashboard() && !onDashboard ? `<button class="ghost" onclick="openDashboardPage()">DASHBOARD</button>` : "",
+        isAdminUser() && !onAdmin ? `<button class="ghost" onclick="openAdminPage()">ADMIN</button>` : "",
+        `<button class="ghost" onclick="logoutUser()">LOGOUT</button>`
+      ].filter(Boolean).join(" ");
+      return `<div class="account-strip"><div class="account-left">${renderPageNav()}<span class="pill">${role}${venue} · ${escapeHtml(currentAuthUser.email || "")}</span></div><div class="account-actions">${actionButtons}</div></div>`;
     }
 
     function renderLoginPage(message = "운영자 화면은 로그인이 필요합니다.") {
@@ -7906,106 +7810,31 @@ function getTvWindowGroups(target) {
     
 
     /* v48 9강 + mobile live link fix overrides */
-    
-/* v58 removed duplicate function isCrowMode from earlier patch line 7318 */
 
 
-    
-/* v58 removed duplicate function ruleSummary from earlier patch line 7322 */
 
 
-    
-/* v58 removed duplicate function matchModeLabel from earlier patch line 7331 */
 
 
-    
-/* v58 removed duplicate function setMatchMode from earlier patch line 7340 */
 
 
-    
-/* v58 removed duplicate function normalizePlayerForFinal from earlier patch line 7360 */
 
 
-    
-/* v58 removed duplicate function getCrowRoundRank from earlier patch line 7364 */
 
 
-    
-/* v58 removed duplicate function getCrowRankHtml from earlier patch line 7369 */
 
 
-    
-/* v58 removed duplicate function confirmRoundFinalist from earlier patch line 7378 */
 
 
-    
-/* v58 removed duplicate function makeCrowSemiGroup from earlier patch line 7405 */
 
 
-    
-/* v58 removed duplicate function createCrowSemiFinal from earlier patch line 7414 */
 
 
-    
-/* v58 removed duplicate function createCrowFinalFromSemi from earlier patch line 7436 */
 
 
-    
-/* v58 removed duplicate function createFinalRace from earlier patch line 7457 */
 
 
-    
-/* v58 removed duplicate function getFinalGroups from earlier patch line 7473 */
-
-
-    
-/* v58 removed duplicate function toggleFinalWinner from earlier patch line 7479 */
-
-
-    
-/* v58 removed duplicate function forceFinalLane from earlier patch line 7492 */
-
-
-    
-/* v58 removed duplicate function renderFinalLaneTools from earlier patch line 7507 */
-
-
-    
-/* v58 removed duplicate function renderFinalGroup from earlier patch line 7512 */
-
-
-    
-/* v58 removed duplicate function renderFinalRace from earlier patch line 7520 */
-
-
-    
-/* v58 removed duplicate function getBroadcastTarget from earlier patch line 7531 */
-
-
-    
-/* v58 removed duplicate function getCurrentStageForPrint from earlier patch line 7545 */
-
-
-    
-/* v58 removed duplicate function makePublicStatePayload from earlier patch line 7557 */
-
-
-    
-/* v58 removed duplicate function getStageResultRows from earlier patch line 7592 */
-
-
-    
-/* v58 removed duplicate function renderReadOnlyPayload from earlier patch line 7613 */
-
-
-    
-/* v58 removed duplicate function shareMobileView from earlier patch line 7620 */
-
-
-    
-/* v58 removed duplicate function watchFirebaseState from earlier patch line 7625 */
-
-    /* boot deferred to v49 final call */
+/* boot deferred to v49 final call */
 
       } catch (error) {
         alert(`로그인 실패: ${error.message || error}`);
@@ -8098,7 +7927,7 @@ function getTvWindowGroups(target) {
         const profiles = snapshot.val() || {};
         syncPublicVenuesFromProfiles(profiles);
         const rows = Object.entries(profiles).sort((a,b) => String(a[1].email || "").localeCompare(String(b[1].email || "")));
-        app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar"><button class="primary" onclick="location.hash=''; renderOperator();">TOURNAMENT</button>${canViewDashboard() ? `<button class="ghost" onclick="openDashboardPage()">DASHBOARD</button>` : ``}<button class="ghost" onclick="renderAdminPage()">새로고침</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section></div>`;
+        app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar admin-actions-toolbar"><button class="ghost" onclick="renderAdminPage()">새로고침</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section></div>`;
       }).catch(error => alert(`사용자 목록 로드 실패: ${error.message || error}`));
     }
 
@@ -8414,7 +8243,7 @@ function getTvWindowGroups(target) {
         <div class="db-page">
           <header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div></div><h1>선수 DB / 경기장별 관리</h1><p class="desc">실명+연락처를 기준으로 식별하고, 닉네임이 대진표의 선수명으로 표시됩니다.</p></div>${logoMarkup("header-logo")}</header>
           ${accountBadge()}
-          <div class="toolbar"><button class="primary" onclick="location.hash=''; renderOperator();">TOURNAMENT</button><button class="ghost" onclick="exportRosterCsv()">CSV 다운로드</button><button class="ghost" onclick="exportRosterJson()">JSON 백업</button><button class="ghost" onclick="downloadRosterTemplate()">선수 양식</button><label class="upload-button ghost">엑셀 업로드<input type="file" accept=".xlsx,.xls,.csv,.tsv" onchange="importRosterExcel(event)" hidden /></label></div>
+          <div class="toolbar db-actions-toolbar"><button class="ghost" onclick="exportRosterCsv()">CSV 다운로드</button><button class="ghost" onclick="exportRosterJson()">JSON 백업</button><button class="ghost" onclick="downloadRosterTemplate()">선수 양식</button><label class="upload-button ghost">엑셀 업로드<input type="file" accept=".xlsx,.xls,.csv,.tsv" onchange="importRosterExcel(event)" hidden /></label></div>
           <div class="db-grid"><aside>
             <section class="card"><div class="db-panel-title"><h2>선수 빠른 추가</h2><span class="pill">${escapeHtml(currentVenueName())}</span></div><div class="form-grid"><div><label>실명 *</label><input class="mini-input" id="dbRealName" placeholder="홍길동" /></div><div><label>연락처 *</label><input class="mini-input" id="dbContact" placeholder="010-0000-0000" /></div><div><label>닉네임 / 선수명 *</label><input class="mini-input" id="dbNickname" placeholder="대진표 표시명" /></div><div><label>팀명</label><input class="mini-input" id="dbTeam" placeholder="OPEN CLASS" /></div><div><label>메모</label><input class="mini-input" id="dbMemo" placeholder="차량/특이사항" /></div></div><button class="primary" style="width:100%; margin-top:12px;" onclick="addRosterPlayer()">선수 추가</button><p class="privacy-note" style="margin-top:10px;">관리 경기장은 로그인 계정 기준으로 자동 연결됩니다. 같은 선수는 다른 경기장에 별도 등록할 수 있습니다.</p></section>
             <section class="card selected-box"><div class="db-panel-title"><h2>오늘 참가자</h2><span class="pill"><span id="selectedCount">0</span>명 선택</span></div><div class="db-actions" style="margin-bottom:10px;"><button class="ghost" onclick="selectRecentPlayers()">최근 참가자</button><button class="ghost" onclick="selectFavoritePlayers()">즐겨찾기</button><button class="ghost" onclick="clearSelectedPlayers()">선택 해제</button></div><div id="selectedPreview" class="finalist-grid" style="grid-template-columns:1fr;"></div><button class="primary" style="width:100%; margin-top:12px;" onclick="applySelectedPlayersToTournament()">선택 선수로 대진 생성 준비</button></section>
@@ -8459,12 +8288,7 @@ function getTvWindowGroups(target) {
       const match = loadRoster().find(item => item.id === player.id) || findRosterMatch(player.name, player.team);
       return { playerId: match?.id || player.id || "", realName: match?.realName || player.realName || "", contact: match?.contact || player.contact || "" };
     }
-
-    
-/* v58 removed duplicate function getStageResultRows from earlier patch line 8096 */
-
-
-    function exportTournamentCsv() {
+function exportTournamentCsv() {
       ensureTournamentStarted();
       const rows = getStageResultRows();
       if (!rows.length) return alert("다운로드할 경기 결과가 없습니다.");
@@ -8730,7 +8554,7 @@ function getTvWindowGroups(target) {
       const stats = analyzeRecords(filtered);
       const venueVisits = analyzePlayerVenueVisits(filtered);
       document.body.classList.remove("tv-mode");
-      app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">DASHBOARD</div></div><h1>상시 데이터 대시보드</h1><p class="desc">기간별 · 경기장별 · 클래스별 경기 기록 분석</p></div>${logoMarkup("header-logo")}</header>${currentAuthUser ? accountBadge() : ""}<div class="toolbar"><button class="ghost" onclick="goBack()">뒤로가기</button><button class="ghost" onclick="goHome()">홈</button><button class="primary" onclick="location.hash=''; bootV33();">TOURNAMENT</button><button class="ghost" onclick="location.hash='view=live-list'; bootV33();">LIVE 로비</button><button class="ghost" onclick="dashboardFilter.venue='전체'; renderDashboardWithRecords(window.__dashboardRecords||[])">전체 경기장</button><button class="ghost" onclick="openDashboardPage()">새로고침</button></div><section class="card"><div class="dashboard-filter"><div><label>시작일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.from)}" onchange="dashboardFilter.from=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>종료일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.to)}" onchange="dashboardFilter.to=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>경기장</label><select class="mini-input" onchange="dashboardFilter.venue=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 경기장</option>${venueOptions.map(v => `<option value="${escapeHtml(v.id)}" ${dashboardFilter.venue===v.id || dashboardFilter.venue===v.name || (v.aliases || []).includes(dashboardFilter.venue) || normalizeKey(dashboardFilter.venue)===v.id ? "selected" : ""}>${escapeHtml(v.name)}</option>`).join("")}</select></div><div><label>클래스</label><select class="mini-input" onchange="dashboardFilter.raceClass=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 클래스</option>${classes.map(c => `<option value="${escapeHtml(c)}" ${dashboardFilter.raceClass===c?"selected":""}>${escapeHtml(c)}</option>`).join("")}</select></div><div><label>검색</label><input class="mini-input" placeholder="대회명/경기장/클래스" value="${escapeHtml(dashboardFilter.keyword)}" oninput="dashboardFilter.keyword=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div></div><div class="dashboard-period-row"><button class="ghost" onclick="setDashboardPeriod('all')">전체 기간</button><button class="ghost" onclick="setDashboardPeriod('month')">이번달</button><button class="ghost" onclick="setDashboardPeriod('30d')">최근 30일</button></div><div class="db-stat-grid" style="margin-top:12px;"><div class="db-stat"><small>대회 기록</small><strong>${filtered.length}</strong></div><div class="db-stat"><small>경기장</small><strong>${new Set(filtered.map(r=>r.venueName||r.venueId)).size}</strong></div><div class="db-stat"><small>선수</small><strong>${stats.players.length}</strong></div></div></section><div class="dashboard-grid"><section class="dashboard-card"><h3>클래스별 기록</h3><div class="class-chip-wrap">${classStats.map(item => `<div class="class-chip"><span>${escapeHtml(item.raceClass)}</span><b>${item.count}회</b></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>선수별 경기장 방문</h3>${renderVenueVisitList(venueVisits)}</section><section class="dashboard-card"><h3>최다승 유저</h3>${rankList(stats.mostWins, "wins", "승")}</section><section class="dashboard-card"><h3>자주 우승하는 사람</h3>${rankList(stats.mostChampions, "championships", "회")}</section><section class="dashboard-card"><h3>자주 지는 사람</h3>${rankList(stats.mostLosses, "losses", "패")}</section><section class="dashboard-card"><h3>참가 횟수 랭킹</h3>${rankList(stats.mostParticipants, "matches", "회")}</section><section class="dashboard-card"><h3>포인트전 누적</h3>${rankList(stats.mostPoints, "points", "P")}</section><section class="dashboard-card"><h3>한 레인 편중</h3><div class="rank-list">${stats.oneLane.slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)} · ${p.mainLane}LANE</span><strong>${Math.round(p.laneRate*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>레인별 승률</h3><div class="rank-list">${stats.laneStats.map(l=>`<div class="rank-row"><b>${l.lane}</b><span class="rank-name">${l.matches}경기</span><strong>${l.matches ? Math.round(l.wins/l.matches*100) : 0}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>결승 진출률</h3><div class="rank-list">${stats.players.filter(p=>p.matches).sort((a,b)=>(b.finals/b.matches)-(a.finals/a.matches)).slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)}</span><strong>${Math.round(p.finals/p.matches*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section></div></div>`;
+      app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">DASHBOARD</div></div><h1>상시 데이터 대시보드</h1><p class="desc">기간별 · 경기장별 · 클래스별 경기 기록 분석</p></div>${logoMarkup("header-logo")}</header>${currentAuthUser ? accountBadge() : renderPageNav()}<div class="toolbar dashboard-actions-toolbar"><button class="ghost" onclick="dashboardFilter.venue='전체'; renderDashboardWithRecords(window.__dashboardRecords||[])">전체 경기장</button><button class="ghost" onclick="openDashboardPage()">새로고침</button></div><section class="card"><div class="dashboard-filter"><div><label>시작일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.from)}" onchange="dashboardFilter.from=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>종료일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.to)}" onchange="dashboardFilter.to=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>경기장</label><select class="mini-input" onchange="dashboardFilter.venue=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 경기장</option>${venueOptions.map(v => `<option value="${escapeHtml(v.id)}" ${dashboardFilter.venue===v.id || dashboardFilter.venue===v.name || (v.aliases || []).includes(dashboardFilter.venue) || normalizeKey(dashboardFilter.venue)===v.id ? "selected" : ""}>${escapeHtml(v.name)}</option>`).join("")}</select></div><div><label>클래스</label><select class="mini-input" onchange="dashboardFilter.raceClass=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 클래스</option>${classes.map(c => `<option value="${escapeHtml(c)}" ${dashboardFilter.raceClass===c?"selected":""}>${escapeHtml(c)}</option>`).join("")}</select></div><div><label>검색</label><input class="mini-input" placeholder="대회명/경기장/클래스" value="${escapeHtml(dashboardFilter.keyword)}" oninput="dashboardFilter.keyword=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div></div><div class="dashboard-period-row"><button class="ghost" onclick="setDashboardPeriod('all')">전체 기간</button><button class="ghost" onclick="setDashboardPeriod('month')">이번달</button><button class="ghost" onclick="setDashboardPeriod('30d')">최근 30일</button></div><div class="db-stat-grid" style="margin-top:12px;"><div class="db-stat"><small>대회 기록</small><strong>${filtered.length}</strong></div><div class="db-stat"><small>경기장</small><strong>${new Set(filtered.map(r=>r.venueName||r.venueId)).size}</strong></div><div class="db-stat"><small>선수</small><strong>${stats.players.length}</strong></div></div></section><div class="dashboard-grid"><section class="dashboard-card"><h3>클래스별 기록</h3><div class="class-chip-wrap">${classStats.map(item => `<div class="class-chip"><span>${escapeHtml(item.raceClass)}</span><b>${item.count}회</b></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>선수별 경기장 방문</h3>${renderVenueVisitList(venueVisits)}</section><section class="dashboard-card"><h3>최다승 유저</h3>${rankList(stats.mostWins, "wins", "승")}</section><section class="dashboard-card"><h3>자주 우승하는 사람</h3>${rankList(stats.mostChampions, "championships", "회")}</section><section class="dashboard-card"><h3>자주 지는 사람</h3>${rankList(stats.mostLosses, "losses", "패")}</section><section class="dashboard-card"><h3>참가 횟수 랭킹</h3>${rankList(stats.mostParticipants, "matches", "회")}</section><section class="dashboard-card"><h3>포인트전 누적</h3>${rankList(stats.mostPoints, "points", "P")}</section><section class="dashboard-card"><h3>한 레인 편중</h3><div class="rank-list">${stats.oneLane.slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)} · ${p.mainLane}LANE</span><strong>${Math.round(p.laneRate*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>레인별 승률</h3><div class="rank-list">${stats.laneStats.map(l=>`<div class="rank-row"><b>${l.lane}</b><span class="rank-name">${l.matches}경기</span><strong>${l.matches ? Math.round(l.wins/l.matches*100) : 0}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>결승 진출률</h3><div class="rank-list">${stats.players.filter(p=>p.matches).sort((a,b)=>(b.finals/b.matches)-(a.finals/a.matches)).slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)}</span><strong>${Math.round(p.finals/p.matches*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section></div></div>`;
     }
 
     function liveStatusLabel(status) {
@@ -8801,12 +8625,7 @@ function getTvWindowGroups(target) {
     function normalizeRecentTime(record = {}) {
       return toTimeValue(record.endedAtISO || record.createdAt || record.startedAtISO);
     }
-
-    
-/* v58 removed duplicate function buildLobbySlots from earlier patch line 8453 */
-
-
-    function normalizeLobbyTournaments(raw = {}) {
+function normalizeLobbyTournaments(raw = {}) {
       return Object.entries(raw).map(([id, item]) => {
         const st = item?.state || item || {};
         const tournament = st.tournament || {};
@@ -8825,26 +8644,13 @@ function getTvWindowGroups(target) {
       }).sort((a, b) => (b.status === "running") - (a.status === "running") || Number(b.updatedAt || 0) - Number(a.updatedAt || 0));
     }
 
-    
-/* v58 removed duplicate function renderLiveLobbyWithData from earlier patch line 8529 */
-
-
-    
-/* v58 removed duplicate function renderLiveLobbyPage from earlier patch line 8536 */
-
-
-    function flattenPrivateResultLogs(raw = {}) {
+function flattenPrivateResultLogs(raw = {}) {
       if (!raw || typeof raw !== "object") return [];
       const values = Object.values(raw);
       if (values.some(item => item && typeof item === "object" && Array.isArray(item.rows))) return values;
       return Object.values(raw).flatMap(venueBucket => venueBucket && typeof venueBucket === "object" ? Object.values(venueBucket) : []).filter(item => item && typeof item === "object");
     }
-
-    
-/* v58 removed duplicate function renderDashboardPage from earlier patch line 8560 */
-
-
-    async function bootV33() {
+async function bootV33() {
       try {
         const params = getHashParams();
         const view = params.get("view");
@@ -8909,12 +8715,7 @@ function getTvWindowGroups(target) {
         revival: "패자부활 토너먼트"
       }[mode] || "토너먼트";
     }
-
-    
-/* v58 removed duplicate function setMatchMode from earlier patch line 8655 */
-
-
-    function normalizePlayerForFinal(player, extra = {}) {
+function normalizePlayerForFinal(player, extra = {}) {
       return { id: player.id, name: player.name, nickname: player.nickname || player.name, team: player.team || "", realName: player.realName || "", contact: player.contact || "", ...extra };
     }
 
@@ -9072,10 +8873,7 @@ function getTvWindowGroups(target) {
           return `
             <div class="slot empty-lane">
               <div class="slot-inner slot-inner-name-first">
-                <div class="player-card-main">
-                  <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
-                  <div class="player-info"><strong class="player-name-fit name-fit-empty">빈 레인</strong></div>
-                </div>
+                ${renderPlayerCardMain(player, group)}
               </div>
             </div>
           `;
@@ -9084,16 +8882,7 @@ function getTvWindowGroups(target) {
         return `
           <div class="slot ${selected ? "selected" : ""}">
             <div class="slot-inner final-slot-actions">
-              <div class="player-card-main">
-                <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
-                <div class="player-info player-info-with-h2h player-info-name-first-card">
-                  <div class="player-identity-block">
-                    <strong class="player-name-fit ${getPlayerNameFitClass(player.name)}">${escapeHtml(player.name)}</strong>
-                    ${renderPlayerTeamInline(player)}
-                  </div>
-                  ${renderPlayerMatchMetrics(player, group)}
-                </div>
-              </div>
+              ${renderPlayerCardMain(player, group)}
               <div class="final-card-actions">
                 ${selected ? `<span class="advance-mark">${finalRaceType === "crowSemi" ? "결승" : "최종"}</span>` : ""}
                 <button class="${selected ? "primary" : "ghost"}" onclick="toggleFinalWinner('${escapeAttr(player.id)}','${escapeAttr(group.id)}')">${selected ? "선택 해제" : finalRaceType === "crowSemi" ? "결승 진출" : "우승 선택"}</button>
@@ -9155,7 +8944,7 @@ function getTvWindowGroups(target) {
         if (!player) return player;
         if (player.isEmptyLane) return { id: `empty-${player.lane || ++seq}`, lane: player.lane, name: "빈 레인", team: "", isEmptyLane: true };
         const displayName = player.nickname || player.name || player.realName || "참가자";
-        return { id: publicId(player.id || displayName), lane: player.lane, name: displayName, nickname: displayName, team: player.team || "", crowRank: player.crowRank || null, sourceRoundIndex: player.sourceRoundIndex || null };
+        return { id: publicId(player.id || displayName), lane: player.lane, name: displayName, nickname: displayName, team: player.team || "", todayLaneWinRate: getTodayLaneWinRate(player.lane), crowRank: player.crowRank || null, sourceRoundIndex: player.sourceRoundIndex || null };
       };
       const cleanGroup = group => {
         const originalSlots = group?.slots || [];
@@ -9221,14 +9010,7 @@ function getTvWindowGroups(target) {
       app.innerHTML = `<div class="mobile-view"><header class="header" style="margin-bottom:16px;"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">LIVE 로비</div></div><h1>${escapeHtml(payload.tournament?.name || "대회명 미입력")}</h1><p class="desc">${matchModeLabel(payload.settings?.matchMode)} · ${payload.settings?.laneCount || 3}레인 · ${escapeHtml(payload.tournament?.venue || "")}</p></div>${logoMarkup("header-logo")}</header>${finalHtml}${qualifierHtml}</div>`;
     }
 
-    
-/* v58 removed duplicate function shareMobileView from earlier patch line 8935 */
-
-
-    
-/* v58 removed duplicate function watchFirebaseState from earlier patch line 8940 */
-
-    /* boot deferred to v49 final call */
+/* boot deferred to v49 final call */
 
 
 
@@ -9409,17 +9191,7 @@ function getTvWindowGroups(target) {
       </div>`;
     }
 
-    
-/* v58 removed duplicate function renderLiveLobbyPage from earlier patch line 9082 */
-
-
-    
-/* v58 removed duplicate function watchFirebaseState from earlier patch line 9108 */
-
-
-
-
-    /* v50 final fixes: public live publishing, realtime lobby, dashboard admin scope */
+/* v50 final fixes: public live publishing, realtime lobby, dashboard admin scope */
     function forcePublishPublicLiveV50(reason = "수동 LIVE 동기화") {
       try {
         ensureStateDefaults();
@@ -9444,17 +9216,7 @@ function getTvWindowGroups(target) {
       return `${location.origin}${location.pathname}#view=live-list`;
     }
 
-    
-/* v58 removed duplicate function shareMobileView from earlier patch line 9156 */
-
-
-    
-/* v58 removed duplicate function copyLiveLink from earlier patch line 9163 */
-
-
-
-
-    function stopLiveLobbyRealtimeV50() {
+function stopLiveLobbyRealtimeV50() {
       if (typeof stopLiveLobbyRealtimeV49 === "function") stopLiveLobbyRealtimeV49();
       if (typeof stopPublicLiveWatchV49 === "function") stopPublicLiveWatchV49();
     }
@@ -9697,6 +9459,46 @@ function getTvWindowGroups(target) {
     }
 
 
+    function runV74CleanupAudit() {
+      const report = {
+        version: "v74-css-audit-cleanup",
+        checkedAt: new Date().toISOString(),
+        tv: {
+          target: typeof getBroadcastTarget === "function",
+          windowing: typeof getTvWindowGroups === "function",
+          stage: typeof renderTvStage === "function",
+          group: typeof renderTvGroup === "function",
+          core: typeof renderTvPlayerCore === "function",
+          laneRate: typeof getDisplayLaneWinRate === "function",
+          groupsPerPage: Number(tvGroupsPerPage) || 0
+        },
+        playerCard: {
+          nameFit: typeof getPlayerNameFitClass === "function",
+          laneLine: typeof renderLaneLabelWithRate === "function",
+          h2h: typeof renderPlayerMatchMetrics === "function",
+          cardCore: typeof renderPlayerCardMain === "function",
+          tvCore: typeof renderTvPlayerCore === "function"
+        },
+        cleanup: {
+          removedLegacyTvBlocks: ["v24 TV one-screen fit for Chromecast", "v29 TV 16 groups + cumulative point display + logo fail-safe"],
+          removedUnusedTvStageAllRules: true,
+          mobileLiveLabelRetired: true,
+          changedFiles: ["index.html"],
+          rulesChanged: false,
+          imagesChanged: false,
+          ogChanged: false
+        },
+        notes: [
+          "TV LIVE keeps max 4 groups per viewport.",
+          "No progress shows 1-4 by default; progress focus starts at the latest advanced/scored group.",
+          "Player card layout is routed through shared card core for operator/mobile and TV core for TV LIVE.",
+          "v74 removes obsolete legacy TV CSS and duplicate-function tombstone comments without changing Firebase Rules/images/OG."
+        ]
+      };
+      window.__mini4wdV74Audit = report;
+      return report;
+    }
+
     function runCommercialSelfAuditV58() {
       const requiredFunctions = [
         "bootV33","renderOperator","setMatchMode","renderDashboardPage","renderLiveLobbyPage",
@@ -9706,7 +9508,7 @@ function getTvWindowGroups(target) {
       const missingFunctions = requiredFunctions.filter(name => typeof window[name] !== "function");
       const publicOnlyPaths = ["publicLive","publicHistory","publicVenueDirectory","publicVenues"];
       const report = {
-        version: "v59-live-lobby-order-fix",
+        version: "v74-css-audit-cleanup",
         checkedAt: new Date().toISOString(),
         missingFunctions,
         duplicateFunctionDeclarations: [],
@@ -9718,7 +9520,8 @@ function getTvWindowGroups(target) {
       return report;
     }
 
-    /* v58 single boot call */
+    /* v74 self-audit before single boot */
+    try { runV74CleanupAudit(); } catch (error) { console.warn("v74 audit failed", error); }
     bootV33();
 
   </script>
