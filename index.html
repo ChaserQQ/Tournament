@@ -4143,6 +4143,156 @@
       .status-actions { display: grid !important; grid-template-columns: 1fr; }
     }
 
+
+    /* v66: name-first layout, team below name, all-opponent H2H visibility */
+    .lane-label {
+      min-width: 106px !important;
+      display: inline-flex !important;
+      align-items: baseline !important;
+      justify-content: flex-start !important;
+      gap: 5px !important;
+      white-space: nowrap !important;
+    }
+    .lane-label .lane-win-rate {
+      display: inline !important;
+      margin: 0 !important;
+      font-size: 10px !important;
+      letter-spacing: -.03em !important;
+      color: rgba(245,158,11,.86) !important;
+    }
+    .player-info-with-h2h {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1.3fr) minmax(150px, .95fr);
+      gap: 8px;
+      align-items: center;
+      overflow: visible !important;
+      min-width: 0;
+    }
+    .player-identity-block {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+    .player-identity-block > strong {
+      display: block !important;
+      font-size: clamp(22px, 3.2vw, 34px) !important;
+      line-height: .98 !important;
+      letter-spacing: -.055em !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    .team-under-name {
+      display: block !important;
+      width: max-content;
+      max-width: 100%;
+      color: inherit !important;
+      opacity: .68 !important;
+      font-size: 11px !important;
+      font-weight: 900 !important;
+      line-height: 1.1 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      padding: 0 !important;
+      background: transparent !important;
+      border-radius: 0 !important;
+    }
+    .player-info-with-h2h .slot-metrics-inline {
+      min-width: 0 !important;
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 3px !important;
+      margin: 0 !important;
+    }
+    .player-info-with-h2h .slot-metric {
+      width: auto !important;
+      max-width: 100% !important;
+      justify-content: flex-start;
+      padding: 2px 5px !important;
+      font-size: 9px !important;
+      line-height: 1.1 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.tv-mode .tv-player-line {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, .95fr) !important;
+      gap: .35vw .55vw !important;
+      align-items: center !important;
+      width: 100% !important;
+    }
+    body.tv-mode .tv-player-identity-block {
+      min-width: 0;
+      display: grid;
+      gap: .16vw;
+    }
+    body.tv-mode .tv-player-identity-block > strong {
+      display: block !important;
+      font-size: clamp(24px, 2.85vw, 46px) !important;
+      line-height: .95 !important;
+      letter-spacing: -.06em !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.tv-mode .tv-team-under-name {
+      color: rgba(238,233,223,.66) !important;
+      font-size: clamp(10px, .95vw, 16px) !important;
+      font-weight: 900 !important;
+      line-height: 1.05 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.tv-mode .tv-h2h-inline {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .18vw !important;
+      min-width: 0 !important;
+      margin: 0 !important;
+    }
+    body.tv-mode .tv-h2h-inline .tv-h2h-line {
+      display: block !important;
+      width: auto !important;
+      max-width: 100% !important;
+      padding: .12vw .28vw !important;
+      font-size: clamp(7px, .66vw, 11px) !important;
+      line-height: 1.05 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.tv-mode .tv-stage-all .tv-player-line {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr) !important;
+    }
+    body.tv-mode .tv-stage-all .tv-player-identity-block > strong {
+      font-size: clamp(14px, 1.35vw, 22px) !important;
+    }
+    body.tv-mode .tv-stage-all .tv-team-under-name {
+      font-size: clamp(7px, .58vw, 9px) !important;
+    }
+    body.tv-mode .tv-stage-all .tv-h2h-inline .tv-h2h-line {
+      font-size: clamp(6.5px, .52vw, 8.5px) !important;
+      padding: .08vw .2vw !important;
+    }
+    @media (max-width: 760px) {
+      .slot-inner { align-items: flex-start !important; gap: 8px !important; }
+      .lane-label { min-width: 82px !important; font-size: 16px !important; gap: 3px !important; }
+      .lane-label .lane-win-rate { font-size: 8.5px !important; }
+      .player-info-with-h2h {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 5px !important;
+      }
+      .player-identity-block > strong { font-size: 22px !important; }
+      .team-under-name { font-size: 10px !important; }
+      .player-info-with-h2h .slot-metrics-inline {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+      .player-info-with-h2h .slot-metric { font-size: 8.5px !important; padding: 2px 4px !important; }
+    }
+
   </style>
 </head>
 <body>
@@ -5587,12 +5737,12 @@
         <div class="slot point-slot">
           <div class="slot-inner">
             ${renderLaneLabelWithRate(player.lane)}
-            <div class="player-info">
-              <div class="slot-player-line">
+            <div class="player-info player-info-with-h2h">
+              <div class="player-identity-block">
                 <strong>${escapeHtml(player.name)}</strong>
                 ${renderPlayerTeamInline(player)}
-                ${renderPlayerMatchMetrics(player, group)}
               </div>
+              ${renderPlayerMatchMetrics(player, group)}
             </div>
           </div>
           <div class="point-buttons">
@@ -5694,18 +5844,28 @@
 
     function getRecentHeadToHeadStats(player, currentGroup) {
       if (!player || player.isEmptyLane || !currentGroup) return [];
-      if (Array.isArray(player.h2hMetrics)) {
-        return player.h2hMetrics.map(item => ({
-          name: item.name || "상대",
-          matches: Number(item.matches || 0),
-          wins: Number(item.wins || 0),
-          losses: Number(item.losses || 0),
-          rate: item.rate == null ? null : Number(item.rate),
-          rateText: item.matches ? `${Number(item.rate || 0)}%` : "-"
-        }));
-      }
       const opponents = (currentGroup.slots || [])
         .filter(slot => slot && !slot.isEmptyLane && slot.id !== player.id);
+      if (Array.isArray(player.h2hMetrics)) {
+        const byName = new Map(player.h2hMetrics.map(item => [String(item.name || "상대").trim(), item]));
+        return opponents.map(opponent => {
+          const name = String(opponent.name || "상대").trim();
+          const item = byName.get(name) || {};
+          const matches = Number(item.matches || 0);
+          const wins = Number(item.wins || 0);
+          const losses = Number(item.losses || Math.max(0, matches - wins));
+          const rate = item.rate == null ? (matches ? Math.round((wins / matches) * 100) : null) : Number(item.rate);
+          return {
+            opponent,
+            name,
+            matches,
+            wins,
+            losses,
+            rate,
+            rateText: matches ? `${rate}%` : "-"
+          };
+        });
+      }
       if (!opponents.length) return [];
 
       const records = getRecentMetricRecords(3);
@@ -5779,7 +5939,7 @@
     }
 
     function renderPlayerTeamInline(player = {}) {
-      return player.team ? `<span class="team team-inline">${escapeHtml(player.team)}</span>` : "";
+      return player.team ? `<div class="team team-under-name">${escapeHtml(player.team)}</div>` : "";
     }
 
     function renderPlayerMatchMetrics(player, group) {
@@ -5824,12 +5984,12 @@
         <button class="slot ${selected ? "selected" : ""}" onclick="toggleAdvance(${roundIndex}, ${stageIndex}, '${escapeAttr(group.id)}', '${escapeAttr(player.id)}')">
           <div class="slot-inner">
             ${renderLaneLabelWithRate(player.lane)}
-            <div class="player-info">
-              <div class="slot-player-line">
+            <div class="player-info player-info-with-h2h">
+              <div class="player-identity-block">
                 <strong>${escapeHtml(player.name)}</strong>
                 ${renderPlayerTeamInline(player)}
-                ${renderPlayerMatchMetrics(player, group)}
               </div>
+              ${renderPlayerMatchMetrics(player, group)}
             </div>
             ${selected ? `<span class="advance-mark">진출</span>` : ""}
           </div>
@@ -6395,8 +6555,10 @@ function getTvWindowGroups(target) {
                 ${renderTvLaneLabel(player.lane)}
                 <div class="tv-player">
                   <div class="tv-player-line">
-                    <strong>${escapeHtml(player.name)}</strong>
-                    ${player.team ? `<span class="tv-team-inline">${escapeHtml(player.team)}</span>` : ""}
+                    <div class="tv-player-identity-block">
+                      <strong>${escapeHtml(player.name)}</strong>
+                      ${player.team ? `<div class="tv-team-under-name">${escapeHtml(player.team)}</div>` : ""}
+                    </div>
                     ${renderTvH2hMetrics(player, group)}
                   </div>
                 </div>
