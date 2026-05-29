@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v78 TV LIVE TEXT FIT PATCH</title>
-  <!-- v78 TV LIVE TEXT FIT PATCH · index-only · Rules/images/OG files unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v77 TV LIVE HARD RESET</title>
+  <!-- v77 TV LIVE HARD RESET · index-only · Rules/images/OG files unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -5563,102 +5563,6 @@
       }
     }
 
-
-    /* v78 TV LIVE TEXT FIT PATCH · lane label smaller, nickname vertical clipping guard */
-    body.tv-mode .tv-lane-meta {
-      gap: .30em !important;
-      min-height: clamp(8px, .58vw, 12px) !important;
-      line-height: 1.08 !important;
-      align-items: center !important;
-    }
-    body.tv-mode .tv-lane-meta strong,
-    body.tv-mode .tv-lane-meta span {
-      font-size: clamp(5.8px, .42vw, 8px) !important;
-      line-height: 1.08 !important;
-      letter-spacing: -.005em !important;
-      font-weight: 1000 !important;
-    }
-    body.tv-mode .tv-player,
-    body.tv-mode .tv-player-active,
-    body.tv-mode .tv-player-empty {
-      grid-template-rows: min-content minmax(0, 1fr) !important;
-      gap: clamp(3px, .30vw, 5px) !important;
-      overflow: hidden !important;
-    }
-    body.tv-mode .tv-player-line,
-    body.tv-mode .tv-player-line-vertical,
-    body.tv-mode .tv-stage-3-lane .tv-player-line-vertical,
-    body.tv-mode .tv-stage-5-lane .tv-player-line-vertical {
-      grid-template-columns: minmax(0, 1.56fr) minmax(92px, .64fr) !important;
-      align-items: center !important;
-      min-height: 0 !important;
-    }
-    body.tv-mode .tv-player-identity-block {
-      align-content: center !important;
-      justify-content: stretch !important;
-      gap: clamp(3px, .28vw, 6px) !important;
-      padding-block: clamp(1px, .16vw, 3px) !important;
-      overflow: hidden !important;
-    }
-    body.tv-mode .tv-player-identity-block > .player-name-fit,
-    body.tv-mode .tv-player-identity-block > strong:not(.player-name-fit) {
-      line-height: 1.12 !important;
-      padding: .04em 0 .08em !important;
-      overflow: hidden !important;
-      text-overflow: clip !important;
-      transform: translateY(0) !important;
-    }
-    body.tv-mode .tv-player-identity-block > .name-fit-short {
-      font-size: clamp(28px, 2.78vw, 52px) !important;
-    }
-    body.tv-mode .tv-player-identity-block > .name-fit-medium {
-      font-size: clamp(24px, 2.34vw, 44px) !important;
-    }
-    body.tv-mode .tv-player-identity-block > .name-fit-tv-truncated,
-    body.tv-mode .tv-player-identity-block > .name-fit-long,
-    body.tv-mode .tv-player-identity-block > .name-fit-xlong {
-      font-size: clamp(21px, 1.98vw, 37px) !important;
-      letter-spacing: -.04em !important;
-    }
-    body.tv-mode .tv-stage-3-lane .tv-player-identity-block > .name-fit-short {
-      font-size: clamp(36px, 3.85vw, 72px) !important;
-    }
-    body.tv-mode .tv-stage-3-lane .tv-player-identity-block > .name-fit-medium {
-      font-size: clamp(31px, 3.18vw, 60px) !important;
-    }
-    body.tv-mode .tv-stage-3-lane .tv-player-identity-block > .name-fit-tv-truncated,
-    body.tv-mode .tv-stage-3-lane .tv-player-identity-block > .name-fit-long,
-    body.tv-mode .tv-stage-3-lane .tv-player-identity-block > .name-fit-xlong {
-      font-size: clamp(26px, 2.62vw, 50px) !important;
-    }
-    body.tv-mode .tv-team-under-name {
-      font-size: clamp(7.2px, .54vw, 10px) !important;
-      line-height: 1.22 !important;
-      padding-bottom: .02em !important;
-      overflow: hidden !important;
-      text-overflow: ellipsis !important;
-      white-space: nowrap !important;
-    }
-    body.tv-mode .tv-stage-3-lane .tv-team-under-name {
-      font-size: clamp(8px, .68vw, 12.5px) !important;
-      line-height: 1.22 !important;
-    }
-    body.tv-mode .tv-h2h-list,
-    body.tv-mode .tv-h2h-rows {
-      grid-template-rows: min-content repeat(var(--h2h-row-count, 4), minmax(0, min-content)) !important;
-      align-content: center !important;
-    }
-    body.tv-mode .tv-h2h-title,
-    body.tv-mode .tv-h2h-line {
-      font-size: clamp(6.6px, .49vw, 9px) !important;
-      line-height: 1.12 !important;
-    }
-    body.tv-mode .tv-stage-3-lane .tv-h2h-title,
-    body.tv-mode .tv-stage-3-lane .tv-h2h-line {
-      font-size: clamp(7.6px, .60vw, 10.8px) !important;
-      line-height: 1.12 !important;
-    }
-
 </style>
 </head>
 <body>
@@ -10232,7 +10136,7 @@ function stopLiveLobbyRealtimeV50() {
 
     function runV77CleanupAudit() {
       const report = {
-        version: "v78-tv-live-text-fit-patch",
+        version: "v77-tv-live-hard-reset",
         checkedAt: new Date().toISOString(),
         tv: {
           target: typeof getBroadcastTarget === "function",
@@ -10263,7 +10167,7 @@ function stopLiveLobbyRealtimeV50() {
           "TV LIVE keeps max 4 groups per viewport.",
           "No progress shows 1-4 by default; progress focus starts at the latest advanced/scored group.",
           "Player card layout is routed through shared card core for operator/mobile and TV core for TV LIVE.",
-          "v78 reduces TV LIVE lane label typography and adds nickname vertical clipping guards while preserving Rules/images/OG and LIVE lobby behavior."
+          "v77 hard-resets TV LIVE layout after legacy TV CSS accumulation while preserving Rules/images/OG and LIVE lobby behavior."
         ]
       };
       window.__mini4wdV77Audit = report;
@@ -10279,7 +10183,7 @@ function stopLiveLobbyRealtimeV50() {
       const missingFunctions = requiredFunctions.filter(name => typeof window[name] !== "function");
       const publicOnlyPaths = ["publicLive","publicHistory","publicVenueDirectory","publicVenues"];
       const report = {
-        version: "v78-tv-live-text-fit-patch",
+        version: "v77-tv-live-hard-reset",
         checkedAt: new Date().toISOString(),
         missingFunctions,
         duplicateFunctionDeclarations: [],
@@ -10291,8 +10195,8 @@ function stopLiveLobbyRealtimeV50() {
       return report;
     }
 
-    /* v78 self-audit before single boot */
-    try { runV77CleanupAudit(); } catch (error) { console.warn("v78 audit failed", error); }
+    /* v77 self-audit before single boot */
+    try { runV77CleanupAudit(); } catch (error) { console.warn("v77 audit failed", error); }
     bootV33();
 
   </script>
