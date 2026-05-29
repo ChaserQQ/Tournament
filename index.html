@@ -4293,6 +4293,151 @@
       .player-info-with-h2h .slot-metric { font-size: 8.5px !important; padding: 2px 4px !important; }
     }
 
+  
+
+    /* v67: TV/name-first lane line + four-row head-to-head layout */
+    .slot-h2h-rows,
+    .player-info-with-h2h .slot-metrics-inline {
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+      gap: 3px !important;
+      align-content: center !important;
+    }
+    .slot-h2h-rows .slot-metric,
+    .player-info-with-h2h .slot-metric {
+      width: 100% !important;
+      max-width: 100% !important;
+      border-radius: 7px !important;
+      justify-content: flex-start !important;
+    }
+    body.tv-mode .tv-lane-name-first {
+      grid-template-columns: minmax(0, 1fr) minmax(42px, auto) !important;
+      align-items: stretch !important;
+      gap: clamp(6px, .65vw, 12px) !important;
+    }
+    body.tv-mode .tv-lane-name-first .tv-player {
+      display: grid !important;
+      grid-template-rows: auto minmax(0, 1fr) !important;
+      gap: clamp(4px, .38vw, 7px) !important;
+      min-width: 0 !important;
+      overflow: hidden !important;
+    }
+    body.tv-mode .tv-lane-meta {
+      display: inline-flex !important;
+      align-items: baseline !important;
+      gap: .45em !important;
+      min-width: 0 !important;
+      color: rgba(245,158,11,.96) !important;
+      font-weight: 1000 !important;
+      letter-spacing: -.055em !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.tv-mode .tv-lane-meta strong {
+      font-size: clamp(13px, 1.1vw, 22px) !important;
+      font-weight: 1000 !important;
+    }
+    body.tv-mode .tv-lane-meta span {
+      font-size: clamp(10px, .78vw, 15px) !important;
+      color: rgba(238,233,223,.7) !important;
+      font-weight: 900 !important;
+    }
+    body.tv-mode .tv-player-line-vertical {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, .9fr) !important;
+      gap: clamp(5px, .55vw, 10px) !important;
+      align-items: center !important;
+      width: 100% !important;
+      min-width: 0 !important;
+    }
+    body.tv-mode .tv-player-line-vertical .tv-player-identity-block {
+      min-width: 0 !important;
+      overflow: hidden !important;
+    }
+    body.tv-mode .tv-player-line-vertical .tv-player-identity-block > strong {
+      font-size: clamp(34px, 4.1vw, 76px) !important;
+      line-height: .9 !important;
+      letter-spacing: -.075em !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.tv-mode .tv-team-under-name {
+      display: block !important;
+      margin-top: clamp(3px, .35vw, 6px) !important;
+      font-size: clamp(13px, 1.15vw, 22px) !important;
+      line-height: 1 !important;
+      color: rgba(238,233,223,.68) !important;
+      font-weight: 1000 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.tv-mode .tv-h2h-rows {
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+      gap: clamp(2px, .2vw, 4px) !important;
+      margin: 0 !important;
+      min-width: 0 !important;
+      align-content: center !important;
+    }
+    body.tv-mode .tv-h2h-rows .tv-h2h-line {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: .16vw .34vw !important;
+      border-radius: 7px !important;
+      background: rgba(238,233,223,.055) !important;
+      border: 1px solid rgba(238,233,223,.08) !important;
+      color: rgba(238,233,223,.76) !important;
+      font-size: clamp(9px, .78vw, 15px) !important;
+      line-height: 1.1 !important;
+      font-weight: 900 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.tv-mode .tv-stage-all .tv-lane-name-first {
+      grid-template-columns: minmax(0, 1fr) minmax(28px, auto) !important;
+      gap: clamp(4px, .4vw, 7px) !important;
+    }
+    body.tv-mode .tv-stage-all .tv-lane-meta strong {
+      font-size: clamp(9px, .82vw, 13px) !important;
+    }
+    body.tv-mode .tv-stage-all .tv-lane-meta span {
+      font-size: clamp(7px, .58vw, 9px) !important;
+    }
+    body.tv-mode .tv-stage-all .tv-player-line-vertical {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr) !important;
+      gap: .35vw !important;
+    }
+    body.tv-mode .tv-stage-all .tv-player-line-vertical .tv-player-identity-block > strong {
+      font-size: clamp(17px, 1.75vw, 30px) !important;
+    }
+    body.tv-mode .tv-stage-all .tv-team-under-name {
+      font-size: clamp(7px, .66vw, 10px) !important;
+    }
+    body.tv-mode .tv-stage-all .tv-h2h-rows .tv-h2h-line {
+      font-size: clamp(6.2px, .52vw, 8px) !important;
+      padding: .07vw .18vw !important;
+      border-radius: 4px !important;
+    }
+    body.tv-mode .tv-empty-lane .tv-player-identity-block > strong {
+      font-size: clamp(24px, 2.4vw, 42px) !important;
+    }
+    @media (max-width: 760px) {
+      .player-info-with-h2h .slot-metrics-inline {
+        grid-template-columns: 1fr !important;
+      }
+      .slot-h2h-rows .slot-metric,
+      .player-info-with-h2h .slot-metric {
+        font-size: 8.5px !important;
+        padding: 2px 5px !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -5946,11 +6091,11 @@
       const stats = getGroupMatchStatsForPlayer(player, group);
       const h2hRows = (stats.h2h || []).map(item => {
         const label = item.matches
-          ? `${item.name} ${item.wins}승${item.losses}패 ${item.rateText}`
-          : `${item.name} 전적없음`;
+          ? `${item.name} · ${item.wins}승 ${item.losses}패 · ${item.rateText}`
+          : `${item.name} · 전적없음`;
         return `<span class="slot-metric h2h ${item.matches ? "" : "h2h-empty"}">${escapeHtml(label)}</span>`;
       }).join("");
-      return `<div class="slot-metrics slot-metrics-inline" title="최근 3개월 상대 전적">${h2hRows || `<span class="slot-metric h2h-empty">상대전적 없음</span>`}</div>`;
+      return `<div class="slot-metrics slot-metrics-inline slot-h2h-rows" title="최근 3개월 상대 전적">${h2hRows || `<span class="slot-metric h2h-empty">상대전적 없음</span>`}</div>`;
     }
 
     function renderGroup(group, roundIndex, stageIndex) {
@@ -6468,14 +6613,14 @@ function getTvWindowGroups(target) {
     function renderTvH2hMetrics(player, group) {
       const stats = getGroupMatchStatsForPlayer(player, group);
       const rows = (stats.h2h || []).map(item => {
-        const label = item.matches ? `${item.name} ${item.wins}승${item.losses}패 ${item.rateText}` : `${item.name} 전적없음`;
-        return `<span class="tv-h2h-line">${escapeHtml(label)}</span>`;
+        const label = item.matches ? `${item.name} · ${item.wins}승 ${item.losses}패 · ${item.rateText}` : `${item.name} · 전적없음`;
+        return `<div class="tv-h2h-line">${escapeHtml(label)}</div>`;
       }).join("");
-      return `<div class="tv-h2h-list tv-h2h-inline">${rows || `<span class="tv-h2h-line">상대전적 없음</span>`}</div>`;
+      return `<div class="tv-h2h-list tv-h2h-rows" title="최근 3개월 상대 전적">${rows || `<div class="tv-h2h-line">상대전적 없음</div>`}</div>`;
     }
 
     function renderTvLaneLabel(lane) {
-      return `<div class="tv-lane-no"><span class="tv-lane-no-main">${escapeHtml(lane)}LANE</span><span class="tv-lane-rate">오늘 ${escapeHtml(getTodayLaneWinRate(lane))}</span></div>`;
+      return `<div class="tv-lane-meta"><strong>${escapeHtml(lane)}LANE</strong><span>오늘 ${escapeHtml(getTodayLaneWinRate(lane))}</span></div>`;
     }
 
     function renderTvStage() {
@@ -6541,9 +6686,11 @@ function getTvWindowGroups(target) {
           ${group.slots.map(player => {
             if (player.isEmptyLane) {
               return `
-                <div class="tv-lane tv-empty-lane">
-                  ${renderTvLaneLabel(player.lane)}
-                  <div class="tv-player"><strong>빈 레인</strong></div>
+                <div class="tv-lane tv-empty-lane tv-lane-name-first">
+                  <div class="tv-player">
+                    ${renderTvLaneLabel(player.lane)}
+                    <div class="tv-player-identity-block"><strong>빈 레인</strong></div>
+                  </div>
                   <div class="tv-adv"></div>
                 </div>
               `;
@@ -6551,10 +6698,10 @@ function getTvWindowGroups(target) {
 
             const selected = (group.advanceIds || []).includes(player.id);
             return `
-              <div class="tv-lane ${selected ? "selected" : ""}">
-                ${renderTvLaneLabel(player.lane)}
+              <div class="tv-lane ${selected ? "selected" : ""} tv-lane-name-first">
                 <div class="tv-player">
-                  <div class="tv-player-line">
+                  ${renderTvLaneLabel(player.lane)}
+                  <div class="tv-player-line tv-player-line-vertical">
                     <div class="tv-player-identity-block">
                       <strong>${escapeHtml(player.name)}</strong>
                       ${player.team ? `<div class="tv-team-under-name">${escapeHtml(player.team)}</div>` : ""}
@@ -6656,10 +6803,12 @@ function getTvWindowGroups(target) {
               <div class="slot ${selected ? "selected" : ""}" style="cursor:default;">
                 <div class="slot-inner">
                   ${renderLaneLabelWithRate(player.lane)}
-                  <div class="player-info">
-                    <strong>${escapeHtml(player.name)}</strong>
+                  <div class="player-info player-info-with-h2h">
+                    <div class="player-identity-block">
+                      <strong>${escapeHtml(player.name)}</strong>
+                      ${renderPlayerTeamInline(player)}
+                    </div>
                     ${renderPlayerMatchMetrics(player, group)}
-                    ${player.team ? `<div class="team">${escapeHtml(player.team)}</div>` : ""}
                   </div>
                   ${selected ? `<span class="advance-mark">${isFinal ? "최종" : "진출"}</span>` : ""}
                 </div>
