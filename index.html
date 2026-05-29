@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v74 CSS AUDIT CLEANUP</title>
-  <!-- v74 CSS AUDIT CLEANUP · index-only · Rules/images/OG files unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v75 TV NAME FIT PATCH</title>
+  <!-- v75 TV NAME FIT PATCH · index-only · Rules/images/OG files unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -4908,6 +4908,127 @@
       display: none !important;
     }
 
+
+    /* v75 TV NAME FIT PATCH · screenshot-based correction */
+    :root {
+      --tv-card-gap: clamp(6px, .72vw, 12px);
+      --tv-lane-gap: clamp(4px, .45vw, 8px);
+    }
+    body.tv-mode .tv-wrap {
+      padding: clamp(8px, .9vw, 16px) !important;
+      gap: clamp(5px, .62vw, 10px) !important;
+    }
+    body.tv-mode .tv-head {
+      padding-bottom: clamp(5px, .55vw, 9px) !important;
+    }
+    body.tv-mode .tv-controls {
+      padding: clamp(4px, .42vw, 7px) clamp(6px, .55vw, 10px) !important;
+      border-radius: clamp(10px, .8vw, 14px) !important;
+      gap: 6px !important;
+      font-size: clamp(9px, .62vw, 12px) !important;
+    }
+    body.tv-mode .tv-controls button {
+      min-height: 0 !important;
+      padding: .34em .54em !important;
+      border-radius: 8px !important;
+      font-size: clamp(9px, .6vw, 11px) !important;
+      line-height: 1 !important;
+    }
+    body.tv-mode .tv-group {
+      padding: clamp(7px, .74vw, 12px) !important;
+      gap: var(--tv-lane-gap) !important;
+    }
+    body.tv-mode .tv-group-title {
+      padding-bottom: clamp(4px, .42vw, 7px) !important;
+    }
+    body.tv-mode .tv-lane {
+      grid-template-columns: minmax(0, 1fr) minmax(28px, auto) !important;
+      gap: clamp(3px, .38vw, 7px) !important;
+      padding: clamp(5px, .52vw, 9px) clamp(6px, .62vw, 10px) !important;
+    }
+    body.tv-mode .tv-player {
+      gap: clamp(2px, .24vw, 4px) !important;
+    }
+    body.tv-mode .tv-lane-meta {
+      gap: .4em !important;
+      color: rgba(245,158,11,.98) !important;
+      line-height: 1 !important;
+      max-width: 100% !important;
+    }
+    body.tv-mode .tv-lane-meta strong,
+    body.tv-mode .tv-lane-meta span {
+      font-size: clamp(7.5px, .58vw, 10.5px) !important;
+      line-height: 1 !important;
+      letter-spacing: -.02em !important;
+      font-weight: 1000 !important;
+    }
+    body.tv-mode .tv-lane-meta span {
+      color: rgba(238,233,223,.62) !important;
+    }
+    body.tv-mode .tv-player-line-vertical {
+      grid-template-columns: minmax(0, 1.08fr) minmax(108px, .92fr) !important;
+      gap: clamp(3px, .38vw, 7px) !important;
+      align-items: center !important;
+    }
+    body.tv-mode .tv-stage-3-lane .tv-player-line-vertical,
+    body.tv-mode .tv-stage-5-lane .tv-player-line-vertical {
+      grid-template-columns: minmax(0, 1.08fr) minmax(108px, .92fr) !important;
+    }
+    body.tv-mode .tv-player-identity-block {
+      align-content: center !important;
+      gap: clamp(1px, .18vw, 3px) !important;
+    }
+    body.tv-mode .tv-player-identity-block > .player-name-fit,
+    body.tv-mode .tv-player-identity-block > strong:not(.player-name-fit) {
+      line-height: .98 !important;
+      letter-spacing: -.06em !important;
+      max-width: 100% !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: clip !important;
+      padding-bottom: .03em !important;
+    }
+    body.tv-mode .tv-player-identity-block > .name-fit-short {
+      font-size: clamp(28px, 2.85vw, 54px) !important;
+    }
+    body.tv-mode .tv-player-identity-block > .name-fit-medium {
+      font-size: clamp(24px, 2.38vw, 46px) !important;
+    }
+    body.tv-mode .tv-player-identity-block > .name-fit-tv-truncated {
+      font-size: clamp(21px, 2.05vw, 39px) !important;
+      letter-spacing: -.045em !important;
+    }
+    body.tv-mode .tv-stage-3-lane .tv-player-identity-block > .name-fit-short {
+      font-size: clamp(34px, 3.7vw, 68px) !important;
+    }
+    body.tv-mode .tv-stage-3-lane .tv-player-identity-block > .name-fit-medium {
+      font-size: clamp(29px, 3vw, 56px) !important;
+    }
+    body.tv-mode .tv-stage-3-lane .tv-player-identity-block > .name-fit-tv-truncated {
+      font-size: clamp(24px, 2.55vw, 46px) !important;
+    }
+    body.tv-mode .tv-team-under-name {
+      font-size: clamp(7.5px, .58vw, 11px) !important;
+      line-height: 1 !important;
+    }
+    body.tv-mode .tv-h2h-list {
+      gap: clamp(1px, .12vw, 2px) !important;
+      align-content: center !important;
+    }
+    body.tv-mode .tv-h2h-title,
+    body.tv-mode .tv-h2h-line {
+      font-size: clamp(7.5px, .58vw, 10.5px) !important;
+      line-height: 1.05 !important;
+    }
+    body.tv-mode .tv-h2h-line {
+      padding-left: clamp(3px, .3vw, 5px) !important;
+    }
+    body.tv-mode .tv-adv {
+      min-width: 28px !important;
+      font-size: clamp(9px, .72vw, 13px) !important;
+    }
+
+
 </style>
 </head>
 <body>
@@ -6530,6 +6651,19 @@ function copyOrShare(url, label) {
       return "name-fit-xlong";
     }
 
+    function getTvDisplayNickname(name) {
+      const chars = Array.from(String(name || "").trim());
+      if (chars.length >= 5) return `${chars.slice(0, 4).join("")}..`;
+      return chars.join("");
+    }
+
+    function getTvPlayerNameFitClass(name) {
+      const length = Array.from(String(name || "").trim()).length;
+      if (length <= 2) return "name-fit-short";
+      if (length <= 4) return "name-fit-medium";
+      return "name-fit-tv-truncated";
+    }
+
     function renderPlayerTeamInline(player = {}) {
       return player.team ? `<div class="team team-under-name">${escapeHtml(player.team)}</div>` : "";
     }
@@ -7065,7 +7199,7 @@ function getTvWindowGroups(target) {
       const stats = getGroupMatchStatsForPlayer(player, group);
       const h2hCount = Math.max(1, Math.min(4, (stats.h2h || []).length || 1));
       const rows = (stats.h2h || []).map(item => {
-        const label = item.matches ? `${item.name} · ${item.wins}승 ${item.losses}패 · ${item.rateText}` : `${item.name} · 전적없음`;
+        const label = item.matches ? `${item.name} · ${item.wins}승 ${item.losses}패` : `${item.name} · 전적없음`;
         return `<div class="tv-h2h-line">${escapeHtml(label)}</div>`;
       }).join("");
       return `<div class="tv-h2h-list tv-h2h-rows" title="최근 3개월 전적" style="--h2h-row-count:${h2hCount}"><div class="tv-h2h-title">최근 3개월 전적</div>${rows || `<div class="tv-h2h-line">상대전적 없음</div>`}</div>`;
@@ -7090,7 +7224,7 @@ function getTvWindowGroups(target) {
           ${renderTvLaneLabel(player.lane, player)}
           <div class="tv-player-line tv-player-line-vertical">
             <div class="tv-player-identity-block">
-              <strong class="player-name-fit ${getPlayerNameFitClass(player.name)}">${escapeHtml(player.name)}</strong>
+              <strong class="player-name-fit ${getTvPlayerNameFitClass(player.name)}" title="${escapeHtml(player.name)}">${escapeHtml(getTvDisplayNickname(player.name))}</strong>
               ${player.team ? `<div class="tv-team-under-name">${escapeHtml(player.team)}</div>` : ""}
             </div>
             ${renderTvH2hMetrics(player, group)}
@@ -9459,9 +9593,9 @@ function stopLiveLobbyRealtimeV50() {
     }
 
 
-    function runV74CleanupAudit() {
+    function runV75CleanupAudit() {
       const report = {
-        version: "v74-css-audit-cleanup",
+        version: "v75-tv-name-fit-patch",
         checkedAt: new Date().toISOString(),
         tv: {
           target: typeof getBroadcastTarget === "function",
@@ -9492,7 +9626,7 @@ function stopLiveLobbyRealtimeV50() {
           "TV LIVE keeps max 4 groups per viewport.",
           "No progress shows 1-4 by default; progress focus starts at the latest advanced/scored group.",
           "Player card layout is routed through shared card core for operator/mobile and TV core for TV LIVE.",
-          "v74 removes obsolete legacy TV CSS and duplicate-function tombstone comments without changing Firebase Rules/images/OG."
+          "v75 tightens TV LIVE lane labels, nickname truncation, spacing, and h2h width without changing Firebase Rules/images/OG."
         ]
       };
       window.__mini4wdV74Audit = report;
@@ -9508,7 +9642,7 @@ function stopLiveLobbyRealtimeV50() {
       const missingFunctions = requiredFunctions.filter(name => typeof window[name] !== "function");
       const publicOnlyPaths = ["publicLive","publicHistory","publicVenueDirectory","publicVenues"];
       const report = {
-        version: "v74-css-audit-cleanup",
+        version: "v75-tv-name-fit-patch",
         checkedAt: new Date().toISOString(),
         missingFunctions,
         duplicateFunctionDeclarations: [],
@@ -9520,8 +9654,8 @@ function stopLiveLobbyRealtimeV50() {
       return report;
     }
 
-    /* v74 self-audit before single boot */
-    try { runV74CleanupAudit(); } catch (error) { console.warn("v74 audit failed", error); }
+    /* v75 self-audit before single boot */
+    try { runV75CleanupAudit(); } catch (error) { console.warn("v75 audit failed", error); }
     bootV33();
 
   </script>
