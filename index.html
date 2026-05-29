@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v75 TV NAME FIT PATCH</title>
-  <!-- v75 TV NAME FIT PATCH · index-only · Rules/images/OG files unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v76 LIVE LOBBY ACTION PATCH</title>
+  <!-- v76 LIVE LOBBY ACTION PATCH · index-only · Rules/images/OG files unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -3541,7 +3541,7 @@
 
   
 
-    /* v62 LIVE lobby full-grid stabilization: applies to every slot/card, not just first rows */
+    /* v76 LIVE LOBBY ACTION PATCH · compact content-fit cards, 20-slot safe */
     .live-lobby-shell {
       width: 100%;
       max-width: 1180px;
@@ -3557,22 +3557,32 @@
       display: grid !important;
       grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
       gap: 12px !important;
-      align-items: stretch !important;
+      align-items: start !important;
       grid-auto-flow: row !important;
-      grid-auto-rows: 1fr !important;
+      grid-auto-rows: auto !important;
       overflow: visible !important;
     }
     .live-lobby-card {
       width: 100% !important;
       max-width: 100% !important;
       min-width: 0 !important;
-      min-height: 210px !important;
-      height: 100% !important;
-      display: grid !important;
-      grid-template-rows: 1fr auto !important;
+      min-height: 0 !important;
+      height: auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: flex-start !important;
       gap: 12px !important;
       overflow: hidden !important;
-      align-self: stretch !important;
+      align-self: start !important;
+      padding: 20px !important;
+    }
+    .live-lobby-card-body {
+      min-width: 0 !important;
+      max-width: 100% !important;
+      display: grid !important;
+      gap: 9px !important;
+      align-content: start !important;
+      flex: 0 0 auto !important;
     }
     .live-lobby-card-body,
     .live-lobby-card > div,
@@ -3587,24 +3597,34 @@
       word-break: keep-all !important;
     }
     .live-lobby-card h3 {
-      margin: 10px 0 7px !important;
+      margin: 6px 0 0 !important;
       line-height: 1.22 !important;
+      font-size: clamp(18px, 1.7vw, 26px) !important;
     }
     .live-lobby-meta {
       min-height: 0 !important;
       line-height: 1.42 !important;
+      font-size: 13px !important;
     }
     .live-lobby-result {
       width: 100% !important;
       max-width: 100% !important;
-      min-height: 64px !important;
+      min-height: 0 !important;
       align-content: start !important;
+      margin-top: 8px !important;
+      padding: 13px 14px !important;
     }
+    .live-lobby-card .live-lobby-action,
     .live-lobby-card button {
       width: 100% !important;
-      margin-top: 0 !important;
-      align-self: end !important;
+      margin-top: 10px !important;
+      align-self: stretch !important;
       white-space: normal !important;
+      min-height: 42px !important;
+    }
+    .live-lobby-card.live-empty .live-lobby-action,
+    .live-lobby-card.live-empty button {
+      margin-top: 14px !important;
     }
     .live-status {
       max-width: 100% !important;
@@ -3625,16 +3645,13 @@
       .live-lobby-grid {
         grid-template-columns: 1fr !important;
         gap: 10px !important;
-        grid-auto-rows: auto !important;
       }
       .live-lobby-card {
-        min-height: 0 !important;
-        height: auto !important;
         padding: 14px !important;
         border-radius: 18px !important;
       }
       .live-lobby-result {
-        min-height: 0 !important;
+        padding: 11px 12px !important;
       }
       .live-lobby-topbar {
         display: grid !important;
@@ -6073,6 +6090,7 @@ function copyOrShare(url, label) {
           <div class="firebase-actions live-sync-actions">
             <button onclick="loadFirebaseStateOnce().then(() => renderOperator())">불러오기</button>
             <button onclick="syncLiveNow()">LIVE 동기화</button>
+            <button class="ghost" onclick="copyLiveLink()">LIVE 링크 복사</button>
           </div>
           <label class="firebase-autosave"><input type="checkbox" ${state.settings.firebaseAutoSave ? "checked" : ""} onchange="setSetting('firebaseAutoSave', this.checked)" /> Firebase 자동 저장</label>
           <p class="hint">대회명은 대회준비 입력값을 자동 사용합니다. TV LIVE와 LIVE 로비는 상단 버튼에서 실행합니다.</p>
@@ -6107,7 +6125,7 @@ function copyOrShare(url, label) {
             <main class="main-area">
               <div class="toolbar">
                 <button class="primary" onclick="openTvView()">TV LIVE</button>
-                <button class="ghost" onclick="shareMobileView()">LIVE 로비</button>
+                <button class="ghost" onclick="openLiveLobbyPage()">LIVE 로비</button>
                 <button class="ghost" onclick="openDbPage()">PLAYER DB</button>
                 <button class="ghost" onclick="openDashboardPage()">DASHBOARD</button>
                 ${isAdminUser() ? `<button class="ghost" onclick="openAdminPage()">ADMIN</button>` : ""}
@@ -6230,7 +6248,7 @@ function copyOrShare(url, label) {
             <h2>4. 운영 버튼</h2>
             <ul>
               <li><b>TV LIVE</b>: 현재 송출 대상으로 지정된 경기를 TV 화면으로 엽니다.</li>
-              <li><b>LIVE 로비</b>: LIVE 로비 링크를 복사하고 현재 대회 상태를 LIVE에 동기화합니다.</li>
+              <li><b>LIVE 로비</b>: 경기장별 LIVE 상태 로비로 이동합니다. 링크 복사는 대회 LIVE 자동 연동 영역의 <b>LIVE 링크 복사</b> 버튼을 사용합니다.</li>
               <li><b>PRINT</b>: 현재 경기의 출력용 대진표를 엽니다.</li>
               <li><b>엑셀 다운로드</b>: PRINT 화면에서 출력용 대진표를 엑셀 파일로 저장합니다.</li>
               <li><b>결과 CSV / 기록 JSON</b>: 운영 정보 아래에서 경기 기록을 내려받습니다.</li>
@@ -9500,14 +9518,20 @@ function stopLiveLobbyRealtimeV50() {
     }
 
     function copyLiveLink() {
-      enableLiveAutoSyncV55("LIVE 로비 링크");
+      enableLiveAutoSyncV55("LIVE 로비 링크 복사");
       const url = `${location.origin}${location.pathname}#view=live-list`;
       navigator.clipboard?.writeText(url).then(() => alert("LIVE 로비 링크를 복사했습니다.\n이후 변경사항은 자동으로 LIVE에 반영됩니다."))
         .catch(() => prompt("LIVE 로비 링크", url));
     }
 
+    function openLiveLobbyPage() {
+      enableLiveAutoSyncV55("LIVE 로비 이동");
+      location.hash = "view=live-list";
+      bootV33();
+    }
+
     function shareMobileView() {
-      copyLiveLink();
+      openLiveLobbyPage();
     }
 
     function openFirebaseTvLive() {
@@ -9588,14 +9612,14 @@ function stopLiveLobbyRealtimeV50() {
     }
 
     function auditCoreButtonsV57() {
-      const required = ['setMatchMode','renderDashboardPage','renderLiveLobbyPage','copyLiveLink','openFirebaseTvLive','renderDbPage','openAdminPage','goHome','goBack'];
+      const required = ['setMatchMode','renderDashboardPage','renderLiveLobbyPage','copyLiveLink','openLiveLobbyPage','openFirebaseTvLive','renderDbPage','openAdminPage','goHome','goBack'];
       return required.map(name => ({ name, ok: typeof window[name] === 'function' }));
     }
 
 
-    function runV75CleanupAudit() {
+    function runV76CleanupAudit() {
       const report = {
-        version: "v75-tv-name-fit-patch",
+        version: "v76-live-lobby-action-patch",
         checkedAt: new Date().toISOString(),
         tv: {
           target: typeof getBroadcastTarget === "function",
@@ -9626,23 +9650,23 @@ function stopLiveLobbyRealtimeV50() {
           "TV LIVE keeps max 4 groups per viewport.",
           "No progress shows 1-4 by default; progress focus starts at the latest advanced/scored group.",
           "Player card layout is routed through shared card core for operator/mobile and TV core for TV LIVE.",
-          "v75 tightens TV LIVE lane labels, nickname truncation, spacing, and h2h width without changing Firebase Rules/images/OG."
+          "v76 corrects LIVE lobby card height/action behavior and separates lobby navigation from link copying without changing Firebase Rules/images/OG."
         ]
       };
-      window.__mini4wdV74Audit = report;
+      window.__mini4wdV76Audit = report;
       return report;
     }
 
     function runCommercialSelfAuditV58() {
       const requiredFunctions = [
         "bootV33","renderOperator","setMatchMode","renderDashboardPage","renderLiveLobbyPage",
-        "copyLiveLink","openFirebaseTvLive","watchFirebaseState","renderDbPage","openAdminPage",
+        "copyLiveLink","openLiveLobbyPage","openFirebaseTvLive","watchFirebaseState","renderDbPage","openAdminPage",
         "goHome","goBack","finishTournament","saveLiveState","queueFirebaseSave"
       ];
       const missingFunctions = requiredFunctions.filter(name => typeof window[name] !== "function");
       const publicOnlyPaths = ["publicLive","publicHistory","publicVenueDirectory","publicVenues"];
       const report = {
-        version: "v75-tv-name-fit-patch",
+        version: "v76-live-lobby-action-patch",
         checkedAt: new Date().toISOString(),
         missingFunctions,
         duplicateFunctionDeclarations: [],
@@ -9654,8 +9678,8 @@ function stopLiveLobbyRealtimeV50() {
       return report;
     }
 
-    /* v75 self-audit before single boot */
-    try { runV75CleanupAudit(); } catch (error) { console.warn("v75 audit failed", error); }
+    /* v76 self-audit before single boot */
+    try { runV76CleanupAudit(); } catch (error) { console.warn("v76 audit failed", error); }
     bootV33();
 
   </script>
