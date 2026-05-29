@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v79 TV LIVE FINAL INDEX</title>
-  <!-- v79 TV LIVE FINAL INDEX · TV LIVE hard fix · index-only · Rules/images/OG files unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v80 TV LIVE 4-COLUMN FINAL</title>
+  <!-- v80 TV LIVE 4-COLUMN FINAL · index-only · Rules/images/OG files unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -5660,177 +5660,66 @@
     }
 
 
-
-    /* v79 TV LIVE FINAL INDEX · real last override */
-    body.tv-mode .tv-lane-meta {
-      display: inline-grid !important;
-      grid-template-columns: auto auto !important;
-      align-items: baseline !important;
-      justify-content: start !important;
-      gap: .22em !important;
-      min-height: 0 !important;
-      max-height: 1.25em !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      line-height: 1 !important;
-      overflow: hidden !important;
-      color: rgba(245,158,11,.96) !important;
-    }
-    body.tv-mode .tv-lane-meta strong {
-      display: inline-block !important;
-      font-size: clamp(7px, .50vw, 9px) !important;
-      line-height: 1 !important;
-      letter-spacing: -.01em !important;
-      font-weight: 1000 !important;
-      color: inherit !important;
-      white-space: nowrap !important;
-    }
-    body.tv-mode .tv-lane-meta span {
-      display: inline-block !important;
-      font-size: clamp(6px, .40vw, 7.6px) !important;
-      line-height: 1 !important;
-      letter-spacing: -.01em !important;
-      font-weight: 900 !important;
-      color: rgba(238,233,223,.58) !important;
-      white-space: nowrap !important;
-    }
-    body.tv-mode .tv-lane.selected .tv-lane-meta,
-    body.tv-mode .tv-lane.selected .tv-lane-meta span {
-      color: rgba(22,8,17,.78) !important;
-    }
-    body.tv-mode .tv-player,
-    body.tv-mode .tv-player-active,
-    body.tv-mode .tv-player-empty {
-      min-width: 0 !important;
-      min-height: 0 !important;
-      display: grid !important;
-      grid-template-rows: min-content minmax(0, 1fr) !important;
-      gap: clamp(2px, .22vw, 4px) !important;
-      overflow: hidden !important;
-      padding: 0 !important;
-    }
-    body.tv-mode .tv-player-line,
-    body.tv-mode .tv-player-line-vertical,
-    body.tv-mode .tv-stage-3-lane .tv-player-line-vertical,
-    body.tv-mode .tv-stage-5-lane .tv-player-line-vertical {
-      min-width: 0 !important;
-      min-height: 0 !important;
+    /* v80 TV LIVE 4-COLUMN FINAL · fixed 4 columns regardless of real group count */
+    body.tv-mode .tv-stage-force-4col,
+    body.tv-mode .tv-stage.tv-stage-force-4col,
+    body.tv-mode .tv-stage-groups-4.tv-stage-force-4col {
+      width: 100% !important;
       height: 100% !important;
-      display: grid !important;
-      grid-template-columns: minmax(0, 1.70fr) minmax(78px, .56fr) !important;
-      gap: clamp(4px, .42vw, 8px) !important;
-      align-items: center !important;
-      overflow: hidden !important;
-    }
-    body.tv-mode .tv-player-identity-block {
-      min-width: 0 !important;
       min-height: 0 !important;
+      max-height: 100% !important;
       display: grid !important;
-      align-content: center !important;
-      justify-content: stretch !important;
-      gap: clamp(2px, .22vw, 4px) !important;
-      padding: clamp(1px, .12vw, 2px) 0 clamp(2px, .18vw, 4px) !important;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      grid-auto-columns: minmax(0, 1fr) !important;
+      grid-auto-flow: column !important;
+      gap: clamp(5px, .62vw, 10px) !important;
       overflow: hidden !important;
     }
-    body.tv-mode .tv-player-identity-block > .player-name-fit,
-    body.tv-mode .tv-player-identity-block > strong:not(.player-name-fit) {
-      display: block !important;
+    body.tv-mode .tv-stage-force-4col .tv-group {
       min-width: 0 !important;
+      width: 100% !important;
       max-width: 100% !important;
-      line-height: 1.16 !important;
-      padding: .02em 0 .10em !important;
-      margin: 0 !important;
-      font-weight: 1000 !important;
-      letter-spacing: -.052em !important;
-      white-space: nowrap !important;
-      overflow: hidden !important;
-      text-overflow: clip !important;
+    }
+    body.tv-mode .tv-stage-force-4col .tv-group:nth-of-type(n+5) {
+      display: none !important;
+    }
+    body.tv-mode .tv-stage-force-4col .tv-placeholder-group {
+      opacity: .34 !important;
+      border-style: dashed !important;
+    }
+    body.tv-mode .tv-stage-force-4col .tv-placeholder-group .tv-group-title strong {
+      color: rgba(238,233,223,.44) !important;
+    }
+    body.tv-mode .tv-stage-force-4col .tv-placeholder-group .badge {
+      opacity: .55 !important;
+    }
+    body.tv-mode .tv-stage-force-4col .tv-lane-meta strong {
+      font-size: clamp(5.8px, .42vw, 8px) !important;
+      line-height: 1.08 !important;
+    }
+    body.tv-mode .tv-stage-force-4col .tv-player-identity-block > .player-name-fit,
+    body.tv-mode .tv-stage-force-4col .tv-player-identity-block > strong:not(.player-name-fit) {
+      line-height: 1.12 !important;
+      padding: .04em 0 .08em !important;
       transform: none !important;
     }
-    body.tv-mode .tv-player-identity-block > .name-fit-short {
-      font-size: clamp(30px, 3.18vw, 58px) !important;
+    @media (max-width: 960px) {
+      body.tv-mode .tv-stage-force-4col,
+      body.tv-mode .tv-stage.tv-stage-force-4col,
+      body.tv-mode .tv-stage-groups-4.tv-stage-force-4col {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        overflow: hidden !important;
+      }
+      body.tv-mode .tv-stage-force-4col .tv-group {
+        height: 100% !important;
+        grid-template-rows: auto repeat(var(--tv-lane-count, 5), minmax(0, 1fr)) !important;
+      }
+      body.tv-mode .tv-stage-force-4col .tv-lane {
+        min-height: 0 !important;
+      }
     }
-    body.tv-mode .tv-player-identity-block > .name-fit-medium {
-      font-size: clamp(27px, 2.78vw, 50px) !important;
-    }
-    body.tv-mode .tv-player-identity-block > .name-fit-tv-truncated,
-    body.tv-mode .tv-player-identity-block > .name-fit-long,
-    body.tv-mode .tv-player-identity-block > .name-fit-xlong {
-      font-size: clamp(24px, 2.42vw, 44px) !important;
-      letter-spacing: -.038em !important;
-    }
-    body.tv-mode .tv-stage-3-lane .tv-player-identity-block > .name-fit-short {
-      font-size: clamp(40px, 4.15vw, 78px) !important;
-    }
-    body.tv-mode .tv-stage-3-lane .tv-player-identity-block > .name-fit-medium {
-      font-size: clamp(34px, 3.48vw, 66px) !important;
-    }
-    body.tv-mode .tv-stage-3-lane .tv-player-identity-block > .name-fit-tv-truncated,
-    body.tv-mode .tv-stage-3-lane .tv-player-identity-block > .name-fit-long,
-    body.tv-mode .tv-stage-3-lane .tv-player-identity-block > .name-fit-xlong {
-      font-size: clamp(29px, 2.92vw, 55px) !important;
-    }
-    body.tv-mode .tv-team-under-name {
-      min-width: 0 !important;
-      max-width: 100% !important;
-      font-size: clamp(7px, .54vw, 10px) !important;
-      line-height: 1.16 !important;
-      font-weight: 900 !important;
-      opacity: .70 !important;
-      padding: 0 0 .05em !important;
-      margin: 0 !important;
-      white-space: nowrap !important;
-      overflow: hidden !important;
-      text-overflow: ellipsis !important;
-    }
-    body.tv-mode .tv-stage-3-lane .tv-team-under-name {
-      font-size: clamp(8px, .68vw, 12.5px) !important;
-    }
-    body.tv-mode .tv-h2h-list,
-    body.tv-mode .tv-h2h-rows {
-      min-width: 0 !important;
-      min-height: 0 !important;
-      height: auto !important;
-      display: grid !important;
-      grid-template-rows: min-content repeat(var(--h2h-row-count, 4), minmax(0, min-content)) !important;
-      align-content: center !important;
-      gap: clamp(1px, .12vw, 2px) !important;
-      overflow: hidden !important;
-    }
-    body.tv-mode .tv-h2h-title {
-      min-width: 0 !important;
-      font-size: clamp(6.4px, .48vw, 8.8px) !important;
-      line-height: 1.05 !important;
-      font-weight: 1000 !important;
-      color: rgba(245,158,11,.96) !important;
-      white-space: nowrap !important;
-      overflow: hidden !important;
-      text-overflow: ellipsis !important;
-      padding-left: clamp(2px, .25vw, 4px) !important;
-    }
-    body.tv-mode .tv-h2h-line {
-      min-width: 0 !important;
-      font-size: clamp(6.2px, .46vw, 8.5px) !important;
-      line-height: 1.06 !important;
-      font-weight: 850 !important;
-      color: rgba(238,233,223,.74) !important;
-      border-left: 2px solid rgba(245,158,11,.30) !important;
-      padding-left: clamp(2px, .25vw, 4px) !important;
-      white-space: nowrap !important;
-      overflow: hidden !important;
-      text-overflow: ellipsis !important;
-    }
-    body.tv-mode .tv-stage-3-lane .tv-h2h-title,
-    body.tv-mode .tv-stage-3-lane .tv-h2h-line {
-      font-size: clamp(7.2px, .58vw, 10.2px) !important;
-    }
-    body.tv-mode .tv-lane {
-      min-height: 0 !important;
-      overflow: hidden !important;
-    }
-    body.tv-mode .tv-foot.tv-build-foot span:last-child::after {
-      content: "";
-    }
+
+
 </style>
 </head>
 <body>
@@ -7456,7 +7345,6 @@ function copyOrShare(url, label) {
 
     function getTvDisplayNickname(name) {
       const chars = Array.from(String(name || "").trim());
-      if (!chars.length) return "-";
       if (chars.length >= 5) return `${chars.slice(0, 4).join("")}..`;
       return chars.join("");
     }
@@ -8010,8 +7898,7 @@ function getTvWindowGroups(target) {
     }
 
     function renderTvLaneLabel(lane, player = null) {
-      const laneText = String(lane || "").trim();
-      return `<div class="tv-lane-meta" title="${escapeHtml(laneText)}LANE · 오늘 ${escapeHtml(getDisplayLaneWinRate(lane, player))}"><strong>${escapeHtml(laneText)}</strong><span>LANE · 오늘 ${escapeHtml(getDisplayLaneWinRate(lane, player))}</span></div>`;
+      return `<div class="tv-lane-meta"><strong>${escapeHtml(lane)}LANE</strong><span>오늘 ${escapeHtml(getDisplayLaneWinRate(lane, player))}</span></div>`;
     }
 
     function renderTvPlayerCore(player, group) {
@@ -8047,7 +7934,25 @@ function getTvWindowGroups(target) {
 
       const windowInfo = getTvWindowGroups(target);
       const currentGroups = windowInfo.groups;
-      const columns = Math.min(4, Math.max(1, currentGroups.length));
+      const columns = 4;
+      const laneCount = Number(target.laneCount || 3);
+      const displayGroups = currentGroups.slice(0, columns);
+      while (displayGroups.length < columns) {
+        const placeholderIndex = windowInfo.startIndex + displayGroups.length + 1;
+        displayGroups.push({
+          name: `대기 ${placeholderIndex}조`,
+          isTvPlaceholder: true,
+          advanceIds: [],
+          points: {},
+          slots: Array.from({ length: laneCount }, (_, index) => ({
+            id: `tv-empty-${placeholderIndex}-${index + 1}`,
+            lane: index + 1,
+            name: "빈 레인",
+            team: "",
+            isEmptyLane: true
+          }))
+        });
+      }
       const modeLabel = windowInfo.mode === "pending"
         ? `진행 대기 · ${windowInfo.startIndex + 1}-${windowInfo.startIndex + currentGroups.length}조`
         : `진행 포커스 · ${windowInfo.startIndex + 1}-${windowInfo.startIndex + currentGroups.length}조`;
@@ -8082,13 +7987,13 @@ function getTvWindowGroups(target) {
 
           ${pointLeadersHtml}
 
-          <main class="tv-stage tv-stage-focus tv-stage-groups-${columns} tv-stage-${target.laneCount || 3}-lane" style="--tv-lane-count:${target.laneCount || 3}; grid-template-columns: repeat(${columns}, minmax(0,1fr));">
-            ${currentGroups.map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap)).join("")}
+          <main class="tv-stage tv-stage-focus tv-stage-groups-4 tv-stage-${laneCount}-lane tv-stage-force-4col" style="--tv-lane-count:${laneCount}; --tv-column-count:4; grid-template-columns: repeat(4, minmax(0,1fr));">
+            ${displayGroups.map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap)).join("")}
           </main>
 
-          <footer class="tv-foot tv-build-foot">
-            <span>${target.laneCount} LANE · ${target.groups.length} GROUPS</span>
-            <span>${escapeHtml(modeLabel)} · BUILD v79 TV LIVE FINAL</span>
+          <footer class="tv-foot">
+            <span>${laneCount} LANE · ${target.groups.length} GROUPS · 4열 고정</span>
+            <span>${escapeHtml(modeLabel)} · BUILD v80 TV LIVE 4COL FINAL</span>
           </footer>
         </div>
       `;
@@ -8096,7 +8001,7 @@ function getTvWindowGroups(target) {
 
     function renderTvGroup(group, isFinal, stageType = "normal", pointTotalsMap = {}) {
       return `
-        <article class="tv-group tv-group-${stageType || "stage"}">
+        <article class="tv-group tv-group-${stageType || "stage"} ${group.isTvPlaceholder ? "tv-placeholder-group" : ""}">
           <div class="tv-group-title">
             <strong>${escapeHtml(group.name)}</strong>
             <span class="badge">${group.slots.filter(slot => !slot.isEmptyLane).length}명 경기</span>
@@ -10406,7 +10311,7 @@ function stopLiveLobbyRealtimeV50() {
 
     function runV77CleanupAudit() {
       const report = {
-        version: "v79-tv-live-final-index",
+        version: "v78-tv-live-text-fit-patch",
         checkedAt: new Date().toISOString(),
         tv: {
           target: typeof getBroadcastTarget === "function",
@@ -10437,7 +10342,7 @@ function stopLiveLobbyRealtimeV50() {
           "TV LIVE keeps max 4 groups per viewport.",
           "No progress shows 1-4 by default; progress focus starts at the latest advanced/scored group.",
           "Player card layout is routed through shared card core for operator/mobile and TV core for TV LIVE.",
-          "v79 finalizes TV LIVE lane-label reduction, nickname clipping guards, and visible build marker while preserving Rules/images/OG and LIVE lobby behavior."
+          "v78 reduces TV LIVE lane label typography and adds nickname vertical clipping guards while preserving Rules/images/OG and LIVE lobby behavior."
         ]
       };
       window.__mini4wdV77Audit = report;
@@ -10453,7 +10358,7 @@ function stopLiveLobbyRealtimeV50() {
       const missingFunctions = requiredFunctions.filter(name => typeof window[name] !== "function");
       const publicOnlyPaths = ["publicLive","publicHistory","publicVenueDirectory","publicVenues"];
       const report = {
-        version: "v79-tv-live-final-index",
+        version: "v78-tv-live-text-fit-patch",
         checkedAt: new Date().toISOString(),
         missingFunctions,
         duplicateFunctionDeclarations: [],
@@ -10465,8 +10370,8 @@ function stopLiveLobbyRealtimeV50() {
       return report;
     }
 
-    /* v79 self-audit before single boot */
-    try { runV77CleanupAudit(); } catch (error) { console.warn("v79 audit failed", error); }
+    /* v78 self-audit before single boot */
+    try { runV77CleanupAudit(); } catch (error) { console.warn("v78 audit failed", error); }
     bootV33();
 
   </script>
