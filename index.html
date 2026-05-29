@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v58 COMMERCIAL STABILIZATION</title>
+  <title>MINI4WD TOURNAMENT MAKER · v70 RECHECK PATCH</title>
+  <!-- v70 RECHECK PATCH · index-only · Rules/images/OG files unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -4670,6 +4671,102 @@
       }
     }
 
+
+    /* v69 stability patch: point/final card parity + TV title clarity */
+    .final-slot-actions {
+      grid-template-columns: minmax(0, 1fr) auto !important;
+      align-items: stretch !important;
+      gap: 10px !important;
+      width: 100% !important;
+    }
+    .final-card-actions {
+      min-width: 116px !important;
+      display: grid !important;
+      align-content: center !important;
+      justify-items: end !important;
+      gap: 6px !important;
+    }
+    .final-card-actions > .final-lane-tools {
+      justify-content: flex-end !important;
+    }
+    .final-card-actions .hint {
+      margin: 0 !important;
+      font-size: 10px !important;
+      line-height: 1 !important;
+    }
+    .point-slot .player-card-main {
+      width: 100% !important;
+    }
+    .tv-stage-title {
+      margin-top: clamp(4px, .5vw, 8px) !important;
+      color: rgba(238,233,223,.72) !important;
+      font-size: clamp(16px, 1.7vw, 28px) !important;
+      font-weight: 1000 !important;
+      line-height: 1.05 !important;
+      letter-spacing: -.045em !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    @media (max-width: 760px) {
+      .final-slot-actions {
+        grid-template-columns: 1fr !important;
+      }
+      .final-card-actions {
+        min-width: 0 !important;
+        justify-items: stretch !important;
+      }
+      .final-card-actions > .final-lane-tools {
+        justify-content: flex-start !important;
+      }
+      .tv-stage-title {
+        font-size: 12px !important;
+      }
+    }
+
+
+    /* v68 live title automation + operator button cleanup */
+    .live-sync-panel {
+      display: grid;
+      gap: 10px;
+    }
+    .live-sync-summary {
+      display: grid;
+      gap: 8px;
+      margin: 4px 0 2px;
+    }
+    .live-sync-item {
+      display: grid;
+      gap: 4px;
+      padding: 10px 11px;
+      border: 1px solid rgba(238,233,223,.08);
+      border-radius: 14px;
+      background: rgba(238,233,223,.035);
+    }
+    .live-sync-item span {
+      color: var(--dim);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .02em;
+    }
+    .live-sync-item strong,
+    .live-sync-item code {
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 1000;
+      line-height: 1.35;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .live-sync-item code {
+      font-family: inherit;
+      color: var(--muted);
+    }
+    .live-sync-actions {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
   </style>
 </head>
 <body>
@@ -5747,6 +5844,39 @@
       renderOperator();
     }
 
+
+    function syncLiveNow() {
+      ensureStateDefaults();
+      state.updatedAt = Date.now();
+      state.activeRoundIndex = activeRoundIndex;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(exportState()));
+      if (typeof forcePublishPublicLiveV50 === "function") forcePublishPublicLiveV50("수동 LIVE 동기화");
+      else queueFirebaseSave();
+      renderOperator();
+    }
+
+    function renderFirebaseLivePanel() {
+      ensureStateDefaults();
+      const liveName = state.tournament.name || "대회명 미입력";
+      const liveVenue = state.tournament.venue || currentVenueName() || "경기장 미입력";
+      return `
+        <div class="firebase-panel live-sync-panel">
+          <label>대회 LIVE 자동 연동</label>
+          <div class="live-sync-summary">
+            <div class="live-sync-item"><span>노출 대회명</span><strong>${escapeHtml(liveName)}</strong></div>
+            <div class="live-sync-item"><span>경기장 / LIVE ID</span><code>${escapeHtml(liveVenue)} · ${escapeHtml(getCurrentTournamentId())}</code></div>
+          </div>
+          <div class="firebase-actions live-sync-actions">
+            <button onclick="loadFirebaseStateOnce().then(() => renderOperator())">불러오기</button>
+            <button onclick="syncLiveNow()">LIVE 동기화</button>
+          </div>
+          <label class="firebase-autosave"><input type="checkbox" ${state.settings.firebaseAutoSave ? "checked" : ""} onchange="setSetting('firebaseAutoSave', this.checked)" /> Firebase 자동 저장</label>
+          <p class="hint">대회명은 대회준비 입력값을 자동 사용합니다. TV LIVE와 LIVE 로비는 상단 버튼에서 실행합니다.</p>
+          <p class="hint">상태: ${firebaseStatusText()}</p>
+        </div>
+      `;
+    }
+
     function renderOperator() {
       ensureStateDefaults();
       document.body.classList.remove("tv-mode");
@@ -5773,14 +5903,13 @@
             <main class="main-area">
               <div class="toolbar">
                 <button class="primary" onclick="openTvView()">TV LIVE</button>
-                <button class="ghost" onclick="shareMobileView()">MOBILE LINK</button>
+                <button class="ghost" onclick="shareMobileView()">LIVE 로비</button>
                 <button class="ghost" onclick="openDbPage()">PLAYER DB</button>
                 <button class="ghost" onclick="openDashboardPage()">DASHBOARD</button>
                 ${isAdminUser() ? `<button class="ghost" onclick="openAdminPage()">ADMIN</button>` : ""}
                 <button class="ghost" onclick="openPrintView()">PRINT</button>
                 <button class="ghost" onclick="logoutUser()">LOGOUT</button>
                 <div class="grow"></div>
-                ${!isRevivalMode() ? `<button class="ghost" onclick="createFinalRace()">최종 결승 진행</button>` : ""}
               </div>
 
               ${!isRevivalMode() ? renderFinalRace() : ""}
@@ -5838,7 +5967,7 @@
 
               <details class="operator-page">
                 <summary>운영 관련</summary>
-                <div class="operator-page-body"><section class="card"><h2>운영 정보</h2><button class="primary manual-open-button" onclick="openUsageManual()">사용설명서</button><div class="firebase-panel"><label>Firebase LIVE</label><input class="mini-input" value="${escapeHtml(getCurrentTournamentId())}" oninput="setTournamentIdDraft(this.value)" onblur="renderOperator()" /><div class="firebase-actions"><button onclick="loadFirebaseStateOnce().then(() => renderOperator())">불러오기</button><button onclick="queueFirebaseSave()">저장</button><button onclick="copyLiveLink()">모바일 링크</button><button onclick="openFirebaseTvLive()">TV LIVE</button></div><label class="firebase-autosave"><input type="checkbox" ${state.settings.firebaseAutoSave ? "checked" : ""} onchange="setSetting('firebaseAutoSave', this.checked)" /> Firebase 자동 저장</label><p class="hint">상태: ${firebaseStatusText()}</p></div><div class="finalist-grid" style="grid-template-columns:1fr;"><div class="finalist-item"><b>경기 방식</b><br>${matchModeLabel()}</div><div class="finalist-item"><b>대회명</b><br>${escapeHtml(state.tournament.name || "미입력")}</div><div class="finalist-item"><b>경기장</b><br>${escapeHtml(state.tournament.venue || "미입력")}</div>${renderBroadcastStatus()}<div class="finalist-item"><b>같은 레인 방지</b><br>${state.settings.sameLanePrevention ? "ON" : "OFF"}</div><div class="finalist-item download-mini"><b>기록 다운로드</b><br><button onclick="exportTournamentCsv()">결과 CSV</button><button onclick="exportTournamentJson()">기록 JSON</button></div></div></section>${renderOperationPanel()}</div>
+                <div class="operator-page-body"><section class="card"><h2>운영 정보</h2><button class="primary manual-open-button" onclick="openUsageManual()">사용설명서</button>${renderFirebaseLivePanel()}<div class="finalist-grid" style="grid-template-columns:1fr;"><div class="finalist-item"><b>경기 방식</b><br>${matchModeLabel()}</div><div class="finalist-item"><b>대회명</b><br>${escapeHtml(state.tournament.name || "미입력")}</div><div class="finalist-item"><b>경기장</b><br>${escapeHtml(state.tournament.venue || "미입력")}</div>${renderBroadcastStatus()}<div class="finalist-item"><b>같은 레인 방지</b><br>${state.settings.sameLanePrevention ? "ON" : "OFF"}</div><div class="finalist-item download-mini"><b>기록 다운로드</b><br><button onclick="exportTournamentCsv()">결과 CSV</button><button onclick="exportTournamentJson()">기록 JSON</button></div></div></section>${renderOperationPanel()}</div>
               </details>
             </aside>
           </div>
@@ -5897,7 +6026,7 @@
             <h2>4. 운영 버튼</h2>
             <ul>
               <li><b>TV LIVE</b>: 현재 송출 대상으로 지정된 경기를 TV 화면으로 엽니다.</li>
-              <li><b>MOBILE LINK</b>: 현재 상태를 모바일 확인용 링크로 만듭니다. 서버 연동 전에는 스냅샷 방식입니다.</li>
+              <li><b>LIVE 로비</b>: LIVE 로비 링크를 복사하고 현재 대회 상태를 LIVE에 동기화합니다.</li>
               <li><b>PRINT</b>: 현재 경기의 출력용 대진표를 엽니다.</li>
               <li><b>엑셀 다운로드</b>: PRINT 화면에서 출력용 대진표를 엑셀 파일로 저장합니다.</li>
               <li><b>결과 CSV / 기록 JSON</b>: 운영 정보 아래에서 경기 기록을 내려받습니다.</li>
@@ -6098,11 +6227,13 @@
     function renderPointPlayerSlot(player, group, stage, roundIndex, stageIndex) {
       if (player.isEmptyLane) {
         return `
-          <div class="slot empty-lane">
-            <div class="slot-inner">
-              ${renderLaneLabelWithRate(player.lane)}
-              <div class="player-info">
-                <strong>빈 레인</strong>
+          <div class="slot empty-lane point-slot">
+            <div class="slot-inner slot-inner-name-first">
+              <div class="player-card-main">
+                <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
+                <div class="player-info">
+                  <strong class="player-name-fit name-fit-empty">빈 레인</strong>
+                </div>
               </div>
             </div>
           </div>
@@ -6112,14 +6243,16 @@
       const selectedScore = (group.points || {})[player.id];
       return `
         <div class="slot point-slot">
-          <div class="slot-inner">
-            ${renderLaneLabelWithRate(player.lane)}
-            <div class="player-info player-info-with-h2h">
-              <div class="player-identity-block">
-                <strong>${escapeHtml(player.name)}</strong>
-                ${renderPlayerTeamInline(player)}
+          <div class="slot-inner slot-inner-name-first">
+            <div class="player-card-main">
+              <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
+              <div class="player-info player-info-with-h2h player-info-name-first-card">
+                <div class="player-identity-block">
+                  <strong class="player-name-fit ${getPlayerNameFitClass(player.name)}">${escapeHtml(player.name)}</strong>
+                  ${renderPlayerTeamInline(player)}
+                </div>
+                ${renderPlayerMatchMetrics(player, group)}
               </div>
-              ${renderPlayerMatchMetrics(player, group)}
             </div>
           </div>
           <div class="point-buttons">
@@ -6130,7 +6263,6 @@
         </div>
       `;
     }
-
 
     function getAllTournamentStagesForMetrics() {
       const stages = [];
@@ -6837,24 +6969,37 @@ function renderTournamentStatusPanel() {
 function getTvWindowGroups(target) {
       const groups = target?.groups || [];
       if (!groups.length) return { groups: [], mode: "empty", startIndex: 0, currentIndex: 0, pageCount: 1 };
+
+      const pageSize = 4;
       const hasAnyAdvance = groups.some(group => (group.advanceIds || []).length > 0);
+
       if (!hasAnyAdvance) {
-        return { groups, mode: "all", startIndex: 0, currentIndex: 0, pageCount: 1 };
+        const pageCount = Math.max(1, Math.ceil(groups.length / pageSize));
+        tvPage = Math.max(0, Math.min(tvPage || 0, pageCount - 1));
+        const startIndex = tvPage * pageSize;
+        return {
+          groups: groups.slice(startIndex, startIndex + pageSize),
+          mode: "pending",
+          startIndex,
+          currentIndex: startIndex,
+          pageCount
+        };
       }
+
       let currentIndex = groups.findIndex(group => !(group.advanceIds || []).length);
       if (currentIndex < 0) currentIndex = groups.length - 1;
       let startIndex = Math.max(0, currentIndex - 1);
-      if (startIndex + 4 > groups.length) startIndex = Math.max(0, groups.length - 4);
+      if (startIndex + pageSize > groups.length) startIndex = Math.max(0, groups.length - pageSize);
       return {
-        groups: groups.slice(startIndex, startIndex + 4),
+        groups: groups.slice(startIndex, startIndex + pageSize),
         mode: "focus",
         startIndex,
         currentIndex,
-        pageCount: Math.max(1, Math.ceil(groups.length / 4))
+        pageCount: Math.max(1, Math.ceil(groups.length / pageSize))
       };
     }
 
-    function renderTvH2hMetrics(player, group) {
+        function renderTvH2hMetrics(player, group) {
       const stats = getGroupMatchStatsForPlayer(player, group);
       const rows = (stats.h2h || []).map(item => {
         const label = item.matches ? `${item.name} · ${item.wins}승 ${item.losses}패 · ${item.rateText}` : `${item.name} · 전적없음`;
@@ -6877,9 +7022,10 @@ function getTvWindowGroups(target) {
       const windowInfo = getTvWindowGroups(target);
       const currentGroups = windowInfo.groups;
       const columns = windowInfo.mode === "all" ? Math.min(4, Math.max(1, currentGroups.length)) : Math.min(4, Math.max(1, currentGroups.length));
-      const modeLabel = windowInfo.mode === "all"
-        ? "전체 대진"
+      const modeLabel = windowInfo.mode === "pending"
+        ? `진행 대기 · ${windowInfo.startIndex + 1}-${windowInfo.startIndex + currentGroups.length}조`
         : `진행 포커스 · ${windowInfo.startIndex + 1}-${windowInfo.startIndex + currentGroups.length}조`;
+      const tvTournamentName = target.tournamentName || tvState?.tournament?.name || "";
 
       app.innerHTML = `
         <div class="tv-wrap">
@@ -6889,7 +7035,8 @@ function getTvWindowGroups(target) {
                 <small>MINI4WD TOURNAMENT MAKER</small>
                 <span class="tv-view-mode-note">${escapeHtml(modeLabel)}</span>
               </div>
-              <strong>${escapeHtml(target.title)}</strong>
+              <strong>${escapeHtml(tvTournamentName || target.title)}</strong>
+              ${tvTournamentName ? `<div class="tv-stage-title">${escapeHtml(target.title)}</div>` : ""}
             </div>
             ${logoMarkup("tv-logo")}
           </header>
@@ -6908,7 +7055,7 @@ function getTvWindowGroups(target) {
 
           ${renderTvPointLeaders(target)}
 
-          <main class="tv-stage ${windowInfo.mode === "all" ? "tv-stage-all" : "tv-stage-focus"}" style="grid-template-columns: repeat(${columns}, minmax(0,1fr));">
+          <main class="tv-stage tv-stage-focus" style="grid-template-columns: repeat(${columns}, minmax(0,1fr));">
             ${currentGroups.map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap)).join("")}
           </main>
 
@@ -7016,9 +7163,12 @@ function getTvWindowGroups(target) {
                 <div class="slot-inner slot-inner-name-first">
                   <div class="player-card-main">
                     <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
-                    <div class="player-info player-point-identity">
-                      <strong class="player-name-fit ${getPlayerNameFitClass(player.name)}">${escapeHtml(player.name)}</strong>
-                      ${player.team ? `<div class="team team-under-name">${escapeHtml(player.team)}</div>` : ""}
+                    <div class="player-info player-info-with-h2h player-info-name-first-card">
+                      <div class="player-identity-block">
+                        <strong class="player-name-fit ${getPlayerNameFitClass(player.name)}">${escapeHtml(player.name)}</strong>
+                        ${renderPlayerTeamInline(player)}
+                      </div>
+                      ${renderPlayerMatchMetrics(player, group)}
                     </div>
                   </div>
                   <span class="advance-mark">${score}P</span>
@@ -7724,7 +7874,7 @@ function getTvWindowGroups(target) {
             <div class="header-copy">
               <div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div></div>
               <h1>운영자 로그인</h1>
-              <p class="desc">일반 유저는 TV LIVE / 모바일 LIVE를 로그인 없이 볼 수 있습니다. 운영 및 선수 DB는 계정이 필요합니다.</p>
+              <p class="desc">일반 유저는 TV LIVE / LIVE 로비를 로그인 없이 볼 수 있습니다. 운영 및 선수 DB는 계정이 필요합니다.</p>
             </div>
             ${logoMarkup("header-logo")}
           </header>
@@ -7738,7 +7888,7 @@ function getTvWindowGroups(target) {
               <button class="ghost" onclick="requestVenueAccount()">경기장 계정 신청</button>
             </div>
             <p class="privacy-note" style="margin-top:12px;">경기장 계정 신청 후 관리자가 승인해야 운영자 화면에 들어갈 수 있습니다.</p>
-            <div style="display:flex; gap:8px; margin-top:12px;"><button class="ghost" onclick="openDashboardPage()">대시보드 보기</button><button class="ghost" onclick="location.hash='view=live-list'; bootV33();">모바일 LIVE</button></div>
+            <div style="display:flex; gap:8px; margin-top:12px;"><button class="ghost" onclick="openDashboardPage()">대시보드 보기</button><button class="ghost" onclick="location.hash='view=live-list'; bootV33();">LIVE 로비</button></div>
           </section>
         </div>`;
     }
@@ -8580,7 +8730,7 @@ function getTvWindowGroups(target) {
       const stats = analyzeRecords(filtered);
       const venueVisits = analyzePlayerVenueVisits(filtered);
       document.body.classList.remove("tv-mode");
-      app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">DASHBOARD</div></div><h1>상시 데이터 대시보드</h1><p class="desc">기간별 · 경기장별 · 클래스별 경기 기록 분석</p></div>${logoMarkup("header-logo")}</header>${currentAuthUser ? accountBadge() : ""}<div class="toolbar"><button class="ghost" onclick="goBack()">뒤로가기</button><button class="ghost" onclick="goHome()">홈</button><button class="primary" onclick="location.hash=''; bootV33();">TOURNAMENT</button><button class="ghost" onclick="location.hash='view=live-list'; bootV33();">MOBILE LIVE</button><button class="ghost" onclick="dashboardFilter.venue='전체'; renderDashboardWithRecords(window.__dashboardRecords||[])">전체 경기장</button><button class="ghost" onclick="openDashboardPage()">새로고침</button></div><section class="card"><div class="dashboard-filter"><div><label>시작일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.from)}" onchange="dashboardFilter.from=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>종료일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.to)}" onchange="dashboardFilter.to=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>경기장</label><select class="mini-input" onchange="dashboardFilter.venue=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 경기장</option>${venueOptions.map(v => `<option value="${escapeHtml(v.id)}" ${dashboardFilter.venue===v.id || dashboardFilter.venue===v.name || (v.aliases || []).includes(dashboardFilter.venue) || normalizeKey(dashboardFilter.venue)===v.id ? "selected" : ""}>${escapeHtml(v.name)}</option>`).join("")}</select></div><div><label>클래스</label><select class="mini-input" onchange="dashboardFilter.raceClass=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 클래스</option>${classes.map(c => `<option value="${escapeHtml(c)}" ${dashboardFilter.raceClass===c?"selected":""}>${escapeHtml(c)}</option>`).join("")}</select></div><div><label>검색</label><input class="mini-input" placeholder="대회명/경기장/클래스" value="${escapeHtml(dashboardFilter.keyword)}" oninput="dashboardFilter.keyword=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div></div><div class="dashboard-period-row"><button class="ghost" onclick="setDashboardPeriod('all')">전체 기간</button><button class="ghost" onclick="setDashboardPeriod('month')">이번달</button><button class="ghost" onclick="setDashboardPeriod('30d')">최근 30일</button></div><div class="db-stat-grid" style="margin-top:12px;"><div class="db-stat"><small>대회 기록</small><strong>${filtered.length}</strong></div><div class="db-stat"><small>경기장</small><strong>${new Set(filtered.map(r=>r.venueName||r.venueId)).size}</strong></div><div class="db-stat"><small>선수</small><strong>${stats.players.length}</strong></div></div></section><div class="dashboard-grid"><section class="dashboard-card"><h3>클래스별 기록</h3><div class="class-chip-wrap">${classStats.map(item => `<div class="class-chip"><span>${escapeHtml(item.raceClass)}</span><b>${item.count}회</b></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>선수별 경기장 방문</h3>${renderVenueVisitList(venueVisits)}</section><section class="dashboard-card"><h3>최다승 유저</h3>${rankList(stats.mostWins, "wins", "승")}</section><section class="dashboard-card"><h3>자주 우승하는 사람</h3>${rankList(stats.mostChampions, "championships", "회")}</section><section class="dashboard-card"><h3>자주 지는 사람</h3>${rankList(stats.mostLosses, "losses", "패")}</section><section class="dashboard-card"><h3>참가 횟수 랭킹</h3>${rankList(stats.mostParticipants, "matches", "회")}</section><section class="dashboard-card"><h3>포인트전 누적</h3>${rankList(stats.mostPoints, "points", "P")}</section><section class="dashboard-card"><h3>한 레인 편중</h3><div class="rank-list">${stats.oneLane.slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)} · ${p.mainLane}LANE</span><strong>${Math.round(p.laneRate*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>레인별 승률</h3><div class="rank-list">${stats.laneStats.map(l=>`<div class="rank-row"><b>${l.lane}</b><span class="rank-name">${l.matches}경기</span><strong>${l.matches ? Math.round(l.wins/l.matches*100) : 0}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>결승 진출률</h3><div class="rank-list">${stats.players.filter(p=>p.matches).sort((a,b)=>(b.finals/b.matches)-(a.finals/a.matches)).slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)}</span><strong>${Math.round(p.finals/p.matches*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section></div></div>`;
+      app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">DASHBOARD</div></div><h1>상시 데이터 대시보드</h1><p class="desc">기간별 · 경기장별 · 클래스별 경기 기록 분석</p></div>${logoMarkup("header-logo")}</header>${currentAuthUser ? accountBadge() : ""}<div class="toolbar"><button class="ghost" onclick="goBack()">뒤로가기</button><button class="ghost" onclick="goHome()">홈</button><button class="primary" onclick="location.hash=''; bootV33();">TOURNAMENT</button><button class="ghost" onclick="location.hash='view=live-list'; bootV33();">LIVE 로비</button><button class="ghost" onclick="dashboardFilter.venue='전체'; renderDashboardWithRecords(window.__dashboardRecords||[])">전체 경기장</button><button class="ghost" onclick="openDashboardPage()">새로고침</button></div><section class="card"><div class="dashboard-filter"><div><label>시작일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.from)}" onchange="dashboardFilter.from=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>종료일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.to)}" onchange="dashboardFilter.to=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>경기장</label><select class="mini-input" onchange="dashboardFilter.venue=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 경기장</option>${venueOptions.map(v => `<option value="${escapeHtml(v.id)}" ${dashboardFilter.venue===v.id || dashboardFilter.venue===v.name || (v.aliases || []).includes(dashboardFilter.venue) || normalizeKey(dashboardFilter.venue)===v.id ? "selected" : ""}>${escapeHtml(v.name)}</option>`).join("")}</select></div><div><label>클래스</label><select class="mini-input" onchange="dashboardFilter.raceClass=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 클래스</option>${classes.map(c => `<option value="${escapeHtml(c)}" ${dashboardFilter.raceClass===c?"selected":""}>${escapeHtml(c)}</option>`).join("")}</select></div><div><label>검색</label><input class="mini-input" placeholder="대회명/경기장/클래스" value="${escapeHtml(dashboardFilter.keyword)}" oninput="dashboardFilter.keyword=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div></div><div class="dashboard-period-row"><button class="ghost" onclick="setDashboardPeriod('all')">전체 기간</button><button class="ghost" onclick="setDashboardPeriod('month')">이번달</button><button class="ghost" onclick="setDashboardPeriod('30d')">최근 30일</button></div><div class="db-stat-grid" style="margin-top:12px;"><div class="db-stat"><small>대회 기록</small><strong>${filtered.length}</strong></div><div class="db-stat"><small>경기장</small><strong>${new Set(filtered.map(r=>r.venueName||r.venueId)).size}</strong></div><div class="db-stat"><small>선수</small><strong>${stats.players.length}</strong></div></div></section><div class="dashboard-grid"><section class="dashboard-card"><h3>클래스별 기록</h3><div class="class-chip-wrap">${classStats.map(item => `<div class="class-chip"><span>${escapeHtml(item.raceClass)}</span><b>${item.count}회</b></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>선수별 경기장 방문</h3>${renderVenueVisitList(venueVisits)}</section><section class="dashboard-card"><h3>최다승 유저</h3>${rankList(stats.mostWins, "wins", "승")}</section><section class="dashboard-card"><h3>자주 우승하는 사람</h3>${rankList(stats.mostChampions, "championships", "회")}</section><section class="dashboard-card"><h3>자주 지는 사람</h3>${rankList(stats.mostLosses, "losses", "패")}</section><section class="dashboard-card"><h3>참가 횟수 랭킹</h3>${rankList(stats.mostParticipants, "matches", "회")}</section><section class="dashboard-card"><h3>포인트전 누적</h3>${rankList(stats.mostPoints, "points", "P")}</section><section class="dashboard-card"><h3>한 레인 편중</h3><div class="rank-list">${stats.oneLane.slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)} · ${p.mainLane}LANE</span><strong>${Math.round(p.laneRate*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>레인별 승률</h3><div class="rank-list">${stats.laneStats.map(l=>`<div class="rank-row"><b>${l.lane}</b><span class="rank-name">${l.matches}경기</span><strong>${l.matches ? Math.round(l.wins/l.matches*100) : 0}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>결승 진출률</h3><div class="rank-list">${stats.players.filter(p=>p.matches).sort((a,b)=>(b.finals/b.matches)-(a.finals/a.matches)).slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)}</span><strong>${Math.round(p.finals/p.matches*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section></div></div>`;
     }
 
     function liveStatusLabel(status) {
@@ -8918,9 +9068,40 @@ function getTvWindowGroups(target) {
 
     function renderFinalGroup(group, finalRaceType) {
       return `<article class="group"><div class="group-title"><strong>${escapeHtml(group.name || "FINAL")}</strong><span class="badge">${group.slots.filter(p => !p.isEmptyLane).length}명</span></div>${(group.slots || []).map(player => {
-        if (player.isEmptyLane) return `<div class="slot empty-lane"><div class="slot-inner">${renderLaneLabelWithRate(player.lane)}<div class="player-info"><strong>빈 레인</strong></div></div></div>`;
+        if (player.isEmptyLane) {
+          return `
+            <div class="slot empty-lane">
+              <div class="slot-inner slot-inner-name-first">
+                <div class="player-card-main">
+                  <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
+                  <div class="player-info"><strong class="player-name-fit name-fit-empty">빈 레인</strong></div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
         const selected = (group.advanceIds || []).includes(player.id);
-        return `<div class="slot ${selected ? "selected" : ""}"><div class="slot-inner final-slot-actions"><div>${renderLaneLabelWithRate(player.lane)}<div class="player-info"><strong>${escapeHtml(player.name)}</strong>${player.team ? `<div class="team">${escapeHtml(player.team)}</div>` : ""}</div>${selected ? `<span class="advance-mark">${finalRaceType === "crowSemi" ? "결승" : "최종"}</span>` : ""}</div><div class="final-lane-tools"><button class="${selected ? "primary" : "ghost"}" onclick="toggleFinalWinner('${escapeAttr(player.id)}','${escapeAttr(group.id)}')">${selected ? "선택 해제" : finalRaceType === "crowSemi" ? "결승 진출" : "우승 선택"}</button>${renderFinalLaneTools(group, player)}</div></div></div>`;
+        return `
+          <div class="slot ${selected ? "selected" : ""}">
+            <div class="slot-inner final-slot-actions">
+              <div class="player-card-main">
+                <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
+                <div class="player-info player-info-with-h2h player-info-name-first-card">
+                  <div class="player-identity-block">
+                    <strong class="player-name-fit ${getPlayerNameFitClass(player.name)}">${escapeHtml(player.name)}</strong>
+                    ${renderPlayerTeamInline(player)}
+                  </div>
+                  ${renderPlayerMatchMetrics(player, group)}
+                </div>
+              </div>
+              <div class="final-card-actions">
+                ${selected ? `<span class="advance-mark">${finalRaceType === "crowSemi" ? "결승" : "최종"}</span>` : ""}
+                <button class="${selected ? "primary" : "ghost"}" onclick="toggleFinalWinner('${escapeAttr(player.id)}','${escapeAttr(group.id)}')">${selected ? "선택 해제" : finalRaceType === "crowSemi" ? "결승 진출" : "우승 선택"}</button>
+                ${renderFinalLaneTools(group, player)}
+              </div>
+            </div>
+          </div>
+        `;
       }).join("")}</article>`;
     }
 
@@ -8937,16 +9118,17 @@ function getTvWindowGroups(target) {
 
     function getBroadcastTarget(payload) {
       const broadcast = payload.broadcast || { mode: "stage", roundIndex: 0, stageIndex: 0 };
+      const tournamentName = payload.tournament?.name || "";
       if (broadcast.mode === "final" && payload.finalRace) {
         const groups = Array.isArray(payload.finalRace.groups) ? payload.finalRace.groups : [payload.finalRace.group].filter(Boolean);
-        return { title: payload.finalRace.name || "최종 결승", laneCount: payload.finalRace.groupSize || payload.settings.laneCount, groups, isFinal: true, stageType: "final", stageName: payload.finalRace.name || "최종 결승", pointTotalsMap: {} };
+        return { title: payload.finalRace.name || "최종 결승", tournamentName, laneCount: payload.finalRace.groupSize || payload.settings.laneCount, groups, isFinal: true, stageType: "final", stageName: payload.finalRace.name || "최종 결승", pointTotalsMap: {} };
       }
       const round = payload.qualifierRounds?.[broadcast.roundIndex];
       const stage = round?.stages?.[broadcast.stageIndex] || round?.stages?.[round.stages.length - 1];
       if (!round || !stage) return null;
       const pointTotals = stage.type === "points" ? computePointTotalsUpToStage(round, broadcast.stageIndex) : [];
       const pointTotalsMap = Object.fromEntries(pointTotals.map(player => [player.id, player.total]));
-      return { title: `${round.title} · ${stage.name}`, laneCount: payload.settings.laneCount, groups: stage.groups, round, stage, stageType: stage.type || "stage", stageName: stage.name, pointLeaders: stage.type === "points" && stage.name === "포인트 3차전" ? getPointLeadersWithTies(pointTotals, 3) : [], pointTotalsMap };
+      return { title: `${round.title} · ${stage.name}`, tournamentName, laneCount: payload.settings.laneCount, groups: stage.groups, round, stage, stageType: stage.type || "stage", stageName: stage.name, pointLeaders: stage.type === "points" && stage.name === "포인트 3차전" ? getPointLeadersWithTies(pointTotals, 3) : [], pointTotalsMap };
     }
 
     function getCurrentStageForPrint(payload = state) {
@@ -9035,8 +9217,8 @@ function getTvWindowGroups(target) {
     function renderReadOnlyPayload(payload) {
       const finalGroups = payload.finalRace ? (Array.isArray(payload.finalRace.groups) ? payload.finalRace.groups : [payload.finalRace.group].filter(Boolean)) : [];
       const finalHtml = finalGroups.length ? `<section class="final-box"><h2>${escapeHtml(payload.finalRace?.name || "최종 결승")}</h2><div class="groups" style="grid-template-columns:${finalGroups.length > 1 ? "repeat(3,minmax(0,1fr))" : "1fr"};">${finalGroups.map(group => renderReadOnlyGroup(group, true)).join("")}</div></section>` : "";
-      const qualifierHtml = (payload.qualifierRounds || []).map(round => `<section class="round-card"><div class="round-head"><div><div class="round-title"><h2>${escapeHtml(round.title)}</h2><span class="round-badge">${round.finalist ? `확정 · ${escapeHtml(round.finalist.name)}` : "진행"}</span></div></div></div>${(round.stages || []).map(stage => `<details class="history-stage" open><summary>${escapeHtml(stage.name)}</summary><div class="history-stage-body">${(stage.groups || []).map(group => renderReadOnlyGroup(group)).join("")}</div></details>`).join("")}</section>`).join("");
-      app.innerHTML = `<div class="mobile-view"><header class="header" style="margin-bottom:16px;"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">MOBILE LIVE</div></div><h1>${escapeHtml(payload.tournament?.name || "대회명 미입력")}</h1><p class="desc">${matchModeLabel(payload.settings?.matchMode)} · ${payload.settings?.laneCount || 3}레인 · ${escapeHtml(payload.tournament?.venue || "")}</p></div>${logoMarkup("header-logo")}</header>${finalHtml}${qualifierHtml}</div>`;
+      const qualifierHtml = (payload.qualifierRounds || []).map(round => `<section class="round-card"><div class="round-head"><div><div class="round-title"><h2>${escapeHtml(round.title)}</h2><span class="round-badge">${round.finalist ? `확정 · ${escapeHtml(round.finalist.name)}` : "진행"}</span></div></div></div>${(round.stages || []).map(stage => `<details class="history-stage" open><summary>${escapeHtml(stage.name)}</summary><div class="history-stage-body">${(stage.groups || []).map(group => stage.type === "points" ? renderReadOnlyPointGroup(group, stage) : renderReadOnlyGroup(group)).join("")}</div></details>`).join("")}</section>`).join("");
+      app.innerHTML = `<div class="mobile-view"><header class="header" style="margin-bottom:16px;"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">LIVE 로비</div></div><h1>${escapeHtml(payload.tournament?.name || "대회명 미입력")}</h1><p class="desc">${matchModeLabel(payload.settings?.matchMode)} · ${payload.settings?.laneCount || 3}레인 · ${escapeHtml(payload.tournament?.venue || "")}</p></div>${logoMarkup("header-logo")}</header>${finalHtml}${qualifierHtml}</div>`;
     }
 
     
@@ -9422,10 +9604,10 @@ function getTvWindowGroups(target) {
     }
 
     function copyLiveLink() {
-      enableLiveAutoSyncV55("모바일 LIVE 링크");
+      enableLiveAutoSyncV55("LIVE 로비 링크");
       const url = `${location.origin}${location.pathname}#view=live-list`;
-      navigator.clipboard?.writeText(url).then(() => alert("모바일 LIVE 로비 링크를 복사했습니다.\n이후 변경사항은 자동으로 LIVE에 반영됩니다."))
-        .catch(() => prompt("모바일 LIVE 로비 링크", url));
+      navigator.clipboard?.writeText(url).then(() => alert("LIVE 로비 링크를 복사했습니다.\n이후 변경사항은 자동으로 LIVE에 반영됩니다."))
+        .catch(() => prompt("LIVE 로비 링크", url));
     }
 
     function shareMobileView() {
