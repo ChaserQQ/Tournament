@@ -4438,6 +4438,238 @@
       }
     }
 
+
+
+    /* v68: confirmed player-card layout · lane line above name, vertical 3-month H2H beside name */
+    .slot-inner-name-first {
+      align-items: stretch !important;
+      gap: 9px !important;
+    }
+    .player-card-main {
+      flex: 1 1 auto !important;
+      min-width: 0 !important;
+      display: grid !important;
+      grid-template-rows: auto minmax(0, 1fr) !important;
+      gap: 4px !important;
+      overflow: hidden !important;
+    }
+    .slot-card-lane-line {
+      min-width: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      color: rgba(245,158,11,.96) !important;
+      line-height: 1 !important;
+    }
+    .slot-card-lane-line .lane-label {
+      min-width: 0 !important;
+      width: auto !important;
+      display: inline-flex !important;
+      align-items: baseline !important;
+      justify-content: flex-start !important;
+      gap: 5px !important;
+      font-size: 14px !important;
+      line-height: 1 !important;
+      color: rgba(245,158,11,.96) !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    .slot-card-lane-line .lane-win-rate {
+      display: inline !important;
+      margin: 0 !important;
+      font-size: 10px !important;
+      color: rgba(238,233,223,.72) !important;
+      letter-spacing: -.02em !important;
+    }
+    .player-info-name-first-card {
+      grid-template-columns: minmax(0, 1.48fr) minmax(118px, .72fr) !important;
+      gap: 8px !important;
+      align-items: center !important;
+    }
+    .player-point-identity {
+      min-width: 0 !important;
+      display: grid !important;
+      gap: 2px !important;
+      align-content: center !important;
+    }
+    .player-name-fit {
+      display: block !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      line-height: .95 !important;
+      letter-spacing: -.065em !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    .player-identity-block > .player-name-fit.name-fit-short,
+    .player-point-identity > .player-name-fit.name-fit-short {
+      font-size: clamp(28px, 4.8vw, 42px) !important;
+    }
+    .player-identity-block > .player-name-fit.name-fit-medium,
+    .player-point-identity > .player-name-fit.name-fit-medium {
+      font-size: clamp(24px, 3.8vw, 36px) !important;
+    }
+    .player-identity-block > .player-name-fit.name-fit-long,
+    .player-point-identity > .player-name-fit.name-fit-long {
+      font-size: clamp(20px, 2.8vw, 29px) !important;
+      letter-spacing: -.055em !important;
+    }
+    .player-identity-block > .player-name-fit.name-fit-xlong,
+    .player-point-identity > .player-name-fit.name-fit-xlong {
+      font-size: clamp(16px, 2.1vw, 23px) !important;
+      letter-spacing: -.045em !important;
+    }
+    .name-fit-empty {
+      font-size: clamp(18px, 2.4vw, 26px) !important;
+      color: rgba(238,233,223,.5) !important;
+    }
+    .slot-h2h-title,
+    .tv-h2h-title {
+      min-width: 0 !important;
+      color: rgba(245,158,11,.96) !important;
+      font-weight: 1000 !important;
+      letter-spacing: -.035em !important;
+      line-height: 1.05 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    .slot-h2h-title {
+      font-size: 10px !important;
+      margin-bottom: 1px !important;
+    }
+    .slot-h2h-rows {
+      align-content: center !important;
+    }
+    .slot-h2h-rows .slot-metric.h2h,
+    .player-info-with-h2h .slot-metric.h2h {
+      min-height: 0 !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      border: 0 !important;
+      border-left: 2px solid rgba(245,158,11,.32) !important;
+      color: rgba(238,233,223,.78) !important;
+      padding: 1px 0 1px 6px !important;
+      font-size: 9.5px !important;
+      line-height: 1.12 !important;
+    }
+    .slot.selected .slot-h2h-title {
+      color: rgba(22,8,17,.82) !important;
+    }
+    .slot.selected .slot-h2h-rows .slot-metric.h2h,
+    .slot.selected .player-info-with-h2h .slot-metric.h2h {
+      color: rgba(22,8,17,.82) !important;
+      border-left-color: rgba(22,8,17,.35) !important;
+    }
+
+    body.tv-mode .tv-player-line-vertical {
+      grid-template-columns: minmax(0, 1.56fr) minmax(0, .74fr) !important;
+      align-items: center !important;
+    }
+    body.tv-mode .tv-player-line-vertical .tv-player-identity-block > .player-name-fit.name-fit-short {
+      font-size: clamp(46px, 5.8vw, 96px) !important;
+    }
+    body.tv-mode .tv-player-line-vertical .tv-player-identity-block > .player-name-fit.name-fit-medium {
+      font-size: clamp(39px, 4.8vw, 80px) !important;
+    }
+    body.tv-mode .tv-player-line-vertical .tv-player-identity-block > .player-name-fit.name-fit-long {
+      font-size: clamp(31px, 3.7vw, 58px) !important;
+      letter-spacing: -.06em !important;
+    }
+    body.tv-mode .tv-player-line-vertical .tv-player-identity-block > .player-name-fit.name-fit-xlong {
+      font-size: clamp(23px, 2.75vw, 42px) !important;
+      letter-spacing: -.045em !important;
+    }
+    body.tv-mode .tv-h2h-rows {
+      align-content: center !important;
+      gap: clamp(2px, .24vw, 5px) !important;
+    }
+    body.tv-mode .tv-h2h-title {
+      font-size: clamp(10px, .86vw, 16px) !important;
+      margin-bottom: clamp(1px, .12vw, 3px) !important;
+    }
+    body.tv-mode .tv-h2h-rows .tv-h2h-line {
+      border-radius: 0 !important;
+      background: transparent !important;
+      border: 0 !important;
+      border-left: 2px solid rgba(245,158,11,.34) !important;
+      padding: .05vw 0 .05vw .42vw !important;
+      color: rgba(238,233,223,.78) !important;
+    }
+    body.tv-mode .tv-lane.selected .tv-h2h-title,
+    body.tv-mode .tv-lane.selected .tv-h2h-line {
+      color: rgba(22,8,17,.82) !important;
+      border-left-color: rgba(22,8,17,.38) !important;
+    }
+    body.tv-mode .tv-stage-all .tv-player-line-vertical {
+      grid-template-columns: minmax(0, 1.38fr) minmax(0, .82fr) !important;
+    }
+    body.tv-mode .tv-stage-all .tv-player-line-vertical .tv-player-identity-block > .player-name-fit.name-fit-short {
+      font-size: clamp(20px, 2.05vw, 35px) !important;
+    }
+    body.tv-mode .tv-stage-all .tv-player-line-vertical .tv-player-identity-block > .player-name-fit.name-fit-medium {
+      font-size: clamp(18px, 1.75vw, 30px) !important;
+    }
+    body.tv-mode .tv-stage-all .tv-player-line-vertical .tv-player-identity-block > .player-name-fit.name-fit-long {
+      font-size: clamp(15px, 1.35vw, 23px) !important;
+    }
+    body.tv-mode .tv-stage-all .tv-player-line-vertical .tv-player-identity-block > .player-name-fit.name-fit-xlong {
+      font-size: clamp(12px, 1.05vw, 18px) !important;
+    }
+    body.tv-mode .tv-stage-all .tv-h2h-title {
+      font-size: clamp(6.8px, .56vw, 8.5px) !important;
+    }
+    body.tv-mode .tv-stage-all .tv-h2h-rows .tv-h2h-line {
+      font-size: clamp(6.2px, .52vw, 8px) !important;
+      padding-left: .24vw !important;
+    }
+
+    @media (max-width: 760px) {
+      .slot-inner-name-first {
+        align-items: stretch !important;
+        gap: 7px !important;
+      }
+      .slot-card-lane-line .lane-label {
+        font-size: 12px !important;
+      }
+      .slot-card-lane-line .lane-win-rate {
+        font-size: 8.5px !important;
+      }
+      .player-info-name-first-card {
+        grid-template-columns: minmax(0, 1.36fr) minmax(104px, .64fr) !important;
+        gap: 6px !important;
+      }
+      .player-identity-block > .player-name-fit.name-fit-short,
+      .player-point-identity > .player-name-fit.name-fit-short {
+        font-size: 24px !important;
+      }
+      .player-identity-block > .player-name-fit.name-fit-medium,
+      .player-point-identity > .player-name-fit.name-fit-medium {
+        font-size: 21px !important;
+      }
+      .player-identity-block > .player-name-fit.name-fit-long,
+      .player-point-identity > .player-name-fit.name-fit-long {
+        font-size: 17px !important;
+      }
+      .player-identity-block > .player-name-fit.name-fit-xlong,
+      .player-point-identity > .player-name-fit.name-fit-xlong {
+        font-size: 14px !important;
+      }
+      .team-under-name {
+        font-size: 9.5px !important;
+      }
+      .slot-h2h-title {
+        font-size: 8.5px !important;
+      }
+      .slot-h2h-rows .slot-metric.h2h,
+      .player-info-with-h2h .slot-metric.h2h {
+        font-size: 8px !important;
+        padding: 1px 0 1px 5px !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -6083,6 +6315,14 @@
       return `<span class="lane-label">${escapeHtml(lane)}LANE<span class="lane-win-rate">오늘 ${escapeHtml(getTodayLaneWinRate(lane))}</span></span>`;
     }
 
+    function getPlayerNameFitClass(name) {
+      const length = Array.from(String(name || "").trim()).length;
+      if (length <= 4) return "name-fit-short";
+      if (length <= 8) return "name-fit-medium";
+      if (length <= 13) return "name-fit-long";
+      return "name-fit-xlong";
+    }
+
     function renderPlayerTeamInline(player = {}) {
       return player.team ? `<div class="team team-under-name">${escapeHtml(player.team)}</div>` : "";
     }
@@ -6095,7 +6335,7 @@
           : `${item.name} · 전적없음`;
         return `<span class="slot-metric h2h ${item.matches ? "" : "h2h-empty"}">${escapeHtml(label)}</span>`;
       }).join("");
-      return `<div class="slot-metrics slot-metrics-inline slot-h2h-rows" title="최근 3개월 상대 전적">${h2hRows || `<span class="slot-metric h2h-empty">상대전적 없음</span>`}</div>`;
+      return `<div class="slot-metrics slot-metrics-inline slot-h2h-rows" title="최근 3개월 전적"><div class="slot-h2h-title">최근 3개월 전적</div>${h2hRows || `<span class="slot-metric h2h-empty">상대전적 없음</span>`}</div>`;
     }
 
     function renderGroup(group, roundIndex, stageIndex) {
@@ -6114,10 +6354,12 @@
       if (player.isEmptyLane) {
         return `
           <div class="slot empty-lane">
-            <div class="slot-inner">
-              ${renderLaneLabelWithRate(player.lane)}
-              <div class="player-info">
-                <strong>빈 레인</strong>
+            <div class="slot-inner slot-inner-name-first">
+              <div class="player-card-main">
+                <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
+                <div class="player-info">
+                  <strong class="player-name-fit name-fit-empty">빈 레인</strong>
+                </div>
               </div>
             </div>
           </div>
@@ -6127,14 +6369,16 @@
       const selected = (group.advanceIds || []).includes(player.id);
       return `
         <button class="slot ${selected ? "selected" : ""}" onclick="toggleAdvance(${roundIndex}, ${stageIndex}, '${escapeAttr(group.id)}', '${escapeAttr(player.id)}')">
-          <div class="slot-inner">
-            ${renderLaneLabelWithRate(player.lane)}
-            <div class="player-info player-info-with-h2h">
-              <div class="player-identity-block">
-                <strong>${escapeHtml(player.name)}</strong>
-                ${renderPlayerTeamInline(player)}
+          <div class="slot-inner slot-inner-name-first">
+            <div class="player-card-main">
+              <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
+              <div class="player-info player-info-with-h2h player-info-name-first-card">
+                <div class="player-identity-block">
+                  <strong class="player-name-fit ${getPlayerNameFitClass(player.name)}">${escapeHtml(player.name)}</strong>
+                  ${renderPlayerTeamInline(player)}
+                </div>
+                ${renderPlayerMatchMetrics(player, group)}
               </div>
-              ${renderPlayerMatchMetrics(player, group)}
             </div>
             ${selected ? `<span class="advance-mark">진출</span>` : ""}
           </div>
@@ -6616,7 +6860,7 @@ function getTvWindowGroups(target) {
         const label = item.matches ? `${item.name} · ${item.wins}승 ${item.losses}패 · ${item.rateText}` : `${item.name} · 전적없음`;
         return `<div class="tv-h2h-line">${escapeHtml(label)}</div>`;
       }).join("");
-      return `<div class="tv-h2h-list tv-h2h-rows" title="최근 3개월 상대 전적">${rows || `<div class="tv-h2h-line">상대전적 없음</div>`}</div>`;
+      return `<div class="tv-h2h-list tv-h2h-rows" title="최근 3개월 전적"><div class="tv-h2h-title">최근 3개월 전적</div>${rows || `<div class="tv-h2h-line">상대전적 없음</div>`}</div>`;
     }
 
     function renderTvLaneLabel(lane) {
@@ -6703,7 +6947,7 @@ function getTvWindowGroups(target) {
                   ${renderTvLaneLabel(player.lane)}
                   <div class="tv-player-line tv-player-line-vertical">
                     <div class="tv-player-identity-block">
-                      <strong>${escapeHtml(player.name)}</strong>
+                      <strong class="player-name-fit ${getPlayerNameFitClass(player.name)}">${escapeHtml(player.name)}</strong>
                       ${player.team ? `<div class="tv-team-under-name">${escapeHtml(player.team)}</div>` : ""}
                     </div>
                     ${renderTvH2hMetrics(player, group)}
@@ -6757,9 +7001,11 @@ function getTvWindowGroups(target) {
             if (player.isEmptyLane) {
               return `
                 <div class="slot empty-lane" style="cursor:default;">
-                  <div class="slot-inner">
-                    ${renderLaneLabelWithRate(player.lane)}
-                    <div class="player-info"><strong>빈 레인</strong></div>
+                  <div class="slot-inner slot-inner-name-first">
+                    <div class="player-card-main">
+                      <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
+                      <div class="player-info"><strong class="player-name-fit name-fit-empty">빈 레인</strong></div>
+                    </div>
                   </div>
                 </div>
               `;
@@ -6767,11 +7013,13 @@ function getTvWindowGroups(target) {
             const score = Number((group.points || {})[player.id] ?? 0);
             return `
               <div class="slot" style="cursor:default;">
-                <div class="slot-inner">
-                  ${renderLaneLabelWithRate(player.lane)}
-                  <div class="player-info">
-                    <strong>${escapeHtml(player.name)}</strong>
-                    ${player.team ? `<div class="team">${escapeHtml(player.team)}</div>` : ""}
+                <div class="slot-inner slot-inner-name-first">
+                  <div class="player-card-main">
+                    <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
+                    <div class="player-info player-point-identity">
+                      <strong class="player-name-fit ${getPlayerNameFitClass(player.name)}">${escapeHtml(player.name)}</strong>
+                      ${player.team ? `<div class="team team-under-name">${escapeHtml(player.team)}</div>` : ""}
+                    </div>
                   </div>
                   <span class="advance-mark">${score}P</span>
                 </div>
@@ -6790,9 +7038,11 @@ function getTvWindowGroups(target) {
             if (player.isEmptyLane) {
               return `
                 <div class="slot empty-lane" style="cursor:default;">
-                  <div class="slot-inner">
-                    ${renderLaneLabelWithRate(player.lane)}
-                    <div class="player-info"><strong>빈 레인</strong></div>
+                  <div class="slot-inner slot-inner-name-first">
+                    <div class="player-card-main">
+                      <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
+                      <div class="player-info"><strong class="player-name-fit name-fit-empty">빈 레인</strong></div>
+                    </div>
                   </div>
                 </div>
               `;
@@ -6801,14 +7051,16 @@ function getTvWindowGroups(target) {
             const selected = (group.advanceIds || []).includes(player.id);
             return `
               <div class="slot ${selected ? "selected" : ""}" style="cursor:default;">
-                <div class="slot-inner">
-                  ${renderLaneLabelWithRate(player.lane)}
-                  <div class="player-info player-info-with-h2h">
-                    <div class="player-identity-block">
-                      <strong>${escapeHtml(player.name)}</strong>
-                      ${renderPlayerTeamInline(player)}
+                <div class="slot-inner slot-inner-name-first">
+                  <div class="player-card-main">
+                    <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane)}</div>
+                    <div class="player-info player-info-with-h2h player-info-name-first-card">
+                      <div class="player-identity-block">
+                        <strong class="player-name-fit ${getPlayerNameFitClass(player.name)}">${escapeHtml(player.name)}</strong>
+                        ${renderPlayerTeamInline(player)}
+                      </div>
+                      ${renderPlayerMatchMetrics(player, group)}
                     </div>
-                    ${renderPlayerMatchMetrics(player, group)}
                   </div>
                   ${selected ? `<span class="advance-mark">${isFinal ? "최종" : "진출"}</span>` : ""}
                 </div>
