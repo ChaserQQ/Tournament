@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v91 TV NAME SPACE FIX</title>
-  <!-- v84 FULL AUDIT STABLE FINAL · index-only · Rules/images/OG files unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v94 GLOBAL LIGHT FINAL CHECK</title>
+  <!-- v94 GLOBAL LIGHT FINAL CHECK · index-only · Rules/images/OG files unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -6759,7 +6759,7 @@
 
     /* v90 TV WHITE REBUILD · standalone white TV presentation layer */
 
-    /* v91 TV NAME SPACE FIX · lane fixed top-left, h2h pushed right */
+    /* v92 PLAYER DB OPTIONAL CONTACT · lane fixed top-left, h2h pushed right */
     body.tv-mode {
       background: #f4f6f8 !important;
       color: #111827 !important;
@@ -7089,7 +7089,621 @@
       body.tv-mode .tv90-group { min-width: 220px !important; }
     }
 
-  </style>
+  
+
+    /* v92 player DB optional contact */
+    .db-page .db-stat-grid { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important; }
+    .contact-edit-cell { display: grid; gap: 4px; }
+    .contact-status { display: block; font-size: 10.5px; line-height: 1.2; font-weight: 900; }
+    .contact-status.missing { color: #f8d56b; }
+    .contact-status.ok { color: var(--dim); }
+    .roster-contact-missing { border-color: rgba(248,213,107,.36) !important; background: rgba(248,213,107,.055) !important; }
+    .roster-table tr.needs-contact td { background: rgba(248,213,107,.025); }
+    @media (max-width: 760px) { .contact-status { font-size: 9.5px; } }
+
+
+    /* v94 GLOBAL LIGHT FINAL CHECK · admin-only white background */
+    .db-page.admin-light-page {
+      width: 100% !important;
+      max-width: none !important;
+      min-height: 100vh !important;
+      margin: 0 !important;
+      padding: clamp(18px, 2vw, 28px) !important;
+      background: #f6f7fb !important;
+      color: #111827 !important;
+      overflow-x: hidden !important;
+    }
+    .admin-light-page *,
+    .admin-light-page *::before,
+    .admin-light-page *::after {
+      box-sizing: border-box !important;
+    }
+    .admin-light-page .header {
+      max-width: 1480px !important;
+      margin: 0 auto 16px !important;
+      border: 1px solid #e5e7eb !important;
+      background: #ffffff !important;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, .08) !important;
+      color: #111827 !important;
+    }
+    .admin-light-page .eyebrow,
+    .admin-light-page .maker,
+    .admin-light-page .desc,
+    .admin-light-page .hint,
+    .admin-light-page .meta,
+    .admin-light-page .permission-detail,
+    .admin-light-page .privacy-note {
+      color: #6b7280 !important;
+    }
+    .admin-light-page h1,
+    .admin-light-page h2,
+    .admin-light-page h3,
+    .admin-light-page strong,
+    .admin-light-page b {
+      color: #111827 !important;
+    }
+    .admin-light-page .account-strip,
+    .admin-light-page .toolbar,
+    .admin-light-page .card,
+    .admin-light-page .roster-table-wrap,
+    .admin-light-page .privacy-note {
+      max-width: 1480px !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+      border-color: #e5e7eb !important;
+      background: #ffffff !important;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, .07) !important;
+      color: #111827 !important;
+    }
+    .admin-light-page .account-strip {
+      padding: 12px 14px !important;
+      border: 1px solid #e5e7eb !important;
+      border-radius: 18px !important;
+      margin-bottom: 12px !important;
+    }
+    .admin-light-page .toolbar {
+      padding: 12px !important;
+      border: 1px solid #e5e7eb !important;
+      border-radius: 18px !important;
+      margin-bottom: 12px !important;
+    }
+    .admin-light-page .card {
+      padding: 18px !important;
+      border: 1px solid #e5e7eb !important;
+      border-radius: 22px !important;
+    }
+    .admin-light-page .roster-table-wrap {
+      overflow: auto !important;
+      border-radius: 18px !important;
+    }
+    .admin-light-page .admin-table {
+      min-width: 900px !important;
+      color: #111827 !important;
+      background: #ffffff !important;
+    }
+    .admin-light-page .admin-table th {
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 1 !important;
+      color: #374151 !important;
+      background: #f3f4f6 !important;
+      border-bottom: 1px solid #e5e7eb !important;
+    }
+    .admin-light-page .admin-table td {
+      color: #111827 !important;
+      background: #ffffff !important;
+      border-bottom: 1px solid #eef2f7 !important;
+    }
+    .admin-light-page .admin-table tr:hover td {
+      background: #f9fafb !important;
+    }
+    .admin-light-page .permission-badge,
+    .admin-light-page .permission-flag,
+    .admin-light-page .pill {
+      border-color: #d1d5db !important;
+      background: #f9fafb !important;
+      color: #374151 !important;
+    }
+    .admin-light-page .permission-admin {
+      background: #ffe4f0 !important;
+      color: #be185d !important;
+      border-color: #f9a8d4 !important;
+    }
+    .admin-light-page .permission-venue {
+      background: #dcfce7 !important;
+      color: #166534 !important;
+      border-color: #86efac !important;
+    }
+    .admin-light-page .permission-pending {
+      background: #fef3c7 !important;
+      color: #92400e !important;
+      border-color: #fcd34d !important;
+    }
+    .admin-light-page .permission-suspended {
+      background: #fee2e2 !important;
+      color: #991b1b !important;
+      border-color: #fca5a5 !important;
+    }
+    .admin-light-page button {
+      border-color: #d1d5db !important;
+      background: #ffffff !important;
+      color: #111827 !important;
+      box-shadow: none !important;
+    }
+    .admin-light-page button:hover {
+      border-color: #d84d89 !important;
+    }
+    .admin-light-page button.primary,
+    .admin-light-page button.active,
+    .admin-light-page button.selected {
+      border-color: #d84d89 !important;
+      background: #d84d89 !important;
+      color: #ffffff !important;
+    }
+    .admin-light-page button.ghost {
+      background: #f9fafb !important;
+      color: #111827 !important;
+    }
+    .admin-light-page button.danger {
+      border-color: #fecaca !important;
+      background: #fff1f2 !important;
+      color: #be123c !important;
+    }
+    .admin-light-page .mini-input,
+    .admin-light-page input,
+    .admin-light-page select,
+    .admin-light-page textarea {
+      border-color: #d1d5db !important;
+      background: #ffffff !important;
+      color: #111827 !important;
+    }
+    .admin-light-page .header-logo,
+    .admin-light-page .credit-mark {
+      color: #374151 !important;
+      background: #f9fafb !important;
+      border-color: #e5e7eb !important;
+    }
+    .admin-build-mark {
+      max-width: 1480px;
+      margin: 12px auto 0;
+      color: #6b7280;
+      font-size: 12px;
+      font-weight: 900;
+      text-align: right;
+    }
+    @media (max-width: 767px) {
+      .db-page.admin-light-page {
+        padding: 10px !important;
+      }
+      .admin-light-page .header,
+      .admin-light-page .account-strip,
+      .admin-light-page .toolbar,
+      .admin-light-page .card {
+        border-radius: 16px !important;
+      }
+      .admin-light-page .account-strip,
+      .admin-light-page .account-left,
+      .admin-light-page .account-actions,
+      .admin-light-page .page-nav,
+      .admin-light-page .toolbar,
+      .admin-light-page .admin-actions {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        width: 100% !important;
+      }
+      .admin-light-page button {
+        width: 100% !important;
+        min-height: 40px !important;
+      }
+      .admin-light-page .admin-table {
+        min-width: 820px !important;
+      }
+    }
+
+  
+
+    /* v94 GLOBAL LIGHT FINAL CHECK · all application pages use white/light background */
+    :root {
+      --bg: #f6f8fb !important;
+      --panel: #ffffff !important;
+      --panel2: #ffffff !important;
+      --panel3: #f8fafc !important;
+      --line: #d8e0ea !important;
+      --text: #111827 !important;
+      --muted: #4b5563 !important;
+      --dim: #6b7280 !important;
+      --point: #d84d89 !important;
+      --point-dark: #ffffff !important;
+      --danger: #dc2626 !important;
+      --gold: #b45309 !important;
+      --hairline: rgba(17, 24, 39, .10) !important;
+      --shadow-soft: 0 16px 36px rgba(15, 23, 42, .08) !important;
+      --shadow-card: 0 10px 24px rgba(15, 23, 42, .07) !important;
+    }
+    html,
+    body,
+    #app {
+      background: #f6f8fb !important;
+      color: #111827 !important;
+    }
+    body {
+      background: #f6f8fb !important;
+    }
+    .wrap,
+    .db-page,
+    .mobile-view,
+    .live-lobby-shell,
+    .live-lobby-page,
+    .live-lobby-v89,
+    .print-page {
+      background: #f6f8fb !important;
+      color: #111827 !important;
+    }
+    .header,
+    .card,
+    .round-card,
+    .stage-card,
+    .final-box,
+    .group,
+    .slot,
+    .status-panel,
+    .toolbar,
+    .tabs,
+    .tab-btn,
+    .operator-page,
+    .operator-page > summary,
+    .operator-page-body,
+    .ops-panel,
+    .firebase-panel,
+    .athens-scoreboard,
+    .score-row,
+    .history-panel,
+    .mobile-history,
+    .history-round,
+    .history-public-row,
+    .dashboard-card,
+    .dashboard-filter,
+    .roster-table-wrap,
+    .selected-box,
+    .db-stat,
+    .stat,
+    .auth-card,
+    .privacy-note,
+    .live-sync-item,
+    .snapshot-item,
+    .venue-visit-row,
+    .rank-row,
+    .admin-table,
+    .roster-table tr,
+    .finalist-item,
+    .manual-panel,
+    .manual-body,
+    .empty {
+      background: #ffffff !important;
+      color: #111827 !important;
+      border-color: #d8e0ea !important;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, .07) !important;
+    }
+    .header {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+      border: 1px solid #d8e0ea !important;
+    }
+    .header::after,
+    .header::before {
+      background: transparent !important;
+      filter: none !important;
+    }
+    .eyebrow,
+    .page-link,
+    .section-label,
+    .live-status.on,
+    .status-running,
+    .permission-admin,
+    .slot-h2h-title,
+    .tv-h2h-title,
+    .contact-status.missing {
+      color: #be185d !important;
+    }
+    h1,
+    h2,
+    h3,
+    h4,
+    label,
+    .round-title h2,
+    .stage-head h3,
+    .group-title strong,
+    .player-info strong,
+    .player-name-fit,
+    .status-title-block strong,
+    .live-sync-item strong,
+    .live-lobby-card h3,
+    .history-public-row b,
+    .admin-table th,
+    .roster-table th,
+    .roster-table td,
+    .db-panel-title h2 {
+      color: #111827 !important;
+    }
+    .desc,
+    .hint,
+    .meta,
+    .maker,
+    .team,
+    .team-under-name,
+    .status-title-block span,
+    .status-time-block span,
+    .live-lobby-meta,
+    .live-lobby-result small,
+    .history-public-row span,
+    .permission-detail,
+    .identity-note,
+    .slot-metric,
+    .badge,
+    .round-badge,
+    .pill,
+    .contact-status.ok {
+      color: #4b5563 !important;
+    }
+    button,
+    .upload-button,
+    .mini-input,
+    input[type="number"],
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    select,
+    textarea {
+      background: #ffffff !important;
+      color: #111827 !important;
+      border-color: #cfd8e3 !important;
+      box-shadow: none !important;
+    }
+    button:hover,
+    .upload-button:hover,
+    input:focus,
+    select:focus,
+    textarea:focus,
+    .mini-input:focus {
+      border-color: #d84d89 !important;
+      box-shadow: 0 0 0 3px rgba(216, 77, 137, .12) !important;
+    }
+    button.primary,
+    button.active,
+    button.selected,
+    .tab-btn.active,
+    .slot.selected,
+    .status-badge,
+    .champion {
+      background: #d84d89 !important;
+      color: #ffffff !important;
+      border-color: #d84d89 !important;
+    }
+    button.ghost {
+      background: #f8fafc !important;
+      color: #111827 !important;
+    }
+    button.danger {
+      background: #ffffff !important;
+      color: #dc2626 !important;
+      border-color: #fecaca !important;
+    }
+    .slot.selected *,
+    .tab-btn.active *,
+    button.primary *,
+    button.active *,
+    button.selected * {
+      color: inherit !important;
+    }
+    .lane-label,
+    .slot-card-lane-line .lane-label,
+    .lane-label .lane-win-rate,
+    .slot-card-lane-line .lane-win-rate,
+    .score-row .rank,
+    .rank-row b,
+    .venue-visit-row b,
+    .live-lobby-result span {
+      color: #be185d !important;
+    }
+    .slot.selected .lane-label,
+    .slot.selected .slot-card-lane-line .lane-label,
+    .slot.selected .lane-win-rate,
+    .slot.selected .slot-h2h-title,
+    .slot.selected .slot-h2h-rows .slot-metric.h2h {
+      color: #ffffff !important;
+      border-color: rgba(255,255,255,.45) !important;
+    }
+    .slot-metric,
+    .slot-h2h-rows .slot-metric.h2h,
+    .player-info-with-h2h .slot-metric.h2h,
+    .live-lobby-result,
+    .score-row,
+    .rank-row,
+    .venue-visit-row,
+    .class-chip,
+    .permission-flag {
+      background: #f8fafc !important;
+      border-color: #e5e7eb !important;
+    }
+    .roster-table th,
+    .admin-table th {
+      background: #f1f5f9 !important;
+      color: #334155 !important;
+    }
+    .roster-table td,
+    .admin-table td {
+      color: #111827 !important;
+      border-color: #e5e7eb !important;
+    }
+    .roster-table tr:hover td {
+      background: #fdf2f8 !important;
+    }
+    .empty-lane,
+    .tv-empty-lane,
+    .live-lobby-card.live-empty,
+    .print-empty td {
+      background: #f8fafc !important;
+      color: #64748b !important;
+      border-color: #d8e0ea !important;
+      opacity: 1 !important;
+    }
+
+    /* v94 live lobby: white page baseline for both PC and mobile */
+    .live-lobby-shell,
+    .live-lobby-page,
+    .live-lobby-v89,
+    .live-lobby-page-v89,
+    body.live-lobby-mode,
+    body.live-lobby-mode #app {
+      background: #f6f8fb !important;
+      color: #111827 !important;
+    }
+    .live-lobby-card,
+    .live-lobby-empty-card,
+    .live-lobby-placeholder {
+      background: #ffffff !important;
+      color: #111827 !important;
+      border: 1px solid #d8e0ea !important;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, .07) !important;
+    }
+    .live-lobby-card.live-on {
+      background: #ffffff !important;
+      border-color: #d84d89 !important;
+      box-shadow: 0 12px 28px rgba(216, 77, 137, .12) !important;
+    }
+    .live-status,
+    .live-status.empty,
+    .live-status.recent {
+      background: #f8fafc !important;
+      color: #475569 !important;
+      border-color: #d8e0ea !important;
+    }
+    .live-status.on {
+      background: #d84d89 !important;
+      color: #ffffff !important;
+      border-color: #d84d89 !important;
+    }
+
+    /* v94 TV: white broadcast page, no dark shell */
+    body.tv-mode,
+    body.tv-mode #app,
+    body.tv-mode .tv-wrap,
+    body.tv-mode .tv90-screen,
+    body.tv-mode .tv-wrap.tv90-screen {
+      background: #f6f8fb !important;
+      color: #111827 !important;
+    }
+    body.tv-mode .tv-head,
+    body.tv-mode .tv-controls,
+    body.tv-mode .tv-point-leaders,
+    body.tv-mode .tv90-header,
+    body.tv-mode .tv90-group,
+    body.tv-mode .tv-group,
+    body.tv-mode .tv90-empty-screen,
+    body.tv-mode .tv90-placeholder-body {
+      background: #ffffff !important;
+      color: #111827 !important;
+      border-color: #d8e0ea !important;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, .07) !important;
+    }
+    body.tv-mode .tv90-logo,
+    body.tv-mode .tv90-logo.credit-mark,
+    body.tv-mode .tv-logo,
+    body.tv-mode .credit-mark.tv-logo {
+      background: #ffffff !important;
+      color: #111827 !important;
+      border: 1px solid #d8e0ea !important;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, .06) !important;
+    }
+    body.tv-mode .tv90-logo span,
+    body.tv-mode .tv90-logo small,
+    body.tv-mode .credit-mark span,
+    body.tv-mode .credit-mark small {
+      color: #111827 !important;
+    }
+    body.tv-mode .tv90-title,
+    body.tv-mode .tv-brand > strong,
+    body.tv-mode .tv90-group-title,
+    body.tv-mode .tv-group-title strong,
+    body.tv-mode .tv90-name,
+    body.tv-mode .tv-player strong {
+      color: #111827 !important;
+    }
+    body.tv-mode .tv90-subtitle,
+    body.tv-mode .tv-stage-title,
+    body.tv-mode .tv90-team,
+    body.tv-mode .tv-team-under-name,
+    body.tv-mode .tv-foot,
+    body.tv-mode .tv90-foot,
+    body.tv-mode .tv90-rate {
+      color: #4b5563 !important;
+    }
+    body.tv-mode .tv90-lane,
+    body.tv-mode .tv-lane {
+      background: #f9fafb !important;
+      color: #111827 !important;
+      border-color: #e1e7ef !important;
+    }
+    body.tv-mode .tv90-lane.is-selected,
+    body.tv-mode .tv-lane.selected {
+      background: #fdf2f8 !important;
+      color: #111827 !important;
+      border-color: #f472b6 !important;
+    }
+    body.tv-mode .tv90-lane-meta,
+    body.tv-mode .tv-lane-meta,
+    body.tv-mode .tv90-h2h-title,
+    body.tv-mode .tv-h2h-title,
+    body.tv-mode .tv90-mode-pill {
+      color: #be185d !important;
+    }
+    body.tv-mode .tv90-h2h-row,
+    body.tv-mode .tv-h2h-line {
+      color: #374151 !important;
+      border-color: #f9a8d4 !important;
+    }
+    body.tv-mode .tv90-result {
+      background: #fce7f3 !important;
+      color: #9d174d !important;
+    }
+
+    /* v94 responsive boundary: PC and mobile use light surfaces without sharing dark legacy shells */
+    @media (min-width: 768px) {
+      body:not(.tv-mode) .layout,
+      body:not(.tv-mode) .main-area,
+      body:not(.tv-mode) .side-area {
+        background: transparent !important;
+      }
+      body:not(.tv-mode) .side-area {
+        position: sticky;
+        top: 18px;
+      }
+    }
+    @media (max-width: 767px) {
+      body,
+      #app,
+      .wrap,
+      .db-page,
+      .mobile-view,
+      .live-lobby-shell {
+        background: #f6f8fb !important;
+        color: #111827 !important;
+      }
+      .card,
+      .round-card,
+      .stage-card,
+      .group,
+      .slot,
+      .toolbar,
+      .status-panel,
+      .operator-page,
+      .live-lobby-card,
+      .roster-table tr {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: #d8e0ea !important;
+      }
+    }
+</style>
 </head>
 <body>
   <div id="app"></div>
@@ -9469,7 +10083,7 @@ function renderTvStage() {
               ${logoMarkup("tv90-logo")}
             </header>
             <section class="tv90-empty-screen"><div><h2>LIVE 대기중</h2><p>운영 화면에서 경기를 시작하면 자동으로 표시됩니다.</p></div></section>
-            <footer class="tv90-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v91 TV NAME SPACE FIX</span></footer>
+            <footer class="tv90-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v94 GLOBAL LIGHT FINAL CHECK</span></footer>
           </div>`;
         return;
       }
@@ -9500,7 +10114,7 @@ function renderTvStage() {
           <main class="tv90-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
             ${currentGroups.slice(0, 4).map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap, laneCount)).join("")}
           </main>
-          <footer class="tv90-foot"><span>${escapeHtml(laneCount)} LANE · ${escapeHtml((target.groups || []).length)} GROUPS · LIVE 자동 송출</span><span>BUILD v91 TV NAME SPACE FIX</span></footer>
+          <footer class="tv90-foot"><span>${escapeHtml(laneCount)} LANE · ${escapeHtml((target.groups || []).length)} GROUPS · LIVE 자동 송출</span><span>BUILD v94 GLOBAL LIGHT FINAL CHECK</span></footer>
         </div>`;
     }
 
@@ -9732,7 +10346,9 @@ function setDbSearch(value) {
         const matchesStatus = dbStatusFilter === "전체"
           || (dbStatusFilter === "활성" && player.active)
           || (dbStatusFilter === "비활성" && !player.active)
-          || (dbStatusFilter === "즐겨찾기" && player.favorite);
+          || (dbStatusFilter === "즐겨찾기" && player.favorite)
+          || (dbStatusFilter === "연락처 있음" && contactStatusOf(player) === "verified")
+          || (dbStatusFilter === "연락처 없음" && contactStatusOf(player) === "missing");
         return matchesSearch && matchesTeam && matchesStatus;
       });
       const dir = dbSortDir === "desc" ? -1 : 1;
@@ -10027,13 +10643,45 @@ function boot() {
         .replace(/^-|-$/g, "") || "default";
     }
 
-    function playerIdentityKey(realName, contact) {
-      return normalizeKey(`${realName || ""}-${String(contact || "").replace(/\D/g, "")}`);
+    function normalizePhone(contact) {
+      return String(contact || "").replace(/\D/g, "");
     }
 
-    function rosterIdentityId(realName, contact) {
-      const key = playerIdentityKey(realName, contact);
-      return key === "default" ? `roster-${Date.now()}-${Math.random().toString(36).slice(2, 8)}` : `player-${key}`;
+    function playerIdentityKey(realName, contact, nickname = "", team = "") {
+      const phone = normalizePhone(contact);
+      if (phone) return `phone-${phone}`;
+      return normalizeKey(`missing-${realName || ""}-${nickname || ""}-${team || ""}`);
+    }
+
+    function rosterIdentityId(realName, contact, nickname = "", team = "") {
+      const phone = normalizePhone(contact);
+      if (phone) return `player-phone-${phone}`;
+      return `player-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function contactStatusOf(player = {}) {
+      return normalizePhone(player.contact) ? "verified" : "missing";
+    }
+
+    function contactStatusLabel(status) {
+      return status === "verified" ? "연락처 있음" : "연락처 미등록";
+    }
+
+    function contactDisplay(player = {}) {
+      return player.contact ? String(player.contact) : "연락처 미등록";
+    }
+
+    function isPossibleRosterDuplicate(a = {}, b = {}) {
+      const aPhone = normalizePhone(a.contact);
+      const bPhone = normalizePhone(b.contact);
+      if (aPhone && bPhone && aPhone === bPhone) return true;
+      const aNick = normalizeKey(a.nickname || a.name || "");
+      const bNick = normalizeKey(b.nickname || b.name || "");
+      const aTeam = normalizeKey(a.team || "");
+      const bTeam = normalizeKey(b.team || "");
+      const aReal = normalizeKey(a.realName || "");
+      const bReal = normalizeKey(b.realName || "");
+      return Boolean(aNick && aNick !== "default" && aNick === bNick && ((aTeam !== "default" && aTeam === bTeam) || (aReal !== "default" && aReal === bReal)));
     }
 
     function profileFromAdminEmail(user) {
@@ -10316,14 +10964,14 @@ function boot() {
     function renderAdminPage() {
       if (!isAdminUser()) return renderLoginPage("관리자 권한이 필요합니다.");
       document.body.classList.remove("tv-mode");
-      app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<section class="card"><h2>불러오는 중</h2></section></div>`;
+      app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<section class="card"><h2>불러오는 중</h2></section></div>`;
       const db = initFirebase();
       if (!db) return;
       db.ref(USER_PROFILE_PATH).get().then(snapshot => {
         const profiles = snapshot.val() || {};
         syncPublicVenuesFromProfiles(profiles);
         const rows = Object.entries(profiles).sort((a,b) => String(a[1].email || "").localeCompare(String(b[1].email || "")));
-        app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar admin-actions-toolbar"><button class="ghost" onclick="renderAdminPage()">새로고침</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section></div>`;
+        app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar admin-actions-toolbar"><button class="ghost" onclick="renderAdminPage()">새로고침</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section><div class="admin-build-mark">BUILD v94 GLOBAL LIGHT FINAL CHECK</div></div>`;
       }).catch(error => alert(`사용자 목록 로드 실패: ${error.message || error}`));
     }
 
@@ -10418,9 +11066,11 @@ function boot() {
     function normalizeRosterPlayer(player) {
       const realName = String(player.realName || "").trim();
       const contact = String(player.contact || "").trim();
+      const team = String(player.team || "").trim();
       const nickname = String(player.nickname || player.name || realName || "").trim();
-      const id = player.id && !String(player.id).startsWith("roster-") ? player.id : rosterIdentityId(realName, contact);
-      return { ...player, id, realName, contact, name: nickname, team: String(player.team || "").trim(), nickname, memo: String(player.memo || "").trim(), favorite: Boolean(player.favorite), active: player.active !== false, venueId: currentVenueId(), venueName: currentVenueName(), createdAt: player.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() };
+      const id = player.id ? String(player.id) : rosterIdentityId(realName, contact, nickname, team);
+      const contactStatus = contactStatusOf({ contact });
+      return { ...player, id, realName, contact, contactStatus, name: nickname, team, nickname, memo: String(player.memo || "").trim(), favorite: Boolean(player.favorite), active: player.active !== false, venueId: currentVenueId(), venueName: currentVenueName(), createdAt: player.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() };
     }
 
     function saveRoster(roster) {
@@ -10464,8 +11114,8 @@ function boot() {
           const name = (parts[0] || `참가자 ${index + 1}`).trim();
           const team = (parts[1] || "").trim();
           const roster = findRosterMatch(name, team);
-          if (roster) return { id: roster.id, name, team, realName: roster.realName, contact: roster.contact, venueId: roster.venueId, venueName: roster.venueName };
-          return { id: `p-${index + 1}-${name}`, name, team, realName: "", contact: "", venueId: currentVenueId(), venueName: currentVenueName() };
+          if (roster) return { id: roster.id, name, team, realName: roster.realName, contact: roster.contact, contactStatus: roster.contactStatus, venueId: roster.venueId, venueName: roster.venueName };
+          return { id: `p-${index + 1}-${name}`, name, team, realName: "", contact: "", contactStatus: "missing", venueId: currentVenueId(), venueName: currentVenueName() };
         });
     }
 
@@ -10484,12 +11134,12 @@ function boot() {
       const nickname = document.getElementById("dbNickname")?.value.trim();
       const team = document.getElementById("dbTeam")?.value.trim();
       const memo = document.getElementById("dbMemo")?.value.trim();
-      if (!realName || !contact || !nickname) return alert("실명, 연락처, 닉네임은 필수입니다.");
+      if (!nickname) return alert("닉네임/선수명은 필수입니다. 실명과 연락처는 나중에 보완할 수 있습니다.");
       const roster = loadRoster();
-      const key = playerIdentityKey(realName, contact);
-      const duplicated = roster.find(player => playerIdentityKey(player.realName, player.contact) === key);
-      if (duplicated) return alert("이 경기장 명부에 동일 실명/연락처 선수가 이미 등록되어 있습니다.");
-      roster.push(normalizeRosterPlayer({ id: rosterIdentityId(realName, contact), realName, contact, nickname, team, memo, favorite: false, active: true, createdAt: new Date().toISOString() }));
+      const draft = { realName, contact, nickname, team };
+      const duplicated = roster.find(player => isPossibleRosterDuplicate(player, draft));
+      if (duplicated && !confirm(`중복 의심 선수가 있습니다: ${duplicated.nickname || duplicated.realName || "이름 없음"}. 그래도 새 선수로 등록할까요?`)) return;
+      roster.push(normalizeRosterPlayer({ id: rosterIdentityId(realName, contact, nickname, team), realName, contact, nickname, team, memo, favorite: false, active: true, createdAt: new Date().toISOString() }));
       saveRoster(roster);
       renderDbPage();
     }
@@ -10498,10 +11148,10 @@ function boot() {
       const roster = loadRoster().map(player => {
         if (player.id !== id) return player;
         const next = { ...player, [field]: value };
-        if (field === "realName" || field === "contact") next.id = rosterIdentityId(next.realName, next.contact);
         return normalizeRosterPlayer(next);
       });
       saveRoster(roster);
+      renderDbPage();
     }
 
     function updateSelectedPreview() {
@@ -10512,7 +11162,7 @@ function boot() {
       if (count) count.textContent = selected.length;
       if (!el) return;
       if (!selected.length) { el.innerHTML = `<div class="hint">선택된 선수가 없습니다.</div>`; return; }
-      el.innerHTML = selected.map(player => `<div class="finalist-item"><b>${escapeHtml(player.nickname || player.name || player.realName)}</b>${player.team ? ` / ${escapeHtml(player.team)}` : ""}<br><span class="hint">${escapeHtml(player.realName || "")} · ${escapeHtml(player.contact || "")}</span></div>`).join("");
+      el.innerHTML = selected.map(player => `<div class="finalist-item"><b>${escapeHtml(player.nickname || player.name || player.realName)}</b>${player.team ? ` / ${escapeHtml(player.team)}` : ""}<br><span class="hint">${escapeHtml(player.realName || "실명 미등록")} · ${escapeHtml(contactDisplay(player))}</span></div>`).join("");
     }
 
     function applySelectedPlayersToTournament() {
@@ -10531,8 +11181,8 @@ function boot() {
 
     function exportRosterCsv() {
       const roster = loadRoster();
-      const rows = [["경기장", "실명", "연락처", "닉네임", "팀명", "즐겨찾기", "활성", "메모", "등록일"]];
-      roster.forEach(player => rows.push([player.venueName || currentVenueName(), player.realName || "", player.contact || "", player.nickname || "", player.team || "", player.favorite ? "Y" : "N", player.active ? "Y" : "N", player.memo || "", player.createdAt || ""]));
+      const rows = [["경기장", "실명", "연락처", "연락처상태", "닉네임", "팀명", "즐겨찾기", "활성", "메모", "등록일"]];
+      roster.forEach(player => rows.push([player.venueName || currentVenueName(), player.realName || "", player.contact || "", contactStatusLabel(player.contactStatus), player.nickname || "", player.team || "", player.favorite ? "Y" : "N", player.active ? "Y" : "N", player.memo || "", player.createdAt || ""]));
       downloadTextFile(`mini4wd_roster_${currentVenueId()}.csv`, toCsv(rows));
     }
 
@@ -10542,28 +11192,26 @@ function boot() {
       const text = document.getElementById("quickImportText")?.value.trim();
       if (!text) return alert("목록을 붙여넣으세요.");
       const current = loadRoster();
-      const existingKey = new Set(current.map(player => playerIdentityKey(player.realName, player.contact)));
-      const added = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
-        const parts = line.includes("/") ? line.split("/") : line.includes("\t") ? line.split("\t") : line.split(",");
+      const added = [];
+      text.split(/\r?\n/).map(line => line.trim()).filter(Boolean).forEach(line => {
+        const parts = line.includes("/") ? line.split("/") : line.includes("	") ? line.split("	") : line.split(",");
         const realName = (parts[0] || "").trim();
         const contact = (parts[1] || "").trim();
-        const nickname = (parts[2] || "").trim();
+        const nickname = (parts[2] || realName || "").trim();
         const team = (parts[3] || "").trim();
         const memo = (parts[4] || "").trim();
-        return { realName, contact, nickname, team, memo };
-      }).filter(player => player.realName && player.contact).filter(player => {
-        const key = playerIdentityKey(player.realName, player.contact);
-        if (existingKey.has(key)) return false;
-        existingKey.add(key);
-        return true;
-      }).map(player => normalizeRosterPlayer({ id: rosterIdentityId(player.realName, player.contact), ...player, favorite: false, active: true, createdAt: new Date().toISOString() }));
-      if (!added.length) return alert("새로 추가할 선수가 없습니다. 형식: 실명/연락처/닉네임/팀명/메모");
+        if (!nickname) return;
+        const draft = { realName, contact, nickname, team };
+        if (current.concat(added).some(player => isPossibleRosterDuplicate(player, draft))) return;
+        added.push(normalizeRosterPlayer({ id: rosterIdentityId(realName, contact, nickname, team), realName, contact, nickname, team, memo, favorite: false, active: true, createdAt: new Date().toISOString() }));
+      });
+      if (!added.length) return alert("새로 추가할 선수가 없습니다. 형식: 실명/연락처(선택)/닉네임/팀명/메모");
       saveRoster([...current, ...added]);
       renderDbPage();
     }
 
     function downloadRosterTemplate() {
-      const rows = [["실명", "연락처", "닉네임", "팀명", "메모", "활성여부", "즐겨찾기"], ["김철수", "010-0000-0000", "마이", "GEEKS", "MS 플렉스", "TRUE", "TRUE"]];
+      const rows = [["실명", "연락처", "닉네임", "팀명", "메모", "활성여부", "즐겨찾기"], ["김철수", "", "마이", "GEEKS", "연락처는 선택값", "TRUE", "TRUE"]];
       if (window.XLSX) { const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet(rows); XLSX.utils.book_append_sheet(wb, ws, "선수등록양식"); XLSX.writeFile(wb, "mini4wd_player_upload_template.xlsx"); }
       else downloadTextFile("mini4wd_player_upload_template.csv", toCsv(rows));
     }
@@ -10585,19 +11233,18 @@ function boot() {
             rows = lines.map(line => { const cells = line.split(/,|\t/).map(cell => cell.replace(/^"|"$/g, "").trim()); const obj = {}; headers.forEach((h,i) => obj[h] = cells[i] || ""); return obj; });
           }
           const current = loadRoster();
-          const existingKey = new Set(current.map(player => playerIdentityKey(player.realName, player.contact)));
           const imported = [];
           rows.forEach(row => {
             const realName = String(row["실명"] || row["realName"] || "").trim();
             const contact = String(row["연락처"] || row["contact"] || "").trim();
             const nickname = String(row["닉네임"] || row["nickname"] || row["선수명"] || row["name"] || "").trim();
-            if (!realName || !contact || !nickname) return;
-            const key = playerIdentityKey(realName, contact);
-            if (existingKey.has(key)) return;
-            existingKey.add(key);
-            imported.push(normalizeRosterPlayer({ id: rosterIdentityId(realName, contact), realName, contact, nickname, team: String(row["팀명"] || row["team"] || "").trim(), memo: String(row["메모"] || row["memo"] || "").trim(), active: parseBooleanCell(row["활성여부"], true), favorite: parseBooleanCell(row["즐겨찾기"], false), createdAt: new Date().toISOString() }));
+            if (!nickname) return;
+            const team = String(row["팀명"] || row["team"] || "").trim();
+            const draft = { realName, contact, nickname, team };
+            if (current.concat(imported).some(player => isPossibleRosterDuplicate(player, draft))) return;
+            imported.push(normalizeRosterPlayer({ id: rosterIdentityId(realName, contact, nickname, team), realName, contact, nickname, team, memo: String(row["메모"] || row["memo"] || "").trim(), active: parseBooleanCell(row["활성여부"], true), favorite: parseBooleanCell(row["즐겨찾기"], false), createdAt: new Date().toISOString() }));
           });
-          if (!imported.length) { event.target.value = ""; return alert("추가할 선수가 없습니다. 실명/연락처/닉네임이 필요합니다."); }
+          if (!imported.length) { event.target.value = ""; return alert("추가할 선수가 없습니다. 닉네임/선수명이 필요합니다."); }
           saveRoster([...current, ...imported]);
           event.target.value = "";
           renderDbPage();
@@ -10612,8 +11259,8 @@ function boot() {
       try {
         const data = JSON.parse(text);
         if (!Array.isArray(data)) throw new Error("not array");
-        const cleaned = data.map(normalizeRosterPlayer).filter(player => player.realName && player.contact);
-        if (!cleaned.length) return alert("불러올 선수가 없습니다. 실명/연락처가 필요합니다.");
+        const cleaned = data.map(normalizeRosterPlayer).filter(player => player.nickname || player.name || player.realName);
+        if (!cleaned.length) return alert("불러올 선수가 없습니다. 닉네임/선수명이 필요합니다.");
         if (!confirm(`선수 ${cleaned.length}명을 불러옵니다. 기존 명부를 교체할까요?`)) return;
         saveRoster(cleaned);
         dbSelectedIds = new Set();
@@ -10633,23 +11280,29 @@ function boot() {
       const allVisibleSelected = visibleActiveCount > 0 && filtered.filter(player => player.active).every(player => dbSelectedIds.has(player.id));
       const activeCount = roster.filter(player => player.active).length;
       const favoriteCount = roster.filter(player => player.favorite).length;
+      const missingContactCount = roster.filter(player => contactStatusOf(player) === "missing").length;
       app.innerHTML = `
         <div class="db-page">
-          <header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div></div><h1>선수 DB / 경기장별 관리</h1><p class="desc">실명+연락처를 기준으로 식별하고, 닉네임이 대진표의 선수명으로 표시됩니다.</p></div>${logoMarkup("header-logo")}</header>
+          <header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div></div><h1>선수 DB / 경기장별 관리</h1><p class="desc">연락처는 선택값입니다. 닉네임은 대진표 표시명이며, 부족한 실명/연락처/팀명/메모는 나중에 선수 DB에서 수정할 수 있습니다.</p></div>${logoMarkup("header-logo")}</header>
           ${accountBadge()}
           <div class="toolbar db-actions-toolbar"><button class="ghost" onclick="exportRosterCsv()">CSV 다운로드</button><button class="ghost" onclick="exportRosterJson()">JSON 백업</button><button class="ghost" onclick="downloadRosterTemplate()">선수 양식</button><label class="upload-button ghost">엑셀 업로드<input type="file" accept=".xlsx,.xls,.csv,.tsv" onchange="importRosterExcel(event)" hidden /></label></div>
           <div class="db-grid"><aside>
-            <section class="card"><div class="db-panel-title"><h2>선수 빠른 추가</h2><span class="pill">${escapeHtml(currentVenueName())}</span></div><div class="form-grid"><div><label>실명 *</label><input class="mini-input" id="dbRealName" placeholder="홍길동" /></div><div><label>연락처 *</label><input class="mini-input" id="dbContact" placeholder="010-0000-0000" /></div><div><label>닉네임 / 선수명 *</label><input class="mini-input" id="dbNickname" placeholder="대진표 표시명" /></div><div><label>팀명</label><input class="mini-input" id="dbTeam" placeholder="OPEN CLASS" /></div><div><label>메모</label><input class="mini-input" id="dbMemo" placeholder="차량/특이사항" /></div></div><button class="primary" style="width:100%; margin-top:12px;" onclick="addRosterPlayer()">선수 추가</button><p class="privacy-note" style="margin-top:10px;">관리 경기장은 로그인 계정 기준으로 자동 연결됩니다. 같은 선수는 다른 경기장에 별도 등록할 수 있습니다.</p></section>
+            <section class="card"><div class="db-panel-title"><h2>선수 빠른 추가</h2><span class="pill">${escapeHtml(currentVenueName())}</span></div><div class="form-grid"><div><label>실명</label><input class="mini-input" id="dbRealName" placeholder="나중에 보완 가능" /></div><div><label>연락처</label><input class="mini-input" id="dbContact" placeholder="선택값" /></div><div><label>닉네임 / 선수명 *</label><input class="mini-input" id="dbNickname" placeholder="대진표 표시명" /></div><div><label>팀명</label><input class="mini-input" id="dbTeam" placeholder="OPEN CLASS" /></div><div><label>메모</label><input class="mini-input" id="dbMemo" placeholder="차량/특이사항" /></div></div><button class="primary" style="width:100%; margin-top:12px;" onclick="addRosterPlayer()">선수 추가</button><p class="privacy-note" style="margin-top:10px;">연락처가 없어도 등록/참가 가능합니다. 미등록 연락처와 실명은 나중에 이 화면에서 직접 보완할 수 있습니다.</p></section>
             <section class="card selected-box"><div class="db-panel-title"><h2>오늘 참가자</h2><span class="pill"><span id="selectedCount">0</span>명 선택</span></div><div class="db-actions" style="margin-bottom:10px;"><button class="ghost" onclick="selectRecentPlayers()">최근 참가자</button><button class="ghost" onclick="selectFavoritePlayers()">즐겨찾기</button><button class="ghost" onclick="clearSelectedPlayers()">선택 해제</button></div><div id="selectedPreview" class="finalist-grid" style="grid-template-columns:1fr;"></div><button class="primary" style="width:100%; margin-top:12px;" onclick="applySelectedPlayersToTournament()">선택 선수로 대진 생성 준비</button></section>
-            <section class="card"><h2>목록 일괄 추가</h2><p class="hint">형식: 실명/연락처/닉네임/팀명/메모</p><textarea id="quickImportText" style="min-height:150px;" placeholder="홍길동/010-0000-0000/마이/GEEKS/MS 플렉스"></textarea><button class="ghost" style="width:100%; margin-top:10px;" onclick="quickImportRosterLines()">목록에서 선수 추가</button></section>
+            <section class="card"><h2>목록 일괄 추가</h2><p class="hint">형식: 실명/연락처(선택)/닉네임/팀명/메모</p><textarea id="quickImportText" style="min-height:150px;" placeholder="홍길동//마이/GEEKS/MS 플렉스"></textarea><button class="ghost" style="width:100%; margin-top:10px;" onclick="quickImportRosterLines()">목록에서 선수 추가</button></section>
             <section class="card"><h2>JSON 복원</h2><textarea id="importJsonText" style="min-height:130px;"></textarea><button class="danger" style="width:100%; margin-top:10px;" onclick="importRosterJsonFromText()">JSON 불러오기</button></section>
-          </aside><main><section class="card"><div class="db-panel-title"><div><h2>선수 명부</h2><div class="meta">총 ${roster.length}명 · 표시 ${filtered.length}명</div></div><div class="db-actions db-filter-actions"><input class="mini-input" placeholder="검색" value="${escapeHtml(dbSearchText)}" oninput="setDbSearch(this.value)" style="width:180px;" /><select onchange="setDbTeamFilter(this.value)" style="width:150px;"><option value="전체">전체 팀</option>${teams.map(team => `<option value="${escapeHtml(team)}" ${team === dbTeamFilter ? "selected" : ""}>${escapeHtml(team)}</option>`).join("")}</select><select onchange="setDbStatusFilter(this.value)" style="width:130px;">${["전체", "활성", "비활성", "즐겨찾기"].map(value => `<option value="${value}" ${value === dbStatusFilter ? "selected" : ""}>${value}</option>`).join("")}</select></div></div><div class="db-stat-grid"><div class="db-stat"><small>전체 선수</small><strong>${roster.length}</strong></div><div class="db-stat"><small>활성 선수</small><strong>${activeCount}</strong></div><div class="db-stat"><small>즐겨찾기</small><strong>${favoriteCount}</strong></div></div><div class="db-bulk-toolbar"><div><label class="db-checkline"><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /> 표시 목록 일괄선택</label><span class="hint">표시 ${filtered.length}명 · 표시 중 선택 ${visibleSelectedCount}명</span></div><div class="db-bulk-buttons"><button class="ghost" onclick="selectVisiblePlayers()">표시 활성 전체 선택</button><button class="ghost" onclick="deselectVisiblePlayers()">표시 선택 해제</button><button class="ghost" onclick="selectAllActivePlayers()">전체 활성 선택</button>${dbSortButton("nickname", "닉네임")}${dbSortButton("realName", "실명")}${dbSortButton("team", "팀명")}${dbSortButton("createdAt", "등록일")}</div></div><div class="roster-table-wrap"><table class="roster-table"><thead><tr><th><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /></th><th>★</th><th><button class="ghost table-sort-btn" onclick="setDbSort('realName')">실명${dbSortField === "realName" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>연락처</th><th><button class="ghost table-sort-btn" onclick="setDbSort('nickname')">닉네임${dbSortField === "nickname" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('team')">팀명${dbSortField === "team" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('active')">상태${dbSortField === "active" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>메모</th><th>관리</th></tr></thead><tbody>${filtered.map(player => renderRosterRow(player)).join("") || `<tr><td colspan="9"><div class="db-empty">등록된 선수가 없습니다.</div></td></tr>`}</tbody></table></div></section></main></div></div>`;
+          </aside><main><section class="card"><div class="db-panel-title"><div><h2>선수 명부</h2><div class="meta">총 ${roster.length}명 · 표시 ${filtered.length}명</div></div><div class="db-actions db-filter-actions"><input class="mini-input" placeholder="검색" value="${escapeHtml(dbSearchText)}" oninput="setDbSearch(this.value)" style="width:180px;" /><select onchange="setDbTeamFilter(this.value)" style="width:150px;"><option value="전체">전체 팀</option>${teams.map(team => `<option value="${escapeHtml(team)}" ${team === dbTeamFilter ? "selected" : ""}>${escapeHtml(team)}</option>`).join("")}</select><select onchange="setDbStatusFilter(this.value)" style="width:130px;">${["전체", "활성", "비활성", "즐겨찾기", "연락처 있음", "연락처 없음"].map(value => `<option value="${value}" ${value === dbStatusFilter ? "selected" : ""}>${value}</option>`).join("")}</select></div></div><div class="db-stat-grid"><div class="db-stat"><small>전체 선수</small><strong>${roster.length}</strong></div><div class="db-stat"><small>활성 선수</small><strong>${activeCount}</strong></div><div class="db-stat"><small>즐겨찾기</small><strong>${favoriteCount}</strong></div><div class="db-stat"><small>연락처 미등록</small><strong>${missingContactCount}</strong></div></div><div class="db-bulk-toolbar"><div><label class="db-checkline"><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /> 표시 목록 일괄선택</label><span class="hint">표시 ${filtered.length}명 · 표시 중 선택 ${visibleSelectedCount}명</span></div><div class="db-bulk-buttons"><button class="ghost" onclick="selectVisiblePlayers()">표시 활성 전체 선택</button><button class="ghost" onclick="deselectVisiblePlayers()">표시 선택 해제</button><button class="ghost" onclick="selectAllActivePlayers()">전체 활성 선택</button>${dbSortButton("nickname", "닉네임")}${dbSortButton("realName", "실명")}${dbSortButton("team", "팀명")}${dbSortButton("createdAt", "등록일")}</div></div><div class="roster-table-wrap"><table class="roster-table"><thead><tr><th><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /></th><th>★</th><th><button class="ghost table-sort-btn" onclick="setDbSort('realName')">실명${dbSortField === "realName" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>연락처</th><th><button class="ghost table-sort-btn" onclick="setDbSort('nickname')">닉네임${dbSortField === "nickname" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('team')">팀명${dbSortField === "team" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('active')">상태${dbSortField === "active" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>메모</th><th>관리</th></tr></thead><tbody>${filtered.map(player => renderRosterRow(player)).join("") || `<tr><td colspan="9"><div class="db-empty">등록된 선수가 없습니다.</div></td></tr>`}</tbody></table></div></section></main></div></div>`;
       updateSelectedPreview();
     }
 
     function renderRosterRow(player) {
-      return `<tr><td data-label="참가"><input type="checkbox" data-roster-select value="${escapeAttr(player.id)}" ${dbSelectedIds.has(player.id) ? "checked" : ""} ${player.active ? "" : "disabled"} onchange="toggleDbSelected('${escapeAttr(player.id)}', this.checked)" /></td><td data-label="즐겨찾기"><button class="ghost" onclick="toggleRosterField('${escapeAttr(player.id)}', 'favorite')">${player.favorite ? "★" : "☆"}</button></td><td data-label="실명"><input class="mini-input" value="${escapeHtml(player.realName || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'realName', this.value)" /></td><td data-label="연락처"><input class="mini-input" value="${escapeHtml(player.contact || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'contact', this.value)" /></td><td data-label="닉네임/선수명"><input class="mini-input" value="${escapeHtml(player.nickname || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'nickname', this.value)" /></td><td data-label="팀명"><input class="mini-input" value="${escapeHtml(player.team || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'team', this.value)" /></td><td data-label="상태"><button class="${player.active ? "primary" : "ghost"}" onclick="toggleRosterField('${escapeAttr(player.id)}', 'active')">${player.active ? "활성" : "비활성"}</button></td><td data-label="메모"><input class="mini-input" value="${escapeHtml(player.memo || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'memo', this.value)" /></td><td data-label="관리"><button class="danger" onclick="deleteRosterPlayer('${escapeAttr(player.id)}')">삭제</button></td></tr>`;
-    }    function getCurrentTournamentId() {
+      const contactMissing = contactStatusOf(player) === "missing";
+      const contactClass = contactMissing ? "roster-contact-missing" : "roster-contact-ok";
+      const contactHint = contactMissing ? `<small class="contact-status missing">연락처 미등록 · 추후 수정 가능</small>` : `<small class="contact-status ok">연락처 있음</small>`;
+      return `<tr class="${contactMissing ? "needs-contact" : ""}"><td data-label="참가"><input type="checkbox" data-roster-select value="${escapeAttr(player.id)}" ${dbSelectedIds.has(player.id) ? "checked" : ""} ${player.active ? "" : "disabled"} onchange="toggleDbSelected('${escapeAttr(player.id)}', this.checked)" /></td><td data-label="즐겨찾기"><button class="ghost" onclick="toggleRosterField('${escapeAttr(player.id)}', 'favorite')">${player.favorite ? "★" : "☆"}</button></td><td data-label="실명"><input class="mini-input" placeholder="실명 보완" value="${escapeHtml(player.realName || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'realName', this.value)" /></td><td data-label="연락처"><div class="contact-edit-cell"><input class="mini-input ${contactClass}" placeholder="연락처 보완" value="${escapeHtml(player.contact || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'contact', this.value)" />${contactHint}</div></td><td data-label="닉네임/선수명"><input class="mini-input" value="${escapeHtml(player.nickname || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'nickname', this.value)" /></td><td data-label="팀명"><input class="mini-input" placeholder="팀명 보완" value="${escapeHtml(player.team || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'team', this.value)" /></td><td data-label="상태"><button class="${player.active ? "primary" : "ghost"}" onclick="toggleRosterField('${escapeAttr(player.id)}', 'active')">${player.active ? "활성" : "비활성"}</button></td><td data-label="메모"><input class="mini-input" placeholder="메모 보완" value="${escapeHtml(player.memo || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'memo', this.value)" /></td><td data-label="관리"><button class="danger" onclick="deleteRosterPlayer('${escapeAttr(player.id)}')">삭제</button></td></tr>`;
+    }
+
+    function getCurrentTournamentId() {
       ensureStateDefaults();
       const params = getHashParams();
       const fromHash = params.get("t") || params.get("tournamentId");
@@ -11651,7 +12304,7 @@ function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
         <section class="live-summary-v89"><span>LIVE <b>${liveCount}</b></span><span>대기 <b>${waitingCount}</b></span><span>빈 슬롯 <b>${emptyCount}</b></span><small>${escapeHtml(nowText)} 기준</small></section>
         <main class="live-grid-v89">${cards.map(cardHtml).join("")}</main>
         <section class="live-history-v89"><h2>최근 경기 히스토리</h2><div class="history-list-v89">${historyHtml || `<div class="live-empty-note-v89">최근 경기 기록이 없습니다.</div>`}</div></section>
-        <footer class="live-footer-v89">BUILD v91 TV NAME SPACE FIX</footer>
+        <footer class="live-footer-v89">BUILD v94 GLOBAL LIGHT FINAL CHECK</footer>
       </div>`;
     }
 
@@ -11755,7 +12408,7 @@ function stopLiveLobbyRealtimeV50() {
         if (received) return;
         if (viewType === "tv-live") {
           document.body.classList.add("tv-mode");
-          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v91 TV NAME SPACE FIX</span></div></div>`;
+          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v94 GLOBAL LIGHT FINAL CHECK</span></div></div>`;
         } else {
           renderLiveLobbyPage();
         }
