@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v90 TV WHITE REBUILD</title>
+  <title>MINI4WD TOURNAMENT MAKER · v91 TV NAME SPACE FIX</title>
   <!-- v84 FULL AUDIT STABLE FINAL · index-only · Rules/images/OG files unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
@@ -6758,6 +6758,8 @@
 
 
     /* v90 TV WHITE REBUILD · standalone white TV presentation layer */
+
+    /* v91 TV NAME SPACE FIX · lane fixed top-left, h2h pushed right */
     body.tv-mode {
       background: #f4f6f8 !important;
       color: #111827 !important;
@@ -6855,6 +6857,236 @@
       body.tv-mode .tv90-grid { grid-template-columns: 1fr !important; height: auto !important; overflow: visible !important; }
       body.tv-mode .tv90-group { height: auto !important; grid-template-rows: auto !important; }
       body.tv-mode .tv90-lane { min-height: 72px !important; }
+    }
+
+  
+
+    /* v91 TV CARD LAYOUT FINAL · TV only: lane top-left, name-first, h2h far-right */
+    body.tv-mode .tv90-screen,
+    body.tv-mode .tv-wrap.tv90-screen {
+      background: #f4f6f8 !important;
+      color: #111827 !important;
+    }
+    body.tv-mode .tv90-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      gap: clamp(10px, .9vw, 18px) !important;
+    }
+    body.tv-mode .tv90-group {
+      background: #ffffff !important;
+      border: 1px solid #d6dde8 !important;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, .08) !important;
+      overflow: hidden !important;
+    }
+    body.tv-mode .tv90-lane {
+      position: relative !important;
+      min-width: 0 !important;
+      min-height: 0 !important;
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) clamp(92px, 8.2vw, 156px) !important;
+      grid-template-areas: "player h2h" !important;
+      column-gap: clamp(8px, .78vw, 15px) !important;
+      align-items: center !important;
+      padding: clamp(24px, 1.75vw, 36px) clamp(9px, .82vw, 15px) clamp(8px, .62vw, 12px) clamp(9px, .82vw, 15px) !important;
+      border-radius: clamp(13px, .86vw, 18px) !important;
+      background: #f9fafb !important;
+      border: 1px solid #e1e7ef !important;
+      overflow: hidden !important;
+    }
+    body.tv-mode .tv90-lane.is-selected {
+      background: #fdf2f8 !important;
+      border-color: #f472b6 !important;
+    }
+    body.tv-mode .tv90-lane.is-empty {
+      background: #f3f4f6 !important;
+      border-style: dashed !important;
+      opacity: .82 !important;
+    }
+    body.tv-mode .tv90-lane-meta {
+      position: absolute !important;
+      top: clamp(6px, .52vw, 10px) !important;
+      left: clamp(8px, .7vw, 13px) !important;
+      z-index: 3 !important;
+      width: auto !important;
+      max-width: calc(100% - clamp(16px, 1.4vw, 26px)) !important;
+      min-width: 0 !important;
+      display: inline-grid !important;
+      grid-template-columns: auto auto !important;
+      grid-template-rows: none !important;
+      align-items: baseline !important;
+      justify-content: start !important;
+      gap: clamp(4px, .34vw, 7px) !important;
+      align-content: start !important;
+      padding: 0 !important;
+      border: 0 !important;
+      background: transparent !important;
+      color: #be185d !important;
+      line-height: 1 !important;
+      overflow: hidden !important;
+    }
+    body.tv-mode .tv90-lane-main {
+      display: inline-flex !important;
+      align-items: baseline !important;
+      gap: 2px !important;
+      min-width: 0 !important;
+      white-space: nowrap !important;
+      line-height: 1 !important;
+    }
+    body.tv-mode .tv90-lane-no {
+      font-size: clamp(16px, 1.18vw, 24px) !important;
+      font-weight: 1000 !important;
+      letter-spacing: -.045em !important;
+      line-height: 1 !important;
+    }
+    body.tv-mode .tv90-lane-word {
+      font-size: clamp(7px, .48vw, 10px) !important;
+      font-weight: 1000 !important;
+      letter-spacing: .025em !important;
+      line-height: 1 !important;
+    }
+    body.tv-mode .tv90-rate {
+      display: inline-block !important;
+      max-width: clamp(46px, 4.2vw, 82px) !important;
+      color: #6b7280 !important;
+      font-size: clamp(7px, .46vw, 9px) !important;
+      font-weight: 900 !important;
+      line-height: 1 !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+    body.tv-mode .tv90-player {
+      grid-area: player !important;
+      min-width: 0 !important;
+      width: 100% !important;
+      display: grid !important;
+      align-content: center !important;
+      justify-content: stretch !important;
+      gap: clamp(3px, .28vw, 5px) !important;
+      overflow: hidden !important;
+      padding: 0 !important;
+    }
+    body.tv-mode .tv90-name {
+      display: block !important;
+      max-width: 100% !important;
+      color: #111827 !important;
+      font-size: clamp(31px, 2.78vw, 56px) !important;
+      line-height: .95 !important;
+      font-weight: 1000 !important;
+      letter-spacing: -.072em !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: clip !important;
+      padding: .04em 0 .09em !important;
+    }
+    body.tv-mode .tv90-name.is-short {
+      font-size: clamp(37px, 3.28vw, 66px) !important;
+      letter-spacing: -.078em !important;
+    }
+    body.tv-mode .tv90-name.is-medium {
+      font-size: clamp(33px, 2.9vw, 58px) !important;
+      letter-spacing: -.074em !important;
+    }
+    body.tv-mode .tv90-name.is-truncated,
+    body.tv-mode .tv90-name.is-long {
+      font-size: clamp(27px, 2.38vw, 48px) !important;
+      letter-spacing: -.058em !important;
+    }
+    body.tv-mode .tv90-screen[data-tv-lanes="3"] .tv90-name.is-short {
+      font-size: clamp(44px, 3.9vw, 78px) !important;
+    }
+    body.tv-mode .tv90-screen[data-tv-lanes="3"] .tv90-name.is-medium {
+      font-size: clamp(39px, 3.45vw, 68px) !important;
+    }
+    body.tv-mode .tv90-screen[data-tv-lanes="3"] .tv90-name.is-truncated,
+    body.tv-mode .tv90-screen[data-tv-lanes="3"] .tv90-name.is-long {
+      font-size: clamp(33px, 2.9vw, 58px) !important;
+    }
+    body.tv-mode .tv90-team {
+      max-width: 100% !important;
+      color: #6b7280 !important;
+      font-size: clamp(10px, .78vw, 15px) !important;
+      line-height: 1 !important;
+      font-weight: 900 !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+    body.tv-mode .tv90-h2h {
+      grid-area: h2h !important;
+      justify-self: end !important;
+      align-self: center !important;
+      width: 100% !important;
+      max-width: clamp(92px, 8.2vw, 156px) !important;
+      min-width: 0 !important;
+      display: grid !important;
+      gap: clamp(2px, .18vw, 4px) !important;
+      align-content: center !important;
+      text-align: right !important;
+      overflow: hidden !important;
+      padding: 0 !important;
+    }
+    body.tv-mode .tv90-h2h-title {
+      color: #be185d !important;
+      font-size: clamp(7.5px, .56vw, 10.5px) !important;
+      line-height: 1 !important;
+      font-weight: 1000 !important;
+      text-align: right !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.tv-mode .tv90-h2h-row {
+      color: #374151 !important;
+      font-size: clamp(7px, .5vw, 9.8px) !important;
+      line-height: 1.08 !important;
+      font-weight: 850 !important;
+      text-align: right !important;
+      border-left: 0 !important;
+      border-right: 2px solid #f9a8d4 !important;
+      padding-left: 0 !important;
+      padding-right: clamp(4px, .34vw, 7px) !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.tv-mode .tv90-result {
+      position: absolute !important;
+      right: clamp(8px, .7vw, 13px) !important;
+      bottom: clamp(6px, .48vw, 10px) !important;
+      z-index: 3 !important;
+      min-width: 0 !important;
+      max-width: clamp(34px, 3.2vw, 60px) !important;
+      min-height: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: .24em .48em !important;
+      border-radius: 999px !important;
+      color: #9d174d !important;
+      background: rgba(244, 114, 182, .14) !important;
+      font-size: clamp(8px, .62vw, 11px) !important;
+      font-weight: 1000 !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.tv-mode .tv90-result:empty { display: none !important; }
+    body.tv-mode .tv90-lane.is-selected .tv90-result {
+      background: #be185d !important;
+      color: #fff !important;
+    }
+    body.tv-mode .tv90-placeholder-body {
+      background: #f9fafb !important;
+      border-color: #d1d5db !important;
+      color: #6b7280 !important;
+    }
+    @media (max-width: 960px) {
+      body.tv-mode .tv90-grid {
+        grid-template-columns: repeat(4, minmax(220px, 1fr)) !important;
+        overflow: auto !important;
+      }
+      body.tv-mode .tv90-group { min-width: 220px !important; }
     }
 
   </style>
@@ -9185,10 +9417,12 @@ function getTvWindowGroups(target) {
       `;
     }    
     function getTv90NameClass(name) {
-      const length = Array.from(String(name || "").trim()).length;
-      if (length <= 2) return "";
+      const text = String(name || "").trim();
+      const length = Array.from(text).length;
+      if (text.includes("..")) return "is-truncated";
+      if (length <= 2) return "is-short";
       if (length <= 4) return "is-medium";
-      return "is-long";
+      return "is-truncated";
     }
 
     function renderTv90Lane(player, group, isFinal, stageType = "normal", pointTotalsMap = {}) {
@@ -9235,7 +9469,7 @@ function renderTvStage() {
               ${logoMarkup("tv90-logo")}
             </header>
             <section class="tv90-empty-screen"><div><h2>LIVE 대기중</h2><p>운영 화면에서 경기를 시작하면 자동으로 표시됩니다.</p></div></section>
-            <footer class="tv90-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v90 TV WHITE REBUILD</span></footer>
+            <footer class="tv90-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v91 TV NAME SPACE FIX</span></footer>
           </div>`;
         return;
       }
@@ -9266,7 +9500,7 @@ function renderTvStage() {
           <main class="tv90-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
             ${currentGroups.slice(0, 4).map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap, laneCount)).join("")}
           </main>
-          <footer class="tv90-foot"><span>${escapeHtml(laneCount)} LANE · ${escapeHtml((target.groups || []).length)} GROUPS · LIVE 자동 송출</span><span>BUILD v90 TV WHITE REBUILD</span></footer>
+          <footer class="tv90-foot"><span>${escapeHtml(laneCount)} LANE · ${escapeHtml((target.groups || []).length)} GROUPS · LIVE 자동 송출</span><span>BUILD v91 TV NAME SPACE FIX</span></footer>
         </div>`;
     }
 
@@ -11417,7 +11651,7 @@ function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
         <section class="live-summary-v89"><span>LIVE <b>${liveCount}</b></span><span>대기 <b>${waitingCount}</b></span><span>빈 슬롯 <b>${emptyCount}</b></span><small>${escapeHtml(nowText)} 기준</small></section>
         <main class="live-grid-v89">${cards.map(cardHtml).join("")}</main>
         <section class="live-history-v89"><h2>최근 경기 히스토리</h2><div class="history-list-v89">${historyHtml || `<div class="live-empty-note-v89">최근 경기 기록이 없습니다.</div>`}</div></section>
-        <footer class="live-footer-v89">BUILD v90 TV WHITE REBUILD</footer>
+        <footer class="live-footer-v89">BUILD v91 TV NAME SPACE FIX</footer>
       </div>`;
     }
 
@@ -11521,7 +11755,7 @@ function stopLiveLobbyRealtimeV50() {
         if (received) return;
         if (viewType === "tv-live") {
           document.body.classList.add("tv-mode");
-          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v90 TV WHITE REBUILD</span></div></div>`;
+          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v91 TV NAME SPACE FIX</span></div></div>`;
         } else {
           renderLiveLobbyPage();
         }
