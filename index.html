@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v98 PLAYER DB FIXED PANEL</title>
-  <!-- v98 PLAYER DB FIXED PANEL · index-only · Rules/images/OG files unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v101 POINT HOTFIX SAFE PATCH</title>
+  <!-- v101 POINT HOTFIX SAFE PATCH · index-only · Rules/images/OG files unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -8035,7 +8035,7 @@
 
 
 
-    /* v98 PLAYER DB FIXED PANEL · final light surface pass for DB/operator/admin pages */
+    /* v101 POINT HOTFIX SAFE PATCH · final light surface pass for DB/operator/admin pages */
     body:not(.tv-mode) {
       background: #f4f7fb !important;
       color: #0f172a !important;
@@ -8287,7 +8287,7 @@
 
   
 
-    /* v98 PLAYER DB FIXED PANEL · round-final lane controls + broadcast transition hardening */
+    /* v101 POINT HOTFIX SAFE PATCH · round-final lane controls + broadcast transition hardening */
     body:not(.tv-mode) .round-final-manual-lane-group {
       border-color: rgba(216, 77, 137, .22) !important;
       background: #ffffff !important;
@@ -8354,7 +8354,7 @@
     }
 
 
-    /* v98 PLAYER DB FIXED PANEL · large roster usability */
+    /* v101 POINT HOTFIX SAFE PATCH · large roster usability */
     body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-layout-v98 {
       display: grid !important;
       grid-template-columns: minmax(320px, 380px) minmax(0, 1fr) !important;
@@ -8520,6 +8520,110 @@
         flex-basis: 100% !important;
       }
     }
+
+
+    /* v99 PLAYER DB FIXED + MID-ROUND ADJUST · production hotfix */
+    @media (min-width: 901px) {
+      body:not(.tv-mode) .db-page.player-db-light-v96 {
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        overflow: hidden !important;
+        display: grid !important;
+        grid-template-rows: auto auto auto minmax(0, 1fr) !important;
+        gap: 12px !important;
+        padding: 18px 22px !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .header,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .account-strip,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-actions-toolbar {
+        flex: 0 0 auto !important;
+        margin-bottom: 0 !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-layout-v98,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-layout-v99 {
+        min-height: 0 !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        overflow: hidden !important;
+        display: grid !important;
+        grid-template-columns: minmax(340px, 410px) minmax(0, 1fr) !important;
+        gap: 18px !important;
+        align-items: stretch !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-side-v98,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-side-v99 {
+        position: relative !important;
+        top: auto !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        padding: 0 4px 12px 0 !important;
+        overscroll-behavior: contain !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-main-v98,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-main-v99 {
+        height: 100% !important;
+        max-height: 100% !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-list-card-v98,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-list-card-v99 {
+        height: 100% !important;
+        max-height: 100% !important;
+        min-height: 0 !important;
+        display: grid !important;
+        grid-template-rows: auto auto auto minmax(0, 1fr) !important;
+        gap: 12px !important;
+        overflow: hidden !important;
+        padding: 16px !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-list-card-v98 > *,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-list-card-v99 > * {
+        min-height: 0 !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-scroll-v98,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-scroll-v99 {
+        min-height: 0 !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        overflow: auto !important;
+        overscroll-behavior: contain !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-quick-add-card-v96 {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 10 !important;
+      }
+    }
+    .emergency-adjust-card-v99 {
+      border: 2px solid #fed7aa !important;
+      background: #fff7ed !important;
+    }
+    .emergency-adjust-card-v99 h2 { color: #9a3412 !important; }
+    .emergency-adjust-card-v99 .hint { color: #7c2d12 !important; }
+    .emergency-adjust-grid-v99 {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+      gap: 8px !important;
+      align-items: end !important;
+    }
+    .withdrawn-badge-v99 {
+      display: inline-flex !important;
+      padding: 3px 8px !important;
+      border-radius: 999px !important;
+      background: #ffedd5 !important;
+      border: 1px solid #fdba74 !important;
+      color: #9a3412 !important;
+      font-size: 11px !important;
+      font-weight: 1000 !important;
+    }
+    @media (max-width: 900px) {
+      .emergency-adjust-grid-v99 { grid-template-columns: 1fr !important; }
+    }
+
 </style>
 </head>
 <body>
@@ -8969,7 +9073,8 @@ function shuffle(array) {
     }
 
     function getEligibleParticipants() {
-      const participants = parseParticipants();
+      const withdrawnIds = getWithdrawnPlayerIdSet();
+      const participants = parseParticipants().filter(player => !withdrawnIds.has(String(player.id)));
       if (!state.settings.excludeFinalists) return participants;
 
       const finalizedIds = new Set(
@@ -9031,6 +9136,7 @@ function shuffle(array) {
       if (state.tournament.endedAtISO === undefined) state.tournament.endedAtISO = "";
       if (state.tournament.endedAtDisplay === undefined) state.tournament.endedAtDisplay = "";
       if (state.tournament.liveId === undefined) state.tournament.liveId = "";
+      if (!Array.isArray(state.tournament.withdrawnPlayerIds)) state.tournament.withdrawnPlayerIds = [];
       if (state.settings.firebaseAutoSave === undefined) state.settings.firebaseAutoSave = false;
     }
 
@@ -9123,7 +9229,7 @@ function isPointRound(roundIndex) {
       (round.stages || []).filter(stage => stage.type === "points").forEach(stage => {
         stage.groups.forEach(group => {
           group.slots.forEach(player => {
-            if (player.isEmptyLane) return;
+            if (player.isEmptyLane || isPlayerWithdrawn(player.id)) return;
             if (!playerMap.has(player.id)) playerMap.set(player.id, { id: player.id, name: player.name, team: player.team });
           });
         });
@@ -9136,7 +9242,7 @@ function isPointRound(roundIndex) {
       (round.stages || []).filter(stage => stage.type === "points").forEach(stage => {
         stage.groups.forEach(group => {
           group.slots.forEach(player => {
-            if (player.isEmptyLane) return;
+            if (player.isEmptyLane || isPlayerWithdrawn(player.id)) return;
             const current = totals.get(player.id) || { id: player.id, name: player.name, team: player.team, total: 0, heats: [] };
             const score = Number((group.points || {})[player.id] ?? 0);
             current.total += score;
@@ -9663,6 +9769,171 @@ function copyOrShare(url, label) {
     }
 
 
+
+
+    function getWithdrawnPlayerIdSet() {
+      ensureStateDefaults();
+      return new Set((state.tournament.withdrawnPlayerIds || []).map(String));
+    }
+
+    function isPlayerWithdrawn(playerId) {
+      return getWithdrawnPlayerIdSet().has(String(playerId || ""));
+    }
+
+    function setWithdrawnPlayer(playerId, withdrawn = true) {
+      ensureStateDefaults();
+      const id = String(playerId || "");
+      if (!id) return;
+      const ids = getWithdrawnPlayerIdSet();
+      if (withdrawn) ids.add(id);
+      else ids.delete(id);
+      state.tournament.withdrawnPlayerIds = Array.from(ids);
+    }
+
+    function makeEmptyLaneSlot(lane) {
+      return {
+        id: `empty-lane-${lane}-${Math.random().toString(36).slice(2, 8)}`,
+        name: "빈 레인",
+        team: "",
+        lane,
+        isEmptyLane: true
+      };
+    }
+
+    function normalizeEmergencyParticipant(name, team = "") {
+      const cleanName = String(name || "").trim();
+      const cleanTeam = String(team || "").trim();
+      if (!cleanName) return null;
+      const roster = findRosterMatch(cleanName, cleanTeam);
+      if (roster) {
+        return { id: roster.id, name: cleanName, team: cleanTeam || roster.team || "", realName: roster.realName || "", contact: roster.contact || "", contactStatus: roster.contactStatus || contactStatusOf(roster), venueId: roster.venueId || currentVenueId(), venueName: roster.venueName || currentVenueName() };
+      }
+      return { id: `late-${Date.now()}-${cleanName}`, name: cleanName, team: cleanTeam, realName: "", contact: "", contactStatus: "missing", venueId: currentVenueId(), venueName: currentVenueName() };
+    }
+
+    function getAllStagePlayers() {
+      const map = new Map();
+      const add = player => {
+        if (!player || player.isEmptyLane || !player.id) return;
+        map.set(String(player.id), { id: String(player.id), name: player.name || player.nickname || player.id, team: player.team || "" });
+      };
+      parseParticipants().forEach(add);
+      (state.qualifierRounds || []).forEach(round => (round.stages || []).forEach(stage => (stage.groups || []).forEach(group => (group.slots || []).forEach(add))));
+      if (state.finalRace?.group?.slots) state.finalRace.group.slots.forEach(add);
+      if (Array.isArray(state.finalRace?.groups)) state.finalRace.groups.forEach(group => (group.slots || []).forEach(add));
+      return Array.from(map.values()).sort((a, b) => String(a.name).localeCompare(String(b.name), "ko"));
+    }
+
+    function getEmergencyTargetStage() {
+      ensureStateDefaults();
+      const b = state.broadcast || {};
+      if (b.mode === "stage" && state.qualifierRounds?.[b.roundIndex]?.stages?.[b.stageIndex]) {
+        return { roundIndex: b.roundIndex, stageIndex: b.stageIndex, stage: state.qualifierRounds[b.roundIndex].stages[b.stageIndex] };
+      }
+      const round = state.qualifierRounds?.[activeRoundIndex];
+      if (round?.stages?.length) {
+        return { roundIndex: activeRoundIndex, stageIndex: round.stages.length - 1, stage: round.stages[round.stages.length - 1] };
+      }
+      return null;
+    }
+
+    function groupHasResult(group, stage) {
+      if (!group) return false;
+      if ((group.advanceIds || []).length > 0) return true;
+      if ((stage?.type === "points" || stage?.type === "pointFinal") && Object.keys(group.points || {}).length > 0) return true;
+      return false;
+    }
+
+    function addPlayerToStage(stage, player) {
+      const laneCount = state.settings.laneCount || 3;
+      for (const group of (stage.groups || [])) {
+        if (groupHasResult(group, stage)) continue;
+        const empty = (group.slots || []).find(slot => slot.isEmptyLane);
+        if (empty) {
+          const lane = empty.lane || ((group.slots || []).length + 1);
+          Object.assign(empty, { ...player, lane, isEmptyLane: false });
+          return true;
+        }
+      }
+      const groupIndex = (stage.groups || []).length + 1;
+      const slots = Array.from({ length: laneCount }, (_, index) => index === 0 ? { ...player, lane: 1 } : makeEmptyLaneSlot(index + 1));
+      const newGroup = { id: `${stage.id || "stage"}-late-g${groupIndex}-${Math.random().toString(36).slice(2, 8)}`, name: `${groupIndex}조`, slots, advanceIds: [] };
+      if (stage.type === "points" || stage.type === "pointFinal") newGroup.points = {};
+      stage.groups = stage.groups || [];
+      stage.groups.push(newGroup);
+      return true;
+    }
+
+    function emergencyAddParticipant() {
+      if (!canModifyTournamentAction("진행 중 참가자 추가")) return;
+      const name = document.getElementById("emergencyAddName")?.value.trim();
+      const team = document.getElementById("emergencyAddTeam")?.value.trim();
+      const player = normalizeEmergencyParticipant(name, team);
+      if (!player) return showError("추가할 선수명을 입력하세요.");
+      const existing = getAllStagePlayers().find(item => String(item.id) === String(player.id) || (item.name === player.name && item.team === player.team));
+      if (existing && !isPlayerWithdrawn(existing.id)) return showError("이미 대회 명단 또는 현재 경기 안에 있는 선수입니다.");
+      const line = `${player.name}${player.team ? "/" + player.team : ""}`;
+      const lines = String(state.inputText || "").split(/\r?\n/).map(v => v.trim()).filter(Boolean);
+      if (!lines.some(v => v === line || v.split(/[\/\t,]/)[0] === player.name)) state.inputText = [...lines, line].join("\n");
+      setWithdrawnPlayer(player.id, false);
+      const target = getEmergencyTargetStage();
+      if (state.tournament.status === "running" && target?.stage) {
+        addPlayerToStage(target.stage, player);
+        state.broadcast = { mode: "stage", roundIndex: target.roundIndex, stageIndex: target.stageIndex };
+        activeRoundIndex = target.roundIndex;
+      }
+      createAutoSnapshot("진행 중 선수 추가");
+      logTournamentAction("선수 추가", `${player.name}${player.team ? " / " + player.team : ""}`);
+      renderOperator();
+    }
+
+    function emergencyWithdrawParticipant() {
+      if (!canModifyTournamentAction("진행 중 선수 제외")) return;
+      const playerId = document.getElementById("emergencyWithdrawPlayer")?.value;
+      if (!playerId) return showError("제외할 선수를 선택하세요.");
+      const player = getAllStagePlayers().find(item => String(item.id) === String(playerId));
+      if (!player) return showError("선수를 찾을 수 없습니다.");
+      if (!confirm(`${player.name} 선수를 현재 이후 경기에서 제외할까요?\n이미 확정된 과거 결과는 유지됩니다.`)) return;
+      setWithdrawnPlayer(playerId, true);
+      let changed = 0;
+      (state.qualifierRounds || []).forEach((round, roundIndex) => {
+        (round.stages || []).forEach((stage, stageIndex) => {
+          const isBeforeBroadcast = state.broadcast?.mode === "stage" && (roundIndex < state.broadcast.roundIndex || (roundIndex === state.broadcast.roundIndex && stageIndex < state.broadcast.stageIndex));
+          if (isBeforeBroadcast) return;
+          (stage.groups || []).forEach(group => {
+            if (groupHasResult(group, stage)) return;
+            (group.slots || []).forEach((slot, slotIndex) => {
+              if (String(slot.id) === String(playerId)) {
+                group.slots[slotIndex] = makeEmptyLaneSlot(slot.lane || slotIndex + 1);
+                changed += 1;
+              }
+            });
+          });
+        });
+      });
+      const finalGroups = state.finalRace?.groups || (state.finalRace?.group ? [state.finalRace.group] : []);
+      finalGroups.forEach(group => {
+        if (groupHasResult(group, { type: state.finalRace?.type || "final" })) return;
+        (group.slots || []).forEach((slot, slotIndex) => {
+          if (String(slot.id) === String(playerId)) {
+            group.slots[slotIndex] = makeEmptyLaneSlot(slot.lane || slotIndex + 1);
+            changed += 1;
+          }
+        });
+      });
+      createAutoSnapshot("진행 중 선수 제외");
+      logTournamentAction("선수 제외", `${player.name} · 변경 슬롯 ${changed}`);
+      renderOperator();
+    }
+
+    function renderEmergencyAdjustPanel() {
+      const isRunning = state.tournament?.status === "running";
+      const players = getAllStagePlayers();
+      const withdrawn = getWithdrawnPlayerIdSet();
+      const options = players.map(player => `<option value="${escapeAttr(player.id)}">${escapeHtml(player.name)}${player.team ? " / " + escapeHtml(player.team) : ""}${withdrawn.has(String(player.id)) ? " · 제외됨" : ""}</option>`).join("");
+      return `<section class="card emergency-adjust-card-v99"><h2>진행 중 참가자 조정</h2><p class="hint">라운드 중 결원/추가 발생 시 사용합니다. 이미 확정한 이전 결과는 유지하고, 현재 송출 단계 이후만 조정합니다.</p>${!isRunning ? `<p class="hint"><b>대회 시작 전:</b> 참가자 입력 명단에서 수정하는 것을 권장합니다.</p>` : ""}<div class="emergency-adjust-grid-v99"><div><label>추가 선수명</label><input class="mini-input" id="emergencyAddName" placeholder="현장 추가 선수" /></div><div><label>팀명</label><input class="mini-input" id="emergencyAddTeam" placeholder="선택" /></div></div><button class="primary" style="width:100%; margin-top:8px;" onclick="emergencyAddParticipant()">현재 경기/명단에 추가</button><div style="margin-top:12px;"><label>제외 선수</label><select class="mini-input" id="emergencyWithdrawPlayer"><option value="">선수 선택</option>${options}</select></div><button class="danger" style="width:100%; margin-top:8px;" onclick="emergencyWithdrawParticipant()">현재 이후 경기에서 제외</button>${withdrawn.size ? `<p class="hint" style="margin-top:8px;">제외 처리: ${Array.from(withdrawn).length}명</p>` : ""}</section>`;
+    }
+
     function renderOperator() {
       ensureStateDefaults();
       document.body.classList.remove("tv-mode");
@@ -9750,7 +10021,7 @@ function copyOrShare(url, label) {
 
               <details class="operator-page" open>
                 <summary>참가자 입력</summary>
-                <div class="operator-page-body"><section class="card"><h2>참가자 입력</h2><p class="hint">한 줄에 한 명씩 입력합니다. 형식: <b>이름/팀명</b><br>예: 홍길동/타미야팀</p><textarea oninput="refreshInput(this.value)">${escapeHtml(state.inputText)}</textarea><div class="stats"><div class="stat"><small>참가자</small><strong id="statPlayers">${players.length}</strong></div><div class="stat"><small>예상 조</small><strong id="statGroups">${estimatedGroups}</strong></div><div class="stat"><small>확정 진출자</small><strong>${finalizedCount}/${state.settings.laneCount}</strong></div></div><div style="display:flex; gap:8px; margin-top:12px;"><button class="primary" style="flex:1" onclick="startAllFirstStages()">전체 라운드 시작</button><button class="danger" onclick="resetTournament()">라운드 초기화</button></div></section></div>
+                <div class="operator-page-body"><section class="card"><h2>참가자 입력</h2><p class="hint">한 줄에 한 명씩 입력합니다. 형식: <b>이름/팀명</b><br>예: 홍길동/타미야팀</p><textarea oninput="refreshInput(this.value)">${escapeHtml(state.inputText)}</textarea><div class="stats"><div class="stat"><small>참가자</small><strong id="statPlayers">${players.length}</strong></div><div class="stat"><small>예상 조</small><strong id="statGroups">${estimatedGroups}</strong></div><div class="stat"><small>확정 진출자</small><strong>${finalizedCount}/${state.settings.laneCount}</strong></div></div><div style="display:flex; gap:8px; margin-top:12px;"><button class="primary" style="flex:1" onclick="startAllFirstStages()">전체 라운드 시작</button><button class="danger" onclick="resetTournament()">라운드 초기화</button></div></section>${renderEmergencyAdjustPanel()}</div>
               </details>
 
               <details class="operator-page">
@@ -9867,11 +10138,13 @@ function copyOrShare(url, label) {
 
     function renderRoundProgressDock(roundIndex, currentStage) {
       if (!currentStage) return "";
-      const nextLabel = currentStage?.type === "revival" ? "패자부활 진출자 합류" : "다음 경기 진행";
-      const confirmLabel = isRevivalMode() ? "우승자 확정" : isCrowMode() ? "1~3위 확정" : "결승 진출자 확정";
+      const isPointFinalStage = currentStage?.type === "pointFinal";
+      const nextLabel = isPointFinalStage ? "진출 확정 후 다음 라운드" : currentStage?.type === "revival" ? "패자부활 진출자 합류" : "다음 경기 진행";
+      const nextAction = isPointFinalStage ? `goToNextRoundAfterFinalist(${roundIndex})` : `createNextStage(${roundIndex})`;
+      const confirmLabel = isPointFinalStage ? "1차 진출자 확정" : isRevivalMode() ? "우승자 확정" : isCrowMode() ? "1~3위 확정" : "결승 진출자 확정";
       return `
         <div class="stage-progress-dock" aria-label="진행 단계 빠른 실행">
-          <button class="ghost" onclick="createNextStage(${roundIndex})">${nextLabel}</button>
+          <button class="ghost" onclick="${nextAction}">${nextLabel}</button>
           <button class="primary" onclick="confirmRoundFinalist(${roundIndex})">${confirmLabel}</button>
           <div class="secondary-row">
             <button class="ghost" onclick="setBroadcastStage(${roundIndex}, ${(state.qualifierRounds[roundIndex]?.stages?.length || 1) - 1})">TV 송출</button>
@@ -9885,6 +10158,10 @@ function copyOrShare(url, label) {
       const currentStageIndex = round.stages.length ? round.stages.length - 1 : -1;
       const currentStage = currentStageIndex >= 0 ? round.stages[currentStageIndex] : null;
       const pastStages = currentStageIndex > 0 ? round.stages.slice(0, currentStageIndex) : [];
+      const isPointFinalStage = currentStage?.type === "pointFinal";
+      const headNextLabel = isPointFinalStage ? "진출 확정 후 다음 라운드" : currentStage?.type === "revival" ? "패자부활 진출자 합류" : "다음 경기 진행";
+      const headNextAction = isPointFinalStage ? `goToNextRoundAfterFinalist(${roundIndex})` : `createNextStage(${roundIndex})`;
+      const headConfirmLabel = isPointFinalStage ? "1차 진출자 확정" : isRevivalMode() ? "우승자 확정" : isCrowMode() ? "1~3위 확정" : "결승 진출자 확정";
 
       return `
         <section class="round-card">
@@ -9900,9 +10177,9 @@ function copyOrShare(url, label) {
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
               <button class="primary" onclick="startQualifierRound(${roundIndex})">${round.stages.length ? "이번 라운드 재추첨" : "이 라운드 시작"}</button>
-              <button class="ghost" onclick="createNextStage(${roundIndex})">${currentStage?.type === "revival" ? "패자부활 진출자 합류" : "다음 경기 진행"}</button>
+              <button class="ghost" onclick="${headNextAction}">${headNextLabel}</button>
               ${isRevivalMode() && currentStage && currentStage.type !== "revival" && currentStage.name !== "라운드 결승" ? `<button class="ghost" onclick="createRevivalStage(${roundIndex})">패자부활전 생성</button>` : ""}
-              <button class="ghost" onclick="confirmRoundFinalist(${roundIndex})">${isRevivalMode() ? "우승자 확정" : isCrowMode() ? "1~3위 확정" : "결승 진출자 확정"}</button>
+              <button class="ghost" onclick="confirmRoundFinalist(${roundIndex})">${headConfirmLabel}</button>
               <button class="danger" onclick="resetQualifierRound(${roundIndex})">라운드 초기화</button>
             </div>
             ${renderGroupSizeControl()}
@@ -11014,7 +11291,7 @@ function renderTvStage() {
               ${logoMarkup("tv90-logo")}
             </header>
             <section class="tv90-empty-screen"><div><h2>LIVE 대기중</h2><p>운영 화면에서 경기를 시작하면 자동으로 표시됩니다.</p></div></section>
-            <footer class="tv90-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v98 PLAYER DB FIXED PANEL</span></footer>
+            <footer class="tv90-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v101 POINT HOTFIX SAFE PATCH</span></footer>
           </div>`;
         return;
       }
@@ -11045,7 +11322,7 @@ function renderTvStage() {
           <main class="tv90-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
             ${currentGroups.slice(0, 4).map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap, laneCount)).join("")}
           </main>
-          <footer class="tv90-foot"><span>${escapeHtml(laneCount)} LANE · ${escapeHtml((target.groups || []).length)} GROUPS · LIVE 자동 송출</span><span>BUILD v98 PLAYER DB FIXED PANEL</span></footer>
+          <footer class="tv90-foot"><span>${escapeHtml(laneCount)} LANE · ${escapeHtml((target.groups || []).length)} GROUPS · LIVE 자동 송출</span><span>BUILD v101 POINT HOTFIX SAFE PATCH</span></footer>
         </div>`;
     }
 
@@ -11904,7 +12181,7 @@ function boot() {
         const profiles = snapshot.val() || {};
         syncPublicVenuesFromProfiles(profiles);
         const rows = Object.entries(profiles).sort((a,b) => String(a[1].email || "").localeCompare(String(b[1].email || "")));
-        app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar admin-actions-toolbar"><button class="ghost" onclick="renderAdminPage()">새로고침</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section><div class="admin-build-mark">BUILD v98 PLAYER DB FIXED PANEL</div></div>`;
+        app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar admin-actions-toolbar"><button class="ghost" onclick="renderAdminPage()">새로고침</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section><div class="admin-build-mark">BUILD v101 POINT HOTFIX SAFE PATCH</div></div>`;
       }).catch(error => alert(`사용자 목록 로드 실패: ${error.message || error}`));
     }
 
@@ -12225,12 +12502,12 @@ function boot() {
           <header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div></div><h1>선수 DB / 경기장별 관리</h1><p class="desc">연락처는 선택값입니다. 닉네임은 대진표 표시명이며, 부족한 실명/연락처/팀명/메모는 나중에 선수 DB에서 수정할 수 있습니다.</p></div>${logoMarkup("header-logo")}</header>
           ${accountBadge()}
           <div class="toolbar db-actions-toolbar"><button class="ghost" onclick="exportRosterCsv()">CSV 다운로드</button><button class="ghost" onclick="exportRosterJson()">JSON 백업</button><button class="ghost" onclick="downloadRosterTemplate()">선수 양식</button><label class="upload-button ghost">엑셀 업로드<input type="file" accept=".xlsx,.xls,.csv,.tsv" onchange="importRosterExcel(event)" hidden /></label></div>
-          <div class="db-grid db-player-layout-v98"><aside class="db-player-side-v98">
+          <div class="db-grid db-player-layout-v98 db-player-layout-v99"><aside class="db-player-side-v98 db-player-side-v99">
             <section class="card db-quick-add-card-v96" id="dbQuickAddPanel"><div class="db-panel-title"><h2>선수 빠른 추가</h2><span class="pill">${escapeHtml(currentVenueName())}</span></div><div class="form-grid"><div><label>실명</label><input class="mini-input" id="dbRealName" placeholder="나중에 보완 가능" /></div><div><label>연락처</label><input class="mini-input" id="dbContact" placeholder="선택값" /></div><div><label>닉네임 / 선수명 *</label><input class="mini-input" id="dbNickname" placeholder="대진표 표시명" /></div><div><label>팀명</label><input class="mini-input" id="dbTeam" placeholder="OPEN CLASS" /></div><div><label>메모</label><input class="mini-input" id="dbMemo" placeholder="차량/특이사항" /></div></div><button class="primary" style="width:100%; margin-top:12px;" onclick="addRosterPlayer()">선수 추가</button><p class="privacy-note" style="margin-top:10px;">연락처가 없어도 등록/참가 가능합니다. 미등록 연락처와 실명은 나중에 이 화면에서 직접 보완할 수 있습니다.</p></section>
             <section class="card selected-box"><div class="db-panel-title"><h2>오늘 참가자</h2><span class="pill"><span id="selectedCount">0</span>명 선택</span></div><div class="db-actions" style="margin-bottom:10px;"><button class="ghost" onclick="selectRecentPlayers()">최근 참가자</button><button class="ghost" onclick="selectFavoritePlayers()">즐겨찾기</button><button class="ghost" onclick="clearSelectedPlayers()">선택 해제</button></div><div id="selectedPreview" class="finalist-grid" style="grid-template-columns:1fr;"></div><button class="primary" style="width:100%; margin-top:12px;" onclick="applySelectedPlayersToTournament()">선택 선수로 대진 생성 준비</button></section>
             <section class="card"><h2>목록 일괄 추가</h2><p class="hint">형식: 실명/연락처(선택)/닉네임/팀명/메모</p><textarea id="quickImportText" style="min-height:150px;" placeholder="홍길동//마이/GEEKS/MS 플렉스"></textarea><button class="ghost" style="width:100%; margin-top:10px;" onclick="quickImportRosterLines()">목록에서 선수 추가</button></section>
             <section class="card"><h2>JSON 복원</h2><textarea id="importJsonText" style="min-height:130px;"></textarea><button class="danger" style="width:100%; margin-top:10px;" onclick="importRosterJsonFromText()">JSON 불러오기</button></section>
-          </aside><main class="db-player-main-v98"><section class="card db-roster-list-card-v98"><div class="db-panel-title"><div><h2>선수 명부</h2><div class="meta">총 ${roster.length}명 · 표시 ${filtered.length}명</div></div><div class="db-actions db-filter-actions"><input class="mini-input" placeholder="검색" value="${escapeHtml(dbSearchText)}" oninput="setDbSearch(this.value)" style="width:180px;" /><select onchange="setDbTeamFilter(this.value)" style="width:150px;"><option value="전체">전체 팀</option>${teams.map(team => `<option value="${escapeHtml(team)}" ${team === dbTeamFilter ? "selected" : ""}>${escapeHtml(team)}</option>`).join("")}</select><select onchange="setDbStatusFilter(this.value)" style="width:130px;">${["전체", "활성", "비활성", "즐겨찾기", "연락처 있음", "연락처 없음"].map(value => `<option value="${value}" ${value === dbStatusFilter ? "selected" : ""}>${value}</option>`).join("")}</select></div></div><div class="db-stat-grid"><div class="db-stat"><small>전체 선수</small><strong>${roster.length}</strong></div><div class="db-stat"><small>활성 선수</small><strong>${activeCount}</strong></div><div class="db-stat"><small>즐겨찾기</small><strong>${favoriteCount}</strong></div><div class="db-stat"><small>연락처 미등록</small><strong>${missingContactCount}</strong></div></div><div class="db-bulk-toolbar"><div><label class="db-checkline"><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /> 표시 목록 일괄선택</label><span class="hint">표시 ${filtered.length}명 · 표시 중 선택 ${visibleSelectedCount}명</span></div><div class="db-bulk-buttons"><button class="ghost" onclick="selectVisiblePlayers()">표시 활성 전체 선택</button><button class="ghost" onclick="deselectVisiblePlayers()">표시 선택 해제</button><button class="ghost" onclick="selectAllActivePlayers()">전체 활성 선택</button>${dbSortButton("nickname", "닉네임")}${dbSortButton("realName", "실명")}${dbSortButton("team", "팀명")}${dbSortButton("createdAt", "등록일")}</div></div><div class="roster-table-wrap db-roster-scroll-v98"><table class="roster-table"><thead><tr><th><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /></th><th>★</th><th><button class="ghost table-sort-btn" onclick="setDbSort('realName')">실명${dbSortField === "realName" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>연락처</th><th><button class="ghost table-sort-btn" onclick="setDbSort('nickname')">닉네임${dbSortField === "nickname" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('team')">팀명${dbSortField === "team" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('active')">상태${dbSortField === "active" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>메모</th><th>관리</th></tr></thead><tbody>${filtered.map(player => renderRosterRow(player)).join("") || `<tr><td colspan="9"><div class="db-empty">등록된 선수가 없습니다.</div></td></tr>`}</tbody></table></div></section></main></div></div>`;
+          </aside><main class="db-player-main-v98 db-player-main-v99"><section class="card db-roster-list-card-v98 db-roster-list-card-v99"><div class="db-panel-title"><div><h2>선수 명부</h2><div class="meta">총 ${roster.length}명 · 표시 ${filtered.length}명</div></div><div class="db-actions db-filter-actions"><input class="mini-input" placeholder="검색" value="${escapeHtml(dbSearchText)}" oninput="setDbSearch(this.value)" style="width:180px;" /><select onchange="setDbTeamFilter(this.value)" style="width:150px;"><option value="전체">전체 팀</option>${teams.map(team => `<option value="${escapeHtml(team)}" ${team === dbTeamFilter ? "selected" : ""}>${escapeHtml(team)}</option>`).join("")}</select><select onchange="setDbStatusFilter(this.value)" style="width:130px;">${["전체", "활성", "비활성", "즐겨찾기", "연락처 있음", "연락처 없음"].map(value => `<option value="${value}" ${value === dbStatusFilter ? "selected" : ""}>${value}</option>`).join("")}</select></div></div><div class="db-stat-grid"><div class="db-stat"><small>전체 선수</small><strong>${roster.length}</strong></div><div class="db-stat"><small>활성 선수</small><strong>${activeCount}</strong></div><div class="db-stat"><small>즐겨찾기</small><strong>${favoriteCount}</strong></div><div class="db-stat"><small>연락처 미등록</small><strong>${missingContactCount}</strong></div></div><div class="db-bulk-toolbar"><div><label class="db-checkline"><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /> 표시 목록 일괄선택</label><span class="hint">표시 ${filtered.length}명 · 표시 중 선택 ${visibleSelectedCount}명</span></div><div class="db-bulk-buttons"><button class="ghost" onclick="selectVisiblePlayers()">표시 활성 전체 선택</button><button class="ghost" onclick="deselectVisiblePlayers()">표시 선택 해제</button><button class="ghost" onclick="selectAllActivePlayers()">전체 활성 선택</button>${dbSortButton("nickname", "닉네임")}${dbSortButton("realName", "실명")}${dbSortButton("team", "팀명")}${dbSortButton("createdAt", "등록일")}</div></div><div class="roster-table-wrap db-roster-scroll-v98 db-roster-scroll-v99"><table class="roster-table"><thead><tr><th><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /></th><th>★</th><th><button class="ghost table-sort-btn" onclick="setDbSort('realName')">실명${dbSortField === "realName" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>연락처</th><th><button class="ghost table-sort-btn" onclick="setDbSort('nickname')">닉네임${dbSortField === "nickname" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('team')">팀명${dbSortField === "team" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('active')">상태${dbSortField === "active" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>메모</th><th>관리</th></tr></thead><tbody>${filtered.map(player => renderRosterRow(player)).join("") || `<tr><td colspan="9"><div class="db-empty">등록된 선수가 없습니다.</div></td></tr>`}</tbody></table></div></section></main></div></div>`;
       updateSelectedPreview();
     }
 
@@ -12772,6 +13049,61 @@ function normalizePlayerForFinal(player, extra = {}) {
       }).join("")}</div>`;
     }
 
+
+    function stageHasAnyResult(stage) {
+      return !!(stage && (stage.groups || []).some(group => groupHasResult(group, stage)));
+    }
+
+    function roundHasAnyResult(round) {
+      return !!(round && (round.stages || []).some(stage => stageHasAnyResult(stage)));
+    }
+
+    function rebuildUnplayedNormalRound(roundIndex) {
+      const round = state.qualifierRounds?.[roundIndex];
+      if (!round || roundHasAnyResult(round) || round.finalist) return false;
+      const players = getEligibleParticipants();
+      const error = validateStart(players, "예선");
+      if (error) {
+        showError(error);
+        return false;
+      }
+      const plan = makeStagePlan(players.length, state.settings.laneCount);
+      round.stagePlan = plan;
+      round.stages = [generateStage(players, round.index, 1, plan[0])];
+      return true;
+    }
+
+    function activateNextRoundAfterFinalist(roundIndex, silent = false) {
+      const currentRound = state.qualifierRounds?.[roundIndex];
+      if (!currentRound?.finalist) {
+        if (!silent) showError("먼저 현재 라운드의 결승 진출자를 확정하세요.");
+        return false;
+      }
+      const nextIndex = (state.qualifierRounds || []).findIndex((round, index) => index > roundIndex && !round.finalist);
+      if (nextIndex < 0) return false;
+
+      const nextRound = state.qualifierRounds[nextIndex];
+      const hasPlayableStage = nextRound.stages && nextRound.stages.length > 0;
+      const hasResult = roundHasAnyResult(nextRound);
+
+      if (!hasPlayableStage || (state.settings.excludeFinalists && !hasResult)) {
+        rebuildUnplayedNormalRound(nextIndex);
+      }
+
+      if (!nextRound.stages?.length) return false;
+      activeRoundIndex = nextIndex;
+      state.broadcast = { mode: "stage", roundIndex: nextIndex, stageIndex: nextRound.stages.length - 1 };
+      logTournamentAction("다음 라운드 전환", `${currentRound.title} 확정 → ${nextRound.title}`);
+      return true;
+    }
+
+    function goToNextRoundAfterFinalist(roundIndex) {
+      if (activateNextRoundAfterFinalist(roundIndex, false)) {
+        renderOperator();
+        requestAnimationFrame(() => document.getElementById("currentStageTop")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+      }
+    }
+
     function confirmRoundFinalist(roundIndex) {
       const round = state.qualifierRounds[roundIndex];
       if (!round || !round.stages.length) return showError("먼저 해당 라운드를 진행하세요.");
@@ -12796,6 +13128,7 @@ function normalizePlayerForFinal(player, extra = {}) {
       round.finalist = selected[0];
       state.finalRace = null;
       state.broadcast = { mode: "stage", roundIndex, stageIndex: round.stages.length - 1 };
+      if (lastStage.type === "pointFinal") activateNextRoundAfterFinalist(roundIndex, true);
       renderOperator();
     }
 
@@ -13245,7 +13578,7 @@ function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
         <section class="live-summary-v89"><span>LIVE <b>${liveCount}</b></span><span>대기 <b>${waitingCount}</b></span><span>빈 슬롯 <b>${emptyCount}</b></span><small>${escapeHtml(nowText)} 기준</small></section>
         <main class="live-grid-v89">${cards.map(cardHtml).join("")}</main>
         <section class="live-history-v89"><h2>최근 경기 히스토리</h2><div class="history-list-v89">${historyHtml || `<div class="live-empty-note-v89">최근 경기 기록이 없습니다.</div>`}</div></section>
-        <footer class="live-footer-v89">BUILD v98 PLAYER DB FIXED PANEL</footer>
+        <footer class="live-footer-v89">BUILD v101 POINT HOTFIX SAFE PATCH</footer>
       </div>`;
     }
 
@@ -13349,7 +13682,7 @@ function stopLiveLobbyRealtimeV50() {
         if (received) return;
         if (viewType === "tv-live") {
           document.body.classList.add("tv-mode");
-          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v98 PLAYER DB FIXED PANEL</span></div></div>`;
+          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v101 POINT HOTFIX SAFE PATCH</span></div></div>`;
         } else {
           renderLiveLobbyPage();
         }
