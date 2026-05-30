@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v86 LIVE LOBBY EMPTY SLOT HARD FIX</title>
+  <title>MINI4WD TOURNAMENT MAKER · v90 TV WHITE REBUILD</title>
   <!-- v84 FULL AUDIT STABLE FINAL · index-only · Rules/images/OG files unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
@@ -6755,7 +6755,109 @@
     @media (max-width: 1180px) { .live-grid-v89 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
     @media (max-width: 900px) { .live-grid-v89 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .history-row-v89 { grid-template-columns: 1fr; } }
     @media (max-width: 640px) { .live-lobby-shell-v89 { padding: 12px 10px 32px; } .live-lobby-header-v89 { display: grid; padding: 18px; border-radius: 18px; } .live-header-actions-v89 { width: 100%; } .live-header-actions-v89 button { width: 100%; } .live-grid-v89 { grid-template-columns: 1fr; } .live-card-v89 { min-height: 260px; padding: 15px; border-radius: 18px; } .live-lobby-header-v89 h1 { font-size: 34px; } }
-</style>
+
+
+    /* v90 TV WHITE REBUILD · standalone white TV presentation layer */
+    body.tv-mode {
+      background: #f4f6f8 !important;
+      color: #111827 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+      overflow: hidden !important;
+    }
+    body.tv-mode #app {
+      width: 100vw !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+      overflow: hidden !important;
+      background: #f4f6f8 !important;
+    }
+    body.tv-mode .tv90-screen,
+    body.tv-mode .tv-wrap.tv90-screen {
+      width: 100vw !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+      min-height: 0 !important;
+      max-height: 100vh !important;
+      max-height: 100dvh !important;
+      display: grid !important;
+      grid-template-rows: auto minmax(0, 1fr) auto !important;
+      gap: clamp(10px, 1vw, 18px) !important;
+      padding: clamp(14px, 1.3vw, 26px) !important;
+      overflow: hidden !important;
+      background: #f4f6f8 !important;
+      color: #111827 !important;
+      font-family: "Pretendard", "SUIT", "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+      letter-spacing: -0.035em !important;
+    }
+    body.tv-mode .tv90-header {
+      min-width: 0 !important;
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) auto !important;
+      align-items: center !important;
+      gap: clamp(12px, 1vw, 22px) !important;
+      padding: clamp(12px, 1vw, 20px) clamp(14px, 1.1vw, 24px) !important;
+      border-radius: clamp(16px, 1.2vw, 26px) !important;
+      background: #ffffff !important;
+      border: 1px solid #d8dee8 !important;
+      box-shadow: 0 14px 34px rgba(17,24,39,.10) !important;
+      overflow: hidden !important;
+    }
+    body.tv-mode .tv90-brand { min-width: 0 !important; display: grid !important; gap: clamp(5px, .45vw, 8px) !important; overflow: hidden !important; }
+    body.tv-mode .tv90-kicker { display: flex !important; align-items: center !important; gap: clamp(8px, .7vw, 14px) !important; min-width: 0 !important; overflow: hidden !important; white-space: nowrap !important; }
+    body.tv-mode .tv90-kicker small { color: #be185d !important; font-size: clamp(12px, .82vw, 17px) !important; font-weight: 1000 !important; letter-spacing: .16em !important; line-height: 1 !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+    body.tv-mode .tv90-mode-pill { flex: 0 1 auto !important; min-width: 0 !important; max-width: 42vw !important; padding: .35em .75em !important; border-radius: 999px !important; background: #fce7f3 !important; border: 1px solid #f9a8d4 !important; color: #9d174d !important; font-size: clamp(11px, .72vw, 14px) !important; font-weight: 1000 !important; line-height: 1 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+    body.tv-mode .tv90-title { margin: 0 !important; color: #111827 !important; font-size: clamp(34px, 3.4vw, 70px) !important; line-height: .98 !important; font-weight: 1000 !important; letter-spacing: -.065em !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+    body.tv-mode .tv90-subtitle { color: #4b5563 !important; font-size: clamp(14px, 1vw, 22px) !important; line-height: 1.05 !important; font-weight: 900 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+    body.tv-mode .tv90-logo.credit-mark,
+    body.tv-mode .tv90-logo { width: auto !important; min-width: clamp(118px, 10vw, 180px) !important; max-width: min(18vw, 240px) !important; min-height: clamp(54px, 4.8vw, 86px) !important; max-height: none !important; display: flex !important; flex-direction: column !important; justify-content: center !important; align-items: flex-end !important; gap: 3px !important; padding: clamp(8px, .7vw, 12px) clamp(10px, .8vw, 16px) !important; border-radius: 16px !important; background: #111827 !important; border: 0 !important; color: #fff !important; text-align: right !important; box-shadow: none !important; filter: none !important; overflow: hidden !important; }
+    body.tv-mode .tv90-logo span,
+    body.tv-mode .tv90-logo small { color: inherit !important; display: block !important; max-width: 100% !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; line-height: 1.1 !important; }
+    body.tv-mode .tv90-logo span { font-size: clamp(10px, .78vw, 15px) !important; font-weight: 1000 !important; }
+    body.tv-mode .tv90-logo small { font-size: clamp(8px, .64vw, 12px) !important; opacity: .78 !important; }
+    body.tv-mode .tv90-grid { min-width: 0 !important; min-height: 0 !important; width: 100% !important; height: 100% !important; display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: clamp(10px, .9vw, 18px) !important; align-items: stretch !important; overflow: hidden !important; }
+    body.tv-mode .tv90-group { min-width: 0 !important; min-height: 0 !important; height: 100% !important; display: grid !important; grid-template-rows: auto repeat(var(--tv90-lane-count, 5), minmax(0, 1fr)) !important; gap: clamp(7px, .58vw, 11px) !important; padding: clamp(10px, .85vw, 16px) !important; border-radius: clamp(18px, 1.2vw, 26px) !important; background: #ffffff !important; border: 1px solid #d8dee8 !important; box-shadow: 0 14px 30px rgba(17,24,39,.09) !important; overflow: hidden !important; }
+    body.tv-mode .tv90-group[data-lanes="3"] { --tv90-lane-count: 3; }
+    body.tv-mode .tv90-group[data-lanes="5"] { --tv90-lane-count: 5; }
+    body.tv-mode .tv90-group-head { min-width: 0 !important; display: grid !important; grid-template-columns: minmax(0, 1fr) auto !important; gap: 8px !important; align-items: center !important; padding-bottom: clamp(7px, .55vw, 10px) !important; border-bottom: 1px solid #e5e7eb !important; overflow: hidden !important; }
+    body.tv-mode .tv90-group-title { color: #111827 !important; font-size: clamp(18px, 1.35vw, 30px) !important; line-height: 1 !important; font-weight: 1000 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+    body.tv-mode .tv90-badge { display: inline-flex !important; align-items: center !important; justify-content: center !important; padding: .35em .65em !important; border-radius: 999px !important; background: #f3f4f6 !important; border: 1px solid #e5e7eb !important; color: #374151 !important; font-size: clamp(9px, .62vw, 12px) !important; font-weight: 1000 !important; line-height: 1 !important; white-space: nowrap !important; }
+    body.tv-mode .tv90-lane { min-width: 0 !important; min-height: 0 !important; display: grid !important; grid-template-columns: minmax(54px, .34fr) minmax(0, 1fr) minmax(88px, .72fr) minmax(40px, auto) !important; gap: clamp(7px, .55vw, 12px) !important; align-items: center !important; padding: clamp(7px, .58vw, 11px) !important; border-radius: clamp(13px, .85vw, 18px) !important; background: #f9fafb !important; border: 1px solid #e5e7eb !important; overflow: hidden !important; }
+    body.tv-mode .tv90-lane.is-selected { background: #fce7f3 !important; border-color: #f472b6 !important; }
+    body.tv-mode .tv90-lane.is-empty { background: #f3f4f6 !important; border-style: dashed !important; opacity: .78 !important; }
+    body.tv-mode .tv90-lane-meta { min-width: 0 !important; display: grid !important; grid-template-rows: auto auto !important; gap: 2px !important; align-content: center !important; color: #be185d !important; overflow: hidden !important; border-right: 1px solid #e5e7eb !important; padding-right: clamp(5px, .45vw, 8px) !important; }
+    body.tv-mode .tv90-lane-main { display: flex !important; align-items: baseline !important; gap: 2px !important; min-width: 0 !important; line-height: 1 !important; white-space: nowrap !important; }
+    body.tv-mode .tv90-lane-no { font-size: clamp(18px, 1.45vw, 32px) !important; font-weight: 1000 !important; letter-spacing: -.06em !important; line-height: 1 !important; }
+    body.tv-mode .tv90-lane-word { font-size: clamp(8px, .58vw, 11px) !important; font-weight: 1000 !important; letter-spacing: .03em !important; line-height: 1 !important; }
+    body.tv-mode .tv90-rate { color: #6b7280 !important; font-size: clamp(7px, .52vw, 10px) !important; font-weight: 900 !important; line-height: 1 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+    body.tv-mode .tv90-player { min-width: 0 !important; display: grid !important; gap: clamp(2px, .18vw, 4px) !important; align-content: center !important; overflow: hidden !important; }
+    body.tv-mode .tv90-name { max-width: 100% !important; color: #111827 !important; font-size: clamp(25px, 2.15vw, 46px) !important; line-height: 1.03 !important; font-weight: 1000 !important; letter-spacing: -.07em !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: clip !important; padding: .04em 0 .08em !important; }
+    body.tv-mode .tv90-name.is-medium { font-size: clamp(22px, 1.85vw, 39px) !important; }
+    body.tv-mode .tv90-name.is-long { font-size: clamp(18px, 1.45vw, 30px) !important; letter-spacing: -.045em !important; }
+    body.tv-mode .tv90-team { max-width: 100% !important; color: #6b7280 !important; font-size: clamp(9px, .7vw, 13px) !important; line-height: 1 !important; font-weight: 900 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+    body.tv-mode .tv90-h2h { min-width: 0 !important; display: grid !important; gap: clamp(2px, .18vw, 4px) !important; align-content: center !important; overflow: hidden !important; }
+    body.tv-mode .tv90-h2h-title { color: #be185d !important; font-size: clamp(8px, .58vw, 11px) !important; line-height: 1 !important; font-weight: 1000 !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+    body.tv-mode .tv90-h2h-row { color: #374151 !important; font-size: clamp(7px, .52vw, 10px) !important; line-height: 1.08 !important; font-weight: 850 !important; border-left: 2px solid #f9a8d4 !important; padding-left: clamp(4px, .32vw, 6px) !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+    body.tv-mode .tv90-result { min-width: clamp(34px, 2.4vw, 52px) !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; color: #9d174d !important; font-size: clamp(10px, .78vw, 14px) !important; font-weight: 1000 !important; line-height: 1 !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+    body.tv-mode .tv90-placeholder { grid-template-rows: auto minmax(0, 1fr) !important; }
+    body.tv-mode .tv90-placeholder-body { min-height: 0 !important; height: 100% !important; display: grid !important; place-items: center !important; border-radius: clamp(13px, .85vw, 18px) !important; background: #f9fafb !important; border: 1px dashed #d1d5db !important; color: #6b7280 !important; text-align: center !important; font-weight: 1000 !important; font-size: clamp(18px, 1.35vw, 30px) !important; line-height: 1.2 !important; }
+    body.tv-mode .tv90-foot { min-width: 0 !important; display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 12px !important; color: #6b7280 !important; font-size: clamp(10px, .72vw, 14px) !important; font-weight: 900 !important; line-height: 1 !important; overflow: hidden !important; }
+    body.tv-mode .tv90-foot span { min-width: 0 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+    body.tv-mode .tv90-empty-screen { display: grid !important; place-items: center !important; min-height: 0 !important; border-radius: 24px !important; background: #fff !important; border: 1px solid #d8dee8 !important; color: #111827 !important; text-align: center !important; padding: 24px !important; }
+    body.tv-mode .tv90-empty-screen h2 { margin: 0 0 8px !important; font-size: clamp(28px, 2.2vw, 48px) !important; }
+    body.tv-mode .tv90-empty-screen p { margin: 0 !important; color: #6b7280 !important; font-weight: 900 !important; }
+    @media (max-width: 1100px) {
+      body.tv-mode,
+      body.tv-mode #app,
+      body.tv-mode .tv90-screen,
+      body.tv-mode .tv-wrap.tv90-screen { height: auto !important; min-height: 100vh !important; min-height: 100dvh !important; overflow: auto !important; }
+      body.tv-mode .tv90-grid { grid-template-columns: 1fr !important; height: auto !important; overflow: visible !important; }
+      body.tv-mode .tv90-group { height: auto !important; grid-template-rows: auto !important; }
+      body.tv-mode .tv90-lane { min-height: 72px !important; }
+    }
+
+  </style>
 </head>
 <body>
   <div id="app"></div>
@@ -9081,62 +9183,114 @@ function getTvWindowGroups(target) {
           </div>
         </div>
       `;
-    }    function renderTvStage() {
+    }    
+    function getTv90NameClass(name) {
+      const length = Array.from(String(name || "").trim()).length;
+      if (length <= 2) return "";
+      if (length <= 4) return "is-medium";
+      return "is-long";
+    }
+
+    function renderTv90Lane(player, group, isFinal, stageType = "normal", pointTotalsMap = {}) {
+      const lane = Number(player?.lane || 0) || "";
+      if (!player || player.isEmptyLane) {
+        return `
+          <div class="tv90-lane is-empty">
+            <div class="tv90-lane-meta"><div class="tv90-lane-main"><span class="tv90-lane-no">${escapeHtml(lane || "-")}</span><span class="tv90-lane-word">LANE</span></div><div class="tv90-rate">오늘 -</div></div>
+            <div class="tv90-player"><div class="tv90-name is-long">빈 레인</div><div class="tv90-team">대기</div></div>
+            <div class="tv90-h2h"><div class="tv90-h2h-title">최근 3개월 전적</div><div class="tv90-h2h-row">-</div></div>
+            <div class="tv90-result"></div>
+          </div>`;
+      }
+      const selected = (group?.advanceIds || []).includes(player.id);
+      const pointValue = Number(pointTotalsMap?.[player.id] ?? (group?.points || {})[player.id] ?? 0);
+      const resultText = stageType === "points" ? `${pointValue}P` : (selected ? (isFinal ? "최종" : "진출") : "");
+      const stats = getGroupMatchStatsForPlayer(player, group || {});
+      const rows = (stats.h2h || []).slice(0, 3).map(item => {
+        const label = item.matches ? `${item.name} ${item.wins}승 ${item.losses}패` : `${item.name} 전적없음`;
+        return `<div class="tv90-h2h-row" title="${escapeAttr(label)}">${escapeHtml(label)}</div>`;
+      }).join("") || `<div class="tv90-h2h-row">상대전적 없음</div>`;
+      const displayName = getTvDisplayNickname(player.name || "");
+      return `
+        <div class="tv90-lane ${selected ? "is-selected" : ""}">
+          <div class="tv90-lane-meta"><div class="tv90-lane-main"><span class="tv90-lane-no">${escapeHtml(lane)}</span><span class="tv90-lane-word">LANE</span></div><div class="tv90-rate">오늘 ${escapeHtml(getDisplayLaneWinRate(lane, player))}</div></div>
+          <div class="tv90-player"><div class="tv90-name ${getTv90NameClass(displayName)}" title="${escapeAttr(player.name || "")}">${escapeHtml(displayName || "-")}</div>${player.team ? `<div class="tv90-team" title="${escapeAttr(player.team)}">${escapeHtml(player.team)}</div>` : `<div class="tv90-team">팀명 없음</div>`}</div>
+          <div class="tv90-h2h"><div class="tv90-h2h-title">최근 3개월 전적</div>${rows}</div>
+          <div class="tv90-result">${escapeHtml(resultText)}</div>
+        </div>`;
+    }
+
+function renderTvStage() {
       const target = getBroadcastTarget(tvState);
+      document.body.classList.add("tv-mode");
       if (!target) {
-        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small></div><strong>대진표 없음</strong></div>${logoMarkup("tv-logo")}</div><div class="empty"><h2>현재 송출할 라운드가 없습니다.</h2></div><footer class="tv-foot"><span>BUILD v89 PC MOBILE LIVE LOBBY REBUILD</span></footer></div>`;
+        app.innerHTML = `
+          <div class="tv-wrap tv90-screen">
+            <header class="tv90-header">
+              <div class="tv90-brand">
+                <div class="tv90-kicker"><small>MINI4WD TOURNAMENT MAKER</small><span class="tv90-mode-pill">LIVE 대기</span></div>
+                <h1 class="tv90-title">대진표 없음</h1>
+                <div class="tv90-subtitle">현재 송출할 라운드가 없습니다.</div>
+              </div>
+              ${logoMarkup("tv90-logo")}
+            </header>
+            <section class="tv90-empty-screen"><div><h2>LIVE 대기중</h2><p>운영 화면에서 경기를 시작하면 자동으로 표시됩니다.</p></div></section>
+            <footer class="tv90-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v90 TV WHITE REBUILD</span></footer>
+          </div>`;
         return;
       }
       const windowInfo = getTvWindowGroups(target);
-      const currentGroups = [...windowInfo.groups];
-      while (currentGroups.length < 4) currentGroups.push({ id: `tv-placeholder-${currentGroups.length}`, name: `대기 ${windowInfo.startIndex + currentGroups.length + 1}조`, slots: [], advanceIds: [], isPlaceholder: true });
-      const columns = 4;
-      const shownCount = Math.min(windowInfo.groups.length, 4);
-      const modeLabel = windowInfo.mode === "pending" ? `진행 대기 · ${windowInfo.startIndex + 1}-${windowInfo.startIndex + shownCount}조` : `진행 포커스 · ${windowInfo.startIndex + 1}-${windowInfo.startIndex + shownCount}조`;
+      const currentGroups = [...(windowInfo.groups || [])];
+      const laneCount = Number(target.laneCount || state?.settings?.groupSize || 3) || 3;
+      while (currentGroups.length < 4) {
+        const nextNo = (windowInfo.startIndex || 0) + currentGroups.length + 1;
+        currentGroups.push({ id: `tv-placeholder-${currentGroups.length}`, name: `대기 ${nextNo}조`, slots: [], advanceIds: [], isPlaceholder: true, laneCount });
+      }
+      const shownCount = Math.min((windowInfo.groups || []).length || 0, 4);
+      const modeLabel = windowInfo.mode === "pending"
+        ? `진행 대기 · ${(windowInfo.startIndex || 0) + 1}-${(windowInfo.startIndex || 0) + Math.max(shownCount, 1)}조`
+        : `진행 포커스 · ${(windowInfo.startIndex || 0) + 1}-${(windowInfo.startIndex || 0) + Math.max(shownCount, 1)}조`;
       const tvTournamentName = target.tournamentName || tvState?.tournament?.name || "";
-      const pointLeadersHtml = renderTvPointLeaders(target);
+      const title = tvTournamentName || target.title || "LIVE";
+      const subtitle = tvTournamentName ? target.title : "LIVE 자동 송출";
       app.innerHTML = `
-        <div class="tv-wrap ${pointLeadersHtml ? "tv-wrap-has-leaders" : ""}">
-          <header class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><span class="tv-view-mode-note">${escapeHtml(modeLabel)}</span></div><strong>${escapeHtml(tvTournamentName || target.title)}</strong>${tvTournamentName ? `<div class="tv-stage-title">${escapeHtml(target.title)}</div>` : ""}</div>${logoMarkup("tv-logo")}</header>
-          <section class="tv-controls tv-controls-readonly"><div><b>LIVE 자동 송출</b> · 운영 화면 변경사항 자동 반영 · 버튼 조작 없음</div></section>
-          ${pointLeadersHtml}
-          <main class="tv-stage tv-stage-focus tv-stage-force-4col tv-stage-groups-${columns} tv-stage-${target.laneCount || 3}-lane" style="--tv-lane-count:${target.laneCount || 3}; grid-template-columns: repeat(4, minmax(0,1fr));">${currentGroups.slice(0, 4).map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap)).join("")}</main>
-          <footer class="tv-foot"><span>${target.laneCount} LANE · ${target.groups.length} GROUPS</span><span>BUILD v89 PC MOBILE LIVE LOBBY REBUILD</span></footer>
+        <div class="tv-wrap tv90-screen" data-tv-lanes="${laneCount}">
+          <header class="tv90-header">
+            <div class="tv90-brand">
+              <div class="tv90-kicker"><small>MINI4WD TOURNAMENT MAKER</small><span class="tv90-mode-pill">${escapeHtml(modeLabel)}</span></div>
+              <h1 class="tv90-title" title="${escapeAttr(title)}">${escapeHtml(title)}</h1>
+              <div class="tv90-subtitle" title="${escapeAttr(subtitle)}">${escapeHtml(subtitle)}</div>
+            </div>
+            ${logoMarkup("tv90-logo")}
+          </header>
+          <main class="tv90-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+            ${currentGroups.slice(0, 4).map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap, laneCount)).join("")}
+          </main>
+          <footer class="tv90-foot"><span>${escapeHtml(laneCount)} LANE · ${escapeHtml((target.groups || []).length)} GROUPS · LIVE 자동 송출</span><span>BUILD v90 TV WHITE REBUILD</span></footer>
         </div>`;
     }
 
 
-    function renderTvGroup(group, isFinal, stageType = "normal", pointTotalsMap = {}) {
+    function renderTvGroup(group, isFinal, stageType = "normal", pointTotalsMap = {}, laneCountOverride = null) {
+      const laneCount = Number(laneCountOverride || group?.laneCount || state?.settings?.groupSize || 3) || 3;
       if (group?.isPlaceholder) {
-        return `<article class="tv-group tv-group-placeholder"><div class="tv-group-title"><strong>${escapeHtml(group.name)}</strong><span class="badge">대기</span></div><div class="tv-placeholder-body">다음 조 대기</div></article>`;
+        return `
+          <article class="tv90-group tv90-placeholder" data-lanes="${laneCount}">
+            <div class="tv90-group-head"><div class="tv90-group-title">${escapeHtml(group.name || "대기")}</div><span class="tv90-badge">대기</span></div>
+            <div class="tv90-placeholder-body"><div>다음 경기 대기</div></div>
+          </article>`;
       }
+      const slots = Array.isArray(group?.slots) ? group.slots.slice(0, laneCount) : [];
+      while (slots.length < laneCount) slots.push({ id: `empty-${group?.id || "group"}-${slots.length + 1}`, lane: slots.length + 1, isEmptyLane: true, name: "빈 레인" });
+      const activeCount = slots.filter(slot => slot && !slot.isEmptyLane).length;
       return `
-        <article class="tv-group tv-group-${stageType || "stage"}">
-          <div class="tv-group-title">
-            <strong>${escapeHtml(group.name)}</strong>
-            <span class="badge">${group.slots.filter(slot => !slot.isEmptyLane).length}명 경기</span>
+        <article class="tv90-group tv90-group-${escapeAttr(stageType || "stage")}" data-lanes="${laneCount}">
+          <div class="tv90-group-head">
+            <div class="tv90-group-title" title="${escapeAttr(group?.name || "")}">${escapeHtml(group?.name || "경기")}</div>
+            <span class="tv90-badge">${activeCount}명 경기</span>
           </div>
-          ${group.slots.map(player => {
-            if (player.isEmptyLane) {
-              return `
-                <div class="tv-lane tv-empty-lane tv-lane-name-first">
-                  ${renderTvPlayerCore(player, group)}
-                  <div class="tv-adv"></div>
-                </div>
-              `;
-            }
-
-            const selected = (group.advanceIds || []).includes(player.id);
-            const pointValue = Number(pointTotalsMap[player.id] ?? (group.points || {})[player.id] ?? 0);
-            return `
-              <div class="tv-lane ${selected ? "selected" : ""} tv-lane-name-first">
-                ${renderTvPlayerCore(player, group)}
-                <div class="tv-adv ${stageType === "points" ? "tv-point-value" : ""}">${stageType === "points" ? `${pointValue}P` : (selected ? (isFinal ? "최종" : "진출") : "")}</div>
-              </div>
-            `;
-          }).join("")}
-        </article>
-      `;
+          ${slots.map(player => renderTv90Lane(player, group, isFinal, stageType, pointTotalsMap)).join("")}
+        </article>`;
     }
 
     function tvNextPage() {
@@ -11263,7 +11417,7 @@ function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
         <section class="live-summary-v89"><span>LIVE <b>${liveCount}</b></span><span>대기 <b>${waitingCount}</b></span><span>빈 슬롯 <b>${emptyCount}</b></span><small>${escapeHtml(nowText)} 기준</small></section>
         <main class="live-grid-v89">${cards.map(cardHtml).join("")}</main>
         <section class="live-history-v89"><h2>최근 경기 히스토리</h2><div class="history-list-v89">${historyHtml || `<div class="live-empty-note-v89">최근 경기 기록이 없습니다.</div>`}</div></section>
-        <footer class="live-footer-v89">BUILD v89 PC MOBILE LIVE LOBBY REBUILD</footer>
+        <footer class="live-footer-v89">BUILD v90 TV WHITE REBUILD</footer>
       </div>`;
     }
 
@@ -11367,7 +11521,7 @@ function stopLiveLobbyRealtimeV50() {
         if (received) return;
         if (viewType === "tv-live") {
           document.body.classList.add("tv-mode");
-          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v89 PC MOBILE LIVE LOBBY REBUILD</span></div></div>`;
+          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v90 TV WHITE REBUILD</span></div></div>`;
         } else {
           renderLiveLobbyPage();
         }
