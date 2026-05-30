@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v101 POINT HOTFIX SAFE PATCH</title>
-  <!-- v101 POINT HOTFIX SAFE PATCH · index-only · Rules/images/OG files unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v102 MOBILE TV LIVE SYNC HOTFIX</title>
+  <!-- v102 MOBILE TV LIVE SYNC HOTFIX · index-only · Rules/images/OG files unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -8035,7 +8035,7 @@
 
 
 
-    /* v101 POINT HOTFIX SAFE PATCH · final light surface pass for DB/operator/admin pages */
+    /* v102 MOBILE TV LIVE SYNC HOTFIX · final light surface pass for DB/operator/admin pages */
     body:not(.tv-mode) {
       background: #f4f7fb !important;
       color: #0f172a !important;
@@ -8287,7 +8287,7 @@
 
   
 
-    /* v101 POINT HOTFIX SAFE PATCH · round-final lane controls + broadcast transition hardening */
+    /* v102 MOBILE TV LIVE SYNC HOTFIX · round-final lane controls + broadcast transition hardening */
     body:not(.tv-mode) .round-final-manual-lane-group {
       border-color: rgba(216, 77, 137, .22) !important;
       background: #ffffff !important;
@@ -8354,7 +8354,7 @@
     }
 
 
-    /* v101 POINT HOTFIX SAFE PATCH · large roster usability */
+    /* v102 MOBILE TV LIVE SYNC HOTFIX · large roster usability */
     body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-layout-v98 {
       display: grid !important;
       grid-template-columns: minmax(320px, 380px) minmax(0, 1fr) !important;
@@ -11291,7 +11291,7 @@ function renderTvStage() {
               ${logoMarkup("tv90-logo")}
             </header>
             <section class="tv90-empty-screen"><div><h2>LIVE 대기중</h2><p>운영 화면에서 경기를 시작하면 자동으로 표시됩니다.</p></div></section>
-            <footer class="tv90-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v101 POINT HOTFIX SAFE PATCH</span></footer>
+            <footer class="tv90-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v102 MOBILE TV LIVE SYNC HOTFIX</span></footer>
           </div>`;
         return;
       }
@@ -11322,7 +11322,7 @@ function renderTvStage() {
           <main class="tv90-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
             ${currentGroups.slice(0, 4).map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap, laneCount)).join("")}
           </main>
-          <footer class="tv90-foot"><span>${escapeHtml(laneCount)} LANE · ${escapeHtml((target.groups || []).length)} GROUPS · LIVE 자동 송출</span><span>BUILD v101 POINT HOTFIX SAFE PATCH</span></footer>
+          <footer class="tv90-foot"><span>${escapeHtml(laneCount)} LANE · ${escapeHtml((target.groups || []).length)} GROUPS · LIVE 자동 송출</span><span>BUILD v102 MOBILE TV LIVE SYNC HOTFIX</span></footer>
         </div>`;
     }
 
@@ -12181,7 +12181,7 @@ function boot() {
         const profiles = snapshot.val() || {};
         syncPublicVenuesFromProfiles(profiles);
         const rows = Object.entries(profiles).sort((a,b) => String(a[1].email || "").localeCompare(String(b[1].email || "")));
-        app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar admin-actions-toolbar"><button class="ghost" onclick="renderAdminPage()">새로고침</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section><div class="admin-build-mark">BUILD v101 POINT HOTFIX SAFE PATCH</div></div>`;
+        app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar admin-actions-toolbar"><button class="ghost" onclick="renderAdminPage()">새로고침</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section><div class="admin-build-mark">BUILD v102 MOBILE TV LIVE SYNC HOTFIX</div></div>`;
       }).catch(error => alert(`사용자 목록 로드 실패: ${error.message || error}`));
     }
 
@@ -13578,7 +13578,7 @@ function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
         <section class="live-summary-v89"><span>LIVE <b>${liveCount}</b></span><span>대기 <b>${waitingCount}</b></span><span>빈 슬롯 <b>${emptyCount}</b></span><small>${escapeHtml(nowText)} 기준</small></section>
         <main class="live-grid-v89">${cards.map(cardHtml).join("")}</main>
         <section class="live-history-v89"><h2>최근 경기 히스토리</h2><div class="history-list-v89">${historyHtml || `<div class="live-empty-note-v89">최근 경기 기록이 없습니다.</div>`}</div></section>
-        <footer class="live-footer-v89">BUILD v101 POINT HOTFIX SAFE PATCH</footer>
+        <footer class="live-footer-v89">BUILD v102 MOBILE TV LIVE SYNC HOTFIX</footer>
       </div>`;
     }
 
@@ -13682,7 +13682,7 @@ function stopLiveLobbyRealtimeV50() {
         if (received) return;
         if (viewType === "tv-live") {
           document.body.classList.add("tv-mode");
-          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v101 POINT HOTFIX SAFE PATCH</span></div></div>`;
+          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v102 MOBILE TV LIVE SYNC HOTFIX</span></div></div>`;
         } else {
           renderLiveLobbyPage();
         }
@@ -13939,6 +13939,268 @@ function stopLiveLobbyRealtimeV50() {
 
 
 
+
+
+    /* v102 mobile performance + TV live immediate sync hotfix */
+    (function installV102MobileTvLiveSyncHotfix(){
+      if (window.__mini4wdV102MobileTvLiveSyncHotfixInstalled) return;
+      window.__mini4wdV102MobileTvLiveSyncHotfixInstalled = true;
+
+      const V102_BUILD_MARK = "BUILD v102 MOBILE TV LIVE SYNC HOTFIX";
+      let v102PendingLocalSaveTimer = null;
+      let v102LastLocalSaveAt = 0;
+      let v102LastLocalJson = "";
+      let v102SyncInFlight = false;
+      let v102LastImmediateSyncAt = 0;
+
+      function v102IsMobileRuntime() {
+        try {
+          return Boolean(window.matchMedia && window.matchMedia("(max-width: 760px)").matches);
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function v102PrepareStateForSave() {
+        try {
+          if (!state || !state.tournament) return null;
+          ensureStateDefaults();
+          state.updatedAt = Date.now();
+          state.activeRoundIndex = activeRoundIndex;
+          if (state.tournament.status === "running") {
+            state.settings.firebaseAutoSave = true;
+            activateAutoLiveSession(false);
+          }
+          return exportState();
+        } catch (error) {
+          console.warn("v102 prepare state failed", error);
+          return null;
+        }
+      }
+
+      function v102WriteLocalState(reason = "local") {
+        const payload = v102PrepareStateForSave();
+        if (!payload) return false;
+        try {
+          const json = JSON.stringify(payload);
+          if (json !== v102LastLocalJson) {
+            localStorage.setItem(STORAGE_KEY, json);
+            localStorage.setItem("mini4wdTournamentLastSafeStateV102", json);
+            localStorage.setItem("mini4wdTournamentLastSafeStateV102Reason", String(reason));
+            localStorage.setItem("mini4wdTournamentLastSafeStateV102At", new Date().toISOString());
+            v102LastLocalJson = json;
+          }
+          v102LastLocalSaveAt = Date.now();
+          return true;
+        } catch (error) {
+          console.warn("v102 local save failed", error);
+          return false;
+        }
+      }
+
+      function v102ScheduleLocalAndFirebaseSave(reason = "render") {
+        const mobileDelay = v102IsMobileRuntime() ? 850 : 260;
+        const now = Date.now();
+        clearTimeout(v102PendingLocalSaveTimer);
+        if (!v102IsMobileRuntime() && now - v102LastLocalSaveAt > 320) {
+          v102WriteLocalState(reason);
+          if (state?.tournament?.status === "running") queueFirebaseSave();
+          return;
+        }
+        v102PendingLocalSaveTimer = setTimeout(() => {
+          v102WriteLocalState(reason);
+          if (state?.tournament?.status === "running") queueFirebaseSave();
+        }, mobileDelay);
+      }
+
+      window.syncLiveNowV102 = function syncLiveNowV102(reason = "manual") {
+        const payload = v102PrepareStateForSave();
+        if (!payload) return Promise.resolve(false);
+        v102WriteLocalState(`sync:${reason}`);
+
+        if (payload.tournament?.status !== "running" && payload.tournament?.status !== "finished" && payload.tournament?.status !== "archived") {
+          return Promise.resolve(false);
+        }
+        const db = initFirebase();
+        if (!db || !window.firebase || !firebase.database) {
+          firebaseOnline = false;
+          window.__mini4wdFirebaseLastError = "Firebase 연결 준비 안됨";
+          return Promise.resolve(false);
+        }
+
+        const now = Date.now();
+        if (v102SyncInFlight && now - v102LastImmediateSyncAt < 220) return Promise.resolve(false);
+        v102SyncInFlight = true;
+        v102LastImmediateSyncAt = now;
+
+        const tournamentId = getCurrentTournamentId();
+        const privateState = exportState();
+        privateState.updatedAt = Date.now();
+        privateState.activeRoundIndex = activeRoundIndex;
+        const publicLive = makePublicLivePayload(privateState);
+        publicLive.state = privateState;
+        publicLive.updatedAt = privateState.updatedAt;
+        publicLive.lastSyncReason = reason;
+
+        const updates = {};
+        updates[`tournaments/${tournamentId}/state`] = privateState;
+        updates[`tournaments/${tournamentId}/updatedAt`] = firebase.database.ServerValue.TIMESTAMP;
+        updates[`${PUBLIC_LIVE_PATH}/${tournamentId}`] = publicLive;
+
+        return db.ref().update(updates).then(() => {
+          firebaseOnline = true;
+          window.__mini4wdFirebaseLastSavedAt = Date.now();
+          window.__mini4wdFirebaseLastError = "";
+          window.__mini4wdLastTvLiveSyncV102 = { tournamentId, reason, at: new Date().toISOString(), broadcast: privateState.broadcast, activeRoundIndex };
+          return true;
+        }).catch(error => {
+          firebaseOnline = false;
+          window.__mini4wdFirebaseLastError = error?.message || String(error);
+          console.warn("v102 immediate live sync failed", error);
+          return false;
+        }).finally(() => {
+          v102SyncInFlight = false;
+        });
+      };
+
+      const v102OriginalSaveLiveState = typeof saveLiveState === "function" ? saveLiveState : null;
+      saveLiveState = function saveLiveStateV102() {
+        try {
+          ensureStateDefaults();
+          state.updatedAt = Date.now();
+          state.activeRoundIndex = activeRoundIndex;
+          if (state.tournament.status === "running") {
+            state.settings.firebaseAutoSave = true;
+            activateAutoLiveSession(false);
+          }
+          v102ScheduleLocalAndFirebaseSave("saveLiveState");
+        } catch (error) {
+          console.warn("v102 saveLiveState failed; falling back", error);
+          if (v102OriginalSaveLiveState) return v102OriginalSaveLiveState.apply(this, arguments);
+        }
+      };
+
+      function v102WrapAction(name, syncReason, delay = 40) {
+        const original = window[name] || (typeof globalThis !== "undefined" ? globalThis[name] : null);
+        if (typeof original !== "function" || original.__v102Wrapped) return;
+        const wrapped = function v102WrappedAction() {
+          const result = original.apply(this, arguments);
+          setTimeout(() => {
+            try { window.syncLiveNowV102(syncReason || name); } catch (error) { console.warn(`v102 sync after ${name} failed`, error); }
+          }, delay);
+          return result;
+        };
+        wrapped.__v102Wrapped = true;
+        try { window[name] = wrapped; } catch (error) { /* ignore */ }
+        try { eval(`${name} = wrapped`); } catch (error) { /* ignore */ }
+      }
+
+      [
+        ["startTournament", "startTournament", 80],
+        ["startAllFirstStages", "startAllFirstStages", 80],
+        ["setBroadcastStage", "setBroadcastStage", 40],
+        ["createNextStage", "createNextStage", 90],
+        ["createPointNextStage", "createPointNextStage", 90],
+        ["goToNextRoundAfterFinalist", "goToNextRoundAfterFinalist", 90],
+        ["confirmRoundFinalist", "confirmRoundFinalist", 120],
+        ["toggleAdvance", "toggleAdvance", 70],
+        ["setPointScore", "setPointScore", 120],
+        ["forceStageLane", "forceStageLane", 70]
+      ].forEach(args => v102WrapAction(...args));
+
+      const v102OriginalFlushBeforeUnload = typeof flushStateBeforeUnloadV95 === "function" ? flushStateBeforeUnloadV95 : null;
+      if (v102OriginalFlushBeforeUnload && !window.__mini4wdV102UnloadFlushWrapped) {
+        window.__mini4wdV102UnloadFlushWrapped = true;
+        const wrappedFlush = function flushStateBeforeUnloadV102(reason = "pagehide") {
+          v102WriteLocalState(`unload:${reason}`);
+          return v102OriginalFlushBeforeUnload.apply(this, arguments);
+        };
+        try { window.flushStateBeforeUnloadV95 = wrappedFlush; } catch (error) { /* ignore */ }
+        try { eval("flushStateBeforeUnloadV95 = wrappedFlush"); } catch (error) { /* ignore */ }
+      }
+
+      const v102OriginalWatchFirebaseState = typeof watchFirebaseState === "function" ? watchFirebaseState : null;
+      if (v102OriginalWatchFirebaseState && !v102OriginalWatchFirebaseState.__v102Wrapped) {
+        const wrappedWatch = function watchFirebaseStateV102(viewType) {
+          if (viewType !== "tv-live" && viewType !== "mobile-live") return v102OriginalWatchFirebaseState.apply(this, arguments);
+          const db = initFirebase();
+          if (!db) {
+            if (viewType === "mobile-live") renderLiveLobbyPage();
+            return;
+          }
+          try { stopLiveLobbyRealtimeV50(); } catch (error) { /* ignore */ }
+          const params = getHashParams();
+          const requestedId = params.get("t") || params.get("tournamentId") || "";
+          if (!requestedId) {
+            renderLiveLobbyPage();
+            return;
+          }
+          const tournamentId = normalizeKey(String(requestedId)) || requestedId;
+          let lastAppliedUpdatedAt = 0;
+          let received = false;
+
+          const fallback = setTimeout(() => {
+            if (received) return;
+            if (viewType === "tv-live") {
+              document.body.classList.add("tv-mode");
+              app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>${V102_BUILD_MARK}</span></div></div>`;
+            } else {
+              renderLiveLobbyPage();
+            }
+          }, 3600);
+
+          const applyPayload = payload => {
+            if (!payload) return;
+            const nextUpdatedAt = Number(payload.updatedAt || 0);
+            if (lastAppliedUpdatedAt && nextUpdatedAt && nextUpdatedAt < lastAppliedUpdatedAt) return;
+            lastAppliedUpdatedAt = nextUpdatedAt || Date.now();
+            received = true;
+            clearTimeout(fallback);
+            if (viewType === "tv-live") {
+              tvState = payload;
+              document.body.classList.add("tv-mode");
+              renderTvStage();
+            } else {
+              renderTvSnapshot(payload, "mobile");
+            }
+          };
+
+          const bind = (path, mapper = value => value) => {
+            const ref = db.ref(path);
+            const cb = snapshot => applyPayload(mapper(snapshot.val()));
+            ref.on("value", cb, error => console.warn(`v102 live watch failed: ${path}`, error));
+            if (typeof __watchRefsV49 !== "undefined") __watchRefsV49.push({ ref, cb });
+          };
+
+          bind(`${PUBLIC_LIVE_PATH}/${tournamentId}/state`);
+          bind(`${PUBLIC_LIVE_PATH}/${tournamentId}`, value => value?.state || null);
+          bind(`tournaments/${tournamentId}/state`);
+        };
+        wrappedWatch.__v102Wrapped = true;
+        try { window.watchFirebaseState = wrappedWatch; } catch (error) { /* ignore */ }
+        try { eval("watchFirebaseState = wrappedWatch"); } catch (error) { /* ignore */ }
+      }
+
+      window.runV102HotfixAudit = function runV102HotfixAudit() {
+        const report = {
+          version: "v102-mobile-tv-live-sync-hotfix",
+          checkedAt: new Date().toISOString(),
+          ok: true,
+          mobileSaveThrottle: true,
+          immediateTvLiveSync: typeof window.syncLiveNowV102 === "function",
+          liveWatchFallbackPaths: [
+            `${PUBLIC_LIVE_PATH}/{id}/state`,
+            `${PUBLIC_LIVE_PATH}/{id}`,
+            "tournaments/{id}/state"
+          ],
+          build: V102_BUILD_MARK
+        };
+        window.__mini4wdV102HotfixAudit = report;
+        return report;
+      };
+    })();
+
+
     /* v85 production rebase audit: whole-project static/runtime guard */
     function runProductionAuditV85() {
       const required = [
@@ -14013,6 +14275,7 @@ function stopLiveLobbyRealtimeV50() {
     try { runCommercialSelfAuditV58(); } catch (error) { console.warn("commercial audit failed", error); }
     try { runProductionAuditV85(); } catch (error) { console.warn("v85 production audit failed", error); }
     try { runFinalPracticeAuditV95(); } catch (error) { console.warn("v95 final practice audit failed", error); }
+    try { runV102HotfixAudit(); } catch (error) { console.warn("v102 hotfix audit failed", error); }
     bootV33();
 
   </script>
