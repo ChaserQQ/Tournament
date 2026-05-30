@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v80 TV LIVE 4-COLUMN FINAL</title>
-  <!-- v80 TV LIVE 4-COLUMN FINAL · index-only · Rules/images/OG files unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v85 PRODUCTION REBASE AUDIT</title>
+  <!-- v84 FULL AUDIT STABLE FINAL · index-only · Rules/images/OG files unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -5564,7 +5564,7 @@
     }
 
 
-    /* v78 TV LIVE TEXT FIT PATCH · lane label smaller, nickname vertical clipping guard */
+    /* v81 LIVE STRUCTURE FINAL · lane label smaller, nickname vertical clipping guard */
     body.tv-mode .tv-lane-meta {
       gap: .30em !important;
       min-height: clamp(8px, .58vw, 12px) !important;
@@ -5660,67 +5660,601 @@
     }
 
 
-    /* v80 TV LIVE 4-COLUMN FINAL · fixed 4 columns regardless of real group count */
-    body.tv-mode .tv-stage-force-4col,
-    body.tv-mode .tv-stage.tv-stage-force-4col,
-    body.tv-mode .tv-stage-groups-4.tv-stage-force-4col {
-      width: 100% !important;
-      height: 100% !important;
-      min-height: 0 !important;
-      max-height: 100% !important;
-      display: grid !important;
-      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-      grid-auto-columns: minmax(0, 1fr) !important;
-      grid-auto-flow: column !important;
-      gap: clamp(5px, .62vw, 10px) !important;
-      overflow: hidden !important;
+
+    /* v81 LIVE STRUCTURE FINAL · lobby version choice + automatic broadcast */
+    .live-lobby-choice { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:8px !important; width:100% !important; margin-top:10px !important; }
+    .live-lobby-choice button { width:100% !important; min-height:44px !important; white-space:nowrap !important; }
+    .tv-controls-readonly { justify-content:flex-start !important; }
+    body.tv-mode .tv-stage-force-4col { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
+    body.tv-mode .tv-group-placeholder { opacity:.42 !important; border-style:dashed !important; }
+    body.tv-mode .tv-placeholder-body { display:grid !important; place-items:center !important; height:100% !important; color:rgba(238,233,223,.52) !important; font-size:clamp(14px,1.1vw,24px) !important; font-weight:1000 !important; }
+    body.tv-mode .tv-stage-force-4col .tv-player-line-vertical { grid-template-columns:minmax(0,1.18fr) minmax(82px,.72fr) !important; }
+    body.tv-mode .tv-stage-force-4col .tv-player-identity-block > .name-fit-short { font-size:clamp(23px,2.25vw,42px) !important; }
+    body.tv-mode .tv-stage-force-4col .tv-player-identity-block > .name-fit-medium { font-size:clamp(21px,2vw,36px) !important; }
+    body.tv-mode .tv-stage-force-4col .tv-player-identity-block > .name-fit-tv-truncated { font-size:clamp(18px,1.72vw,31px) !important; }
+    body.tv-mode .tv-stage-force-4col .tv-h2h-title, body.tv-mode .tv-stage-force-4col .tv-h2h-line, body.tv-mode .tv-stage-force-4col .tv-lane-meta strong, body.tv-mode .tv-stage-force-4col .tv-lane-meta span { font-size:clamp(7px,.52vw,9.5px) !important; }
+    @media (max-width:960px) { body.tv-mode .tv-stage-force-4col { grid-template-columns:repeat(4,minmax(0,1fr)) !important; overflow:hidden !important; } body.tv-mode .tv-stage-force-4col .tv-group { height:100% !important; grid-template-rows:auto repeat(var(--tv-lane-count,5),minmax(0,1fr)) !important; } }
+
+
+    /* v82 LIVE default + DB bulk/filter/sort tools */
+    .db-filter-actions {
+      display: flex !important;
+      flex-wrap: wrap;
+      gap: 8px !important;
+      justify-content: flex-end;
     }
-    body.tv-mode .tv-stage-force-4col .tv-group {
-      min-width: 0 !important;
-      width: 100% !important;
+    .db-bulk-toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      margin: 0 0 12px;
+      padding: 10px;
+      border: 1px solid rgba(238,233,223,.08);
+      border-radius: 16px;
+      background: rgba(238,233,223,.035);
+    }
+    .db-checkline {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin: 0 0 4px;
+      color: var(--text);
+      font-weight: 1000;
+    }
+    .db-bulk-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+    .db-bulk-buttons button,
+    .table-sort-btn {
+      min-height: 32px !important;
+      padding: 6px 8px !important;
+      border-radius: 10px !important;
+      font-size: 11px !important;
+      white-space: nowrap !important;
+    }
+    .table-sort-btn {
+      width: 100%;
+      justify-content: flex-start;
+      background: transparent !important;
+      border-color: transparent !important;
+      color: var(--muted) !important;
+    }
+    .live-sync-actions {
+      grid-template-columns: 1fr !important;
+    }
+    @media (max-width: 760px) {
+      .db-filter-actions,
+      .db-bulk-toolbar,
+      .db-bulk-buttons {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        justify-content: stretch !important;
+      }
+      .db-filter-actions input,
+      .db-filter-actions select,
+      .db-bulk-buttons button {
+        width: 100% !important;
+      }
+    }
+
+  
+
+    /* v84 FULL AUDIT STABLE FINAL · PC/MOBILE/TV role-based polish */
+    :root {
+      --ux-radius-lg: 24px;
+      --ux-radius-md: 18px;
+      --ux-radius-sm: 12px;
+      --ux-gap-lg: 18px;
+      --ux-gap-md: 12px;
+      --ux-gap-sm: 8px;
+      --ux-surface: rgba(7,16,13,.78);
+      --ux-surface-2: rgba(238,233,223,.045);
+      --ux-border: rgba(238,233,223,.10);
+      --ux-focus: 0 0 0 3px rgba(216,77,137,.26);
+    }
+    body:not(.tv-mode) {
+      overflow-x: hidden !important;
+    }
+    body:not(.tv-mode) .wrap,
+    body:not(.tv-mode) .db-page {
+      max-width: 1440px !important;
+      margin: 0 auto !important;
+      padding: clamp(14px, 2vw, 28px) clamp(12px, 2vw, 26px) 84px !important;
+    }
+    body:not(.tv-mode) .header {
+      min-height: 116px !important;
+      align-items: center !important;
+      gap: 18px !important;
+      border-radius: var(--ux-radius-lg) !important;
+      border-color: var(--ux-border) !important;
+    }
+    body:not(.tv-mode) .header-copy { min-width: 0 !important; }
+    body:not(.tv-mode) h1 {
       max-width: 100% !important;
+      overflow-wrap: anywhere !important;
+      word-break: keep-all !important;
     }
-    body.tv-mode .tv-stage-force-4col .tv-group:nth-of-type(n+5) {
-      display: none !important;
+    button,
+    .upload-button,
+    input,
+    select,
+    textarea {
+      transition: border-color .14s ease, box-shadow .14s ease, transform .12s ease, background .14s ease !important;
     }
-    body.tv-mode .tv-stage-force-4col .tv-placeholder-group {
-      opacity: .34 !important;
-      border-style: dashed !important;
+    button:hover,
+    .upload-button:hover { transform: translateY(-1px); }
+    button:focus-visible,
+    .upload-button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+      outline: 0 !important;
+      box-shadow: var(--ux-focus) !important;
+      border-color: rgba(216,77,137,.64) !important;
     }
-    body.tv-mode .tv-stage-force-4col .tv-placeholder-group .tv-group-title strong {
-      color: rgba(238,233,223,.44) !important;
+    body:not(.tv-mode) .card,
+    body:not(.tv-mode) .round-card,
+    body:not(.tv-mode) .stage-card,
+    body:not(.tv-mode) .final-box {
+      border-color: var(--ux-border) !important;
+      background: linear-gradient(180deg, rgba(15,28,22,.92), rgba(6,14,11,.94)) !important;
     }
-    body.tv-mode .tv-stage-force-4col .tv-placeholder-group .badge {
-      opacity: .55 !important;
+
+    /* PC operator: keep controls visible, reduce scanning cost */
+    @media (min-width: 1181px) {
+      body.ux-desktop .layout {
+        grid-template-columns: minmax(0, 1fr) 372px !important;
+        gap: 22px !important;
+      }
+      body.ux-desktop .side-area {
+        position: sticky !important;
+        top: 18px !important;
+        max-height: calc(100vh - 36px) !important;
+        overflow: auto !important;
+        padding-right: 2px !important;
+      }
+      body.ux-desktop .main-area > .toolbar,
+      body.ux-desktop .status-panel {
+        position: sticky !important;
+        top: 12px !important;
+        z-index: 50 !important;
+        backdrop-filter: blur(12px) !important;
+      }
+      body.ux-desktop .groups {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+      }
+      body.ux-desktop .db-grid {
+        grid-template-columns: minmax(330px, 380px) minmax(0, 1fr) !important;
+        gap: 22px !important;
+        align-items: start !important;
+      }
+      body.ux-desktop .db-grid > aside {
+        position: sticky !important;
+        top: 18px !important;
+        max-height: calc(100vh - 36px) !important;
+        overflow: auto !important;
+        padding-right: 2px !important;
+      }
+      body.ux-desktop .roster-table-wrap {
+        max-height: calc(100vh - 330px) !important;
+        overflow: auto !important;
+      }
+      body.ux-desktop .roster-table th {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 2 !important;
+      }
     }
-    body.tv-mode .tv-stage-force-4col .tv-lane-meta strong {
-      font-size: clamp(5.8px, .42vw, 8px) !important;
-      line-height: 1.08 !important;
+
+    /* Tablet: two-column where useful, no horizontal overflow */
+    @media (min-width: 761px) and (max-width: 1180px) {
+      body:not(.tv-mode) .layout,
+      body:not(.tv-mode) .db-grid {
+        grid-template-columns: 1fr !important;
+      }
+      body:not(.tv-mode) .side-area,
+      body:not(.tv-mode) .db-grid > aside {
+        position: static !important;
+        max-height: none !important;
+        overflow: visible !important;
+      }
+      body:not(.tv-mode) .groups {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+      body:not(.tv-mode) .live-lobby-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
     }
-    body.tv-mode .tv-stage-force-4col .tv-player-identity-block > .player-name-fit,
-    body.tv-mode .tv-stage-force-4col .tv-player-identity-block > strong:not(.player-name-fit) {
-      line-height: 1.12 !important;
-      padding: .04em 0 .08em !important;
-      transform: none !important;
+
+    /* Mobile operator: one-handed operation, card lists, large touch targets */
+    @media (max-width: 760px) {
+      body:not(.tv-mode) .wrap,
+      body:not(.tv-mode) .db-page,
+      body:not(.tv-mode) .mobile-view {
+        padding: 10px 10px calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+      }
+      body:not(.tv-mode) .header {
+        min-height: 0 !important;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        padding: 13px !important;
+        border-radius: 18px !important;
+        gap: 10px !important;
+        margin-bottom: 10px !important;
+      }
+      body:not(.tv-mode) .header-logo,
+      body:not(.tv-mode) .credit-mark.header-logo {
+        position: static !important;
+        width: auto !important;
+        min-width: 92px !important;
+        max-width: 118px !important;
+        max-height: 54px !important;
+        opacity: .84 !important;
+        justify-self: end !important;
+      }
+      body:not(.tv-mode) .brand-line {
+        gap: 5px !important;
+        margin-bottom: 5px !important;
+      }
+      body:not(.tv-mode) .eyebrow { font-size: 10px !important; letter-spacing: .08em !important; }
+      body:not(.tv-mode) .maker { font-size: 10px !important; padding-left: 6px !important; }
+      body:not(.tv-mode) h1 { font-size: 19px !important; line-height: 1.12 !important; }
+      body:not(.tv-mode) .desc { display: none !important; }
+      body:not(.tv-mode) .layout,
+      body:not(.tv-mode) .db-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+      }
+      body:not(.tv-mode) .side-area,
+      body:not(.tv-mode) .db-grid > aside,
+      body:not(.tv-mode) .selected-box {
+        position: static !important;
+        max-height: none !important;
+        overflow: visible !important;
+      }
+      body:not(.tv-mode) .card,
+      body:not(.tv-mode) .round-card,
+      body:not(.tv-mode) .stage-card,
+      body:not(.tv-mode) .final-box {
+        padding: 11px !important;
+        border-radius: 16px !important;
+        margin-bottom: 10px !important;
+      }
+      body:not(.tv-mode) .toolbar,
+      body:not(.tv-mode) .db-actions-toolbar,
+      body:not(.tv-mode) .dashboard-nav-actions,
+      body:not(.tv-mode) .section-toolbar,
+      body:not(.tv-mode) .auth-actions,
+      body:not(.tv-mode) .firebase-actions {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 7px !important;
+        width: 100% !important;
+      }
+      body:not(.tv-mode) .toolbar .grow { display: none !important; }
+      body:not(.tv-mode) button,
+      body:not(.tv-mode) .upload-button,
+      body:not(.tv-mode) input,
+      body:not(.tv-mode) select {
+        min-height: 42px !important;
+        width: 100%;
+      }
+      body:not(.tv-mode) .mini-input,
+      body:not(.tv-mode) input[type="number"],
+      body:not(.tv-mode) select,
+      body:not(.tv-mode) textarea {
+        font-size: 16px !important; /* prevent iOS/Android zoom */
+      }
+      body:not(.tv-mode) .form-grid,
+      body:not(.tv-mode) .db-stat-grid,
+      body:not(.tv-mode) .stats,
+      body:not(.tv-mode) .finalist-grid {
+        grid-template-columns: 1fr !important;
+      }
+      body:not(.tv-mode) .groups,
+      body:not(.tv-mode) .live-lobby-grid {
+        grid-template-columns: 1fr !important;
+        gap: 9px !important;
+      }
+      body:not(.tv-mode) .group,
+      body:not(.tv-mode) .live-lobby-card {
+        border-radius: 15px !important;
+        padding: 10px !important;
+      }
+      body:not(.tv-mode) .slot {
+        min-height: 48px !important;
+        padding: 8px !important;
+      }
+      body:not(.tv-mode) .player-info-name-first-card {
+        grid-template-columns: minmax(0, 1fr) !important;
+      }
+      body:not(.tv-mode) .slot-h2h-rows {
+        display: none !important;
+      }
+      body:not(.tv-mode) .live-lobby-choice {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 8px !important;
+        width: 100% !important;
+      }
+      body:not(.tv-mode) .live-lobby-card h3 {
+        font-size: 17px !important;
+        line-height: 1.22 !important;
+      }
+      body:not(.tv-mode) .live-lobby-meta,
+      body:not(.tv-mode) .live-lobby-result small {
+        font-size: 12px !important;
+        line-height: 1.4 !important;
+      }
+      body:not(.tv-mode) .db-filter-actions {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        width: 100% !important;
+      }
+      body:not(.tv-mode) .db-filter-actions input,
+      body:not(.tv-mode) .db-filter-actions select {
+        width: 100% !important;
+      }
+      body:not(.tv-mode) .db-bulk-toolbar {
+        display: grid !important;
+        gap: 8px !important;
+        padding: 9px !important;
+        border-radius: 14px !important;
+      }
+      body:not(.tv-mode) .db-bulk-buttons {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 7px !important;
+      }
+      body:not(.tv-mode) .roster-table-wrap {
+        border: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+      }
+      body:not(.tv-mode) .roster-table,
+      body:not(.tv-mode) .roster-table tbody,
+      body:not(.tv-mode) .roster-table tr,
+      body:not(.tv-mode) .roster-table td {
+        display: block !important;
+        width: 100% !important;
+      }
+      body:not(.tv-mode) .roster-table thead { display: none !important; }
+      body:not(.tv-mode) .roster-table tbody { display: grid !important; gap: 9px !important; }
+      body:not(.tv-mode) .roster-table tr {
+        padding: 10px !important;
+        border: 1px solid var(--ux-border) !important;
+        border-radius: 16px !important;
+        background: var(--ux-surface) !important;
+      }
+      body:not(.tv-mode) .roster-table td {
+        display: grid !important;
+        grid-template-columns: 76px minmax(0, 1fr) !important;
+        align-items: center !important;
+        gap: 8px !important;
+        padding: 7px 0 !important;
+        border-bottom: 1px solid rgba(238,233,223,.065) !important;
+      }
+      body:not(.tv-mode) .roster-table td:last-child { border-bottom: 0 !important; }
+      body:not(.tv-mode) .roster-table td::before {
+        content: attr(data-label) !important;
+        color: var(--dim) !important;
+        font-size: 11px !important;
+        font-weight: 1000 !important;
+      }
+      body:not(.tv-mode) .stage-progress-dock {
+        position: sticky !important;
+        bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+        z-index: 90 !important;
+      }
+    }
+
+    /* TV remains its own environment: no mobile collapse, fixed readable viewport */
+    body.tv-mode .tv-stage-force-4col,
+    body.tv-mode .tv-stage-groups-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
     }
     @media (max-width: 960px) {
+      body.tv-mode .tv-wrap {
+        width: 100vw !important;
+        height: 100vh !important;
+        overflow: hidden !important;
+      }
+      body.tv-mode .tv-stage,
       body.tv-mode .tv-stage-force-4col,
-      body.tv-mode .tv-stage.tv-stage-force-4col,
-      body.tv-mode .tv-stage-groups-4.tv-stage-force-4col {
+      body.tv-mode .tv-stage-groups-4 {
         grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
         overflow: hidden !important;
       }
-      body.tv-mode .tv-stage-force-4col .tv-group {
+      body.tv-mode .tv-group {
         height: 100% !important;
         grid-template-rows: auto repeat(var(--tv-lane-count, 5), minmax(0, 1fr)) !important;
       }
-      body.tv-mode .tv-stage-force-4col .tv-lane {
-        min-height: 0 !important;
+    }
+
+  
+
+    /* v84 FULL AUDIT STABLE FINAL · consolidated runtime guardrails */
+    .live-lobby-choice {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 8px !important;
+      margin-top: 10px !important;
+    }
+    .live-lobby-choice button { width: 100% !important; min-height: 44px !important; }
+    .live-lobby-action[disabled] { cursor: default !important; }
+    .db-filter-actions,
+    .db-bulk-toolbar,
+    .db-bulk-buttons {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+      align-items: center !important;
+      min-width: 0 !important;
+    }
+    .db-bulk-toolbar {
+      justify-content: space-between !important;
+      padding: 10px !important;
+      margin: 10px 0 !important;
+      border: 1px solid rgba(238,233,223,.08) !important;
+      border-radius: 16px !important;
+      background: rgba(238,233,223,.03) !important;
+    }
+    .db-checkline { display: inline-flex !important; align-items: center !important; gap: 7px !important; margin: 0 !important; }
+    .table-sort-btn { min-height: 28px !important; padding: 5px 7px !important; border-radius: 8px !important; font-size: 12px !important; }
+    body.tv-mode .tv-stage-force-4col {
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+    body.tv-mode .tv-group-placeholder {
+      opacity: .5 !important;
+      border-style: dashed !important;
+    }
+    body.tv-mode .tv-placeholder-body {
+      display: grid !important;
+      place-items: center !important;
+      min-height: 0 !important;
+      height: 100% !important;
+      color: rgba(238,233,223,.48) !important;
+      font-weight: 1000 !important;
+      font-size: clamp(14px, 1.2vw, 22px) !important;
+    }
+    @media (min-width: 961px) {
+      body.tv-mode .tv-stage-force-4col { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+    }
+    @media (max-width: 760px) {
+      .live-lobby-choice { grid-template-columns: 1fr !important; }
+      .db-filter-actions,
+      .db-bulk-toolbar,
+      .db-bulk-buttons { display: grid !important; grid-template-columns: 1fr !important; width: 100% !important; }
+      .db-filter-actions input,
+      .db-filter-actions select,
+      .db-bulk-buttons button { width: 100% !important; }
+      .roster-table td { grid-template-columns: 74px minmax(0,1fr) !important; }
+    }
+
+  
+
+    /* v85 PRODUCTION REBASE · final consolidated UX guardrails */
+    body:not(.tv-mode) .wrap,
+    body:not(.tv-mode) .db-page {
+      max-width: 1480px !important;
+    }
+    body:not(.tv-mode) .layout {
+      grid-template-columns: minmax(0, 1fr) 380px !important;
+      align-items: start !important;
+    }
+    body:not(.tv-mode) .side-area {
+      position: sticky !important;
+      top: 14px !important;
+      max-height: calc(100vh - 28px) !important;
+      overflow: auto !important;
+      scrollbar-width: thin;
+    }
+    body:not(.tv-mode) .toolbar,
+    body:not(.tv-mode) .section-toolbar,
+    body:not(.tv-mode) .db-actions,
+    body:not(.tv-mode) .firebase-actions {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+      align-items: center !important;
+    }
+    body:not(.tv-mode) button,
+    body:not(.tv-mode) .upload-button {
+      min-height: 40px !important;
+      line-height: 1.15 !important;
+    }
+    body:not(.tv-mode) .roster-table-wrap {
+      max-height: calc(100vh - 260px) !important;
+      overflow: auto !important;
+    }
+    body:not(.tv-mode) .roster-table th {
+      top: 0 !important;
+      z-index: 3 !important;
+    }
+    body:not(.tv-mode) .live-lobby-grid {
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+    }
+    body.tv-mode .tv-stage,
+    body.tv-mode .tv-stage-force-4col {
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+    body.tv-mode .tv-stage-groups-1,
+    body.tv-mode .tv-stage-groups-2,
+    body.tv-mode .tv-stage-groups-3,
+    body.tv-mode .tv-stage-groups-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+    body.tv-mode .tv-group {
+      min-width: 0 !important;
+    }
+    body.tv-mode .tv-player-identity-block > .player-name-fit,
+    body.tv-mode .tv-player-identity-block > strong {
+      text-overflow: clip !important;
+      padding-top: .02em !important;
+      padding-bottom: .08em !important;
+    }
+    body.tv-mode .tv-lane-meta strong,
+    body.tv-mode .tv-lane-meta span {
+      font-size: clamp(7px, .52vw, 10px) !important;
+    }
+    body.tv-mode .tv-h2h-title,
+    body.tv-mode .tv-h2h-line {
+      font-size: clamp(7px, .52vw, 10px) !important;
+    }
+    @media (max-width: 900px) {
+      body:not(.tv-mode) .layout,
+      body:not(.tv-mode) .db-grid {
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      body:not(.tv-mode) .side-area {
+        position: static !important;
+        max-height: none !important;
+        overflow: visible !important;
+        order: 1 !important;
+      }
+      body:not(.tv-mode) .main-area {
+        order: 2 !important;
+      }
+      body:not(.tv-mode) .toolbar,
+      body:not(.tv-mode) .section-toolbar,
+      body:not(.tv-mode) .db-actions,
+      body:not(.tv-mode) .firebase-actions,
+      body:not(.tv-mode) .db-bulk-buttons,
+      body:not(.tv-mode) .db-filter-actions {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        width: 100% !important;
+      }
+      body:not(.tv-mode) button,
+      body:not(.tv-mode) .upload-button,
+      body:not(.tv-mode) .mini-input,
+      body:not(.tv-mode) select {
+        width: 100% !important;
+        min-height: 42px !important;
+      }
+      body:not(.tv-mode) .roster-table-wrap {
+        max-height: none !important;
+      }
+    }
+    @media (max-width: 520px) {
+      body:not(.tv-mode) .toolbar,
+      body:not(.tv-mode) .section-toolbar,
+      body:not(.tv-mode) .db-actions,
+      body:not(.tv-mode) .firebase-actions,
+      body:not(.tv-mode) .db-bulk-buttons,
+      body:not(.tv-mode) .db-filter-actions {
+        grid-template-columns: 1fr !important;
       }
     }
 
-
-</style>
+  </style>
 </head>
 <body>
   <div id="app"></div>
@@ -5801,6 +6335,9 @@
     let dbSelectedIds = new Set();
     let dbSearchText = "";
     let dbTeamFilter = "전체";
+    let dbStatusFilter = "전체";
+    let dbSortField = localStorage.getItem("mini4wdDbSortField") || "createdAt";
+    let dbSortDir = localStorage.getItem("mini4wdDbSortDir") || "desc";
 
     let firebaseApp = null;
     let firebaseDb = null;
@@ -5833,7 +6370,8 @@
           startedAtISO: "",
           startedAtDisplay: "",
           endedAtISO: "",
-          endedAtDisplay: ""
+          endedAtDisplay: "",
+          liveStopped: false
         },
         activeRoundIndex: 0,
         broadcast: {
@@ -5867,15 +6405,19 @@
         stages: [],
         finalist: null
       }));
-    }
-
-    function saveLiveState() {
+    }    function saveLiveState() {
+      ensureStateDefaults();
       state.updatedAt = Date.now();
       state.activeRoundIndex = activeRoundIndex;
+      if (state.tournament.status === "running") {
+        state.settings.firebaseAutoSave = true;
+        activateAutoLiveSession();
+      }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(exportState()));
       createAutoSnapshot("자동 저장");
-      if (state.settings.firebaseAutoSave) queueFirebaseSave();
+      if (state.tournament.status === "running") queueFirebaseSave();
     }
+
 function shuffle(array) {
       const result = [...array];
       for (let i = result.length - 1; i > 0; i -= 1) {
@@ -6222,6 +6764,8 @@ function shuffle(array) {
       if (state.tournament.startedAtDisplay === undefined) state.tournament.startedAtDisplay = "";
       if (state.tournament.endedAtISO === undefined) state.tournament.endedAtISO = "";
       if (state.tournament.endedAtDisplay === undefined) state.tournament.endedAtDisplay = "";
+      if (state.tournament.liveId === undefined) state.tournament.liveId = "";
+      if (state.settings.firebaseAutoSave === undefined) state.settings.firebaseAutoSave = false;
     }
 
     function statusLabel(status = state.tournament?.status) {
@@ -6239,6 +6783,8 @@ function startTournament() {
 
       ensureTournamentStarted();
       state.tournament.status = "running";
+      state.settings.firebaseAutoSave = true;
+      activateAutoLiveSession(true);
       state.tournament.lockedParticipants = state.inputText;
       state.tournament.lockedSettings = {
         matchMode: state.settings.matchMode,
@@ -6252,6 +6798,8 @@ function reopenTournament() {
       ensureStateDefaults();
       if (!confirm("종료 상태를 해제하고 다시 진행중으로 변경할까요?")) return;
       state.tournament.status = "running";
+      state.settings.firebaseAutoSave = true;
+      activateAutoLiveSession();
       state.tournament.endedAtISO = "";
       state.tournament.endedAtDisplay = "";
       renderOperator();
@@ -6643,6 +7191,62 @@ function resetTournament() {
       return new URLSearchParams(raw);
     }
 
+
+    function localDateKey(date = new Date()) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}${m}${d}`;
+    }
+
+    function liveSessionDateKey() {
+      ensureStateDefaults();
+      const started = state.tournament?.startedAtISO || state.tournament?.startedAtDisplay || "";
+      const parsed = started ? new Date(started) : null;
+      if (parsed && !Number.isNaN(parsed.getTime())) return localDateKey(parsed);
+      const stored = localStorage.getItem("mini4wdActiveLiveDate");
+      if (stored) return stored;
+      const today = localDateKey(new Date());
+      localStorage.setItem("mini4wdActiveLiveDate", today);
+      return today;
+    }
+
+    function buildAutoTournamentId() {
+      ensureStateDefaults();
+      const venue = state.tournament?.venue || (typeof currentVenueName === "function" ? currentVenueName() : "venue") || "venue";
+      const name = state.tournament?.name || "tournament";
+      const date = liveSessionDateKey();
+      return normalizeKey(`${venue}-${name}-${date}`) || DEFAULT_TOURNAMENT_ID;
+    }
+
+    function activateAutoLiveSession(forceNew = false) {
+      ensureStateDefaults();
+      const canonicalId = buildAutoTournamentId();
+      const signature = canonicalId;
+      const previousSignature = localStorage.getItem("mini4wdActiveLiveSignature") || "";
+      const previousId = localStorage.getItem("mini4wdActiveLiveId") || "";
+      const shouldReuse = !forceNew && state.tournament.status === "running" && previousSignature === signature && previousId;
+      const id = shouldReuse ? previousId : canonicalId;
+      state.tournament.liveId = id;
+      state.tournament.liveSignature = signature;
+      firebaseTournamentId = id;
+      localStorage.setItem("mini4wdTournamentId", id);
+      localStorage.setItem("mini4wdActiveLiveId", id);
+      localStorage.setItem("mini4wdActiveLiveSignature", signature);
+      localStorage.setItem("mini4wdActiveLiveDate", liveSessionDateKey());
+      return id;
+    }
+
+    function stopLiveSession() {
+      console.warn("LIVE 중단 기능은 v85에서 제거되었습니다. 경기 시작 후 LIVE는 기본 자동 송출입니다.");
+      return false;
+    }
+
+    function resumeLiveSession() {
+      console.warn("LIVE 재개 기능은 v85에서 제거되었습니다. 경기 시작 후 LIVE는 기본 자동 송출입니다.");
+      return false;
+    }
+
     function exportState() {
       const tournament = {
         ...state.tournament,
@@ -6659,32 +7263,35 @@ function resetTournament() {
         finalRace: state.finalRace,
         updatedAt: state.updatedAt || Date.now()
       };
-    }
-function makePublicLivePayload(sourceState = exportState()) {
+    }    function makePublicLivePayload(sourceState = exportState()) {
       const publicState = makePublicStatePayload(sourceState);
+      const id = getCurrentTournamentId();
+      const isRunning = publicState.tournament.status === "running";
       return {
-        id: getCurrentTournamentId(),
+        id,
+        liveSignature: buildAutoTournamentId(),
         venueId: publicState.tournament.venueId || currentVenueId(),
         venueName: publicState.tournament.venue || currentVenueName(),
         tournamentName: publicState.tournament.name || "대회명 미입력",
         raceClass: publicState.tournament.raceClass || "오픈",
         status: publicState.tournament.status || "draft",
+        live: isRunning,
+        liveKeyLabel: `${publicState.tournament.venue || currentVenueName()} · ${publicState.tournament.name || "대회명 미입력"} · ${liveSessionDateKey()}`,
         updatedAt: publicState.updatedAt || Date.now(),
         state: publicState
       };
     }
 
+
     function makeSnapshotUrl(view) {
       return `${location.origin}${location.pathname}#view=${view}&data=${encodePayload(exportState())}`;
+    }    function makeLiveTvUrl() {
+      const id = getCurrentTournamentId();
+      return `${location.origin}${location.pathname}#view=tv-live&t=${encodeURIComponent(id)}`;
+    }    function openTvView() {
+      openLiveLobbyPage();
     }
 
-    function makeLiveTvUrl() {
-      return `${location.origin}${location.pathname}#view=tv-live`;
-    }
-
-    function openTvView() {
-      return openFirebaseTvLive();
-    }
 function copyOrShare(url, label) {
       if (navigator.share) {
         navigator.share({ title: "MINI4WD TOURNAMENT MAKER", url }).catch(() => copyText(url, label));
@@ -6705,6 +7312,18 @@ function copyOrShare(url, label) {
       ensureStateDefaults();
       if (!validateTournamentMetaRequired()) return;
       ensureTournamentStarted();
+      if (state.tournament.status !== "running") {
+        state.tournament.status = "running";
+        state.settings.firebaseAutoSave = true;
+        activateAutoLiveSession(true);
+        state.tournament.lockedParticipants = state.inputText;
+        state.tournament.lockedSettings = {
+          matchMode: state.settings.matchMode,
+          laneCount: state.settings.laneCount
+        };
+        createAutoSnapshot("대회 시작");
+        logTournamentAction("대회 시작", state.tournament.name || "");
+      }
 
       const players = getEligibleParticipants();
       const error = validateStart(players, "예선");
@@ -6737,41 +7356,43 @@ function copyOrShare(url, label) {
       state.broadcast = { mode: "stage", roundIndex: 0, stageIndex: 0 };
       activeRoundIndex = 0;
       renderOperator();
-    }
-
-
-    function syncLiveNow() {
+    }    function syncLiveNow() {
       ensureStateDefaults();
+      if (state.tournament.status !== "running") {
+        showError("경기 시작 전에는 LIVE 송출을 만들지 않습니다. 전체 라운드 시작 후 자동 송출됩니다.");
+        return false;
+      }
+      state.settings.firebaseAutoSave = true;
+      activateAutoLiveSession(false);
       state.updatedAt = Date.now();
       state.activeRoundIndex = activeRoundIndex;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(exportState()));
-      if (typeof forcePublishPublicLiveV50 === "function") forcePublishPublicLiveV50("수동 LIVE 동기화");
-      else queueFirebaseSave();
+      queueFirebaseSave();
       renderOperator();
-    }
-
-    function renderFirebaseLivePanel() {
+      return true;
+    }    function renderFirebaseLivePanel() {
       ensureStateDefaults();
       const liveName = state.tournament.name || "대회명 미입력";
       const liveVenue = state.tournament.venue || currentVenueName() || "경기장 미입력";
+      const liveId = getCurrentTournamentId();
+      const isRunning = state.tournament.status === "running";
       return `
         <div class="firebase-panel live-sync-panel">
-          <label>대회 LIVE 자동 연동</label>
+          <label>LIVE 자동 송출</label>
           <div class="live-sync-summary">
-            <div class="live-sync-item"><span>노출 대회명</span><strong>${escapeHtml(liveName)}</strong></div>
-            <div class="live-sync-item"><span>경기장 / LIVE ID</span><code>${escapeHtml(liveVenue)} · ${escapeHtml(getCurrentTournamentId())}</code></div>
+            <div class="live-sync-item"><span>송출 기준</span><strong>${isRunning ? "경기 시작됨 · 자동 송출" : "경기 시작 전 · 시작하면 자동 송출"}</strong></div>
+            <div class="live-sync-item"><span>경기별 자동 고유값</span><code>${escapeHtml(liveVenue)} · ${escapeHtml(liveName)} · ${escapeHtml(liveSessionDateKey())}</code></div>
+            <div class="live-sync-item"><span>LIVE ID</span><code>${escapeHtml(liveId)}</code></div>
           </div>
           <div class="firebase-actions live-sync-actions">
-            <button onclick="loadFirebaseStateOnce().then(() => renderOperator())">불러오기</button>
-            <button onclick="syncLiveNow()">LIVE 동기화</button>
-            <button class="ghost" onclick="copyLiveLink()">LIVE 링크 복사</button>
+            <button class="ghost" onclick="openLiveLobbyPage()">LIVE 로비 보기</button>
           </div>
-          <label class="firebase-autosave"><input type="checkbox" ${state.settings.firebaseAutoSave ? "checked" : ""} onchange="setSetting('firebaseAutoSave', this.checked)" /> Firebase 자동 저장</label>
-          <p class="hint">대회명은 대회준비 입력값을 자동 사용합니다. TV LIVE와 LIVE 로비는 상단 버튼에서 실행합니다.</p>
+          <p class="hint">경기를 시작하면 LIVE가 기본값으로 자동 송출됩니다. TV/모바일 화면은 LIVE 로비에서 선택합니다.</p>
           <p class="hint">상태: ${firebaseStatusText()}</p>
         </div>
       `;
     }
+
 
     function renderOperator() {
       ensureStateDefaults();
@@ -6798,7 +7419,6 @@ function copyOrShare(url, label) {
           <div class="layout">
             <main class="main-area">
               <div class="toolbar">
-                <button class="primary" onclick="openTvView()">TV LIVE</button>
                 <button class="ghost" onclick="openLiveLobbyPage()">LIVE 로비</button>
                 <button class="ghost" onclick="openDbPage()">PLAYER DB</button>
                 <button class="ghost" onclick="openDashboardPage()">DASHBOARD</button>
@@ -7470,8 +8090,14 @@ function setTournamentIdDraft(value) {
 
     function queueFirebaseSave() {
       if (firebaseApplyingRemote) return;
+      if (state.tournament?.status !== "running" && state.tournament?.status !== "finished" && state.tournament?.status !== "archived") {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(exportState()));
+        return;
+      }
       const ref = tournamentRef();
       if (!ref) {
+        firebaseOnline = false;
+        window.__mini4wdFirebaseLastError = "Firebase 연결 준비 안됨";
         console.warn("Firebase is not ready.");
         return;
       }
@@ -7480,13 +8106,21 @@ function setTournamentIdDraft(value) {
         const privateState = exportState();
         privateState.updatedAt = Date.now();
         const publicLive = makePublicLivePayload(privateState);
-        ref.child("state").set(privateState).catch(error => {
-          firebaseOnline = false;
-          console.warn("Firebase private save failed", error);
-        });
-        ref.child("updatedAt").set(firebase.database.ServerValue.TIMESTAMP).catch(() => {});
         const db = initFirebase();
-        if (db) db.ref(`${PUBLIC_LIVE_PATH}/${getCurrentTournamentId()}`).set(publicLive).catch(error => console.warn("public live save failed", error));
+        const writes = [
+          ref.child("state").set(privateState),
+          ref.child("updatedAt").set(firebase.database.ServerValue.TIMESTAMP)
+        ];
+        if (db) writes.push(db.ref(`${PUBLIC_LIVE_PATH}/${getCurrentTournamentId()}`).set(publicLive));
+        Promise.all(writes).then(() => {
+          firebaseOnline = true;
+          window.__mini4wdFirebaseLastSavedAt = Date.now();
+          window.__mini4wdFirebaseLastError = "";
+        }).catch(error => {
+          firebaseOnline = false;
+          window.__mini4wdFirebaseLastError = error?.message || String(error);
+          console.warn("Firebase save failed", error);
+        });
       }, 450);
     }
 
@@ -7526,7 +8160,10 @@ function setTournamentIdDraft(value) {
       });
     }
 function firebaseStatusText() {
-      return firebaseOnline ? `연결됨 · ${escapeHtml(getCurrentTournamentId())}` : `대기 · ${escapeHtml(getCurrentTournamentId())}`;
+      const id = escapeHtml(getCurrentTournamentId());
+      if (window.__mini4wdFirebaseLastError) return `오류 · ${id} · ${escapeHtml(window.__mini4wdFirebaseLastError)}`;
+      if (window.__mini4wdFirebaseLastSavedAt) return `연결됨 · ${id} · 저장 ${escapeHtml(formatDateTimeLocal(new Date(window.__mini4wdFirebaseLastSavedAt)))}`;
+      return firebaseOnline ? `연결됨 · ${id}` : `대기 · ${id}`;
     }
 
 function currentActorLabel() {
@@ -7621,6 +8258,24 @@ function currentActorLabel() {
       const snapshotMap = loadSnapshotMap();
       snapshotMap[key] = { id: `snap-${key}`, key, tournamentId: getCurrentTournamentId(), label, createdAt: new Date().toISOString(), state: exportState() };
       localStorage.setItem(LOCAL_SNAPSHOT_KEY, JSON.stringify(snapshotMap));
+    }
+
+
+    function normalizeImportedState(imported) {
+      const base = makeInitialState(Number(imported?.settings?.laneCount || state?.settings?.laneCount || 3));
+      const next = {
+        ...base,
+        ...(imported || {}),
+        settings: { ...base.settings, ...(imported?.settings || {}) },
+        tournament: { ...base.tournament, ...(imported?.tournament || {}) },
+        qualifierRounds: Array.isArray(imported?.qualifierRounds) ? imported.qualifierRounds : base.qualifierRounds,
+        finalRace: imported?.finalRace || null,
+        broadcast: { ...base.broadcast, ...(imported?.broadcast || {}) },
+        updatedAt: imported?.updatedAt || Date.now()
+      };
+      next.tournament.raceClass = normalizeRaceClassName(next.tournament.raceClass || "오픈");
+      if (next.tournament.status === undefined) next.tournament.status = next.tournament.startedAtISO ? "running" : "draft";
+      return next;
     }
 
     function createManualSnapshot() {
@@ -7923,85 +8578,37 @@ function getTvWindowGroups(target) {
           </div>
         </div>
       `;
-    }
-
-    function renderTvStage() {
+    }    function renderTvStage() {
       const target = getBroadcastTarget(tvState);
       if (!target) {
-        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small></div><strong>대진표 없음</strong></div>${logoMarkup("tv-logo")}</div><div class="empty"><h2>현재 송출할 라운드가 없습니다.</h2></div></div>`;
+        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small></div><strong>대진표 없음</strong></div>${logoMarkup("tv-logo")}</div><div class="empty"><h2>현재 송출할 라운드가 없습니다.</h2></div><footer class="tv-foot"><span>BUILD v85 PRODUCTION REBASE AUDIT</span></footer></div>`;
         return;
       }
-
       const windowInfo = getTvWindowGroups(target);
-      const currentGroups = windowInfo.groups;
+      const currentGroups = [...windowInfo.groups];
+      while (currentGroups.length < 4) currentGroups.push({ id: `tv-placeholder-${currentGroups.length}`, name: `대기 ${windowInfo.startIndex + currentGroups.length + 1}조`, slots: [], advanceIds: [], isPlaceholder: true });
       const columns = 4;
-      const laneCount = Number(target.laneCount || 3);
-      const displayGroups = currentGroups.slice(0, columns);
-      while (displayGroups.length < columns) {
-        const placeholderIndex = windowInfo.startIndex + displayGroups.length + 1;
-        displayGroups.push({
-          name: `대기 ${placeholderIndex}조`,
-          isTvPlaceholder: true,
-          advanceIds: [],
-          points: {},
-          slots: Array.from({ length: laneCount }, (_, index) => ({
-            id: `tv-empty-${placeholderIndex}-${index + 1}`,
-            lane: index + 1,
-            name: "빈 레인",
-            team: "",
-            isEmptyLane: true
-          }))
-        });
-      }
-      const modeLabel = windowInfo.mode === "pending"
-        ? `진행 대기 · ${windowInfo.startIndex + 1}-${windowInfo.startIndex + currentGroups.length}조`
-        : `진행 포커스 · ${windowInfo.startIndex + 1}-${windowInfo.startIndex + currentGroups.length}조`;
+      const shownCount = Math.min(windowInfo.groups.length, 4);
+      const modeLabel = windowInfo.mode === "pending" ? `진행 대기 · ${windowInfo.startIndex + 1}-${windowInfo.startIndex + shownCount}조` : `진행 포커스 · ${windowInfo.startIndex + 1}-${windowInfo.startIndex + shownCount}조`;
       const tvTournamentName = target.tournamentName || tvState?.tournament?.name || "";
       const pointLeadersHtml = renderTvPointLeaders(target);
-
       app.innerHTML = `
         <div class="tv-wrap ${pointLeadersHtml ? "tv-wrap-has-leaders" : ""}">
-          <header class="tv-head">
-            <div class="tv-brand">
-              <div class="tv-brand-line">
-                <small>MINI4WD TOURNAMENT MAKER</small>
-                <span class="tv-view-mode-note">${escapeHtml(modeLabel)}</span>
-              </div>
-              <strong>${escapeHtml(tvTournamentName || target.title)}</strong>
-              ${tvTournamentName ? `<div class="tv-stage-title">${escapeHtml(target.title)}</div>` : ""}
-            </div>
-            ${logoMarkup("tv-logo")}
-          </header>
-
-          <section class="tv-controls">
-            <div>
-              <b>LIVE</b> · 운영자 화면 변경사항 자동 반영
-            </div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button onclick="tvPrevPage()">이전</button>
-              <button onclick="tvNextPage()">다음</button>
-              <button onclick="toggleTvAuto()">자동 넘김</button>
-              <button class="primary" onclick="document.documentElement.requestFullscreen && document.documentElement.requestFullscreen()">전체화면</button>
-            </div>
-          </section>
-
+          <header class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small><span class="tv-view-mode-note">${escapeHtml(modeLabel)}</span></div><strong>${escapeHtml(tvTournamentName || target.title)}</strong>${tvTournamentName ? `<div class="tv-stage-title">${escapeHtml(target.title)}</div>` : ""}</div>${logoMarkup("tv-logo")}</header>
+          <section class="tv-controls tv-controls-readonly"><div><b>LIVE 자동 송출</b> · 운영 화면 변경사항 자동 반영 · 버튼 조작 없음</div></section>
           ${pointLeadersHtml}
-
-          <main class="tv-stage tv-stage-focus tv-stage-groups-4 tv-stage-${laneCount}-lane tv-stage-force-4col" style="--tv-lane-count:${laneCount}; --tv-column-count:4; grid-template-columns: repeat(4, minmax(0,1fr));">
-            ${displayGroups.map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap)).join("")}
-          </main>
-
-          <footer class="tv-foot">
-            <span>${laneCount} LANE · ${target.groups.length} GROUPS · 4열 고정</span>
-            <span>${escapeHtml(modeLabel)} · BUILD v80 TV LIVE 4COL FINAL</span>
-          </footer>
-        </div>
-      `;
+          <main class="tv-stage tv-stage-focus tv-stage-force-4col tv-stage-groups-${columns} tv-stage-${target.laneCount || 3}-lane" style="--tv-lane-count:${target.laneCount || 3}; grid-template-columns: repeat(4, minmax(0,1fr));">${currentGroups.slice(0, 4).map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap)).join("")}</main>
+          <footer class="tv-foot"><span>${target.laneCount} LANE · ${target.groups.length} GROUPS</span><span>BUILD v85 PRODUCTION REBASE AUDIT</span></footer>
+        </div>`;
     }
 
+
     function renderTvGroup(group, isFinal, stageType = "normal", pointTotalsMap = {}) {
+      if (group?.isPlaceholder) {
+        return `<article class="tv-group tv-group-placeholder"><div class="tv-group-title"><strong>${escapeHtml(group.name)}</strong><span class="badge">대기</span></div><div class="tv-placeholder-body">다음 조 대기</div></article>`;
+      }
       return `
-        <article class="tv-group tv-group-${stageType || "stage"} ${group.isTvPlaceholder ? "tv-placeholder-group" : ""}">
+        <article class="tv-group tv-group-${stageType || "stage"}">
           <div class="tv-group-title">
             <strong>${escapeHtml(group.name)}</strong>
             <span class="badge">${group.slots.filter(slot => !slot.isEmptyLane).length}명 경기</span>
@@ -8201,6 +8808,76 @@ function setDbSearch(value) {
     function setDbTeamFilter(value) {
       dbTeamFilter = value;
       renderDbPage();
+    }
+
+    function setDbStatusFilter(value) {
+      dbStatusFilter = value;
+      renderDbPage();
+    }
+
+    function setDbSort(field) {
+      if (dbSortField === field) {
+        dbSortDir = dbSortDir === "asc" ? "desc" : "asc";
+      } else {
+        dbSortField = field;
+        dbSortDir = field === "createdAt" ? "desc" : "asc";
+      }
+      localStorage.setItem("mini4wdDbSortField", dbSortField);
+      localStorage.setItem("mini4wdDbSortDir", dbSortDir);
+      renderDbPage();
+    }
+
+    function rosterSortValue(player, field) {
+      if (field === "favorite") return player.favorite ? 1 : 0;
+      if (field === "active") return player.active ? 1 : 0;
+      return String(player[field] || "").toLowerCase();
+    }
+
+    function getDbFilteredRoster(roster = loadRoster()) {
+      const search = dbSearchText.trim().toLowerCase();
+      const filtered = roster.filter(player => {
+        const matchesSearch = !search || [player.realName, player.contact, player.name, player.team, player.nickname, player.memo].some(value => String(value || "").toLowerCase().includes(search));
+        const matchesTeam = dbTeamFilter === "전체" || (player.team || "") === dbTeamFilter;
+        const matchesStatus = dbStatusFilter === "전체"
+          || (dbStatusFilter === "활성" && player.active)
+          || (dbStatusFilter === "비활성" && !player.active)
+          || (dbStatusFilter === "즐겨찾기" && player.favorite);
+        return matchesSearch && matchesTeam && matchesStatus;
+      });
+      const dir = dbSortDir === "desc" ? -1 : 1;
+      return filtered.sort((a, b) => {
+        const av = rosterSortValue(a, dbSortField);
+        const bv = rosterSortValue(b, dbSortField);
+        if (av < bv) return -1 * dir;
+        if (av > bv) return 1 * dir;
+        return String(a.nickname || a.realName || "").localeCompare(String(b.nickname || b.realName || ""), "ko");
+      });
+    }
+
+    function selectVisiblePlayers() {
+      getDbFilteredRoster().forEach(player => { if (player.active) dbSelectedIds.add(player.id); });
+      renderDbPage();
+    }
+
+    function deselectVisiblePlayers() {
+      getDbFilteredRoster().forEach(player => dbSelectedIds.delete(player.id));
+      renderDbPage();
+    }
+
+    function selectAllActivePlayers() {
+      dbSelectedIds = new Set(loadRoster().filter(player => player.active).map(player => player.id));
+      renderDbPage();
+    }
+
+    function toggleVisibleSelectAll(checked) {
+      if (checked) selectVisiblePlayers();
+      else deselectVisiblePlayers();
+    }
+
+    function dbSortButton(field, label) {
+      const active = dbSortField === field;
+      const mark = active ? (dbSortDir === "asc" ? " ▲" : " ▼") : "";
+      return `<button class="${active ? "primary" : "ghost"}" onclick="setDbSort('${field}')">${label}${mark}</button>`;
     }
 
     function toCsv(rows) {
@@ -8485,10 +9162,17 @@ function boot() {
           return;
         }
         firebaseAuth = firebase.auth();
+        let initialResolved = false;
         firebaseAuth.onAuthStateChanged(async user => {
           currentAuthUser = user;
           currentUserProfile = user ? await loadUserProfile(user) : null;
-          resolve(true);
+          if (!initialResolved) {
+            initialResolved = true;
+            resolve(true);
+          } else {
+            applyResponsiveUxModeV83();
+            if (!document.body.classList.contains("tv-mode")) setTimeout(() => bootV33().catch(console.warn), 0);
+          }
         });
       });
       return firebaseAuthReadyPromise;
@@ -8639,51 +9323,28 @@ function boot() {
             <div style="display:flex; gap:8px; margin-top:12px;"><button class="ghost" onclick="openDashboardPage()">대시보드 보기</button><button class="ghost" onclick="location.hash='view=live-list'; bootV33();">LIVE 로비</button></div>
           </section>
         </div>`;
-    }
-
-    async function loginWithEmailPassword() {
+    }    async function loginWithEmailPassword() {
       const email = document.getElementById("loginEmail")?.value.trim();
       const password = document.getElementById("loginPassword")?.value;
       if (!email || !password) return alert("이메일과 비밀번호를 입력하세요.");
+      const loginButton = document.querySelector('.auth-actions .primary');
+      const originalText = loginButton ? loginButton.textContent : "";
       try {
+        if (loginButton) { loginButton.disabled = true; loginButton.textContent = "로그인 중"; }
         await initAuthState();
-        await firebaseAuth.signInWithEmailAndPassword(email, password);
+        const credential = await firebaseAuth.signInWithEmailAndPassword(email, password);
+        currentAuthUser = credential.user || firebaseAuth.currentUser;
+        currentUserProfile = currentAuthUser ? await loadUserProfile(currentAuthUser) : null;
         firebaseAuthReadyPromise = null;
-        await initAuthState();
         location.hash = "";
-    
-
-    /* v48 9강 + mobile live link fix overrides */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* boot deferred to v49 final call */
-
+        applyResponsiveUxModeV83();
+        await bootV33();
       } catch (error) {
         alert(`로그인 실패: ${error.message || error}`);
+        if (loginButton) { loginButton.disabled = false; loginButton.textContent = originalText || "로그인"; }
       }
     }
+
 
     async function requestVenueAccount() {
       const email = document.getElementById("loginEmail")?.value.trim();
@@ -9074,13 +9735,11 @@ function boot() {
       document.body.classList.remove("tv-mode");
       requestRosterCloudLoad();
       const roster = loadRoster();
-      const search = dbSearchText.trim().toLowerCase();
       const teams = Array.from(new Set(roster.map(player => player.team).filter(Boolean))).sort();
-      const filtered = roster.filter(player => {
-        const matchesSearch = !search || [player.realName, player.contact, player.name, player.team, player.nickname, player.memo].some(value => String(value || "").toLowerCase().includes(search));
-        const matchesTeam = dbTeamFilter === "전체" || (player.team || "") === dbTeamFilter;
-        return matchesSearch && matchesTeam;
-      });
+      const filtered = getDbFilteredRoster(roster);
+      const visibleSelectedCount = filtered.filter(player => dbSelectedIds.has(player.id)).length;
+      const visibleActiveCount = filtered.filter(player => player.active).length;
+      const allVisibleSelected = visibleActiveCount > 0 && filtered.filter(player => player.active).every(player => dbSelectedIds.has(player.id));
       const activeCount = roster.filter(player => player.active).length;
       const favoriteCount = roster.filter(player => player.favorite).length;
       app.innerHTML = `
@@ -9093,23 +9752,46 @@ function boot() {
             <section class="card selected-box"><div class="db-panel-title"><h2>오늘 참가자</h2><span class="pill"><span id="selectedCount">0</span>명 선택</span></div><div class="db-actions" style="margin-bottom:10px;"><button class="ghost" onclick="selectRecentPlayers()">최근 참가자</button><button class="ghost" onclick="selectFavoritePlayers()">즐겨찾기</button><button class="ghost" onclick="clearSelectedPlayers()">선택 해제</button></div><div id="selectedPreview" class="finalist-grid" style="grid-template-columns:1fr;"></div><button class="primary" style="width:100%; margin-top:12px;" onclick="applySelectedPlayersToTournament()">선택 선수로 대진 생성 준비</button></section>
             <section class="card"><h2>목록 일괄 추가</h2><p class="hint">형식: 실명/연락처/닉네임/팀명/메모</p><textarea id="quickImportText" style="min-height:150px;" placeholder="홍길동/010-0000-0000/마이/GEEKS/MS 플렉스"></textarea><button class="ghost" style="width:100%; margin-top:10px;" onclick="quickImportRosterLines()">목록에서 선수 추가</button></section>
             <section class="card"><h2>JSON 복원</h2><textarea id="importJsonText" style="min-height:130px;"></textarea><button class="danger" style="width:100%; margin-top:10px;" onclick="importRosterJsonFromText()">JSON 불러오기</button></section>
-          </aside><main><section class="card"><div class="db-panel-title"><div><h2>선수 명부</h2><div class="meta">총 ${roster.length}명 · 표시 ${filtered.length}명</div></div><div class="db-actions"><input class="mini-input" placeholder="검색" value="${escapeHtml(dbSearchText)}" oninput="setDbSearch(this.value)" style="width:180px;" /><select onchange="setDbTeamFilter(this.value)" style="width:150px;"><option value="전체">전체 팀</option>${teams.map(team => `<option value="${escapeHtml(team)}" ${team === dbTeamFilter ? "selected" : ""}>${escapeHtml(team)}</option>`).join("")}</select></div></div><div class="db-stat-grid"><div class="db-stat"><small>전체 선수</small><strong>${roster.length}</strong></div><div class="db-stat"><small>활성 선수</small><strong>${activeCount}</strong></div><div class="db-stat"><small>즐겨찾기</small><strong>${favoriteCount}</strong></div></div><div class="roster-table-wrap"><table class="roster-table"><thead><tr><th>참가</th><th>★</th><th>실명</th><th>연락처</th><th>닉네임/선수명</th><th>팀명</th><th>상태</th><th>메모</th><th>관리</th></tr></thead><tbody>${filtered.map(player => renderRosterRow(player)).join("") || `<tr><td colspan="9"><div class="db-empty">등록된 선수가 없습니다.</div></td></tr>`}</tbody></table></div></section></main></div></div>`;
+          </aside><main><section class="card"><div class="db-panel-title"><div><h2>선수 명부</h2><div class="meta">총 ${roster.length}명 · 표시 ${filtered.length}명</div></div><div class="db-actions db-filter-actions"><input class="mini-input" placeholder="검색" value="${escapeHtml(dbSearchText)}" oninput="setDbSearch(this.value)" style="width:180px;" /><select onchange="setDbTeamFilter(this.value)" style="width:150px;"><option value="전체">전체 팀</option>${teams.map(team => `<option value="${escapeHtml(team)}" ${team === dbTeamFilter ? "selected" : ""}>${escapeHtml(team)}</option>`).join("")}</select><select onchange="setDbStatusFilter(this.value)" style="width:130px;">${["전체", "활성", "비활성", "즐겨찾기"].map(value => `<option value="${value}" ${value === dbStatusFilter ? "selected" : ""}>${value}</option>`).join("")}</select></div></div><div class="db-stat-grid"><div class="db-stat"><small>전체 선수</small><strong>${roster.length}</strong></div><div class="db-stat"><small>활성 선수</small><strong>${activeCount}</strong></div><div class="db-stat"><small>즐겨찾기</small><strong>${favoriteCount}</strong></div></div><div class="db-bulk-toolbar"><div><label class="db-checkline"><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /> 표시 목록 일괄선택</label><span class="hint">표시 ${filtered.length}명 · 표시 중 선택 ${visibleSelectedCount}명</span></div><div class="db-bulk-buttons"><button class="ghost" onclick="selectVisiblePlayers()">표시 활성 전체 선택</button><button class="ghost" onclick="deselectVisiblePlayers()">표시 선택 해제</button><button class="ghost" onclick="selectAllActivePlayers()">전체 활성 선택</button>${dbSortButton("nickname", "닉네임")}${dbSortButton("realName", "실명")}${dbSortButton("team", "팀명")}${dbSortButton("createdAt", "등록일")}</div></div><div class="roster-table-wrap"><table class="roster-table"><thead><tr><th><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /></th><th>★</th><th><button class="ghost table-sort-btn" onclick="setDbSort('realName')">실명${dbSortField === "realName" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>연락처</th><th><button class="ghost table-sort-btn" onclick="setDbSort('nickname')">닉네임${dbSortField === "nickname" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('team')">팀명${dbSortField === "team" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('active')">상태${dbSortField === "active" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>메모</th><th>관리</th></tr></thead><tbody>${filtered.map(player => renderRosterRow(player)).join("") || `<tr><td colspan="9"><div class="db-empty">등록된 선수가 없습니다.</div></td></tr>`}</tbody></table></div></section></main></div></div>`;
       updateSelectedPreview();
     }
 
     function renderRosterRow(player) {
       return `<tr><td data-label="참가"><input type="checkbox" data-roster-select value="${escapeAttr(player.id)}" ${dbSelectedIds.has(player.id) ? "checked" : ""} ${player.active ? "" : "disabled"} onchange="toggleDbSelected('${escapeAttr(player.id)}', this.checked)" /></td><td data-label="즐겨찾기"><button class="ghost" onclick="toggleRosterField('${escapeAttr(player.id)}', 'favorite')">${player.favorite ? "★" : "☆"}</button></td><td data-label="실명"><input class="mini-input" value="${escapeHtml(player.realName || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'realName', this.value)" /></td><td data-label="연락처"><input class="mini-input" value="${escapeHtml(player.contact || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'contact', this.value)" /></td><td data-label="닉네임/선수명"><input class="mini-input" value="${escapeHtml(player.nickname || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'nickname', this.value)" /></td><td data-label="팀명"><input class="mini-input" value="${escapeHtml(player.team || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'team', this.value)" /></td><td data-label="상태"><button class="${player.active ? "primary" : "ghost"}" onclick="toggleRosterField('${escapeAttr(player.id)}', 'active')">${player.active ? "활성" : "비활성"}</button></td><td data-label="메모"><input class="mini-input" value="${escapeHtml(player.memo || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'memo', this.value)" /></td><td data-label="관리"><button class="danger" onclick="deleteRosterPlayer('${escapeAttr(player.id)}')">삭제</button></td></tr>`;
-    }
-
-    function getCurrentTournamentId() {
+    }    function getCurrentTournamentId() {
+      ensureStateDefaults();
       const params = getHashParams();
       const fromHash = params.get("t") || params.get("tournamentId");
-      const stored = localStorage.getItem("mini4wdTournamentId");
-      const defaultId = `${currentVenueId()}-${DEFAULT_TOURNAMENT_ID}`;
-      firebaseTournamentId = (fromHash || stored || defaultId).trim() || defaultId;
+      if (fromHash) {
+        firebaseTournamentId = normalizeKey(String(fromHash).trim()) || DEFAULT_TOURNAMENT_ID;
+        localStorage.setItem("mini4wdTournamentId", firebaseTournamentId);
+        return firebaseTournamentId;
+      }
+      const canonicalId = buildAutoTournamentId();
+      const signature = canonicalId;
+      const storedSignature = localStorage.getItem("mini4wdActiveLiveSignature") || "";
+      const storedId = localStorage.getItem("mini4wdActiveLiveId") || "";
+      if (state.tournament.status === "running") {
+        if (state.tournament.liveId && state.tournament.liveSignature === signature) {
+          firebaseTournamentId = state.tournament.liveId;
+        } else if (storedId && storedSignature === signature) {
+          firebaseTournamentId = storedId;
+          state.tournament.liveId = storedId;
+          state.tournament.liveSignature = signature;
+        } else {
+          firebaseTournamentId = canonicalId;
+          state.tournament.liveId = canonicalId;
+          state.tournament.liveSignature = signature;
+        }
+        localStorage.setItem("mini4wdActiveLiveId", firebaseTournamentId);
+        localStorage.setItem("mini4wdActiveLiveSignature", signature);
+      } else {
+        firebaseTournamentId = canonicalId;
+      }
       localStorage.setItem("mini4wdTournamentId", firebaseTournamentId);
       return firebaseTournamentId;
     }
+
 
     function setTournamentField(field, value) {
       ensureStateDefaults();
@@ -9202,6 +9884,7 @@ function exportTournamentCsv() {
       state.tournament.endedAtISO = now.toISOString();
       state.tournament.endedAtDisplay = formatDateTimeLocal(now);
       state.tournament.status = "finished";
+      state.settings.firebaseAutoSave = false;
       createAutoSnapshot("대회 종료");
       saveTournamentRecord();
       logTournamentAction("대회 종료", state.tournament.name || "");
@@ -9211,6 +9894,8 @@ function exportTournamentCsv() {
     function archiveTournament() {
       ensureStateDefaults();
       state.tournament.status = "archived";
+      state.settings.firebaseAutoSave = false;
+      localStorage.removeItem("mini4wdActiveLiveId");
       saveTournamentRecord();
       renderOperator();
     }
@@ -9494,8 +10179,34 @@ function flattenPrivateResultLogs(raw = {}) {
       if (values.some(item => item && typeof item === "object" && Array.isArray(item.rows))) return values;
       return Object.values(raw).flatMap(venueBucket => venueBucket && typeof venueBucket === "object" ? Object.values(venueBucket) : []).filter(item => item && typeof item === "object");
     }
+
+
+    /* v83 responsive UX mode controller */
+    function applyResponsiveUxModeV83() {
+      try {
+        const width = window.innerWidth || document.documentElement.clientWidth || 0;
+        document.body.classList.toggle("ux-mobile", width <= 760);
+        document.body.classList.toggle("ux-tablet", width > 760 && width <= 1180);
+        document.body.classList.toggle("ux-desktop", width > 1180);
+      } catch (error) {}
+    }
+    window.addEventListener("resize", () => requestAnimationFrame(applyResponsiveUxModeV83));
+    window.addEventListener("orientationchange", () => setTimeout(applyResponsiveUxModeV83, 120));
+
+    async function refreshAfterAuthChangeV83() {
+      try {
+        firebaseAuthReadyPromise = null;
+        await initAuthState();
+        applyResponsiveUxModeV83();
+        await bootV33();
+      } catch (error) {
+        console.warn("v83 auth refresh failed", error);
+      }
+    }
+
 async function bootV33() {
       try {
+        applyResponsiveUxModeV83();
         const params = getHashParams();
         const view = params.get("view");
         const data = params.get("data");
@@ -9974,65 +10685,27 @@ function normalizePlayerForFinal(player, extra = {}) {
         });
       }
       return slots;
-    }
-
-    function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
+    }    function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
       document.body.classList.remove("tv-mode");
-      const venueCards = buildLobbySlots(venues, tournaments, records);
-      const recent = [...records].sort((a,b) => normalizeRecentTime(b) - normalizeRecentTime(a)).slice(0, 12);
-      const liveCount = venueCards.filter(item => item.status === "running").length;
-      const recentCount = venueCards.filter(item => item.recentAt).length;
-      const waitingCount = venueCards.filter(item => item.status === "waiting").length;
-      const nowText = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
-
+      const nowText = new Date().toLocaleString("ko-KR");
+      const liveCount = tournaments.filter(item => item.status === "running").length;
+      const recentCount = records.length;
+      const venueCards = buildLobbySlots(venues, tournaments, records).slice(0, 20);
+      const waitingCount = venueCards.filter(item => item.status !== "running").length;
+      const recent = [...records].sort((a, b) => getResultRecordDateMs(b) - getResultRecordDateMs(a)).slice(0, 12);
       const cardHtml = venueCards.map(item => {
         const live = item.status === "running";
         const recentState = item.status === "recent" || item.status === "stale";
         const empty = item.empty || item.status === "empty";
         const timeText = item.updatedAt ? new Date(item.updatedAt).toLocaleString("ko-KR") : "";
         const recentTimeText = item.recentAt ? new Date(item.recentAt).toLocaleString("ko-KR") : "";
-        const latestResultHtml = item.recentRecord
-          ? `<div class="live-lobby-result"><span>최근 경기 결과</span><b>${escapeHtml(item.recentResult || "결과 기록 없음")}</b><small>${escapeHtml(item.recentTournamentName || "최근 경기")} · ${escapeHtml(recentTimeText)}</small></div>`
-          : `<div class="live-lobby-result muted"><span>최근 경기 결과</span><b>기록 없음</b><small>경기 종료 후 자동 표시</small></div>`;
-
-        const metaLine = empty
-          ? item.tournamentName
-          : live
-            ? `${escapeHtml(item.tournamentName)}<br>${item.raceClass ? `${escapeHtml(item.raceClass)} · ` : ""}${escapeHtml(timeText)}`
-            : `대기중`;
-
-        return `<article class="live-lobby-card ${live ? "live-on" : ""} ${recentState ? "live-recent" : ""} ${empty ? "live-empty" : ""}">
-          <div class="live-lobby-card-body">
-            <span class="live-status ${live ? "on" : recentState ? "recent" : empty ? "empty" : ""}">${liveStatusLabel(item.status)}</span>
-            <h3>${escapeHtml(item.venueName)}</h3>
-            <div class="live-lobby-meta">${metaLine}</div>
-            ${empty ? "" : latestResultHtml}
-          </div>
-          <button class="live-lobby-action ${live ? "primary" : "ghost"}" ${live ? "" : "disabled"} onclick="location.hash='view=mobile-live&t=${encodeURIComponent(item.id)}'; bootV33();">${live ? "대진표 보기" : "대기중"}</button>
-        </article>`;
+        const latestResultHtml = item.recentRecord ? `<div class="live-lobby-result"><span>최근 경기 결과</span><b>${escapeHtml(item.recentResult || "결과 기록 없음")}</b><small>${escapeHtml(item.recentTournamentName || "최근 경기")} · ${escapeHtml(recentTimeText)}</small></div>` : `<div class="live-lobby-result muted"><span>최근 경기 결과</span><b>기록 없음</b><small>경기 종료 후 자동 표시</small></div>`;
+        const metaLine = empty ? item.tournamentName : live ? `${escapeHtml(item.tournamentName)}<br>${item.raceClass ? `${escapeHtml(item.raceClass)} · ` : ""}${escapeHtml(timeText)}<br><small>${escapeHtml(item.id || "")}</small>` : `대기중`;
+        const actionHtml = live ? `<div class="live-lobby-choice"><button class="primary" onclick="location.hash='view=tv-live&t=${encodeURIComponent(item.id)}'; bootV33();">TV버전</button><button class="ghost" onclick="location.hash='view=mobile-live&t=${encodeURIComponent(item.id)}'; bootV33();">모바일버전</button></div>` : `<button class="live-lobby-action ghost" disabled>대기중</button>`;
+        return `<article class="live-lobby-card ${live ? "live-on" : ""} ${recentState ? "live-recent" : ""} ${empty ? "live-empty" : ""}"><div class="live-lobby-card-body"><span class="live-status ${live ? "on" : recentState ? "recent" : empty ? "empty" : ""}">${liveStatusLabel(item.status)}</span><h3>${escapeHtml(item.venueName)}</h3><div class="live-lobby-meta">${metaLine}</div>${empty ? "" : latestResultHtml}</div>${actionHtml}</article>`;
       }).join("");
-
       const historyHtml = recent.map(record => `<div class="history-public-row"><div><b>${escapeHtml(record.venueName || record.venueId || "경기장")}</b><span>${escapeHtml(normalizeRaceClassName(record.raceClass))}</span></div><div><b>${escapeHtml(record.tournamentName || "대회명 미입력")}</b><span>${escapeHtml(record.endedAtISO ? new Date(record.endedAtISO).toLocaleString("ko-KR") : record.createdAt ? new Date(record.createdAt).toLocaleString("ko-KR") : "")}</span></div><div><b>${escapeHtml(getRecordWinnerText(record))}</b><span>우승/상위 결과</span></div></div>`).join("");
-
-      app.innerHTML = `<div class="mobile-view live-lobby-shell">
-        <header class="header">
-          <div class="header-copy">
-            <div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">LIVE LOBBY</div></div>
-            <h1>경기장 LIVE</h1>
-            <p class="desc">승인된 경기장만 표시합니다. 각 경기장 카드는 최근 경기 순서로 정렬되며, 대기중 카드에도 최근 결과가 표시됩니다.</p>
-          </div>
-          ${logoMarkup("header-logo")}
-        </header>
-        <section class="card">
-          <div class="live-lobby-topbar">
-            <div><h2 style="margin:0 0 6px;">경기장별 LIVE 상태</h2><div class="meta">승인된 경기장 계정 기준 20개 슬롯 · 실시간 반영 · ${escapeHtml(nowText)} 기준</div></div>
-            <button class="ghost" onclick="renderLiveLobbyPage()">새로고침</button>
-          </div>
-          <div class="live-lobby-summary"><span class="pill">LIVE ${liveCount}</span><span class="pill">최근 결과 ${recentCount}</span><span class="pill">대기 ${waitingCount}</span></div>
-          <div class="live-lobby-grid" style="margin-top:12px;">${cardHtml}</div>
-        </section>
-        <section class="card"><h2>최근 경기 히스토리</h2><div class="history-public-list">${historyHtml || `<div class="hint">최근 경기 기록이 없습니다.</div>`}</div></section>
-      </div>`;
+      app.innerHTML = `<div class="mobile-view live-lobby-shell"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">LIVE LOBBY</div></div><h1>경기장 LIVE</h1><p class="desc">LIVE 중인 경기는 TV버전 또는 모바일버전을 선택해서 바로 봅니다. TV 송출은 운영 화면에서 자동 반영됩니다.</p></div>${logoMarkup("header-logo")}</header><section class="card"><div class="live-lobby-topbar"><div><h2 style="margin:0 0 6px;">경기장별 LIVE 상태</h2><div class="meta">경기별 자동 ID: 경기장 + 경기명 + 일자 · ${escapeHtml(nowText)} 기준</div></div><button class="ghost" onclick="renderLiveLobbyPage()">새로고침</button></div><div class="live-lobby-summary"><span class="pill">LIVE ${liveCount}</span><span class="pill">최근 결과 ${recentCount}</span><span class="pill">대기 ${waitingCount}</span></div><div class="live-lobby-grid" style="margin-top:12px;">${cardHtml}</div></section><section class="card"><h2>최근 경기 히스토리</h2><div class="history-public-list">${historyHtml || `<div class="hint">최근 경기 기록이 없습니다.</div>`}</div></section></div>`;
     }
 
 /* v50 final fixes: public live publishing, realtime lobby, dashboard admin scope */
@@ -10107,27 +10780,42 @@ function stopLiveLobbyRealtimeV50() {
 
     function watchFirebaseState(viewType) {
       const db = initFirebase();
-      if (!db) return;
+      if (!db) {
+        if (viewType === "mobile-live") renderLiveLobbyPage();
+        return;
+      }
       stopLiveLobbyRealtimeV50();
       const params = getHashParams();
       const requestedId = params.get("t") || params.get("tournamentId") || "";
-      if ((viewType === "mobile-live" || viewType === "tv-live") && !requestedId && viewType === "mobile-live") {
+      if ((viewType === "mobile-live" || viewType === "tv-live") && !requestedId) {
         renderLiveLobbyPage();
         return;
       }
-      const tournamentId = getCurrentTournamentId();
+      const tournamentId = normalizeKey(requestedId) || getCurrentTournamentId();
       let received = false;
       const ref = db.ref(`${PUBLIC_LIVE_PATH}/${tournamentId}/state`);
-      const fallback = viewType === "mobile-live" ? setTimeout(() => { if (!received) renderLiveLobbyPage(); }, 4200) : null;
+      const fallback = setTimeout(() => {
+        if (received) return;
+        if (viewType === "tv-live") {
+          document.body.classList.add("tv-mode");
+          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v85 PRODUCTION REBASE AUDIT</span></div></div>`;
+        } else {
+          renderLiveLobbyPage();
+        }
+      }, 4200);
       const cb = snapshot => {
         const payload = snapshot.val();
         if (!payload) return;
         received = true;
-        if (fallback) clearTimeout(fallback);
+        clearTimeout(fallback);
         if (viewType === "tv-live") { tvState = payload; document.body.classList.add("tv-mode"); renderTvStage(); return; }
         if (viewType === "mobile-live") { renderTvSnapshot(payload, "mobile"); return; }
       };
-      ref.on("value", cb, error => { console.warn("public live watch failed", error); if (viewType === "mobile-live") renderLiveLobbyPage(); });
+      ref.on("value", cb, error => {
+        clearTimeout(fallback);
+        console.warn("public live watch failed", error);
+        if (viewType === "mobile-live") renderLiveLobbyPage();
+      });
       if (typeof __watchRefsV49 !== "undefined") __watchRefsV49.push({ ref, cb });
     }
 
@@ -10196,46 +10884,41 @@ function stopLiveLobbyRealtimeV50() {
     function enableLiveAutoSyncV55(reason = "LIVE 동기화") {
       try {
         ensureStateDefaults();
+        if (state.tournament.status !== "running") {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(exportState()));
+          return false;
+        }
         state.settings.firebaseAutoSave = true;
+        activateAutoLiveSession(false);
         state.updatedAt = Date.now();
         state.activeRoundIndex = activeRoundIndex;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(exportState()));
-        if (typeof forcePublishPublicLiveV50 === "function") forcePublishPublicLiveV50(reason);
-        else if (typeof queueFirebaseSave === "function") queueFirebaseSave();
+        queueFirebaseSave();
         return true;
       } catch (error) {
-        console.warn("enableLiveAutoSyncV55 failed", error);
+        console.warn("enableLiveAutoSync failed", error);
+        window.__mini4wdFirebaseLastError = error?.message || String(error);
         return false;
       }
     }
 
     function copyLiveLink() {
-      enableLiveAutoSyncV55("LIVE 로비 링크 복사");
       const url = `${location.origin}${location.pathname}#view=live-list`;
-      navigator.clipboard?.writeText(url).then(() => alert("LIVE 로비 링크를 복사했습니다.\n이후 변경사항은 자동으로 LIVE에 반영됩니다."))
+      navigator.clipboard?.writeText(url).then(() => alert("LIVE 로비 링크를 복사했습니다."))
         .catch(() => prompt("LIVE 로비 링크", url));
     }
 
     function openLiveLobbyPage() {
-      enableLiveAutoSyncV55("LIVE 로비 이동");
+      ensureStateDefaults();
+      if (state.tournament.status === "running") enableLiveAutoSyncV55("LIVE 로비 이동");
       location.hash = "view=live-list";
       bootV33();
     }
 
     function shareMobileView() {
       openLiveLobbyPage();
-    }
-
-    function openFirebaseTvLive() {
-      enableLiveAutoSyncV55("TV LIVE");
-      const id = getCurrentTournamentId();
-      const url = `${location.origin}${location.pathname}#view=tv-live&t=${encodeURIComponent(id)}`;
-      const popup = window.open(url, "mini4wd-tv-live", "popup=yes,width=1280,height=720,noopener,noreferrer");
-      if (!popup) {
-        navigator.clipboard?.writeText(url).then(() => alert("TV LIVE 팝업이 차단되어 링크를 복사했습니다.\n새 탭에 붙여넣어 열어주세요."))
-          .catch(() => prompt("TV LIVE 링크", url));
-      }
-      renderOperator();
+    }    function openFirebaseTvLive() {
+      openLiveLobbyPage();
     }
 
 
@@ -10311,7 +10994,7 @@ function stopLiveLobbyRealtimeV50() {
 
     function runV77CleanupAudit() {
       const report = {
-        version: "v78-tv-live-text-fit-patch",
+        version: "v85-production-rebase-audit",
         checkedAt: new Date().toISOString(),
         tv: {
           target: typeof getBroadcastTarget === "function",
@@ -10358,7 +11041,7 @@ function stopLiveLobbyRealtimeV50() {
       const missingFunctions = requiredFunctions.filter(name => typeof window[name] !== "function");
       const publicOnlyPaths = ["publicLive","publicHistory","publicVenueDirectory","publicVenues"];
       const report = {
-        version: "v78-tv-live-text-fit-patch",
+        version: "v85-production-rebase-audit",
         checkedAt: new Date().toISOString(),
         missingFunctions,
         duplicateFunctionDeclarations: [],
@@ -10370,8 +11053,51 @@ function stopLiveLobbyRealtimeV50() {
       return report;
     }
 
+
+
+    /* v85 production rebase audit: whole-project static/runtime guard */
+    function runProductionAuditV85() {
+      const required = [
+        "bootV33","renderOperator","parseParticipants","generateStage","startAllFirstStages","nextStage","finalizeRound",
+        "createFinalRace","finishTournament","downloadResultExcel","openPrintView","renderDbPage","renderRosterRow",
+        "loginWithEmailPassword","initFirebase","queueFirebaseSave","renderLiveLobbyPage","renderLiveLobbyWithData",
+        "watchFirebaseState","renderTvStage","renderTvGroup","renderTvPlayerCore","getCurrentTournamentId"
+      ];
+      const missing = required.filter(name => typeof window[name] !== "function");
+      const liveButtonsRetired = ["stopLiveSession","resumeLiveSession"].every(name => typeof window[name] === "function");
+      const report = {
+        version: "v85-production-rebase-audit",
+        checkedAt: new Date().toISOString(),
+        ok: missing.length === 0,
+        missing,
+        modules: {
+          tournamentInput: typeof parseParticipants === "function" && typeof refreshInput === "function",
+          bracketGeneration: typeof generateStage === "function" && typeof makeStagePlan === "function",
+          roundProgress: typeof nextStage === "function" && typeof toggleAdvance === "function",
+          finalRace: typeof createFinalRace === "function" && typeof finishTournament === "function",
+          exports: typeof downloadResultExcel === "function" && typeof openPrintView === "function",
+          playerDb: typeof renderDbPage === "function" && typeof selectVisiblePlayers === "function" && typeof setDbSort === "function",
+          auth: typeof loginWithEmailPassword === "function" && typeof initAuthState === "function",
+          firebase: typeof initFirebase === "function" && typeof queueFirebaseSave === "function",
+          liveLobby: typeof renderLiveLobbyPage === "function" && typeof renderLiveLobbyWithData === "function",
+          tvLive: typeof renderTvStage === "function" && typeof renderTvGroup === "function"
+        },
+        policy: {
+          liveDefaultOnStart: true,
+          liveStopResumeRemovedFromUi: true,
+          liveIdBasis: "venue + tournament name + local date",
+          tvMobileEntryFromLobby: true,
+          firebaseWritePaths: ["tournaments/{id}/state", "publicLive/{id}", "publicHistory", "resultLogs"]
+        }
+      };
+      window.__mini4wdProductionAuditV85 = report;
+      return report;
+    }
+
     /* v78 self-audit before single boot */
     try { runV77CleanupAudit(); } catch (error) { console.warn("v78 audit failed", error); }
+    try { runCommercialSelfAuditV58(); } catch (error) { console.warn("commercial audit failed", error); }
+    try { runProductionAuditV85(); } catch (error) { console.warn("v85 production audit failed", error); }
     bootV33();
 
   </script>
