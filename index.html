@@ -6365,6 +6365,149 @@
       }
     }
 
+  
+
+    /* v87 LIVE LOBBY REBUILD · detached window + empty slot stable cards */
+    .live-lobby-v87,
+    .live-lobby-v87 * { min-width: 0 !important; box-sizing: border-box !important; }
+    .live-lobby-v87 {
+      width: 100% !important;
+      max-width: 1440px !important;
+      margin: 0 auto !important;
+      overflow-x: hidden !important;
+    }
+    .live-lobby-v87 .live-lobby-panel { overflow: hidden !important; }
+    .live-lobby-grid-v87 {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+      gap: 12px !important;
+      margin-top: 12px !important;
+      align-items: stretch !important;
+      width: 100% !important;
+    }
+    .live-lobby-card-v87 {
+      width: 100% !important;
+      min-width: 0 !important;
+      min-height: 242px !important;
+      height: 100% !important;
+      display: grid !important;
+      grid-template-rows: auto minmax(0, 1fr) auto !important;
+      gap: 10px !important;
+      padding: 16px !important;
+      border-radius: 20px !important;
+      overflow: hidden !important;
+      background: linear-gradient(180deg, rgba(14,27,21,.94), rgba(7,16,13,.96)) !important;
+      border: 1px solid rgba(238,233,223,.09) !important;
+    }
+    .live-lobby-card-v87.live-empty {
+      opacity: 1 !important;
+      border-style: dashed !important;
+      background: rgba(238,233,223,.026) !important;
+    }
+    .live-lobby-card-v87.live-on {
+      border-color: rgba(52,211,153,.48) !important;
+      box-shadow: 0 18px 46px rgba(52,211,153,.12) !important;
+    }
+    .live-lobby-card-head {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 8px !important;
+      min-height: 26px !important;
+    }
+    .live-lobby-slot-no {
+      color: var(--dim) !important;
+      font-size: 11px !important;
+      font-weight: 1000 !important;
+      letter-spacing: .08em !important;
+    }
+    .live-lobby-card-v87 .live-lobby-card-body {
+      min-height: 0 !important;
+      display: grid !important;
+      grid-template-rows: auto auto auto minmax(76px, auto) !important;
+      align-content: start !important;
+      gap: 8px !important;
+      overflow: hidden !important;
+    }
+    .live-lobby-card-v87 h3 {
+      margin: 0 !important;
+      font-size: clamp(17px, 1.4vw, 22px) !important;
+      line-height: 1.18 !important;
+      font-weight: 1000 !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+    .live-lobby-title {
+      display: block !important;
+      color: rgba(238,233,223,.88) !important;
+      font-size: 13px !important;
+      line-height: 1.25 !important;
+      font-weight: 900 !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+    .live-lobby-card-v87 .live-lobby-meta {
+      min-height: 46px !important;
+      display: grid !important;
+      gap: 3px !important;
+      color: var(--muted) !important;
+      font-size: 12px !important;
+      line-height: 1.28 !important;
+      overflow: hidden !important;
+    }
+    .live-lobby-card-v87 .live-lobby-meta span,
+    .live-lobby-card-v87 .live-lobby-result b,
+    .live-lobby-card-v87 .live-lobby-result small {
+      display: block !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+    .live-lobby-card-v87 .live-lobby-result {
+      min-height: 76px !important;
+      margin: 0 !important;
+      display: grid !important;
+      align-content: center !important;
+      gap: 3px !important;
+      padding: 10px 11px !important;
+      border-radius: 14px !important;
+    }
+    .live-lobby-actions {
+      min-height: 42px !important;
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 8px !important;
+      align-items: stretch !important;
+    }
+    .live-lobby-actions button {
+      width: 100% !important;
+      min-height: 42px !important;
+      margin: 0 !important;
+      white-space: nowrap !important;
+    }
+    .live-lobby-actions-placeholder {
+      grid-template-columns: 1fr !important;
+      place-items: center !important;
+      border: 1px dashed rgba(238,233,223,.10) !important;
+      border-radius: 14px !important;
+      color: var(--dim) !important;
+      font-size: 12px !important;
+      font-weight: 1000 !important;
+      background: rgba(238,233,223,.025) !important;
+    }
+    @media (min-width: 1280px) {
+      .live-lobby-grid-v87 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+    }
+    @media (max-width: 760px) {
+      .live-lobby-v87 { padding: 10px !important; }
+      .live-lobby-grid-v87 { grid-template-columns: 1fr !important; gap: 10px !important; }
+      .live-lobby-card-v87 { min-height: 220px !important; padding: 14px !important; border-radius: 18px !important; }
+      .live-lobby-actions { grid-template-columns: 1fr !important; }
+      .live-lobby-actions button { min-height: 40px !important; }
+    }
+
   </style>
 </head>
 <body>
@@ -8692,7 +8835,7 @@ function getTvWindowGroups(target) {
     }    function renderTvStage() {
       const target = getBroadcastTarget(tvState);
       if (!target) {
-        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small></div><strong>대진표 없음</strong></div>${logoMarkup("tv-logo")}</div><div class="empty"><h2>현재 송출할 라운드가 없습니다.</h2></div><footer class="tv-foot"><span>BUILD v86 LIVE LOBBY EMPTY SLOT HARD FIX</span></footer></div>`;
+        app.innerHTML = `<div class="tv-wrap"><div class="tv-head"><div class="tv-brand"><div class="tv-brand-line"><small>MINI4WD TOURNAMENT MAKER</small></div><strong>대진표 없음</strong></div>${logoMarkup("tv-logo")}</div><div class="empty"><h2>현재 송출할 라운드가 없습니다.</h2></div><footer class="tv-foot"><span>BUILD v87 LIVE LOBBY REBUILD NEW WINDOW FINAL</span></footer></div>`;
         return;
       }
       const windowInfo = getTvWindowGroups(target);
@@ -8709,7 +8852,7 @@ function getTvWindowGroups(target) {
           <section class="tv-controls tv-controls-readonly"><div><b>LIVE 자동 송출</b> · 운영 화면 변경사항 자동 반영 · 버튼 조작 없음</div></section>
           ${pointLeadersHtml}
           <main class="tv-stage tv-stage-focus tv-stage-force-4col tv-stage-groups-${columns} tv-stage-${target.laneCount || 3}-lane" style="--tv-lane-count:${target.laneCount || 3}; grid-template-columns: repeat(4, minmax(0,1fr));">${currentGroups.slice(0, 4).map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap)).join("")}</main>
-          <footer class="tv-foot"><span>${target.laneCount} LANE · ${target.groups.length} GROUPS</span><span>BUILD v86 LIVE LOBBY EMPTY SLOT HARD FIX</span></footer>
+          <footer class="tv-foot"><span>${target.laneCount} LANE · ${target.groups.length} GROUPS</span><span>BUILD v87 LIVE LOBBY REBUILD NEW WINDOW FINAL</span></footer>
         </div>`;
     }
 
@@ -9431,7 +9574,7 @@ function boot() {
               <button class="ghost" onclick="requestVenueAccount()">경기장 계정 신청</button>
             </div>
             <p class="privacy-note" style="margin-top:12px;">경기장 계정 신청 후 관리자가 승인해야 운영자 화면에 들어갈 수 있습니다.</p>
-            <div style="display:flex; gap:8px; margin-top:12px;"><button class="ghost" onclick="openDashboardPage()">대시보드 보기</button><button class="ghost" onclick="location.hash='view=live-list'; bootV33();">LIVE 로비</button></div>
+            <div style="display:flex; gap:8px; margin-top:12px;"><button class="ghost" onclick="openDashboardPage()">대시보드 보기</button><button class="ghost" onclick="openLiveLobbyPage()">LIVE 로비</button></div>
           </section>
         </div>`;
     }    async function loginWithEmailPassword() {
@@ -10801,36 +10944,51 @@ function normalizePlayerForFinal(player, extra = {}) {
       const nowText = new Date().toLocaleString("ko-KR");
       const safeTournaments = Array.isArray(tournaments) ? tournaments : [];
       const safeRecords = Array.isArray(records) ? records : [];
-      const liveCount = safeTournaments.filter(item => effectiveLiveStatus(item) === "running").length;
-      const recentCount = safeRecords.length;
-      const venueCards = buildLobbySlots(venues, safeTournaments, safeRecords).slice(0, LIVE_LOBBY_SLOT_COUNT || 20);
-      const waitingCount = venueCards.filter(item => item.status !== "running").length;
+      const slotCount = Number(LIVE_LOBBY_SLOT_COUNT || 20);
+      const venueCards = buildLobbySlots(venues, safeTournaments, safeRecords).slice(0, slotCount);
+      const liveCount = venueCards.filter(item => item && item.status === "running").length;
+      const emptyCount = venueCards.filter(item => item && (item.empty || item.status === "empty")).length;
+      const waitingCount = venueCards.filter(item => item && item.status !== "running" && !(item.empty || item.status === "empty")).length;
       const recent = [...safeRecords].sort((a, b) => getResultRecordDateMs(b) - getResultRecordDateMs(a)).slice(0, 12);
-      const renderLobbyCard = (item, index) => {
-        const live = item.status === "running";
-        const recentState = item.status === "recent" || item.status === "stale";
+
+      const viewerUrl = (view, id) => `${location.origin}${location.pathname}#view=${view}&t=${encodeURIComponent(id || "")}`;
+      const openViewerScript = (view, id) => `window.open('${viewerUrl(view, id)}','_blank','noopener,noreferrer')`;
+
+      const renderLobbyCard = (item = {}, index = 0) => {
         const empty = !!item.empty || item.status === "empty";
+        const live = !empty && item.status === "running" && !!item.id;
+        const recentState = !empty && (item.status === "recent" || item.status === "stale");
         const statusClass = live ? "on" : recentState ? "recent" : empty ? "empty" : "waiting";
-        const statusText = empty ? "EMPTY" : liveStatusLabel(item.status);
+        const statusText = empty ? "EMPTY" : liveStatusLabel(item.status || "waiting");
+        const slotNo = String(index + 1).padStart(2, "0");
         const venueName = empty ? `대기 슬롯 ${index + 1}` : (item.venueName || "경기장");
+        const title = live ? (item.tournamentName || "대회명 미입력") : empty ? "경기장 계정 승인 대기" : (item.tournamentName || "LIVE 대기중");
         const timeText = item.updatedAt ? new Date(item.updatedAt).toLocaleString("ko-KR") : "";
         const recentTimeText = item.recentAt ? new Date(item.recentAt).toLocaleString("ko-KR") : "";
-        const latestResultHtml = item.recentRecord
-          ? `<div class="live-lobby-result"><span>최근 경기 결과</span><b>${escapeHtml(item.recentResult || "결과 기록 없음")}</b><small>${escapeHtml(item.recentTournamentName || "최근 경기")} · ${escapeHtml(recentTimeText)}</small></div>`
-          : `<div class="live-lobby-result muted"><span>최근 경기 결과</span><b>기록 없음</b><small>${empty ? "승인된 경기장 또는 LIVE 발생 시 자동 표시" : "경기 종료 후 자동 표시"}</small></div>`;
-        const metaLine = empty
-          ? `<span>승인된 경기장 계정이 추가되면 이 슬롯에 자동 배치됩니다.</span>`
+        const raceText = item.raceClass ? normalizeRaceClassName(item.raceClass) : "클래스 미지정";
+        const idText = item.id ? item.id : "";
+        const metaRows = empty
+          ? ["승인된 경기장 계정이 추가되면 자동 표시", "LIVE 발생 시 TV/모바일 버튼 활성화"]
           : live
-            ? `<span>${escapeHtml(item.tournamentName || "대회명 미입력")}</span><span>${item.raceClass ? `${escapeHtml(item.raceClass)} · ` : ""}${escapeHtml(timeText)}</span><small>${escapeHtml(item.id || "")}</small>`
-            : `<span>${escapeHtml(item.tournamentName || "대기중")}</span><span>현재 LIVE 경기 없음</span>`;
+            ? [raceText, timeText || "송출 시간 확인중", idText]
+            : [raceText, "현재 LIVE 경기 없음"];
+        const resultTitle = item.recentRecord ? (item.recentResult || "결과 기록 없음") : empty ? "슬롯 대기중" : "최근 결과 없음";
+        const resultSub = item.recentRecord
+          ? `${item.recentTournamentName || "최근 경기"}${recentTimeText ? ` · ${recentTimeText}` : ""}`
+          : empty ? "빈 슬롯도 고정 카드 구조를 유지합니다." : "경기 종료 후 자동 표시됩니다.";
         const actionHtml = live
-          ? `<div class="live-lobby-choice"><button class="primary" onclick="location.hash='view=tv-live&t=${encodeURIComponent(item.id)}'; bootV33();">TV버전</button><button class="ghost" onclick="location.hash='view=mobile-live&t=${encodeURIComponent(item.id)}'; bootV33();">모바일버전</button></div>`
-          : `<div class="live-lobby-placeholder-action" aria-hidden="true">${empty ? "빈 슬롯" : "대기중"}</div>`;
-        return `<article class="live-lobby-card ${live ? "live-on" : ""} ${recentState ? "live-recent" : ""} ${empty ? "live-empty" : ""}"><div class="live-lobby-card-body"><span class="live-status ${statusClass}">${escapeHtml(statusText)}</span><h3>${escapeHtml(venueName)}</h3><div class="live-lobby-meta">${metaLine}</div>${latestResultHtml}</div>${actionHtml}</article>`;
+          ? `<div class="live-lobby-actions"><button class="primary" onclick="${openViewerScript('tv-live', item.id)}">TV버전</button><button class="ghost" onclick="${openViewerScript('mobile-live', item.id)}">모바일버전</button></div>`
+          : `<div class="live-lobby-actions live-lobby-actions-placeholder"><span>${empty ? "빈 슬롯" : "LIVE 대기중"}</span></div>`;
+        return `<article class="live-lobby-card live-lobby-card-v87 ${live ? "live-on" : ""} ${recentState ? "live-recent" : ""} ${empty ? "live-empty" : ""}">
+          <div class="live-lobby-card-head"><span class="live-status ${statusClass}">${escapeHtml(statusText)}</span><span class="live-lobby-slot-no">${slotNo}</span></div>
+          <div class="live-lobby-card-body"><h3>${escapeHtml(venueName)}</h3><strong class="live-lobby-title">${escapeHtml(title)}</strong><div class="live-lobby-meta">${metaRows.filter(Boolean).map(row => `<span>${escapeHtml(row)}</span>`).join("")}</div><div class="live-lobby-result ${item.recentRecord ? "" : "muted"}"><span>최근 경기 결과</span><b>${escapeHtml(resultTitle)}</b><small>${escapeHtml(resultSub)}</small></div></div>
+          ${actionHtml}
+        </article>`;
       };
+
       const cardHtml = venueCards.map(renderLobbyCard).join("");
       const historyHtml = recent.map(record => `<div class="history-public-row"><div><b>${escapeHtml(record.venueName || record.venueId || "경기장")}</b><span>${escapeHtml(normalizeRaceClassName(record.raceClass))}</span></div><div><b>${escapeHtml(record.tournamentName || "대회명 미입력")}</b><span>${escapeHtml(record.endedAtISO ? new Date(record.endedAtISO).toLocaleString("ko-KR") : record.createdAt ? new Date(record.createdAt).toLocaleString("ko-KR") : "")}</span></div><div><b>${escapeHtml(getRecordWinnerText(record))}</b><span>우승/상위 결과</span></div></div>`).join("");
-      app.innerHTML = `<div class="mobile-view live-lobby-shell"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">LIVE LOBBY</div></div><h1>경기장 LIVE</h1><p class="desc">LIVE 중인 경기는 TV버전 또는 모바일버전을 선택해서 바로 봅니다. TV 송출은 운영 화면에서 자동 반영됩니다.</p></div>${logoMarkup("header-logo")}</header><section class="card"><div class="live-lobby-topbar"><div><h2 style="margin:0 0 6px;">경기장별 LIVE 상태</h2><div class="meta">경기별 자동 ID: 경기장 + 경기명 + 일자 · ${escapeHtml(nowText)} 기준</div></div><button class="ghost" onclick="renderLiveLobbyPage()">새로고침</button></div><div class="live-lobby-summary"><span class="pill">LIVE ${liveCount}</span><span class="pill">최근 결과 ${recentCount}</span><span class="pill">대기 ${waitingCount}</span></div><div class="live-lobby-grid live-lobby-grid-stable" style="margin-top:12px;">${cardHtml}</div></section><section class="card"><h2>최근 경기 히스토리</h2><div class="history-public-list">${historyHtml || `<div class="hint">최근 경기 기록이 없습니다.</div>`}</div></section></div>`;
+      app.innerHTML = `<div class="mobile-view live-lobby-shell live-lobby-v87"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">LIVE LOBBY</div></div><h1>경기장 LIVE</h1><p class="desc">운영 화면과 분리된 로비입니다. LIVE 중인 경기는 TV버전 또는 모바일버전을 새창으로 엽니다.</p></div>${logoMarkup("header-logo")}</header><section class="card live-lobby-panel"><div class="live-lobby-topbar"><div><h2 style="margin:0 0 6px;">경기장별 LIVE 상태</h2><div class="meta">경기별 자동 ID: 경기장 + 경기명 + 일자 · ${escapeHtml(nowText)} 기준</div></div><button class="ghost" onclick="renderLiveLobbyPage()">새로고침</button></div><div class="live-lobby-summary"><span class="pill">LIVE ${liveCount}</span><span class="pill">대기 ${waitingCount}</span><span class="pill">빈 슬롯 ${emptyCount}</span></div><div class="live-lobby-grid live-lobby-grid-v87">${cardHtml}</div></section><section class="card"><h2>최근 경기 히스토리</h2><div class="history-public-list">${historyHtml || `<div class="hint">최근 경기 기록이 없습니다.</div>`}</div></section></div>`;
     }
 
 /* v50 final fixes: public live publishing, realtime lobby, dashboard admin scope */
@@ -10856,6 +11014,15 @@ function normalizePlayerForFinal(player, extra = {}) {
 
     function mobileLobbyUrlV50() {
       return `${location.origin}${location.pathname}#view=live-list`;
+    }
+
+    function openDetachedWindowV87(url, name = "mini4wd_live_lobby") {
+      const win = window.open(url, name, "noopener,noreferrer");
+      if (!win) {
+        navigator.clipboard?.writeText(url).then(() => alert("팝업이 차단되어 링크를 복사했습니다. 새 탭에 붙여넣어 열어주세요."))
+          .catch(() => prompt("새창으로 열 링크", url));
+      }
+      return !!win;
     }
 
 function stopLiveLobbyRealtimeV50() {
@@ -10923,7 +11090,7 @@ function stopLiveLobbyRealtimeV50() {
         if (received) return;
         if (viewType === "tv-live") {
           document.body.classList.add("tv-mode");
-          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v86 LIVE LOBBY EMPTY SLOT HARD FIX</span></div></div>`;
+          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v87 LIVE LOBBY REBUILD NEW WINDOW FINAL</span></div></div>`;
         } else {
           renderLiveLobbyPage();
         }
