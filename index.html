@@ -8624,6 +8624,43 @@
       .emergency-adjust-grid-v99 { grid-template-columns: 1fr !important; }
     }
 
+
+/* ============ v113 통합 패치 CSS ============ */
+/* [상태패널 깨짐 수정] 좁은 사이드바에서 대회명이 글자단위로 세로 분해되는 문제 */
+.operator-control-pages .status-panel,
+.operator-control-pages .status-panel.status-panel {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 10px !important;
+  grid-template-columns: none !important;
+}
+.operator-control-pages .status-panel .status-panel-title,
+.operator-control-pages .status-panel [class*="title"],
+.operator-control-pages .status-panel strong {
+  word-break: keep-all !important;
+  overflow-wrap: anywhere !important;
+  white-space: normal !important;
+  writing-mode: horizontal-tb !important;
+  min-width: 0 !important;
+}
+.operator-control-pages .status-panel > * { min-width: 0 !important; }
+
+/* [모바일 포인트] 누적점수 크게 + 3차부터 순위 강조 */
+.athens-scoreboard .score-row { align-items: center !important; }
+.athens-scoreboard .score-row strong {
+  font-size: 1.35em !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+}
+.athens-scoreboard.show-rank .score-row .rank {
+  font-weight: 800 !important;
+  min-width: 1.6em !important;
+  text-align: center !important;
+}
+.athens-scoreboard.hide-rank .score-row .rank { opacity: 0.35 !important; }
+.athens-scoreboard.show-rank .score-row.top-three .rank { color: #d97706 !important; }
+/* ============ /v113 ============ */
 </style>
 </head>
 <body>
@@ -10245,8 +10282,12 @@ function copyOrShare(url, label) {
       const totals = computePointTotals(round);
       if (!totals.length) return "";
 
+      // [v113] 포인트 3차전부터 누적 순위 노출 (1·2차에는 순위 숨김)
+      const pointStageCount = (round.stages || []).filter(s => s.type === "points").length;
+      const showRank = pointStageCount >= 3;
+
       return `
-        <section class="athens-scoreboard">
+        <section class="athens-scoreboard${showRank ? " show-rank" : " hide-rank"}">
           <div class="scoreboard-head">
             <strong>포인트 합산 순위</strong>
             <span class="badge">1·2차전 3/2/1/0 · 3차전 5/2/1/0</span>
@@ -10254,7 +10295,7 @@ function copyOrShare(url, label) {
           <div class="scoreboard-list">
             ${totals.map((player, index) => `
               <div class="score-row ${index < state.settings.laneCount ? "top-three" : ""}">
-                <span class="rank">${index + 1}</span>
+                <span class="rank">${showRank ? (index + 1) : "·"}</span>
                 <span class="score-name">${escapeHtml(player.name)}${player.team ? ` / ${escapeHtml(player.team)}` : ""}</span>
                 <strong>${player.total}P</strong>
               </div>
@@ -11365,7 +11406,7 @@ function renderTvStage() {
               ${logoMarkup("tv90-logo")}
             </header>
             <section class="tv90-empty-screen"><div><h2>LIVE 대기중</h2><p>운영 화면에서 경기를 시작하면 자동으로 표시됩니다.</p></div></section>
-            <footer class="tv90-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v105 ADMIN FULL ROSTER PATCH</span></footer>
+            <footer class="tv90-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v113 INTEGRATED PATCH</span></footer>
           </div>`;
         return;
       }
@@ -11396,7 +11437,7 @@ function renderTvStage() {
           <main class="tv90-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
             ${currentGroups.slice(0, 4).map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap, laneCount)).join("")}
           </main>
-          <footer class="tv90-foot"><span>${escapeHtml(laneCount)} LANE · ${escapeHtml((target.groups || []).length)} GROUPS · LIVE 자동 송출</span><span>BUILD v105 ADMIN FULL ROSTER PATCH</span></footer>
+          <footer class="tv90-foot"><span>${escapeHtml(laneCount)} LANE · ${escapeHtml((target.groups || []).length)} GROUPS · LIVE 자동 송출</span><span>BUILD v113 INTEGRATED PATCH</span></footer>
         </div>`;
     }
 
@@ -12274,7 +12315,7 @@ function boot() {
         const profiles = snapshot.val() || {};
         syncPublicVenuesFromProfiles(profiles);
         const rows = Object.entries(profiles).sort((a,b) => String(a[1].email || "").localeCompare(String(b[1].email || "")));
-        app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar admin-actions-toolbar"><button class="ghost" onclick="renderAdminPage()">새로고침</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section><div class="admin-build-mark">BUILD v105 ADMIN FULL ROSTER PATCH</div></div>`;
+        app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar admin-actions-toolbar"><button class="ghost" onclick="renderAdminPage()">새로고침</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section><div class="admin-build-mark">BUILD v113 INTEGRATED PATCH</div></div>`;
       }).catch(error => alert(`사용자 목록 로드 실패: ${error.message || error}`));
     }
 
@@ -12385,10 +12426,31 @@ function boot() {
 
     function requestRosterCloudLoad() {
       const venueId = currentVenueId();
-      if (dbCloudLoadedVenueId === venueId) return;
-      dbCloudLoadedVenueId = venueId;
+      const loadKey = isAdminUser() ? ("__admin_all__:" + venueId) : venueId;
+      if (dbCloudLoadedVenueId === loadKey) return;
+      dbCloudLoadedVenueId = loadKey;
       const db = initFirebase();
       if (!db || !currentAuthUser) return;
+      // [v113 관리자 전체 명부] 관리자는 모든 경기장 선수를 병합 로드 (실제 venueId 보존)
+      if (isAdminUser()) {
+        db.ref("venues").get().then(snapshot => {
+          const allVenues = snapshot.val() || {};
+          const merged = [];
+          Object.keys(allVenues).forEach(vId => {
+            const node = allVenues[vId] || {};
+            const players = node.players || {};
+            Object.values(players).forEach(p => {
+              const np = normalizeRosterPlayer(p);
+              np.venueId = vId;                       // 자기 경기장으로 덮어쓴 값 복원
+              np.venueName = node.name || node.venueName || vId;
+              merged.push(np);
+            });
+          });
+          safeSetItem(getRosterStorageKey(), JSON.stringify(merged));
+          renderDbPage();
+        }).catch(() => {});
+        return;
+      }
       db.ref(`venues/${venueId}/players`).get().then(snapshot => {
         const raw = snapshot.val();
         if (!raw) return;
@@ -13675,7 +13737,7 @@ function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
         <section class="live-summary-v89"><span>LIVE <b>${liveCount}</b></span><span>대기 <b>${waitingCount}</b></span><span>빈 슬롯 <b>${emptyCount}</b></span><small>${escapeHtml(nowText)} 기준</small></section>
         <main class="live-grid-v89">${cards.map(cardHtml).join("")}</main>
         <section class="live-history-v89"><h2>최근 경기 히스토리</h2><div class="history-list-v89">${historyHtml || `<div class="live-empty-note-v89">최근 경기 기록이 없습니다.</div>`}</div></section>
-        <footer class="live-footer-v89">BUILD v105 ADMIN FULL ROSTER PATCH</footer>
+        <footer class="live-footer-v89">BUILD v113 INTEGRATED PATCH</footer>
       </div>`;
     }
 
@@ -13779,7 +13841,7 @@ function stopLiveLobbyRealtimeV50() {
         if (received) return;
         if (viewType === "tv-live") {
           document.body.classList.add("tv-mode");
-          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v105 ADMIN FULL ROSTER PATCH</span></div></div>`;
+          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v113 INTEGRATED PATCH</span></div></div>`;
         } else {
           renderLiveLobbyPage();
         }
@@ -14067,7 +14129,7 @@ function stopLiveLobbyRealtimeV50() {
       if (window.__mini4wdV102MobileTvLiveSyncHotfixInstalled) return;
       window.__mini4wdV102MobileTvLiveSyncHotfixInstalled = true;
 
-      const V102_BUILD_MARK = "BUILD v105 ADMIN FULL ROSTER PATCH";
+      const V102_BUILD_MARK = "BUILD v113 INTEGRATED PATCH";
       let v102PendingLocalSaveTimer = null;
       let v102LastLocalSaveAt = 0;
       let v102LastLocalJson = "";
@@ -14403,7 +14465,7 @@ function stopLiveLobbyRealtimeV50() {
 
     /* v104 RACE-DAY PERFORMANCE HOTFIX · mobile lag + live sync batching */
     (function(){
-      const V104_BUILD_MARK = "BUILD v105 ADMIN FULL ROSTER PATCH";
+      const V104_BUILD_MARK = "BUILD v113 INTEGRATED PATCH";
       let v104LocalTimer = null;
       let v104FirebaseTimer = null;
       let v104LastSnapshotAt = 0;
