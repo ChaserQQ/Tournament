@@ -8662,9 +8662,28 @@
 .athens-scoreboard.show-rank .score-row.top-three .rank { color: #d97706 !important; }
 /* ============ /v113 ============ */
 
-/* [v114] 관리자 선수DB: 등록 경기장/중복 배지 */
-.admin-venue-badge{display:inline-block;padding:2px 8px;border-radius:6px;background:#eef2ff;color:#3730a3;font-size:12px;font-weight:600;white-space:nowrap;}
-.admin-dup-badge{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:6px;background:#fef3c7;color:#92400e;font-size:12px;font-weight:700;white-space:nowrap;}
+/* [v114] status-panel 세로 스택 최종 오버라이드 — 사이드바 폭에서 대회명 세로 분해 방지 */
+body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+  grid-template-columns: none !important;
+}
+body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel > * { min-width: 0 !important; width: 100% !important; }
+body:not(.tv-mode):not(.live-lobby-page-v89) .status-title-block { min-width: 0 !important; }
+body:not(.tv-mode):not(.live-lobby-page-v89) .status-title-block strong,
+body:not(.tv-mode):not(.live-lobby-page-v89) .status-title-block span {
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: anywhere !important;
+  display: block !important;
+}
+/* [v114] 관리자 선수DB 도구 / 경기장·중복 배지 */
+.admin-roster-tools { display: flex; align-items: center; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
+.admin-roster-tools small { color: #64748b; }
+.venue-badge { display: inline-block; padding: 2px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; }
+.dup-badge { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 6px; font-size: 12px; background: #fde68a; color: #92400e; }
 </style>
 </head>
 <body>
@@ -11410,7 +11429,7 @@ function renderTvStage() {
               ${logoMarkup("tv90-logo")}
             </header>
             <section class="tv90-empty-screen"><div><h2>LIVE 대기중</h2><p>운영 화면에서 경기를 시작하면 자동으로 표시됩니다.</p></div></section>
-            <footer class="tv90-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v114 ADMIN-ROSTER PATCH</span></footer>
+            <footer class="tv90-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v114 ADMIN ROSTER UNIFY</span></footer>
           </div>`;
         return;
       }
@@ -11441,7 +11460,7 @@ function renderTvStage() {
           <main class="tv90-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
             ${currentGroups.slice(0, 4).map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap, laneCount)).join("")}
           </main>
-          <footer class="tv90-foot"><span>${escapeHtml(laneCount)} LANE · ${escapeHtml((target.groups || []).length)} GROUPS · LIVE 자동 송출</span><span>BUILD v114 ADMIN-ROSTER PATCH</span></footer>
+          <footer class="tv90-foot"><span>${escapeHtml(laneCount)} LANE · ${escapeHtml((target.groups || []).length)} GROUPS · LIVE 자동 송출</span><span>BUILD v114 ADMIN ROSTER UNIFY</span></footer>
         </div>`;
     }
 
@@ -11607,19 +11626,6 @@ function renderReadOnlyPointGroup(group, stage) {
 
 
 function toggleRosterField(id, field) {
-      // [v114] 관리자 모드: 즐겨찾기/활성은 해당 경기장 레코드에만 저장
-      if (isAdminUser()) {
-        const roster = loadRoster();
-        const next = roster.map(player => {
-          if (player.id !== id) return player;
-          const np = { ...player, [field]: !player[field], updatedAt: new Date().toISOString() };
-          adminPersistPlayer(np);
-          return np;
-        });
-        safeSetItem(getRosterStorageKey(), JSON.stringify(next));
-        renderDbPage();
-        return;
-      }
       const roster = loadRoster().map(player => {
         if (player.id !== id) return player;
         return { ...player, [field]: !player[field] };
@@ -11630,23 +11636,57 @@ function toggleRosterField(id, field) {
 
     function deleteRosterPlayer(id) {
       if (!confirm("이 선수를 명부에서 삭제할까요?")) return;
-      // [v114] 관리자 모드: 해당 선수의 실제 경기장 레코드만 삭제(다른 경기장 동명 레코드는 유지)
-      if (isAdminUser()) {
-        const roster = loadRoster();
-        const target = roster.find(player => player.id === id);
-        if (target) adminRemovePlayer(target);
-        const next = roster.filter(player => player.id !== id);
-        dbSelectedIds.delete(id);
-        safeSetItem(getRosterStorageKey(), JSON.stringify(next));
-        renderDbPage();
-        return;
-      }
       const roster = loadRoster().filter(player => player.id !== id);
       dbSelectedIds.delete(id);
       saveRoster(roster);
       renderDbPage();
     }
-function toggleDbSelected(id, checked) {
+function runRealNameBcdMigration() {
+      if (!isAdminUser()) return alert("관리자만 실행할 수 있습니다.");
+      if (!confirm("전 경기장에서 동일 실명을 등록순으로 정리하여 2번째부터 B·C·D 접미사를 부여합니다.\n실명이 비어 있는 선수는 건너뜁니다. 실행 전 데이터 백업을 권장합니다.\n계속할까요?")) return;
+      const db = initFirebase();
+      if (!(db && currentAuthUser)) return alert("Firebase 연결이 필요합니다.");
+      // 끝의 단일 영문 1글자(접미사)만 제거해 기준 실명 추출 (한글 실명 가정)
+      const stripBcd = name => {
+        const s = String(name || "").trim();
+        return (/[A-Z]$/.test(s) && s.length > 1 && !/[A-Z]/.test(s[s.length - 2])) ? s.slice(0, -1) : s;
+      };
+      db.ref("venues").get().then(snapshot => {
+        const allVenues = snapshot.val() || {};
+        const all = [];
+        Object.keys(allVenues).forEach(vId => {
+          const players = (allVenues[vId] || {}).players || {};
+          Object.keys(players).forEach(pid => all.push({ vId, pid, p: players[pid] || {} }));
+        });
+        const groups = {};
+        all.forEach(item => {
+          const base = stripBcd(item.p.realName);
+          if (!base) return; // 실명 없는 선수 제외
+          (groups[base] = groups[base] || []).push(item);
+        });
+        const suffixes = "BCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const updates = {};
+        let changed = 0;
+        Object.keys(groups).forEach(base => {
+          const arr = groups[base].sort((a, b) => String(a.p.createdAt || "").localeCompare(String(b.p.createdAt || "")));
+          arr.forEach((item, idx) => {
+            const desired = idx === 0 ? base : base + (suffixes[idx - 1] || ("_" + (idx + 1)));
+            if (String(item.p.realName || "").trim() !== desired) {
+              updates[`venues/${item.vId}/players/${item.pid}/realName`] = desired;
+              changed++;
+            }
+          });
+        });
+        if (!changed) { alert("정리할 동명이인이 없습니다. (이미 정리됨)"); return; }
+        db.ref().update(updates).then(() => {
+          dbCloudLoadedVenueId = null; // 캐시 무효화 → 재로드
+          requestRosterCloudLoad();
+          alert(`동명이인 정리 완료: ${changed}건의 실명을 갱신했습니다.`);
+        }).catch(error => alert(`정리 실패: ${error.message || error}`));
+      }).catch(error => alert(`경기장 데이터 로드 실패: ${error.message || error}`));
+    }
+
+    function toggleDbSelected(id, checked) {
       if (checked) dbSelectedIds.add(id);
       else dbSelectedIds.delete(id);
       updateSelectedPreview();
@@ -11995,7 +12035,6 @@ function boot() {
     let currentUserProfile = null;
     let dbVenueIdDraft = localStorage.getItem(DB_VENUE_KEY) || "";
     let dbCloudLoadedVenueId = "";
-    let adminRealNameVenueMap = {};  // [v114] 실명 -> 등록 경기장 Set
     let dashboardFilter = { from: "", to: "", venue: "전체", raceClass: "전체", keyword: "" };
     const CLASS_OPTIONS = ["오픈", "스톡", "어드&비맥스", "기타 클래스"];
 
@@ -12344,7 +12383,7 @@ function boot() {
         const profiles = snapshot.val() || {};
         syncPublicVenuesFromProfiles(profiles);
         const rows = Object.entries(profiles).sort((a,b) => String(a[1].email || "").localeCompare(String(b[1].email || "")));
-        app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar admin-actions-toolbar"><button class="ghost" onclick="renderAdminPage()">새로고침</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section><div class="admin-build-mark">BUILD v114 ADMIN-ROSTER PATCH</div></div>`;
+        app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar admin-actions-toolbar"><button class="ghost" onclick="renderAdminPage()">새로고침</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section><div class="admin-build-mark">BUILD v114 ADMIN ROSTER UNIFY</div></div>`;
       }).catch(error => alert(`사용자 목록 로드 실패: ${error.message || error}`));
     }
 
@@ -12443,97 +12482,27 @@ function boot() {
       const nickname = String(player.nickname || player.name || realName || "").trim();
       const id = player.id ? String(player.id) : rosterIdentityId(realName, contact, nickname, team);
       const contactStatus = contactStatusOf({ contact });
-      return { ...player, id, realName, contact, contactStatus, name: nickname, team, nickname, memo: String(player.memo || "").trim(), favorite: Boolean(player.favorite), active: player.active !== false, venueId: currentVenueId(), venueName: currentVenueName(), createdAt: player.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() };
+      return { ...player, id, realName, contact, contactStatus, name: nickname, team, nickname, memo: String(player.memo || "").trim(), favorite: Boolean(player.favorite), active: player.active !== false, venueId: player.venueId || currentVenueId(), venueName: player.venueName || currentVenueName(), createdAt: player.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() };
     }
 
     function saveRoster(roster) {
-      // [v114] 관리자 전체 모드에서는 현재 경기장에 통째로 덮어쓰면 안 됨 → 캐시만 갱신(venueId 보존), 클라우드 쓰기는 admin 전용 경로 사용
-      if (isAdminUser()) {
-        const cache = roster.map(normalizeRosterPlayerPreserveVenue);
-        safeSetItem(getRosterStorageKey(), JSON.stringify(cache));
-        return;
-      }
       const normalized = roster.map(normalizeRosterPlayer);
       safeSetItem(getRosterStorageKey(), JSON.stringify(normalized));
       const db = initFirebase();
-      if (db && currentAuthUser) db.ref(`venues/${currentVenueId()}/players`).set(Object.fromEntries(normalized.map(player => [player.id, player]))).catch(error => console.warn("roster cloud save failed", error));
-    }
-
-    // [v114] 관리자 병합 모드 전용: venueId/venueName 보존 정규화
-    function normalizeRosterPlayerPreserveVenue(player) {
-      const np = normalizeRosterPlayer(player);
-      np.venueId = player.venueId || np.venueId;
-      np.venueName = player.venueName || np.venueName;
-      return np;
-    }
-
-    // [v114] 관리자: 한 선수를 그의 실제 경기장 경로에 저장
-    function adminPersistPlayer(player) {
-      const db = initFirebase();
-      if (!db || !currentAuthUser) return;
-      const vId = player.venueId || currentVenueId();
-      const clean = { ...player };
-      db.ref("venues/" + vId + "/players/" + player.id).set(clean).catch(error => console.warn("admin player save failed", error));
-    }
-
-    // [v114] 관리자: 한 선수를 그의 실제 경기장 경로에서 삭제
-    function adminRemovePlayer(player) {
-      const db = initFirebase();
-      if (!db || !currentAuthUser) return;
-      const vId = player.venueId || currentVenueId();
-      db.ref("venues/" + vId + "/players/" + player.id).remove().catch(error => console.warn("admin player remove failed", error));
-    }
-
-    // [v114] 관리자 전용: 전 경기장 동명이인에게 등록순으로 B·C·D 접미사 부여(실명 고유값 확보)
-    function baseRealName(raw) {
-      // "홍길동B" → "홍길동" (끝 한 글자 영문 대문자 + 앞이 한글/숫자일 때만 base로 간주)
-      const s = String(raw || "").trim();
-      const m = s.match(/^(.+?)[A-Z]$/);
-      if (m && m[1] && /[가-힣0-9]$/.test(m[1])) return m[1];
-      return s;
-    }
-    function runDuplicateNameMigration() {
-      if (!isAdminUser()) { alert("관리자만 실행할 수 있습니다."); return; }
-      if (!confirm("전 경기장의 동명이인에게 등록순으로 B·C·D 접미사를 부여합니다.\n같은 실명=같은 사람으로 통합 관리됩니다.\n실행 전 Firebase 데이터 백업을 권장합니다. 계속할까요?")) return;
-      const db = initFirebase();
-      if (!db || !currentAuthUser) { alert("Firebase 연결이 필요합니다."); return; }
-      db.ref("venues").get().then(snapshot => {
-        const allVenues = snapshot.val() || {};
-        const SUFFIX = "BCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-        const groups = {};  // base실명 -> [{vId, key, realName, createdAt}]
-        Object.keys(allVenues).forEach(vId => {
-          const players = (allVenues[vId] || {}).players || {};
-          Object.keys(players).forEach(key => {
-            const p = players[key] || {};
-            const raw = String(p.realName || "").trim();
-            if (!raw) return;
-            const base = baseRealName(raw);
-            if (!groups[base]) groups[base] = [];
-            groups[base].push({ vId, key, realName: raw, createdAt: p.createdAt || "9999-99-99" });
-          });
+      if (!(db && currentAuthUser)) return;
+      // [v114] 관리자 통합 모드: 각 선수를 '실제 소속 경기장' 경로에만 저장 → 어드민 경기장 오염 방지
+      if (isAdminUser()) {
+        const byVenue = {};
+        normalized.forEach(player => {
+          const vid = player.venueId || currentVenueId();
+          (byVenue[vid] = byVenue[vid] || {})[player.id] = player;
         });
-        const updates = {};
-        let changed = 0;
-        Object.keys(groups).forEach(base => {
-          const arr = groups[base];
-          if (arr.length < 2) return;  // 동명이인 없으면 건너뜀
-          arr.sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
-          arr.forEach((e, idx) => {
-            const desired = idx === 0 ? base : base + (SUFFIX[idx - 1] || ("_" + (idx + 1)));
-            if (e.realName !== desired) {
-              updates["venues/" + e.vId + "/players/" + e.key + "/realName"] = desired;
-              changed++;
-            }
-          });
-        });
-        if (changed === 0) { alert("정리할 동명이인이 없습니다. (이미 구분되어 있거나 중복 없음)"); return; }
-        db.ref().update(updates).then(() => {
-          dbCloudLoadedVenueId = "";  // 캐시 무효화 → 재로드
-          alert("동명이인 정리 완료: " + changed + "건 변경. 명부를 다시 불러옵니다.");
-          requestRosterCloudLoad();
-          renderDbPage();
-        }).catch(error => alert("정리 실패: " + (error && error.message ? error.message : error)));
-      }).catch(error => alert("경기장 데이터 로드 실패: " + (error && error.message ? error.message : error)));
+        Object.keys(byVenue).forEach(vid =>
+          db.ref(`venues/${vid}/players`).set(byVenue[vid]).catch(error => console.warn("admin roster save failed", vid, error))
+        );
+        return;
+      }
+      db.ref(`venues/${currentVenueId()}/players`).set(Object.fromEntries(normalized.map(player => [player.id, player]))).catch(error => console.warn("roster cloud save failed", error));
     }
 
     function requestRosterCloudLoad() {
@@ -12627,37 +12596,20 @@ function boot() {
     }
 
     function updateRosterInline(id, field, value) {
-      // [v114] 관리자 전체 모드: 실명이 같으면 같은 사람 → 공통 정보는 전 경기장 동기화, 표시정보(닉네임)는 해당 경기장만
-      if (isAdminUser()) { adminUpdateRosterInline(id, field, value); return; }
-      const roster = loadRoster().map(player => {
-        if (player.id !== id) return player;
-        const next = { ...player, [field]: value };
-        return normalizeRosterPlayer(next);
+      const adminMode = isAdminUser();
+      const COMMON = ["realName", "contact", "team", "memo"]; // 사람 공통 정보 (전 경기장 동기화)
+      const baseRoster = loadRoster();
+      const target = baseRoster.find(player => player.id === id);
+      const sharedKey = target ? String(target.realName || "").trim().toLowerCase() : "";
+      const roster = baseRoster.map(player => {
+        if (player.id === id) return normalizeRosterPlayer({ ...player, [field]: value });
+        // [v114] 관리자가 공통 정보를 수정하면 같은 실명(=같은 사람)의 전 경기장 레코드도 함께 갱신
+        if (adminMode && COMMON.includes(field) && sharedKey && String(player.realName || "").trim().toLowerCase() === sharedKey) {
+          return normalizeRosterPlayer({ ...player, [field]: value });
+        }
+        return player;
       });
       saveRoster(roster);
-      renderDbPage();
-    }
-
-    // [v114] 관리자 인라인 수정: 실명 고유값 기준 동일인 통합 반영
-    function adminUpdateRosterInline(id, field, value) {
-      // realName/contact/team/memo = 사람 공통정보 → 같은 실명 전체 반영
-      // nickname/active/favorite = 경기장별 정보 → 해당 레코드만
-      const SHARED = ["realName", "contact", "team", "memo"];
-      const roster = loadRoster();
-      const target = roster.find(player => player.id === id);
-      if (!target) return;
-      const realKey = String(target.realName || "").trim();
-      const shareThis = SHARED.includes(field) && realKey;
-      const now = new Date().toISOString();
-      const next = roster.map(player => {
-        const sameName = realKey && String(player.realName || "").trim() === realKey;
-        const hit = shareThis ? (player.id === id || sameName) : (player.id === id);
-        if (!hit) return player;
-        const np = { ...player, [field]: value, updatedAt: now };
-        adminPersistPlayer(np);
-        return np;
-      });
-      safeSetItem(getRosterStorageKey(), JSON.stringify(next));
       renderDbPage();
     }
 
@@ -12781,16 +12733,10 @@ function boot() {
       document.body.classList.add("db-light-page-v96");
       requestRosterCloudLoad();
       const roster = loadRoster();
-      // [v114] 관리자 모드: 실명 기준으로 등록된 경기장 집합을 만들어 중복 표기에 사용
-      adminRealNameVenueMap = {};
-      if (isAdminUser()) {
-        roster.forEach(player => {
-          const key = String(player.realName || "").trim();
-          if (!key) return;
-          if (!adminRealNameVenueMap[key]) adminRealNameVenueMap[key] = new Set();
-          adminRealNameVenueMap[key].add(player.venueName || player.venueId || "");
-        });
-      }
+      // [v114] 동일 실명 중복 카운트 (관리자 전 경기장 통합 표기용)
+      const __dupCountByName = {};
+      roster.forEach(p => { const k = String(p.realName || "").trim().toLowerCase(); if (k) __dupCountByName[k] = (__dupCountByName[k] || 0) + 1; });
+      roster.forEach(p => { const k = String(p.realName || "").trim().toLowerCase(); p.__dupCount = k ? __dupCountByName[k] : 1; });
       const teams = Array.from(new Set(roster.map(player => player.team).filter(Boolean))).sort();
       const filtered = getDbFilteredRoster(roster);
       const visibleSelectedCount = filtered.filter(player => dbSelectedIds.has(player.id)).length;
@@ -12803,30 +12749,25 @@ function boot() {
         <div class="db-page player-db-light-v96">
           <header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div></div><h1>선수 DB / 경기장별 관리</h1><p class="desc">연락처는 선택값입니다. 닉네임은 대진표 표시명이며, 부족한 실명/연락처/팀명/메모는 나중에 선수 DB에서 수정할 수 있습니다.</p></div>${logoMarkup("header-logo")}</header>
           ${accountBadge()}
-          <div class="toolbar db-actions-toolbar"><button class="ghost" onclick="exportRosterCsv()">CSV 다운로드</button><button class="ghost" onclick="exportRosterJson()">JSON 백업</button><button class="ghost" onclick="downloadRosterTemplate()">선수 양식</button><label class="upload-button ghost">엑셀 업로드<input type="file" accept=".xlsx,.xls,.csv,.tsv" onchange="importRosterExcel(event)" hidden /></label>${isAdminUser() ? '<button class="primary" onclick="runDuplicateNameMigration()" title="전 경기장 동명이인에게 등록순 B·C·D 부여">동명이인 정리(BCD)</button>' : ""}</div>
+          <div class="toolbar db-actions-toolbar"><button class="ghost" onclick="exportRosterCsv()">CSV 다운로드</button><button class="ghost" onclick="exportRosterJson()">JSON 백업</button><button class="ghost" onclick="downloadRosterTemplate()">선수 양식</button><label class="upload-button ghost">엑셀 업로드<input type="file" accept=".xlsx,.xls,.csv,.tsv" onchange="importRosterExcel(event)" hidden /></label></div>
           <div class="db-grid db-player-layout-v98 db-player-layout-v99"><aside class="db-player-side-v98 db-player-side-v99">
-            <section class="card db-quick-add-card-v96" id="dbQuickAddPanel"><div class="db-panel-title"><h2>선수 빠른 추가</h2><span class="pill">${escapeHtml(currentVenueName())}</span></div><div class="form-grid"><div><label>실명</label><input class="mini-input" id="dbRealName" placeholder="나중에 보완 가능" /></div><div><label for="dbContact">연락처</label><input class="mini-input" id="dbContact" placeholder="선택값" /></div><div><label for="dbNickname">닉네임 / 선수명 *</label><input class="mini-input" id="dbNickname" placeholder="대진표 표시명" /></div><div><label for="dbTeam">팀명</label><input class="mini-input" id="dbTeam" placeholder="OPEN CLASS" /></div><div><label for="dbMemo">메모</label><input class="mini-input" id="dbMemo" placeholder="차량/특이사항" /></div></div><button class="primary" style="width:100%; margin-top:12px;" onclick="addRosterPlayer()">선수 추가</button><p class="privacy-note" style="margin-top:10px;">연락처가 없어도 등록/참가 가능합니다. 미등록 연락처와 실명은 나중에 이 화면에서 직접 보완할 수 있습니다.</p></section>
+            <section class="card db-quick-add-card-v96" id="dbQuickAddPanel"><div class="db-panel-title"><h2>선수 빠른 추가</h2><span class="pill">${escapeHtml(currentVenueName())}</span></div><div class="form-grid"><div><label>실명</label><input class="mini-input" id="dbRealName" placeholder="나중에 보완 가능" /></div><div><label for="dbContact">연락처</label><input class="mini-input" id="dbContact" placeholder="선택값" /></div><div><label for="dbNickname">닉네임 / 선수명 *</label><input class="mini-input" id="dbNickname" placeholder="대진표 표시명" /></div><div><label for="dbTeam">팀명</label><input class="mini-input" id="dbTeam" list="teamSuggest" placeholder="OPEN CLASS" /></div><div><label for="dbMemo">메모</label><input class="mini-input" id="dbMemo" placeholder="차량/특이사항" /></div></div><button class="primary" style="width:100%; margin-top:12px;" onclick="addRosterPlayer()">선수 추가</button><p class="privacy-note" style="margin-top:10px;">연락처가 없어도 등록/참가 가능합니다. 미등록 연락처와 실명은 나중에 이 화면에서 직접 보완할 수 있습니다.</p></section>
             <section class="card selected-box"><div class="db-panel-title"><h2>오늘 참가자</h2><span class="pill"><span id="selectedCount">0</span>명 선택</span></div><div class="db-actions" style="margin-bottom:10px;"><button class="ghost" onclick="selectRecentPlayers()">최근 참가자</button><button class="ghost" onclick="selectFavoritePlayers()">즐겨찾기</button><button class="ghost" onclick="clearSelectedPlayers()">선택 해제</button></div><div id="selectedPreview" class="finalist-grid" style="grid-template-columns:1fr;"></div><button class="primary" style="width:100%; margin-top:12px;" onclick="applySelectedPlayersToTournament()">선택 선수로 대진 생성 준비</button></section>
             <section class="card"><h2>목록 일괄 추가</h2><p class="hint">형식: 실명/연락처(선택)/닉네임/팀명/메모</p><textarea id="quickImportText" style="min-height:150px;" placeholder="홍길동//마이/GEEKS/MS 플렉스"></textarea><button class="ghost" style="width:100%; margin-top:10px;" onclick="quickImportRosterLines()">목록에서 선수 추가</button></section>
             <section class="card"><h2>JSON 복원</h2><textarea id="importJsonText" style="min-height:130px;"></textarea><button class="danger" style="width:100%; margin-top:10px;" onclick="importRosterJsonFromText()">JSON 불러오기</button></section>
-          </aside><main class="db-player-main-v98 db-player-main-v99"><section class="card db-roster-list-card-v98 db-roster-list-card-v99"><div class="db-panel-title"><div><h2>선수 명부</h2><div class="meta">총 ${roster.length}명 · 표시 ${filtered.length}명</div></div><div class="db-actions db-filter-actions"><input class="mini-input" placeholder="검색" value="${escapeHtml(dbSearchText)}" oninput="setDbSearch(this.value)" style="width:180px;" /><select onchange="setDbTeamFilter(this.value)" style="width:150px;"><option value="전체">전체 팀</option>${teams.map(team => `<option value="${escapeHtml(team)}" ${team === dbTeamFilter ? "selected" : ""}>${escapeHtml(team)}</option>`).join("")}</select><select onchange="setDbStatusFilter(this.value)" style="width:130px;">${["전체", "활성", "비활성", "즐겨찾기", "연락처 있음", "연락처 없음"].map(value => `<option value="${value}" ${value === dbStatusFilter ? "selected" : ""}>${value}</option>`).join("")}</select></div></div><div class="db-stat-grid"><div class="db-stat"><small>전체 선수</small><strong>${roster.length}</strong></div><div class="db-stat"><small>활성 선수</small><strong>${activeCount}</strong></div><div class="db-stat"><small>즐겨찾기</small><strong>${favoriteCount}</strong></div><div class="db-stat"><small>연락처 미등록</small><strong>${missingContactCount}</strong></div></div><div class="db-bulk-toolbar"><div><label class="db-checkline"><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /> 표시 목록 일괄선택</label><span class="hint">표시 ${filtered.length}명 · 표시 중 선택 ${visibleSelectedCount}명</span></div><div class="db-bulk-buttons"><button class="ghost" onclick="selectVisiblePlayers()">표시 활성 전체 선택</button><button class="ghost" onclick="deselectVisiblePlayers()">표시 선택 해제</button><button class="ghost" onclick="selectAllActivePlayers()">전체 활성 선택</button>${dbSortButton("nickname", "닉네임")}${dbSortButton("realName", "실명")}${dbSortButton("team", "팀명")}${dbSortButton("createdAt", "등록일")}</div></div><div class="roster-table-wrap db-roster-scroll-v98 db-roster-scroll-v99"><table class="roster-table"><thead><tr><th><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /></th><th>★</th><th><button class="ghost table-sort-btn" onclick="setDbSort('realName')">실명${dbSortField === "realName" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th>${isAdminUser() ? "<th>경기장</th>" : ""}<th>연락처</th><th><button class="ghost table-sort-btn" onclick="setDbSort('nickname')">닉네임${dbSortField === "nickname" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('team')">팀명${dbSortField === "team" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('active')">상태${dbSortField === "active" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>메모</th><th>관리</th></tr></thead><tbody>${filtered.map(player => renderRosterRow(player)).join("") || `<tr><td colspan="${isAdminUser() ? 10 : 9}"><div class="db-empty">등록된 선수가 없습니다.</div></td></tr>`}</tbody></table></div></section></main></div></div>`;
+          </aside><main class="db-player-main-v98 db-player-main-v99"><section class="card db-roster-list-card-v98 db-roster-list-card-v99"><div class="db-panel-title"><div><h2>선수 명부</h2><div class="meta">총 ${roster.length}명 · 표시 ${filtered.length}명</div></div><div class="db-actions db-filter-actions"><input class="mini-input" placeholder="검색" value="${escapeHtml(dbSearchText)}" oninput="setDbSearch(this.value)" style="width:180px;" /><select onchange="setDbTeamFilter(this.value)" style="width:150px;"><option value="전체">전체 팀</option>${teams.map(team => `<option value="${escapeHtml(team)}" ${team === dbTeamFilter ? "selected" : ""}>${escapeHtml(team)}</option>`).join("")}</select><select onchange="setDbStatusFilter(this.value)" style="width:130px;">${["전체", "활성", "비활성", "즐겨찾기", "연락처 있음", "연락처 없음"].map(value => `<option value="${value}" ${value === dbStatusFilter ? "selected" : ""}>${value}</option>`).join("")}</select></div></div><div class="db-stat-grid"><div class="db-stat"><small>전체 선수</small><strong>${roster.length}</strong></div><div class="db-stat"><small>활성 선수</small><strong>${activeCount}</strong></div><div class="db-stat"><small>즐겨찾기</small><strong>${favoriteCount}</strong></div><div class="db-stat"><small>연락처 미등록</small><strong>${missingContactCount}</strong></div></div><div class="db-bulk-toolbar"><div><label class="db-checkline"><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /> 표시 목록 일괄선택</label><span class="hint">표시 ${filtered.length}명 · 표시 중 선택 ${visibleSelectedCount}명</span></div><div class="db-bulk-buttons"><button class="ghost" onclick="selectVisiblePlayers()">표시 활성 전체 선택</button><button class="ghost" onclick="deselectVisiblePlayers()">표시 선택 해제</button><button class="ghost" onclick="selectAllActivePlayers()">전체 활성 선택</button>${dbSortButton("nickname", "닉네임")}${dbSortButton("realName", "실명")}${dbSortButton("team", "팀명")}${dbSortButton("createdAt", "등록일")}</div></div><div class="roster-table-wrap db-roster-scroll-v98 db-roster-scroll-v99">${isAdminUser() ? `<div class="admin-roster-tools"><button class="ghost" onclick="runRealNameBcdMigration()">동명이인 정리 (BCD 부여)</button><small>전 경기장 동일 실명을 등록순으로 B·C·D 구분합니다.</small></div>` : ""}<datalist id="teamSuggest">${teams.map(t => `<option value="${escapeAttr(t)}"></option>`).join("")}</datalist><table class="roster-table"><thead><tr><th><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /></th><th>★</th>${isAdminUser() ? "<th>경기장</th>" : ""}<th><button class="ghost table-sort-btn" onclick="setDbSort('realName')">실명${dbSortField === "realName" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>연락처</th><th><button class="ghost table-sort-btn" onclick="setDbSort('nickname')">닉네임${dbSortField === "nickname" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('team')">팀명${dbSortField === "team" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('active')">상태${dbSortField === "active" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>메모</th><th>관리</th></tr></thead><tbody>${filtered.map(player => renderRosterRow(player)).join("") || `<tr><td colspan="${isAdminUser() ? 10 : 9}"><div class="db-empty">등록된 선수가 없습니다.</div></td></tr>`}</tbody></table></div></section></main></div></div>`;
       updateSelectedPreview();
     }
 
     function renderRosterRow(player) {
-      // [v114] 관리자 모드: 등록 경기장 + 중복(같은 실명이 2개 이상 경기장) 표기
-      let venueCell = "";
-      if (isAdminUser()) {
-        const realKey = String(player.realName || "").trim();
-        const venueSet = realKey ? adminRealNameVenueMap[realKey] : null;
-        const venueCount = venueSet ? venueSet.size : 1;
-        const dupBadge = venueCount >= 2 ? `<span class="admin-dup-badge" title="${venueCount}개 경기장에 등록">중복 ${venueCount}</span>` : "";
-        venueCell = `<td data-label="경기장"><span class="admin-venue-badge">${escapeHtml(player.venueName || player.venueId || "-")}</span>${dupBadge}</td>`;
-      }
+      const adminMode = isAdminUser();
+      const venueCell = adminMode
+        ? `<td data-label="경기장"><span class="venue-badge">${escapeHtml(player.venueName || player.venueId || "-")}</span>${(player.__dupCount || 1) > 1 ? `<span class="dup-badge">중복 ${player.__dupCount}</span>` : ""}</td>`
+        : "";
       const contactMissing = contactStatusOf(player) === "missing";
       const contactClass = contactMissing ? "roster-contact-missing" : "roster-contact-ok";
       const contactHint = contactMissing ? `<small class="contact-status missing">연락처 미등록 · 추후 수정 가능</small>` : `<small class="contact-status ok">연락처 있음</small>`;
-      return `<tr class="${contactMissing ? "needs-contact" : ""}"><td data-label="참가"><input type="checkbox" data-roster-select value="${escapeAttr(player.id)}" ${dbSelectedIds.has(player.id) ? "checked" : ""} ${player.active ? "" : "disabled"} onchange="toggleDbSelected('${escapeAttr(player.id)}', this.checked)" /></td><td data-label="즐겨찾기"><button class="ghost" onclick="toggleRosterField('${escapeAttr(player.id)}', 'favorite')">${player.favorite ? "★" : "☆"}</button></td><td data-label="실명"><input class="mini-input" placeholder="실명 보완" value="${escapeHtml(player.realName || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'realName', this.value)" /></td>${venueCell}<td data-label="연락처"><div class="contact-edit-cell"><input class="mini-input ${contactClass}" placeholder="연락처 보완" value="${escapeHtml(player.contact || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'contact', this.value)" />${contactHint}</div></td><td data-label="닉네임/선수명"><input class="mini-input" value="${escapeHtml(player.nickname || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'nickname', this.value)" /></td><td data-label="팀명"><input class="mini-input" placeholder="팀명 보완" value="${escapeHtml(player.team || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'team', this.value)" /></td><td data-label="상태"><button class="${player.active ? "primary" : "ghost"}" onclick="toggleRosterField('${escapeAttr(player.id)}', 'active')">${player.active ? "활성" : "비활성"}</button></td><td data-label="메모"><input class="mini-input" placeholder="메모 보완" value="${escapeHtml(player.memo || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'memo', this.value)" /></td><td data-label="관리"><button class="danger" onclick="deleteRosterPlayer('${escapeAttr(player.id)}')">삭제</button></td></tr>`;
+      return `<tr class="${contactMissing ? "needs-contact" : ""}"><td data-label="참가"><input type="checkbox" data-roster-select value="${escapeAttr(player.id)}" ${dbSelectedIds.has(player.id) ? "checked" : ""} ${player.active ? "" : "disabled"} onchange="toggleDbSelected('${escapeAttr(player.id)}', this.checked)" /></td><td data-label="즐겨찾기"><button class="ghost" onclick="toggleRosterField('${escapeAttr(player.id)}', 'favorite')">${player.favorite ? "★" : "☆"}</button></td>${venueCell}<td data-label="실명"><input class="mini-input" placeholder="실명 보완" value="${escapeHtml(player.realName || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'realName', this.value)" /></td><td data-label="연락처"><div class="contact-edit-cell"><input class="mini-input ${contactClass}" placeholder="연락처 보완" value="${escapeHtml(player.contact || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'contact', this.value)" />${contactHint}</div></td><td data-label="닉네임/선수명"><input class="mini-input" value="${escapeHtml(player.nickname || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'nickname', this.value)" /></td><td data-label="팀명"><input class="mini-input" list="teamSuggest" placeholder="팀명 보완" value="${escapeHtml(player.team || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'team', this.value)" /></td><td data-label="상태"><button class="${player.active ? "primary" : "ghost"}" onclick="toggleRosterField('${escapeAttr(player.id)}', 'active')">${player.active ? "활성" : "비활성"}</button></td><td data-label="메모"><input class="mini-input" placeholder="메모 보완" value="${escapeHtml(player.memo || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'memo', this.value)" /></td><td data-label="관리"><button class="danger" onclick="deleteRosterPlayer('${escapeAttr(player.id)}')">삭제</button></td></tr>`;
     }
 
     function getCurrentTournamentId() {
@@ -13893,7 +13834,7 @@ function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
         <section class="live-summary-v89"><span>LIVE <b>${liveCount}</b></span><span>대기 <b>${waitingCount}</b></span><span>빈 슬롯 <b>${emptyCount}</b></span><small>${escapeHtml(nowText)} 기준</small></section>
         <main class="live-grid-v89">${cards.map(cardHtml).join("")}</main>
         <section class="live-history-v89"><h2>최근 경기 히스토리</h2><div class="history-list-v89">${historyHtml || `<div class="live-empty-note-v89">최근 경기 기록이 없습니다.</div>`}</div></section>
-        <footer class="live-footer-v89">BUILD v114 ADMIN-ROSTER PATCH</footer>
+        <footer class="live-footer-v89">BUILD v114 ADMIN ROSTER UNIFY</footer>
       </div>`;
     }
 
@@ -13997,7 +13938,7 @@ function stopLiveLobbyRealtimeV50() {
         if (received) return;
         if (viewType === "tv-live") {
           document.body.classList.add("tv-mode");
-          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v114 ADMIN-ROSTER PATCH</span></div></div>`;
+          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v114 ADMIN ROSTER UNIFY</span></div></div>`;
         } else {
           renderLiveLobbyPage();
         }
@@ -14285,7 +14226,7 @@ function stopLiveLobbyRealtimeV50() {
       if (window.__mini4wdV102MobileTvLiveSyncHotfixInstalled) return;
       window.__mini4wdV102MobileTvLiveSyncHotfixInstalled = true;
 
-      const V102_BUILD_MARK = "BUILD v114 ADMIN-ROSTER PATCH";
+      const V102_BUILD_MARK = "BUILD v114 ADMIN ROSTER UNIFY";
       let v102PendingLocalSaveTimer = null;
       let v102LastLocalSaveAt = 0;
       let v102LastLocalJson = "";
@@ -14621,7 +14562,7 @@ function stopLiveLobbyRealtimeV50() {
 
     /* v104 RACE-DAY PERFORMANCE HOTFIX · mobile lag + live sync batching */
     (function(){
-      const V104_BUILD_MARK = "BUILD v114 ADMIN-ROSTER PATCH";
+      const V104_BUILD_MARK = "BUILD v114 ADMIN ROSTER UNIFY";
       let v104LocalTimer = null;
       let v104FirebaseTimer = null;
       let v104LastSnapshotAt = 0;
