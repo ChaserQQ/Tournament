@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v105 ADMIN FULL ROSTER PATCH</title>
-  <!-- v105 ADMIN FULL ROSTER PATCH · index-only · Rules/images/OG files unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v117 GLOBAL UI CONSISTENCY PATCH</title>
+  <!-- BUILD v117 GLOBAL UI CONSISTENCY PATCH · all implemented UI button/category/font spacing refinement; v116 auto-next preserved -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -8662,28 +8662,979 @@
 .athens-scoreboard.show-rank .score-row.top-three .rank { color: #d97706 !important; }
 /* ============ /v113 ============ */
 
-/* [v114] status-panel 세로 스택 최종 오버라이드 — 사이드바 폭에서 대회명 세로 분해 방지 */
-body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel {
+/* [v114 상태패널 강제 수정] 좁은 사이드바에서 대회명이 글자 단위로 세로 분해되는 문제 해결.
+   기존 승자 셀렉터(body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel)와 동일/상위 특이성으로
+   캐스케이드 맨 끝에 배치하여 그리드 압축을 무력화하고 세로 스택으로 강제한다. */
+body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel,
+body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel.status-panel {
   display: flex !important;
   flex-direction: column !important;
   align-items: stretch !important;
-  gap: 8px !important;
+  gap: 10px !important;
   grid-template-columns: none !important;
+  overflow: visible !important;
 }
-body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel > * { min-width: 0 !important; width: 100% !important; }
-body:not(.tv-mode):not(.live-lobby-page-v89) .status-title-block { min-width: 0 !important; }
-body:not(.tv-mode):not(.live-lobby-page-v89) .status-title-block strong,
-body:not(.tv-mode):not(.live-lobby-page-v89) .status-title-block span {
+body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-main,
+body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-title-block {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-title-block strong {
   white-space: normal !important;
   word-break: keep-all !important;
   overflow-wrap: anywhere !important;
-  display: block !important;
+  line-height: 1.25 !important;
 }
-/* [v114] 관리자 선수DB 도구 / 경기장·중복 배지 */
-.admin-roster-tools { display: flex; align-items: center; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
-.admin-roster-tools small { color: #64748b; }
-.venue-badge { display: inline-block; padding: 2px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #334155; }
-.dup-badge { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 6px; font-size: 12px; background: #fde68a; color: #92400e; }
+body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-time-block,
+body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
+  min-width: 0 !important;
+  width: 100% !important;
+  justify-content: flex-start !important;
+}
+/* 어드민 명부 경기장 배지 */
+.admin-venue-badge {
+  display: inline-block;
+  margin-bottom: 3px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+
+    /* v115 data-key + tournament prep UI cleanup */
+    .prep-card-v115 {
+      padding: 0 !important;
+      overflow: hidden;
+      border-color: rgba(216,77,137,.18) !important;
+      background: linear-gradient(180deg, rgba(20,34,27,.96), rgba(7,16,13,.94)) !important;
+    }
+    .prep-hero-v115 {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+      border-bottom: 1px solid rgba(238,233,223,.08);
+      background: radial-gradient(circle at 100% 0%, rgba(216,77,137,.16), transparent 42%), rgba(238,233,223,.025);
+    }
+    .prep-kicker-v115 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      color: var(--dim);
+      font-size: 11px;
+      font-weight: 1000;
+      letter-spacing: .04em;
+    }
+    .prep-title-v115 {
+      margin: 0;
+      color: var(--text);
+      font-size: clamp(21px, 2.1vw, 30px);
+      line-height: 1.08;
+      letter-spacing: -.055em;
+      font-weight: 1000;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+    .prep-sub-v115 {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      font-weight: 850;
+    }
+    .prep-meta-grid-v115 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      padding: 12px 16px 0;
+    }
+    .prep-meta-v115 {
+      min-width: 0;
+      padding: 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(238,233,223,.08);
+      background: rgba(238,233,223,.035);
+    }
+    .prep-meta-v115 small {
+      display: block;
+      color: var(--dim);
+      font-size: 10px;
+      font-weight: 1000;
+      margin-bottom: 4px;
+    }
+    .prep-meta-v115 strong {
+      display: block;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.22;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .prep-action-v115 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      padding: 12px 16px 16px;
+    }
+    .prep-action-v115 button {
+      width: 100%;
+      min-height: 54px !important;
+      border-radius: 18px !important;
+      font-size: 16px !important;
+      letter-spacing: -.03em;
+    }
+    .prep-status-row-v115 {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      color: var(--dim);
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .prep-form-v115 {
+      display: grid;
+      gap: 12px;
+      padding: 14px 16px 16px;
+    }
+    .prep-form-v115 .form-grid {
+      margin: 0 !important;
+    }
+    .prep-required-v115 {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: #ff8dbb;
+      font-size: 11px;
+      font-weight: 1000;
+    }
+    .prep-helper-v115 {
+      margin: 0;
+      padding: 10px 11px;
+      border-radius: 14px;
+      border: 1px solid rgba(248,213,107,.16);
+      background: rgba(248,213,107,.06);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      font-weight: 850;
+    }
+    .db-admin-venue-field-v115 {
+      border: 1px solid rgba(216,77,137,.22);
+      background: rgba(216,77,137,.07);
+      border-radius: 14px;
+      padding: 10px;
+    }
+    .admin-venue-badge {
+      display: inline-flex;
+      align-items: center;
+      width: max-content;
+      max-width: 100%;
+      margin: 0 0 5px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(216,77,137,.24);
+      background: rgba(216,77,137,.10);
+      color: #ff8dbb;
+      font-size: 10px;
+      font-weight: 1000;
+      line-height: 1.1;
+    }
+    @media (max-width: 760px) {
+      .prep-meta-grid-v115 { grid-template-columns: 1fr; padding: 10px 12px 0; }
+      .prep-hero-v115, .prep-form-v115, .prep-action-v115 { padding-left: 12px; padding-right: 12px; }
+      .prep-action-v115 button { min-height: 48px !important; font-size: 14px !important; }
+    }
+
+
+    /* v116 prep card + auto-next tournament UI final override */
+    body:not(.tv-mode) .prep-card-v116 {
+      padding: 0 !important;
+      overflow: hidden !important;
+      background: #ffffff !important;
+      background-image: none !important;
+      border: 1px solid #d8e0ea !important;
+      border-radius: 22px !important;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, .07) !important;
+    }
+    body:not(.tv-mode) .prep-card-v116 .prep-hero-v116 {
+      display: grid !important;
+      gap: 12px !important;
+      padding: 16px !important;
+      background:
+        radial-gradient(circle at 100% 0%, rgba(216,77,137,.12), transparent 42%),
+        linear-gradient(180deg, #ffffff, #fbfdff) !important;
+    }
+    body:not(.tv-mode) .prep-topline-v116 {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 10px !important;
+      min-width: 0 !important;
+      color: #475569 !important;
+      font-size: 12px !important;
+      font-weight: 1000 !important;
+      letter-spacing: -.01em !important;
+    }
+    body:not(.tv-mode) .prep-preview-v116 {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) minmax(112px, auto) !important;
+      align-items: center !important;
+      gap: 12px !important;
+      min-width: 0 !important;
+      padding: 14px !important;
+      border: 1px solid #dbe3ef !important;
+      border-radius: 18px !important;
+      background: #ffffff !important;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, .06) !important;
+    }
+    body:not(.tv-mode) .prep-preview-main-v116 {
+      display: grid !important;
+      gap: 5px !important;
+      min-width: 0 !important;
+    }
+    body:not(.tv-mode) .prep-title-v116 {
+      display: block !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      color: #111827 !important;
+      font-size: clamp(20px, 2vw, 28px) !important;
+      line-height: 1.12 !important;
+      font-weight: 1000 !important;
+      letter-spacing: -.055em !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      word-break: keep-all !important;
+    }
+    body:not(.tv-mode) .prep-sub-v116 {
+      display: block !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      color: #475569 !important;
+      font-size: 12px !important;
+      line-height: 1.35 !important;
+      font-weight: 900 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      word-break: keep-all !important;
+    }
+    body:not(.tv-mode) .prep-action-v116 {
+      display: grid !important;
+      gap: 7px !important;
+      min-width: 0 !important;
+    }
+    body:not(.tv-mode) .prep-action-v116 button {
+      width: 100% !important;
+      min-height: 42px !important;
+      padding: 10px 13px !important;
+      border-radius: 14px !important;
+      font-size: 13px !important;
+      line-height: 1.15 !important;
+      white-space: normal !important;
+    }
+    body:not(.tv-mode) .prep-action-v116 .prep-sub-action-v116 {
+      min-height: 34px !important;
+      font-size: 12px !important;
+      color: #475569 !important;
+      background: #f8fafc !important;
+      border-color: #d8e0ea !important;
+    }
+    body:not(.tv-mode) .prep-time-row-v116 {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      align-items: center !important;
+      gap: 7px 10px !important;
+      min-width: 0 !important;
+      color: #64748b !important;
+      font-size: 11px !important;
+      font-weight: 900 !important;
+      line-height: 1.35 !important;
+    }
+    body:not(.tv-mode) .prep-time-row-v116 span {
+      min-width: 0 !important;
+      max-width: 100% !important;
+      overflow-wrap: anywhere !important;
+      word-break: keep-all !important;
+    }
+    body:not(.tv-mode) .prep-card-v116 .status-badge {
+      color: #ffffff !important;
+      background: #d84d89 !important;
+      border: 1px solid #d84d89 !important;
+      box-shadow: none !important;
+    }
+    body:not(.tv-mode) .prep-card-v116 .status-draft {
+      color: #334155 !important;
+      background: #f1f5f9 !important;
+      border-color: #d8e0ea !important;
+    }
+    body:not(.tv-mode) .prep-card-v116 .status-finished,
+    body:not(.tv-mode) .prep-card-v116 .status-archived {
+      color: #ffffff !important;
+      background: #64748b !important;
+      border-color: #64748b !important;
+    }
+    body:not(.tv-mode) .prep-card-v116 .prep-form-v115 {
+      padding-top: 0 !important;
+      border-top: 0 !important;
+    }
+    @media (max-width: 760px) {
+      body:not(.tv-mode) .prep-card-v116 .prep-hero-v116 {
+        padding: 12px !important;
+        gap: 10px !important;
+      }
+      body:not(.tv-mode) .prep-preview-v116 {
+        grid-template-columns: 1fr !important;
+        padding: 12px !important;
+        gap: 10px !important;
+      }
+      body:not(.tv-mode) .prep-title-v116 {
+        font-size: 21px !important;
+      }
+      body:not(.tv-mode) .prep-sub-v116 {
+        white-space: normal !important;
+      }
+      body:not(.tv-mode) .prep-action-v116 button {
+        min-height: 44px !important;
+      }
+    }
+
+
+    /* v117 GLOBAL UI CONSISTENCY PATCH · final all-screen UI normalization, no function changes */
+    :root {
+      --ui117-gap-xs: 4px;
+      --ui117-gap-sm: 6px;
+      --ui117-gap-md: 8px;
+      --ui117-gap-lg: 10px;
+      --ui117-radius-sm: 9px;
+      --ui117-radius-md: 12px;
+      --ui117-radius-lg: 16px;
+      --ui117-btn-h: 36px;
+      --ui117-btn-h-sm: 30px;
+      --ui117-btn-h-lg: 42px;
+      --ui117-font-btn: 12px;
+      --ui117-font-ui: 12.5px;
+      --ui117-font-sub: 11px;
+      --ui117-font-title: 16px;
+    }
+
+    body:not(.tv-mode) {
+      font-size: 14px !important;
+      letter-spacing: -0.018em !important;
+    }
+    body:not(.tv-mode) .wrap,
+    body:not(.tv-mode) .db-page,
+    body:not(.tv-mode) .mobile-view {
+      max-width: 1500px !important;
+      padding-top: 18px !important;
+      padding-bottom: 64px !important;
+    }
+    body:not(.tv-mode) .header {
+      min-height: 108px !important;
+      padding: 18px 22px !important;
+      border-radius: 22px !important;
+      margin-bottom: 16px !important;
+      gap: 16px !important;
+    }
+    body:not(.tv-mode) .brand-line,
+    body:not(.tv-mode) .tv-brand-line {
+      gap: var(--ui117-gap-md) !important;
+      margin-bottom: 6px !important;
+    }
+    body:not(.tv-mode) .eyebrow {
+      font-size: 11px !important;
+      letter-spacing: .16em !important;
+      line-height: 1.1 !important;
+    }
+    body:not(.tv-mode) .maker {
+      font-size: 11px !important;
+      line-height: 1.1 !important;
+    }
+    body:not(.tv-mode) h1 {
+      font-size: clamp(22px, 2.2vw, 30px) !important;
+      line-height: 1.1 !important;
+    }
+    body:not(.tv-mode) .desc,
+    body:not(.tv-mode) .hint,
+    body:not(.tv-mode) .meta,
+    body:not(.tv-mode) .operator-subtitle,
+    body:not(.tv-mode) .privacy-note {
+      font-size: var(--ui117-font-sub) !important;
+      line-height: 1.45 !important;
+    }
+
+    body:not(.tv-mode) .layout,
+    body:not(.tv-mode) .db-grid,
+    body:not(.tv-mode) .operator-control-pages,
+    body:not(.tv-mode) .operator-page-body,
+    body:not(.tv-mode) .stage-list,
+    body:not(.tv-mode) .live-lobby-shell,
+    body:not(.tv-mode) .live-sync-panel,
+    body:not(.tv-mode) .dashboard-grid,
+    body:not(.tv-mode) .rank-list,
+    body:not(.tv-mode) .venue-visit-list,
+    body:not(.tv-mode) .snapshot-list,
+    body:not(.tv-mode) .history-public-list {
+      gap: var(--ui117-gap-lg) !important;
+    }
+    body:not(.tv-mode) .card,
+    body:not(.tv-mode) .round-card,
+    body:not(.tv-mode) .stage-card,
+    body:not(.tv-mode) .final-box,
+    body:not(.tv-mode) .dashboard-card,
+    body:not(.tv-mode) .operator-page,
+    body:not(.tv-mode) .ops-panel,
+    body:not(.tv-mode) .firebase-panel,
+    body:not(.tv-mode) .quick-step-panel,
+    body:not(.tv-mode) .mobile-section-card,
+    body:not(.tv-mode) .auth-card {
+      border-radius: var(--ui117-radius-lg) !important;
+      padding: 14px !important;
+      margin-bottom: 12px !important;
+    }
+    body:not(.tv-mode) .card h2,
+    body:not(.tv-mode) .final-box h2,
+    body:not(.tv-mode) .db-panel-title h2,
+    body:not(.tv-mode) .dashboard-card h3 {
+      font-size: var(--ui117-font-title) !important;
+      line-height: 1.16 !important;
+      margin-bottom: 10px !important;
+    }
+    body:not(.tv-mode) .round-title h2 {
+      font-size: clamp(20px, 2.1vw, 25px) !important;
+      line-height: 1.12 !important;
+    }
+    body:not(.tv-mode) .stage-head h3 {
+      font-size: 17px !important;
+      line-height: 1.16 !important;
+    }
+    body:not(.tv-mode) label {
+      font-size: 12px !important;
+      margin-bottom: 5px !important;
+      line-height: 1.2 !important;
+    }
+
+    body:not(.tv-mode) button,
+    body:not(.tv-mode) .upload-button,
+    body:not(.tv-mode) input[type="button"],
+    body:not(.tv-mode) input[type="submit"] {
+      min-height: var(--ui117-btn-h) !important;
+      padding: 8px 10px !important;
+      border-radius: var(--ui117-radius-md) !important;
+      font-size: var(--ui117-font-btn) !important;
+      line-height: 1.12 !important;
+      font-weight: 900 !important;
+      letter-spacing: -0.012em !important;
+      white-space: normal !important;
+      gap: 5px !important;
+      box-shadow: none !important;
+    }
+    body:not(.tv-mode) button.primary,
+    body:not(.tv-mode) button.active,
+    body:not(.tv-mode) button.selected {
+      box-shadow: 0 8px 18px rgba(216,77,137,.16) !important;
+    }
+    body:not(.tv-mode) .toolbar,
+    body:not(.tv-mode) .btnrow,
+    body:not(.tv-mode) .firebase-actions,
+    body:not(.tv-mode) .status-actions,
+    body:not(.tv-mode) .ops-buttons,
+    body:not(.tv-mode) .page-nav,
+    body:not(.tv-mode) .account-actions,
+    body:not(.tv-mode) .account-left,
+    body:not(.tv-mode) .db-actions,
+    body:not(.tv-mode) .db-actions-toolbar,
+    body:not(.tv-mode) .admin-actions,
+    body:not(.tv-mode) .admin-actions-toolbar,
+    body:not(.tv-mode) .section-toolbar,
+    body:not(.tv-mode) .auth-actions,
+    body:not(.tv-mode) .dashboard-nav-actions,
+    body:not(.tv-mode) .dashboard-actions-toolbar,
+    body:not(.tv-mode) .dashboard-period-row,
+    body:not(.tv-mode) .live-sync-actions,
+    body:not(.tv-mode) .final-lane-tools,
+    body:not(.tv-mode) .download-mini,
+    body:not(.tv-mode) .group-size-control > div,
+    body:not(.tv-mode) .point-buttons {
+      gap: var(--ui117-gap-sm) !important;
+      align-items: stretch !important;
+    }
+    body:not(.tv-mode) .toolbar,
+    body:not(.tv-mode) .section-toolbar,
+    body:not(.tv-mode) .dashboard-nav-actions,
+    body:not(.tv-mode) .db-actions-toolbar,
+    body:not(.tv-mode) .admin-actions-toolbar,
+    body:not(.tv-mode) .dashboard-actions-toolbar {
+      padding: 8px !important;
+      border-radius: var(--ui117-radius-lg) !important;
+      display: flex !important;
+      flex-wrap: wrap !important;
+    }
+    body:not(.tv-mode) .toolbar button,
+    body:not(.tv-mode) .section-toolbar button,
+    body:not(.tv-mode) .dashboard-nav-actions button,
+    body:not(.tv-mode) .db-actions-toolbar button,
+    body:not(.tv-mode) .admin-actions-toolbar button,
+    body:not(.tv-mode) .dashboard-actions-toolbar button,
+    body:not(.tv-mode) .page-nav button,
+    body:not(.tv-mode) .account-actions button {
+      min-width: auto !important;
+      flex: 0 0 auto !important;
+    }
+    body:not(.tv-mode) .btnrow,
+    body:not(.tv-mode) .auth-actions,
+    body:not(.tv-mode) .firebase-actions,
+    body:not(.tv-mode) .status-actions,
+    body:not(.tv-mode) .live-sync-actions {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+    body:not(.tv-mode) .btnrow.three,
+    body:not(.tv-mode) .btnrow.mode-row.three,
+    body:not(.tv-mode) .mode-row.primary-modes,
+    body:not(.tv-mode) .dashboard-period-row,
+    body:not(.tv-mode) .point-buttons,
+    body:not(.tv-mode) .group-size-control > div {
+      display: grid !important;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+    body:not(.tv-mode) .point-buttons {
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+    body:not(.tv-mode) .mode-row button,
+    body:not(.tv-mode) .btnrow.mode-row button {
+      min-height: var(--ui117-btn-h-lg) !important;
+      padding: 9px 10px !important;
+      font-size: 12.5px !important;
+    }
+    body:not(.tv-mode) .btnrow.mode-row .crow-mode-btn,
+    body:not(.tv-mode) .mode-row.nine-mode .crow-mode-btn {
+      min-height: 44px !important;
+      gap: 2px !important;
+    }
+    body:not(.tv-mode) .btnrow.mode-row .crow-mode-btn span,
+    body:not(.tv-mode) .btnrow.mode-row .crow-mode-btn strong,
+    body:not(.tv-mode) .mode-row.nine-mode .crow-mode-btn span,
+    body:not(.tv-mode) .mode-row.nine-mode .crow-mode-btn strong {
+      font-size: 12px !important;
+      line-height: 1.05 !important;
+      letter-spacing: -0.01em !important;
+    }
+    body:not(.tv-mode) .admin-actions button,
+    body:not(.tv-mode) .download-mini button,
+    body:not(.tv-mode) .group-size-control button,
+    body:not(.tv-mode) .final-lane-tools button,
+    body:not(.tv-mode) .point-buttons button,
+    body:not(.tv-mode) .dashboard-period-row button {
+      min-height: var(--ui117-btn-h-sm) !important;
+      padding: 6px 8px !important;
+      border-radius: var(--ui117-radius-sm) !important;
+      font-size: 11px !important;
+      line-height: 1.05 !important;
+    }
+
+    body:not(.tv-mode) input[type="text"],
+    body:not(.tv-mode) input[type="number"],
+    body:not(.tv-mode) input[type="email"],
+    body:not(.tv-mode) input[type="password"],
+    body:not(.tv-mode) input[type="search"],
+    body:not(.tv-mode) select,
+    body:not(.tv-mode) .mini-input {
+      min-height: 34px !important;
+      padding: 7px 9px !important;
+      border-radius: var(--ui117-radius-sm) !important;
+      font-size: var(--ui117-font-ui) !important;
+      line-height: 1.15 !important;
+    }
+    body:not(.tv-mode) textarea {
+      padding: 10px !important;
+      border-radius: var(--ui117-radius-md) !important;
+      font-size: 12px !important;
+      line-height: 1.45 !important;
+      min-height: 220px !important;
+    }
+    body:not(.tv-mode) .form-grid,
+    body:not(.tv-mode) .dashboard-filter,
+    body:not(.tv-mode) .db-stat-grid,
+    body:not(.tv-mode) .stats,
+    body:not(.tv-mode) .finalist-grid,
+    body:not(.tv-mode) .scoreboard-list,
+    body:not(.tv-mode) .live-lobby-grid {
+      gap: var(--ui117-gap-md) !important;
+    }
+    body:not(.tv-mode) .stat,
+    body:not(.tv-mode) .db-stat,
+    body:not(.tv-mode) .finalist-item,
+    body:not(.tv-mode) .score-row,
+    body:not(.tv-mode) .rank-row,
+    body:not(.tv-mode) .venue-visit-row,
+    body:not(.tv-mode) .snapshot-item,
+    body:not(.tv-mode) .live-sync-item,
+    body:not(.tv-mode) .live-lobby-result {
+      padding: 8px 10px !important;
+      border-radius: var(--ui117-radius-md) !important;
+      font-size: 12px !important;
+    }
+    body:not(.tv-mode) .badge,
+    body:not(.tv-mode) .round-badge,
+    body:not(.tv-mode) .pill,
+    body:not(.tv-mode) .permission-badge,
+    body:not(.tv-mode) .permission-flag,
+    body:not(.tv-mode) .live-status,
+    body:not(.tv-mode) .status-badge {
+      min-height: 24px !important;
+      padding: 4px 8px !important;
+      border-radius: 999px !important;
+      font-size: 10.5px !important;
+      line-height: 1 !important;
+    }
+
+    body:not(.tv-mode) .tabs {
+      gap: var(--ui117-gap-sm) !important;
+      padding: 6px !important;
+      margin-bottom: 10px !important;
+      border-radius: var(--ui117-radius-lg) !important;
+    }
+    body:not(.tv-mode) .tab-btn {
+      min-width: 132px !important;
+      min-height: 38px !important;
+      padding: 8px 10px !important;
+      border-radius: var(--ui117-radius-md) !important;
+    }
+    body:not(.tv-mode) .tab-btn span {
+      font-size: 12.5px !important;
+      line-height: 1.1 !important;
+    }
+    body:not(.tv-mode) .tab-btn small {
+      font-size: 10px !important;
+      line-height: 1.1 !important;
+    }
+    body:not(.tv-mode) .round-head,
+    body:not(.tv-mode) .stage-head,
+    body:not(.tv-mode) .db-panel-title,
+    body:not(.tv-mode) .scoreboard-head,
+    body:not(.tv-mode) .account-strip,
+    body:not(.tv-mode) .live-lobby-topbar {
+      gap: var(--ui117-gap-md) !important;
+      margin-bottom: 10px !important;
+      padding-bottom: 8px !important;
+    }
+
+    body:not(.tv-mode) .groups {
+      gap: var(--ui117-gap-md) !important;
+      grid-template-columns: repeat(auto-fit, minmax(248px, 1fr)) !important;
+    }
+    body:not(.tv-mode) .group {
+      padding: 11px !important;
+      border-radius: var(--ui117-radius-lg) !important;
+    }
+    body:not(.tv-mode) .group-title {
+      margin-bottom: 7px !important;
+    }
+    body:not(.tv-mode) .group-title strong {
+      font-size: 14px !important;
+      line-height: 1.1 !important;
+    }
+    body:not(.tv-mode) .slot {
+      min-height: 46px !important;
+      padding: 8px 9px !important;
+      margin-bottom: 6px !important;
+      border-radius: var(--ui117-radius-md) !important;
+    }
+    body:not(.tv-mode) .advance-mark {
+      min-height: 22px !important;
+      font-size: 10.5px !important;
+    }
+
+    body:not(.tv-mode) .prep-card-v116 {
+      border-radius: 18px !important;
+      margin-bottom: 12px !important;
+    }
+    body:not(.tv-mode) .prep-card-v116 .prep-hero-v116 {
+      padding: 14px !important;
+      gap: 10px !important;
+    }
+    body:not(.tv-mode) .prep-preview-v116 {
+      grid-template-columns: minmax(0, 1fr) minmax(98px, auto) !important;
+      padding: 12px !important;
+      gap: 10px !important;
+      border-radius: 15px !important;
+    }
+    body:not(.tv-mode) .prep-title-v116 {
+      font-size: clamp(18px, 1.7vw, 24px) !important;
+      line-height: 1.08 !important;
+    }
+    body:not(.tv-mode) .prep-sub-v116,
+    body:not(.tv-mode) .prep-time-row-v116 {
+      font-size: 10.8px !important;
+      line-height: 1.25 !important;
+    }
+    body:not(.tv-mode) .prep-action-v116 button {
+      min-height: 36px !important;
+      padding: 8px 11px !important;
+      border-radius: 12px !important;
+      font-size: 12px !important;
+    }
+    body:not(.tv-mode) .prep-action-v116 .prep-sub-action-v116 {
+      min-height: 30px !important;
+      font-size: 11px !important;
+    }
+
+    body:not(.tv-mode) .roster-table th,
+    body:not(.tv-mode) .roster-table td,
+    body:not(.tv-mode) .admin-table th,
+    body:not(.tv-mode) .admin-table td {
+      padding: 7px 8px !important;
+      font-size: 12px !important;
+      line-height: 1.25 !important;
+    }
+    body:not(.tv-mode) .roster-table th,
+    body:not(.tv-mode) .admin-table th {
+      font-size: 10.5px !important;
+    }
+    body:not(.tv-mode) .live-lobby-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+    }
+    body:not(.tv-mode) .live-lobby-card {
+      min-height: 0 !important;
+      padding: 14px !important;
+      gap: 9px !important;
+      border-radius: var(--ui117-radius-lg) !important;
+    }
+    body:not(.tv-mode) .live-lobby-card h3 {
+      font-size: 16px !important;
+      line-height: 1.18 !important;
+      margin: 6px 0 4px !important;
+    }
+    body:not(.tv-mode) .live-lobby-meta,
+    body:not(.tv-mode) .live-lobby-result small,
+    body:not(.tv-mode) .history-public-row span {
+      font-size: 11px !important;
+      line-height: 1.35 !important;
+    }
+    body:not(.tv-mode) .live-lobby-card button,
+    body:not(.tv-mode) .live-lobby-card .live-lobby-action {
+      min-height: 34px !important;
+      margin-top: 6px !important;
+    }
+    body:not(.tv-mode) .history-public-row {
+      grid-template-columns: .9fr 1.1fr auto !important;
+      gap: var(--ui117-gap-md) !important;
+      padding: 9px 10px !important;
+      border-radius: var(--ui117-radius-md) !important;
+    }
+    body:not(.tv-mode) .mobile-history,
+    body:not(.tv-mode) .history-panel {
+      border-radius: var(--ui117-radius-lg) !important;
+    }
+    body:not(.tv-mode) .mobile-history > summary,
+    body:not(.tv-mode) .history-panel summary,
+    body:not(.tv-mode) .operator-page > summary,
+    body:not(.tv-mode) details.card > summary {
+      padding: 10px 12px !important;
+      font-size: 12.5px !important;
+      line-height: 1.2 !important;
+    }
+    body:not(.tv-mode) .manual-head {
+      padding: 12px 14px !important;
+    }
+    body:not(.tv-mode) .manual-body {
+      padding: 14px 16px 18px !important;
+      font-size: 12.5px !important;
+      line-height: 1.55 !important;
+    }
+    body:not(.tv-mode) .manual-body h2 {
+      font-size: 15px !important;
+      margin: 14px 0 7px !important;
+    }
+
+    body.tv-mode .tv-controls button {
+      min-height: 0 !important;
+      padding: .34em .56em !important;
+      border-radius: 8px !important;
+      font-size: clamp(8px, .58vw, 11px) !important;
+    }
+
+    @media (max-width: 1180px) {
+      body:not(.tv-mode) .toolbar,
+      body:not(.tv-mode) .section-toolbar,
+      body:not(.tv-mode) .dashboard-nav-actions,
+      body:not(.tv-mode) .db-actions-toolbar,
+      body:not(.tv-mode) .admin-actions-toolbar,
+      body:not(.tv-mode) .dashboard-actions-toolbar {
+        display: grid !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      }
+      body:not(.tv-mode) .toolbar button,
+      body:not(.tv-mode) .section-toolbar button,
+      body:not(.tv-mode) .dashboard-nav-actions button,
+      body:not(.tv-mode) .db-actions-toolbar button,
+      body:not(.tv-mode) .admin-actions-toolbar button,
+      body:not(.tv-mode) .dashboard-actions-toolbar button {
+        width: 100% !important;
+      }
+    }
+
+    @media (max-width: 760px) {
+      :root {
+        --ui117-btn-h: 34px;
+        --ui117-btn-h-sm: 28px;
+        --ui117-btn-h-lg: 38px;
+        --ui117-font-btn: 11px;
+        --ui117-font-ui: 12px;
+        --ui117-font-sub: 10.5px;
+        --ui117-font-title: 15px;
+      }
+      body:not(.tv-mode) .wrap,
+      body:not(.tv-mode) .db-page,
+      body:not(.tv-mode) .mobile-view {
+        padding: 8px 8px 44px !important;
+      }
+      body:not(.tv-mode) .header {
+        min-height: 0 !important;
+        padding: 12px !important;
+        border-radius: 16px !important;
+        margin-bottom: 8px !important;
+      }
+      body:not(.tv-mode) h1 {
+        font-size: 19px !important;
+      }
+      body:not(.tv-mode) .desc {
+        display: none !important;
+      }
+      body:not(.tv-mode) .card,
+      body:not(.tv-mode) .round-card,
+      body:not(.tv-mode) .stage-card,
+      body:not(.tv-mode) .final-box,
+      body:not(.tv-mode) .dashboard-card,
+      body:not(.tv-mode) .operator-page,
+      body:not(.tv-mode) .ops-panel,
+      body:not(.tv-mode) .firebase-panel,
+      body:not(.tv-mode) .quick-step-panel,
+      body:not(.tv-mode) .mobile-section-card,
+      body:not(.tv-mode) .auth-card {
+        padding: 10px !important;
+        border-radius: 14px !important;
+        margin-bottom: 8px !important;
+      }
+      body:not(.tv-mode) .toolbar,
+      body:not(.tv-mode) .section-toolbar,
+      body:not(.tv-mode) .dashboard-nav-actions,
+      body:not(.tv-mode) .db-actions-toolbar,
+      body:not(.tv-mode) .admin-actions-toolbar,
+      body:not(.tv-mode) .dashboard-actions-toolbar,
+      body:not(.tv-mode) .page-nav,
+      body:not(.tv-mode) .account-actions,
+      body:not(.tv-mode) .account-left {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 5px !important;
+        padding: 6px !important;
+      }
+      body:not(.tv-mode) .toolbar .grow { display: none !important; }
+      body:not(.tv-mode) .btnrow,
+      body:not(.tv-mode) .auth-actions,
+      body:not(.tv-mode) .firebase-actions,
+      body:not(.tv-mode) .status-actions,
+      body:not(.tv-mode) .live-sync-actions,
+      body:not(.tv-mode) .dashboard-period-row,
+      body:not(.tv-mode) .group-size-control > div {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 5px !important;
+      }
+      body:not(.tv-mode) .btnrow.three,
+      body:not(.tv-mode) .btnrow.mode-row.three,
+      body:not(.tv-mode) .mode-row.primary-modes,
+      body:not(.tv-mode) .point-buttons {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 5px !important;
+      }
+      body:not(.tv-mode) .btnrow.mode-row .crow-mode-btn,
+      body:not(.tv-mode) .mode-row.nine-mode .crow-mode-btn,
+      body:not(.tv-mode) .mode-row button[data-mode="crow"],
+      body:not(.tv-mode) .mode-row .crow-mode,
+      body:not(.tv-mode) .mode-crow {
+        grid-column: 1 / -1 !important;
+      }
+      body:not(.tv-mode) button,
+      body:not(.tv-mode) .upload-button {
+        padding: 7px 8px !important;
+        border-radius: 10px !important;
+      }
+      body:not(.tv-mode) textarea {
+        min-height: 140px !important;
+      }
+      body:not(.tv-mode) .groups,
+      body:not(.tv-mode) .live-lobby-grid,
+      body:not(.tv-mode) .dashboard-grid,
+      body:not(.tv-mode) .dashboard-filter,
+      body:not(.tv-mode) .form-grid,
+      body:not(.tv-mode) .stats,
+      body:not(.tv-mode) .db-stat-grid,
+      body:not(.tv-mode) .finalist-grid {
+        grid-template-columns: 1fr !important;
+        gap: 7px !important;
+      }
+      body:not(.tv-mode) .slot {
+        padding: 7px !important;
+        margin-bottom: 5px !important;
+        border-radius: 10px !important;
+      }
+      body:not(.tv-mode) .tabs {
+        padding: 5px !important;
+        gap: 5px !important;
+      }
+      body:not(.tv-mode) .tab-btn {
+        min-width: 112px !important;
+        padding: 7px 8px !important;
+      }
+      body:not(.tv-mode) .prep-card-v116 .prep-hero-v116 {
+        padding: 10px !important;
+      }
+      body:not(.tv-mode) .prep-preview-v116 {
+        grid-template-columns: 1fr !important;
+        padding: 10px !important;
+        gap: 8px !important;
+      }
+      body:not(.tv-mode) .prep-title-v116 {
+        font-size: 18px !important;
+      }
+      body:not(.tv-mode) .prep-action-v116 {
+        grid-template-columns: 1fr !important;
+      }
+      body:not(.tv-mode) .history-public-row {
+        grid-template-columns: 1fr !important;
+      }
+      body:not(.tv-mode) .roster-table td {
+        grid-template-columns: 64px minmax(0, 1fr) !important;
+        padding: 5px 0 !important;
+      }
+    }
+
+
+    /* v117.1 details/accordion shell correction */
+    body:not(.tv-mode) details.card,
+    body:not(.tv-mode) .operator-page {
+      padding: 0 !important;
+      overflow: hidden !important;
+    }
+    body:not(.tv-mode) details.card .details-body,
+    body:not(.tv-mode) .operator-page-body {
+      padding: 10px !important;
+    }
+    body:not(.tv-mode) .operator-page .card,
+    body:not(.tv-mode) details.card .card {
+      margin-bottom: 8px !important;
+    }
+
+
 </style>
 </head>
 <body>
@@ -9196,6 +10147,7 @@ function shuffle(array) {
       if (state.tournament.endedAtISO === undefined) state.tournament.endedAtISO = "";
       if (state.tournament.endedAtDisplay === undefined) state.tournament.endedAtDisplay = "";
       if (state.tournament.liveId === undefined) state.tournament.liveId = "";
+      if (state.tournament.venueId === undefined) state.tournament.venueId = "";
       if (!Array.isArray(state.tournament.withdrawnPlayerIds)) state.tournament.withdrawnPlayerIds = [];
       if (state.settings.firebaseAutoSave === undefined) state.settings.firebaseAutoSave = false;
     }
@@ -9209,23 +10161,22 @@ function shuffle(array) {
       }[status] || "준비중";
     }
 function startTournament() {
+      startTournamentAsync();
+    }
+
+    async function startTournamentAsync() {
       ensureStateDefaults();
       if (!canModifyTournamentAction("대회 시작")) return;
       if (!validateTournamentMetaRequired()) return;
 
-      // Prevent starting multiple tournaments concurrently for the same venue.
-      // Each venue can have only one active live tournament at a time. We use the canonical auto live ID as the key.
-      try {
-        const plannedId = buildAutoTournamentId();
-        const existingId = localStorage.getItem("mini4wdActiveLiveId") || "";
-        if (existingId && existingId !== plannedId) {
-          alert("이 경기장에서는 이미 진행 중인 대회가 있습니다. 기존 대회를 종료한 후 새로운 대회를 시작하세요.");
-          return;
-        }
-      } catch (_) { /* ignore storage errors */ }
+      const plannedId = buildAutoTournamentId();
+      const claimed = await claimActiveTournamentForVenue(plannedId);
+      if (!claimed) return;
 
       ensureTournamentStarted();
       state.tournament.status = "running";
+      state.tournament.venueId = currentVenueId();
+      state.tournament.venue = currentVenueName();
       state.settings.firebaseAutoSave = true;
       activateAutoLiveSession(true);
       state.tournament.lockedParticipants = state.inputText;
@@ -9235,6 +10186,132 @@ function startTournament() {
       };
       createAutoSnapshot("대회 시작");
       logTournamentAction("대회 시작", state.tournament.name || "");
+      forceLiveBroadcastSync("tournament-start").finally(() => renderOperator());
+    }
+
+    async function claimActiveTournamentForVenue(plannedId) {
+      const db = initFirebase();
+      if (!db || !currentAuthUser) {
+        try {
+          const existingId = localStorage.getItem("mini4wdActiveLiveId") || "";
+          if (existingId && existingId !== plannedId) {
+            alert("이 브라우저에는 이미 진행 중인 대회가 있습니다. 기존 대회를 종료한 후 새로운 대회를 시작하세요.");
+            return false;
+          }
+        } catch (_) {}
+        return true;
+      }
+      const venueId = currentVenueId();
+      const ref = db.ref(`activeTournaments/${venueId}`);
+      try {
+        const result = await ref.transaction(current => {
+          if (current && current.status === "running" && current.tournamentId && current.tournamentId !== plannedId) return;
+          return {
+            venueId,
+            venueName: currentVenueName(),
+            tournamentId: plannedId,
+            tournamentName: state.tournament.name || "",
+            raceClass: normalizeRaceClassName(state.tournament.raceClass),
+            status: "running",
+            uid: currentAuthUser?.uid || "",
+            email: currentAuthUser?.email || "",
+            updatedAt: firebase.database.ServerValue.TIMESTAMP
+          };
+        });
+        if (!result.committed) {
+          const active = result.snapshot?.val() || {};
+          alert(`이 경기장에서는 이미 진행 중인 대회가 있습니다.\n대회명: ${active.tournamentName || active.tournamentId || "진행 중 대회"}\n기존 대회를 종료한 뒤 새 대회를 시작하세요.`);
+          return false;
+        }
+        return true;
+      } catch (error) {
+        alert("진행 중 대회 확인에 실패했습니다. Firebase 규칙/연결을 확인하세요.\n" + (error.message || error));
+        return false;
+      }
+    }
+
+    function releaseActiveTournamentForVenue(status = "finished") {
+      const db = initFirebase();
+      if (!db || !currentAuthUser) return;
+      const venueId = currentVenueId();
+      const id = getCurrentTournamentId();
+      const ref = db.ref(`activeTournaments/${venueId}`);
+      ref.get().then(snapshot => {
+        const active = snapshot.val();
+        if (!active || active.tournamentId !== id) return;
+        if (status === "archived" || status === "finished-clear") return ref.remove();
+        return ref.update({ status, updatedAt: firebase.database.ServerValue.TIMESTAMP });
+      }).catch(() => {});
+    }
+
+    function clearActiveTournamentSessionV116() {
+      try {
+        localStorage.removeItem("mini4wdActiveLiveId");
+        localStorage.removeItem("mini4wdActiveLiveSignature");
+        localStorage.removeItem("mini4wdActiveLiveDate");
+      } catch (error) {}
+      state.tournament.liveId = "";
+      state.tournament.liveSignature = "";
+      firebaseTournamentId = buildAutoTournamentId();
+      safeSetItem("mini4wdTournamentId", firebaseTournamentId);
+    }
+
+    function prepareNextTournamentDraftV116(reason = "manual") {
+      ensureStateDefaults();
+      const previousInputText = state.inputText || "";
+      const previousSettings = { ...(state.settings || {}) };
+      const previousVenue = state.tournament?.venue || currentVenueName() || "";
+      const previousVenueId = state.tournament?.venueId || currentVenueId() || "";
+      const previousRaceClass = normalizeRaceClassName(state.tournament?.raceClass || "오픈");
+      const laneCount = Number(previousSettings.laneCount || 3);
+      const matchMode = previousSettings.matchMode || "basic";
+
+      state = makeInitialState(laneCount);
+      state.inputText = previousInputText;
+      state.settings = {
+        ...state.settings,
+        ...previousSettings,
+        laneCount,
+        matchMode,
+        firebaseAutoSave: false
+      };
+      state.tournament = {
+        ...state.tournament,
+        name: "",
+        venue: previousVenue,
+        venueId: previousVenueId,
+        raceClass: previousRaceClass,
+        status: "draft",
+        startedAtISO: "",
+        startedAtDisplay: "",
+        endedAtISO: "",
+        endedAtDisplay: "",
+        liveStopped: false,
+        liveId: "",
+        liveSignature: "",
+        previousTournamentClosedAt: new Date().toISOString(),
+        previousTournamentCloseReason: reason
+      };
+      state.qualifierRounds = makeQualifierRounds(laneCount, matchMode);
+      state.finalRace = null;
+      state.broadcast = { mode: "stage", roundIndex: 0, stageIndex: 0 };
+      activeRoundIndex = 0;
+      clearActiveTournamentSessionV116();
+      safeSetItem(STORAGE_KEY, JSON.stringify(exportState()));
+    }
+
+    function prepareNewTournamentFromFinished() {
+      ensureStateDefaults();
+      if (state.tournament.status === "running") {
+        alert("진행 중 대회는 먼저 종료하세요.");
+        return;
+      }
+      if (!confirm("현재 화면을 새 대회 준비 상태로 전환할까요?\n기존 종료 기록은 결과 기록에 유지됩니다.")) return;
+      if (state.tournament.status === "finished" || state.tournament.status === "archived") {
+        saveTournamentRecord();
+        releaseActiveTournamentForVenue("finished-clear");
+      }
+      prepareNextTournamentDraftV116("manual-new-tournament");
       renderOperator();
     }
 function reopenTournament() {
@@ -10076,17 +11153,16 @@ function copyOrShare(url, label) {
               <details class="operator-page" open>
                 <summary>대회준비</summary>
                 <div class="operator-page-body">
-                  <section class="card">
-                    <h2>대회명 노출 영역 및 대회 시작</h2>
-                    <p class="operator-subtitle">LIVE, TV, 출력물에 노출되는 기본 정보입니다.</p>
+                  <section class="card prep-card-v115 prep-card-v116">
                     ${renderTournamentStatusPanel()}
-                    <div class="form-grid" style="margin-top:12px;">
-                      <div><label>대회명 *</label><input class="mini-input" required placeholder="대회명 입력 필수" value="${escapeHtml(state.tournament.name || "")}" oninput="setTournamentField('name', this.value)" onblur="renderOperator()" /></div>
-                      <div><label>경기장 *</label><input class="mini-input" required placeholder="경기장 입력 필수" value="${escapeHtml(state.tournament.venue || "")}" oninput="setTournamentField('venue', this.value)" onblur="renderOperator()" /></div>
+                    <div class="prep-form-v115">
+                      <div class="form-grid">
+                        <div><label>대회명 <span class="prep-required-v115">필수</span></label><input class="mini-input" required placeholder="예: OPEN CLASS 1차전" value="${escapeHtml(state.tournament.name || "")}" oninput="setTournamentField('name', this.value)" onblur="renderOperator()" /></div>
+                        <div><label>경기장 <span class="prep-required-v115">필수</span></label><input class="mini-input" required placeholder="예: ATHENS" value="${escapeHtml(state.tournament.venue || currentVenueName() || "")}" ${isVenueUser() ? "disabled" : ""} oninput="setTournamentField('venue', this.value)" onblur="renderOperator()" /></div>
+                      </div>
+                      <div><label>클래스</label><select class="mini-input" value="${escapeHtml(state.tournament.raceClass || "오픈")}" onchange="setTournamentField('raceClass', this.value)">${CLASS_OPTIONS.map(item => `<option value="${item}" ${normalizeRaceClassName(state.tournament.raceClass) === item ? "selected" : ""}>${item}</option>`).join("")}</select></div>
+                      <p class="prep-helper-v115">대회명은 TV LIVE와 모바일 LIVE 상단에 크게 표시됩니다. 대회 시작 후에는 참가자와 기본 설정이 잠기므로 시작 전 한 번 더 확인하세요.</p>
                     </div>
-                    <div style="margin:10px 0 0;"><label>클래스</label><select class="mini-input" value="${escapeHtml(state.tournament.raceClass || "오픈")}" onchange="setTournamentField('raceClass', this.value)">${CLASS_OPTIONS.map(item => `<option value="${item}" ${normalizeRaceClassName(state.tournament.raceClass) === item ? "selected" : ""}>${item}</option>`).join("")}</select></div>
-                    <p class="hint">대회명과 경기장은 필수입니다. 클래스는 결과 다운로드와 출력용 대진표에 함께 표시됩니다.</p>
-                    <div style="margin:8px 0 0;"><span class="pill">경기일시: ${state.tournament.startedAtDisplay || "대회 시작 시 자동 기록"}</span></div>
                   </section>
 
                   <section class="card">
@@ -11128,32 +12204,48 @@ function currentActorLabel() {
 function renderTournamentStatusPanel() {
       ensureStateDefaults();
       const status = state.tournament.status || "draft";
-      const tournamentName = state.tournament.name || "대회명 없음";
-      const venueName = state.tournament.venue || "경기장 없음";
+      const tournamentName = state.tournament.name || "대회명 미입력";
+      const venueName = state.tournament.venue || currentVenueName() || "경기장 미입력";
       const raceClassName = normalizeRaceClassName(state.tournament.raceClass);
-      const actionButtons = status === "draft"
-        ? `<button class="primary" onclick="startTournament()">대회 시작</button>`
+      const participantCount = parseParticipants().filter(p => p && !p.isEmptyLane).length;
+      const missing = [];
+      if (!String(state.tournament.name || "").trim()) missing.push("대회명");
+      if (!String(state.tournament.venue || currentVenueName() || "").trim()) missing.push("경기장");
+
+      const statusText = statusLabel(status);
+      const statusNote = status === "draft"
+        ? (missing.length ? `시작 전 ${missing.join(" / ")} 입력 필요` : "시작 가능")
         : status === "running"
-          ? `<button class="primary" onclick="finishTournament()">대회 종료</button>`
+          ? "진행 중 · 종료 시 기록 저장 후 새 대회 준비로 전환"
           : status === "finished"
-            ? `<button class="ghost" onclick="reopenTournament()">종료 취소</button><button class="ghost" onclick="archiveTournament()">기록 저장 완료</button>`
-            : `<button class="ghost" onclick="reopenTournament()">다시 진행</button>`;
+            ? "종료됨 · 새 대회 준비 가능"
+            : "저장 완료 · 새 대회 준비 가능";
+
+      const actionButtons = status === "draft"
+        ? `<button class="primary prep-main-action-v116" onclick="startTournament()">대회 시작</button>`
+        : status === "running"
+          ? `<button class="primary prep-main-action-v116" onclick="finishTournament()">대회 종료 후 새 대회 준비</button>`
+          : `<button class="primary prep-main-action-v116" onclick="prepareNewTournamentFromFinished()">새 대회 준비</button><button class="ghost prep-sub-action-v116" onclick="reopenTournament()">종료 취소</button>`;
 
       return `
-        <section class="status-panel">
-          <div class="status-main">
-            <span class="status-badge status-${status}">${statusLabel(status)}</span>
-            <div class="status-title-block">
-              <strong>${escapeHtml(tournamentName)}</strong>
-              <span>${escapeHtml(venueName)} · ${escapeHtml(raceClassName)}</span>
-            </div>
+        <div class="prep-hero-v116">
+          <div class="prep-topline-v116">
+            <span>대회 노출 정보</span>
+            <span class="status-badge status-${status}">${statusText}</span>
           </div>
-          <div class="status-time-block">
+          <div class="prep-preview-v116">
+            <div class="prep-preview-main-v116">
+              <strong class="prep-title-v116">${escapeHtml(tournamentName)}</strong>
+              <span class="prep-sub-v116">${escapeHtml(venueName)} · ${escapeHtml(raceClassName)} · 참가자 ${participantCount}명</span>
+            </div>
+            <div class="prep-action-v116">${actionButtons}</div>
+          </div>
+          <div class="prep-time-row-v116">
+            <span>상태: ${escapeHtml(statusNote)}</span>
             <span>시작 ${state.tournament.startedAtDisplay || "-"}</span>
             <span>종료 ${state.tournament.endedAtDisplay || "-"}</span>
           </div>
-          <div class="status-actions">${actionButtons}</div>
-        </section>
+        </div>
       `;
     }
 function avoidanceLabel(level) {
@@ -11429,7 +12521,7 @@ function renderTvStage() {
               ${logoMarkup("tv90-logo")}
             </header>
             <section class="tv90-empty-screen"><div><h2>LIVE 대기중</h2><p>운영 화면에서 경기를 시작하면 자동으로 표시됩니다.</p></div></section>
-            <footer class="tv90-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v114 ADMIN ROSTER UNIFY</span></footer>
+            <footer class="tv90-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v115 DATA-KEY + PREP UI PATCH</span></footer>
           </div>`;
         return;
       }
@@ -11460,7 +12552,7 @@ function renderTvStage() {
           <main class="tv90-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
             ${currentGroups.slice(0, 4).map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap, laneCount)).join("")}
           </main>
-          <footer class="tv90-foot"><span>${escapeHtml(laneCount)} LANE · ${escapeHtml((target.groups || []).length)} GROUPS · LIVE 자동 송출</span><span>BUILD v114 ADMIN ROSTER UNIFY</span></footer>
+          <footer class="tv90-foot"><span>${escapeHtml(laneCount)} LANE · ${escapeHtml((target.groups || []).length)} GROUPS · LIVE 자동 송출</span><span>BUILD v115 DATA-KEY + PREP UI PATCH</span></footer>
         </div>`;
     }
 
@@ -11625,74 +12717,40 @@ function renderReadOnlyPointGroup(group, stage) {
 
 
 
-function toggleRosterField(id, field) {
-      const roster = loadRoster().map(player => {
-        if (player.id !== id) return player;
-        return { ...player, [field]: !player[field] };
+function toggleRosterField(key, field) {
+      const roster = loadRoster();
+      let changedPlayer = null;
+      const nextRoster = roster.map(player => {
+        if (!rosterKeyMatches(player, key)) return player;
+        changedPlayer = normalizeRosterPlayer({ ...player, [field]: !player[field] });
+        return changedPlayer;
       });
-      saveRoster(roster);
+      if (!changedPlayer) return;
+      saveRoster(nextRoster);
+      if (isAdminUser()) persistAdminRosterPlayer(changedPlayer);
       renderDbPage();
     }
 
-    function deleteRosterPlayer(id) {
-      if (!confirm("이 선수를 명부에서 삭제할까요?")) return;
-      const roster = loadRoster().filter(player => player.id !== id);
-      dbSelectedIds.delete(id);
-      saveRoster(roster);
+    function deleteRosterPlayer(key) {
+      const roster = loadRoster();
+      const target = getRosterPlayerByKey(key, roster);
+      if (!target) return alert("삭제할 선수를 찾지 못했습니다.");
+      const label = `${target.venueName || target.venueId || "경기장"} · ${target.nickname || target.realName || target.name || "선수"}`;
+      if (!confirm(`${label} 선수를 명부에서 삭제할까요?`)) return;
+      const nextRoster = roster.filter(player => !rosterKeyMatches(player, key));
+      dbSelectedIds.delete(rosterRecordKey(target));
+      if (!String(key || "").includes("::")) dbSelectedIds.delete(String(key));
+      saveRoster(nextRoster);
+      if (isAdminUser()) removeAdminRosterPlayer(target);
       renderDbPage();
     }
-function runRealNameBcdMigration() {
-      if (!isAdminUser()) return alert("관리자만 실행할 수 있습니다.");
-      if (!confirm("전 경기장에서 동일 실명을 등록순으로 정리하여 2번째부터 B·C·D 접미사를 부여합니다.\n실명이 비어 있는 선수는 건너뜁니다. 실행 전 데이터 백업을 권장합니다.\n계속할까요?")) return;
-      const db = initFirebase();
-      if (!(db && currentAuthUser)) return alert("Firebase 연결이 필요합니다.");
-      // 끝의 단일 영문 1글자(접미사)만 제거해 기준 실명 추출 (한글 실명 가정)
-      const stripBcd = name => {
-        const s = String(name || "").trim();
-        return (/[A-Z]$/.test(s) && s.length > 1 && !/[A-Z]/.test(s[s.length - 2])) ? s.slice(0, -1) : s;
-      };
-      db.ref("venues").get().then(snapshot => {
-        const allVenues = snapshot.val() || {};
-        const all = [];
-        Object.keys(allVenues).forEach(vId => {
-          const players = (allVenues[vId] || {}).players || {};
-          Object.keys(players).forEach(pid => all.push({ vId, pid, p: players[pid] || {} }));
-        });
-        const groups = {};
-        all.forEach(item => {
-          const base = stripBcd(item.p.realName);
-          if (!base) return; // 실명 없는 선수 제외
-          (groups[base] = groups[base] || []).push(item);
-        });
-        const suffixes = "BCDEFGHIJKLMNOPQRSTUVWXYZ";
-        const updates = {};
-        let changed = 0;
-        Object.keys(groups).forEach(base => {
-          const arr = groups[base].sort((a, b) => String(a.p.createdAt || "").localeCompare(String(b.p.createdAt || "")));
-          arr.forEach((item, idx) => {
-            const desired = idx === 0 ? base : base + (suffixes[idx - 1] || ("_" + (idx + 1)));
-            if (String(item.p.realName || "").trim() !== desired) {
-              updates[`venues/${item.vId}/players/${item.pid}/realName`] = desired;
-              changed++;
-            }
-          });
-        });
-        if (!changed) { alert("정리할 동명이인이 없습니다. (이미 정리됨)"); return; }
-        db.ref().update(updates).then(() => {
-          dbCloudLoadedVenueId = null; // 캐시 무효화 → 재로드
-          requestRosterCloudLoad();
-          alert(`동명이인 정리 완료: ${changed}건의 실명을 갱신했습니다.`);
-        }).catch(error => alert(`정리 실패: ${error.message || error}`));
-      }).catch(error => alert(`경기장 데이터 로드 실패: ${error.message || error}`));
-    }
-
-    function toggleDbSelected(id, checked) {
-      if (checked) dbSelectedIds.add(id);
-      else dbSelectedIds.delete(id);
+function toggleDbSelected(key, checked) {
+      if (checked) dbSelectedIds.add(key);
+      else dbSelectedIds.delete(key);
       updateSelectedPreview();
     }
 function selectFavoritePlayers() {
-      dbSelectedIds = new Set(loadRoster().filter(player => player.favorite && player.active).map(player => player.id));
+      dbSelectedIds = new Set(loadRoster().filter(player => player.favorite && player.active).map(rosterRecordKey));
       renderDbPage();
     }
 
@@ -11703,7 +12761,11 @@ function selectFavoritePlayers() {
       } catch (error) {
         ids = [];
       }
-      dbSelectedIds = new Set(ids);
+      const roster = loadRoster();
+      dbSelectedIds = new Set(ids.map(id => {
+        const found = roster.find(player => rosterRecordKey(player) === id || player.id === id);
+        return found ? rosterRecordKey(found) : id;
+      }));
       renderDbPage();
     }
 
@@ -11745,13 +12807,14 @@ function setDbSearch(value) {
     function rosterSortValue(player, field) {
       if (field === "favorite") return player.favorite ? 1 : 0;
       if (field === "active") return player.active ? 1 : 0;
+      if (field === "venue") return String(player.venueName || player.venueId || "").toLowerCase();
       return String(player[field] || "").toLowerCase();
     }
 
     function getDbFilteredRoster(roster = loadRoster()) {
       const search = dbSearchText.trim().toLowerCase();
       const filtered = roster.filter(player => {
-        const matchesSearch = !search || [player.realName, player.contact, player.name, player.team, player.nickname, player.memo].some(value => String(value || "").toLowerCase().includes(search));
+        const matchesSearch = !search || [player.realName, player.contact, player.name, player.team, player.nickname, player.memo, player.venueName, player.venueId].some(value => String(value || "").toLowerCase().includes(search));
         const matchesTeam = dbTeamFilter === "전체" || (player.team || "") === dbTeamFilter;
         const matchesStatus = dbStatusFilter === "전체"
           || (dbStatusFilter === "활성" && player.active)
@@ -11772,17 +12835,17 @@ function setDbSearch(value) {
     }
 
     function selectVisiblePlayers() {
-      getDbFilteredRoster().forEach(player => { if (player.active) dbSelectedIds.add(player.id); });
+      getDbFilteredRoster().forEach(player => { if (player.active) dbSelectedIds.add(rosterRecordKey(player)); });
       renderDbPage();
     }
 
     function deselectVisiblePlayers() {
-      getDbFilteredRoster().forEach(player => dbSelectedIds.delete(player.id));
+      getDbFilteredRoster().forEach(player => dbSelectedIds.delete(rosterRecordKey(player)));
       renderDbPage();
     }
 
     function selectAllActivePlayers() {
-      dbSelectedIds = new Set(loadRoster().filter(player => player.active).map(player => player.id));
+      dbSelectedIds = new Set(loadRoster().filter(player => player.active).map(rosterRecordKey));
       renderDbPage();
     }
 
@@ -12383,7 +13446,7 @@ function boot() {
         const profiles = snapshot.val() || {};
         syncPublicVenuesFromProfiles(profiles);
         const rows = Object.entries(profiles).sort((a,b) => String(a[1].email || "").localeCompare(String(b[1].email || "")));
-        app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar admin-actions-toolbar"><button class="ghost" onclick="renderAdminPage()">새로고침</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section><div class="admin-build-mark">BUILD v114 ADMIN ROSTER UNIFY</div></div>`;
+        app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar admin-actions-toolbar"><button class="ghost" onclick="renderAdminPage()">새로고침</button><button class="primary" onclick="runDuplicateNameMigration()">동명이인 정리 (BCD 부여)</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section><div class="admin-build-mark">BUILD v115 DATA-KEY + PREP UI PATCH</div></div>`;
       }).catch(error => alert(`사용자 목록 로드 실패: ${error.message || error}`));
     }
 
@@ -12482,24 +13545,55 @@ function boot() {
       const nickname = String(player.nickname || player.name || realName || "").trim();
       const id = player.id ? String(player.id) : rosterIdentityId(realName, contact, nickname, team);
       const contactStatus = contactStatusOf({ contact });
-      return { ...player, id, realName, contact, contactStatus, name: nickname, team, nickname, memo: String(player.memo || "").trim(), favorite: Boolean(player.favorite), active: player.active !== false, venueId: player.venueId || currentVenueId(), venueName: player.venueName || currentVenueName(), createdAt: player.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() };
+      const venueId = player.venueId ? String(player.venueId) : currentVenueId();
+      const venueName = player.venueName ? String(player.venueName) : currentVenueName();
+      return { ...player, id, realName, contact, contactStatus, name: nickname, team, nickname, memo: String(player.memo || "").trim(), favorite: Boolean(player.favorite), active: player.active !== false, venueId, venueName, createdAt: player.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() };
+    }
+
+    function rosterRecordKey(player) {
+      if (typeof player === "string") return player;
+      if (!player) return "";
+      return `${player.venueId || currentVenueId()}::${player.id}`;
+    }
+
+    function rosterKeyMatches(player, key) {
+      if (!player) return false;
+      if (String(key || "").includes("::")) return rosterRecordKey(player) === key;
+      return String(player.id) === String(key);
+    }
+
+    function getRosterPlayerByKey(key, roster = loadRoster()) {
+      return roster.find(player => rosterKeyMatches(player, key));
+    }
+
+    function persistAdminRosterPlayer(player) {
+      const db = initFirebase();
+      const normalized = normalizeRosterPlayer(player);
+      const venueId = normalized.venueId || currentVenueId();
+      normalized.venueId = venueId;
+      if (!normalized.venueName) normalized.venueName = venueId;
+      if (db && currentAuthUser) {
+        db.ref(`venues/${venueId}/players/${normalized.id}`).set(normalized).catch(error => console.warn("admin roster player save failed", error));
+      }
+      return normalized;
+    }
+
+    function removeAdminRosterPlayer(player) {
+      const db = initFirebase();
+      const venueId = player?.venueId || currentVenueId();
+      const id = player?.id;
+      if (db && currentAuthUser && venueId && id) {
+        db.ref(`venues/${venueId}/players/${id}`).remove().catch(error => console.warn("admin roster player remove failed", error));
+      }
     }
 
     function saveRoster(roster) {
       const normalized = roster.map(normalizeRosterPlayer);
       safeSetItem(getRosterStorageKey(), JSON.stringify(normalized));
       const db = initFirebase();
-      if (!(db && currentAuthUser)) return;
-      // [v114] 관리자 통합 모드: 각 선수를 '실제 소속 경기장' 경로에만 저장 → 어드민 경기장 오염 방지
+      if (!db || !currentAuthUser) return;
       if (isAdminUser()) {
-        const byVenue = {};
-        normalized.forEach(player => {
-          const vid = player.venueId || currentVenueId();
-          (byVenue[vid] = byVenue[vid] || {})[player.id] = player;
-        });
-        Object.keys(byVenue).forEach(vid =>
-          db.ref(`venues/${vid}/players`).set(byVenue[vid]).catch(error => console.warn("admin roster save failed", vid, error))
-        );
+        // 관리자 전체명부에서는 현재 경기장 경로에 통째로 덮어쓰지 않는다.
         return;
       }
       db.ref(`venues/${currentVenueId()}/players`).set(Object.fromEntries(normalized.map(player => [player.id, player]))).catch(error => console.warn("roster cloud save failed", error));
@@ -12580,13 +13674,19 @@ function boot() {
       const nickname = document.getElementById("dbNickname")?.value.trim();
       const team = document.getElementById("dbTeam")?.value.trim();
       const memo = document.getElementById("dbMemo")?.value.trim();
+      const adminVenueName = document.getElementById("dbAdminVenueName")?.value.trim();
       if (!nickname) return alert("닉네임/선수명은 필수입니다. 실명과 연락처는 나중에 보완할 수 있습니다.");
+      if (isAdminUser() && !adminVenueName) return alert("관리자 전체 명부에서 선수 추가 시 등록 경기장을 입력해야 합니다.");
+      const venueName = isAdminUser() ? adminVenueName : currentVenueName();
+      const venueId = isAdminUser() ? normalizeKey(adminVenueName) : currentVenueId();
       const roster = loadRoster();
-      const draft = { realName, contact, nickname, team };
-      const duplicated = roster.find(player => isPossibleRosterDuplicate(player, draft));
+      const draft = { realName, contact, nickname, team, venueId, venueName };
+      const duplicated = roster.find(player => isPossibleRosterDuplicate(player, draft) && (!isAdminUser() || player.venueId === venueId));
       if (duplicated && !confirm(`중복 의심 선수가 있습니다: ${duplicated.nickname || duplicated.realName || "이름 없음"}. 그래도 새 선수로 등록할까요?`)) return;
-      roster.push(normalizeRosterPlayer({ id: rosterIdentityId(realName, contact, nickname, team), realName, contact, nickname, team, memo, favorite: false, active: true, createdAt: new Date().toISOString() }));
+      const player = normalizeRosterPlayer({ id: rosterIdentityId(realName, contact, nickname, team), realName, contact, nickname, team, memo, favorite: false, active: true, venueId, venueName, createdAt: new Date().toISOString() });
+      roster.push(player);
       saveRoster(roster);
+      if (isAdminUser()) persistAdminRosterPlayer(player);
       renderDbPage();
       requestAnimationFrame(() => {
         const input = document.getElementById("dbNickname");
@@ -12595,42 +13695,45 @@ function boot() {
       });
     }
 
-    function updateRosterInline(id, field, value) {
-      const adminMode = isAdminUser();
-      const COMMON = ["realName", "contact", "team", "memo"]; // 사람 공통 정보 (전 경기장 동기화)
-      const baseRoster = loadRoster();
-      const target = baseRoster.find(player => player.id === id);
-      const sharedKey = target ? String(target.realName || "").trim().toLowerCase() : "";
-      const roster = baseRoster.map(player => {
-        if (player.id === id) return normalizeRosterPlayer({ ...player, [field]: value });
-        // [v114] 관리자가 공통 정보를 수정하면 같은 실명(=같은 사람)의 전 경기장 레코드도 함께 갱신
-        if (adminMode && COMMON.includes(field) && sharedKey && String(player.realName || "").trim().toLowerCase() === sharedKey) {
-          return normalizeRosterPlayer({ ...player, [field]: value });
-        }
-        return player;
+    function updateRosterInline(key, field, value) {
+      const roster = loadRoster();
+      const target = getRosterPlayerByKey(key, roster);
+      if (!target) return;
+      const oldRealName = String(target.realName || "").trim();
+      const syncFields = ["realName", "contact", "team", "memo"];
+      const shouldSync = isAdminUser() && syncFields.includes(field) && oldRealName;
+      const changed = [];
+      const nextRoster = roster.map(player => {
+        const sameRecord = rosterKeyMatches(player, key);
+        const samePerson = shouldSync && String(player.realName || "").trim() === oldRealName;
+        if (!sameRecord && !samePerson) return player;
+        const next = normalizeRosterPlayer({ ...player, [field]: value });
+        changed.push(next);
+        return next;
       });
-      saveRoster(roster);
+      saveRoster(nextRoster);
+      if (isAdminUser()) changed.forEach(persistAdminRosterPlayer);
       renderDbPage();
     }
 
     function updateSelectedPreview() {
       const roster = loadRoster();
-      const selected = roster.filter(player => dbSelectedIds.has(player.id));
+      const selected = roster.filter(player => dbSelectedIds.has(rosterRecordKey(player)) || dbSelectedIds.has(rosterRecordKey(player)));
       const el = document.getElementById("selectedPreview");
       const count = document.getElementById("selectedCount");
       if (count) count.textContent = selected.length;
       if (!el) return;
       if (!selected.length) { el.innerHTML = `<div class="hint">선택된 선수가 없습니다.</div>`; return; }
-      el.innerHTML = selected.map(player => `<div class="finalist-item"><b>${escapeHtml(player.nickname || player.name || player.realName)}</b>${player.team ? ` / ${escapeHtml(player.team)}` : ""}<br><span class="hint">${escapeHtml(player.realName || "실명 미등록")} · ${escapeHtml(contactDisplay(player))}</span></div>`).join("");
+      el.innerHTML = selected.map(player => `<div class="finalist-item"><b>${escapeHtml(player.nickname || player.name || player.realName)}</b>${player.team ? ` / ${escapeHtml(player.team)}` : ""}<br><span class="hint">${isAdminUser() ? `${escapeHtml(player.venueName || player.venueId || "경기장")} · ` : ""}${escapeHtml(player.realName || "실명 미등록")} · ${escapeHtml(contactDisplay(player))}</span></div>`).join("");
     }
 
     function applySelectedPlayersToTournament() {
       const roster = loadRoster();
-      const selected = roster.filter(player => dbSelectedIds.has(player.id) && player.active);
+      const selected = roster.filter(player => (dbSelectedIds.has(rosterRecordKey(player)) || dbSelectedIds.has(rosterRecordKey(player))) && player.active);
       if (!selected.length) return alert("오늘 참가자를 선택하세요.");
       const text = selected.map(player => `${player.nickname || player.name || player.realName}/${player.team || ""}`).join("\n");
       safeSetItem(PENDING_PARTICIPANTS_KEY, text);
-      safeSetItem(RECENT_PARTICIPANTS_KEY, JSON.stringify(selected.map(player => player.id)));
+      safeSetItem(RECENT_PARTICIPANTS_KEY, JSON.stringify(selected.map(rosterRecordKey)));
       state.inputText = text;
       if (isVenueUser()) state.tournament.venue = currentVenueName();
       saveLiveState();
@@ -12733,15 +13836,11 @@ function boot() {
       document.body.classList.add("db-light-page-v96");
       requestRosterCloudLoad();
       const roster = loadRoster();
-      // [v114] 동일 실명 중복 카운트 (관리자 전 경기장 통합 표기용)
-      const __dupCountByName = {};
-      roster.forEach(p => { const k = String(p.realName || "").trim().toLowerCase(); if (k) __dupCountByName[k] = (__dupCountByName[k] || 0) + 1; });
-      roster.forEach(p => { const k = String(p.realName || "").trim().toLowerCase(); p.__dupCount = k ? __dupCountByName[k] : 1; });
       const teams = Array.from(new Set(roster.map(player => player.team).filter(Boolean))).sort();
       const filtered = getDbFilteredRoster(roster);
-      const visibleSelectedCount = filtered.filter(player => dbSelectedIds.has(player.id)).length;
+      const visibleSelectedCount = filtered.filter(player => dbSelectedIds.has(rosterRecordKey(player))).length;
       const visibleActiveCount = filtered.filter(player => player.active).length;
-      const allVisibleSelected = visibleActiveCount > 0 && filtered.filter(player => player.active).every(player => dbSelectedIds.has(player.id));
+      const allVisibleSelected = visibleActiveCount > 0 && filtered.filter(player => player.active).every(player => dbSelectedIds.has(rosterRecordKey(player)));
       const activeCount = roster.filter(player => player.active).length;
       const favoriteCount = roster.filter(player => player.favorite).length;
       const missingContactCount = roster.filter(player => contactStatusOf(player) === "missing").length;
@@ -12751,23 +13850,68 @@ function boot() {
           ${accountBadge()}
           <div class="toolbar db-actions-toolbar"><button class="ghost" onclick="exportRosterCsv()">CSV 다운로드</button><button class="ghost" onclick="exportRosterJson()">JSON 백업</button><button class="ghost" onclick="downloadRosterTemplate()">선수 양식</button><label class="upload-button ghost">엑셀 업로드<input type="file" accept=".xlsx,.xls,.csv,.tsv" onchange="importRosterExcel(event)" hidden /></label></div>
           <div class="db-grid db-player-layout-v98 db-player-layout-v99"><aside class="db-player-side-v98 db-player-side-v99">
-            <section class="card db-quick-add-card-v96" id="dbQuickAddPanel"><div class="db-panel-title"><h2>선수 빠른 추가</h2><span class="pill">${escapeHtml(currentVenueName())}</span></div><div class="form-grid"><div><label>실명</label><input class="mini-input" id="dbRealName" placeholder="나중에 보완 가능" /></div><div><label for="dbContact">연락처</label><input class="mini-input" id="dbContact" placeholder="선택값" /></div><div><label for="dbNickname">닉네임 / 선수명 *</label><input class="mini-input" id="dbNickname" placeholder="대진표 표시명" /></div><div><label for="dbTeam">팀명</label><input class="mini-input" id="dbTeam" list="teamSuggest" placeholder="OPEN CLASS" /></div><div><label for="dbMemo">메모</label><input class="mini-input" id="dbMemo" placeholder="차량/특이사항" /></div></div><button class="primary" style="width:100%; margin-top:12px;" onclick="addRosterPlayer()">선수 추가</button><p class="privacy-note" style="margin-top:10px;">연락처가 없어도 등록/참가 가능합니다. 미등록 연락처와 실명은 나중에 이 화면에서 직접 보완할 수 있습니다.</p></section>
+            <section class="card db-quick-add-card-v96" id="dbQuickAddPanel"><div class="db-panel-title"><h2>선수 빠른 추가</h2><span class="pill">${escapeHtml(currentVenueName())}</span></div><div class="form-grid">${isAdminUser() ? `<div class="db-admin-venue-field-v115"><label for="dbAdminVenueName">등록 경기장 *</label><input class="mini-input" id="dbAdminVenueName" placeholder="경기장명 필수" value="${escapeHtml(currentVenueName())}" /></div>` : ""}<div><label>실명</label><input class="mini-input" id="dbRealName" placeholder="나중에 보완 가능" /></div><div><label for="dbContact">연락처</label><input class="mini-input" id="dbContact" placeholder="선택값" /></div><div><label for="dbNickname">닉네임 / 선수명 *</label><input class="mini-input" id="dbNickname" placeholder="대진표 표시명" /></div><div><label for="dbTeam">팀명</label><input class="mini-input" id="dbTeam" list="dbTeamDatalist" placeholder="OPEN CLASS" autocomplete="off" /><datalist id="dbTeamDatalist">${teams.map(t => `<option value="${escapeAttr(t)}"></option>`).join("")}</datalist></div><div><label for="dbMemo">메모</label><input class="mini-input" id="dbMemo" placeholder="차량/특이사항" /></div></div><button class="primary" style="width:100%; margin-top:12px;" onclick="addRosterPlayer()">선수 추가</button><p class="privacy-note" style="margin-top:10px;">연락처가 없어도 등록/참가 가능합니다. 미등록 연락처와 실명은 나중에 이 화면에서 직접 보완할 수 있습니다.</p></section>
             <section class="card selected-box"><div class="db-panel-title"><h2>오늘 참가자</h2><span class="pill"><span id="selectedCount">0</span>명 선택</span></div><div class="db-actions" style="margin-bottom:10px;"><button class="ghost" onclick="selectRecentPlayers()">최근 참가자</button><button class="ghost" onclick="selectFavoritePlayers()">즐겨찾기</button><button class="ghost" onclick="clearSelectedPlayers()">선택 해제</button></div><div id="selectedPreview" class="finalist-grid" style="grid-template-columns:1fr;"></div><button class="primary" style="width:100%; margin-top:12px;" onclick="applySelectedPlayersToTournament()">선택 선수로 대진 생성 준비</button></section>
             <section class="card"><h2>목록 일괄 추가</h2><p class="hint">형식: 실명/연락처(선택)/닉네임/팀명/메모</p><textarea id="quickImportText" style="min-height:150px;" placeholder="홍길동//마이/GEEKS/MS 플렉스"></textarea><button class="ghost" style="width:100%; margin-top:10px;" onclick="quickImportRosterLines()">목록에서 선수 추가</button></section>
             <section class="card"><h2>JSON 복원</h2><textarea id="importJsonText" style="min-height:130px;"></textarea><button class="danger" style="width:100%; margin-top:10px;" onclick="importRosterJsonFromText()">JSON 불러오기</button></section>
-          </aside><main class="db-player-main-v98 db-player-main-v99"><section class="card db-roster-list-card-v98 db-roster-list-card-v99"><div class="db-panel-title"><div><h2>선수 명부</h2><div class="meta">총 ${roster.length}명 · 표시 ${filtered.length}명</div></div><div class="db-actions db-filter-actions"><input class="mini-input" placeholder="검색" value="${escapeHtml(dbSearchText)}" oninput="setDbSearch(this.value)" style="width:180px;" /><select onchange="setDbTeamFilter(this.value)" style="width:150px;"><option value="전체">전체 팀</option>${teams.map(team => `<option value="${escapeHtml(team)}" ${team === dbTeamFilter ? "selected" : ""}>${escapeHtml(team)}</option>`).join("")}</select><select onchange="setDbStatusFilter(this.value)" style="width:130px;">${["전체", "활성", "비활성", "즐겨찾기", "연락처 있음", "연락처 없음"].map(value => `<option value="${value}" ${value === dbStatusFilter ? "selected" : ""}>${value}</option>`).join("")}</select></div></div><div class="db-stat-grid"><div class="db-stat"><small>전체 선수</small><strong>${roster.length}</strong></div><div class="db-stat"><small>활성 선수</small><strong>${activeCount}</strong></div><div class="db-stat"><small>즐겨찾기</small><strong>${favoriteCount}</strong></div><div class="db-stat"><small>연락처 미등록</small><strong>${missingContactCount}</strong></div></div><div class="db-bulk-toolbar"><div><label class="db-checkline"><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /> 표시 목록 일괄선택</label><span class="hint">표시 ${filtered.length}명 · 표시 중 선택 ${visibleSelectedCount}명</span></div><div class="db-bulk-buttons"><button class="ghost" onclick="selectVisiblePlayers()">표시 활성 전체 선택</button><button class="ghost" onclick="deselectVisiblePlayers()">표시 선택 해제</button><button class="ghost" onclick="selectAllActivePlayers()">전체 활성 선택</button>${dbSortButton("nickname", "닉네임")}${dbSortButton("realName", "실명")}${dbSortButton("team", "팀명")}${dbSortButton("createdAt", "등록일")}</div></div><div class="roster-table-wrap db-roster-scroll-v98 db-roster-scroll-v99">${isAdminUser() ? `<div class="admin-roster-tools"><button class="ghost" onclick="runRealNameBcdMigration()">동명이인 정리 (BCD 부여)</button><small>전 경기장 동일 실명을 등록순으로 B·C·D 구분합니다.</small></div>` : ""}<datalist id="teamSuggest">${teams.map(t => `<option value="${escapeAttr(t)}"></option>`).join("")}</datalist><table class="roster-table"><thead><tr><th><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /></th><th>★</th>${isAdminUser() ? "<th>경기장</th>" : ""}<th><button class="ghost table-sort-btn" onclick="setDbSort('realName')">실명${dbSortField === "realName" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>연락처</th><th><button class="ghost table-sort-btn" onclick="setDbSort('nickname')">닉네임${dbSortField === "nickname" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('team')">팀명${dbSortField === "team" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('active')">상태${dbSortField === "active" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>메모</th><th>관리</th></tr></thead><tbody>${filtered.map(player => renderRosterRow(player)).join("") || `<tr><td colspan="${isAdminUser() ? 10 : 9}"><div class="db-empty">등록된 선수가 없습니다.</div></td></tr>`}</tbody></table></div></section></main></div></div>`;
+          </aside><main class="db-player-main-v98 db-player-main-v99"><section class="card db-roster-list-card-v98 db-roster-list-card-v99"><div class="db-panel-title"><div><h2>선수 명부</h2><div class="meta">총 ${roster.length}명 · 표시 ${filtered.length}명</div></div><div class="db-actions db-filter-actions"><input class="mini-input" placeholder="검색(이름/팀/경기장)" value="${escapeHtml(dbSearchText)}" oninput="setDbSearch(this.value)" style="width:180px;" /><select onchange="setDbTeamFilter(this.value)" style="width:150px;"><option value="전체">전체 팀</option>${teams.map(team => `<option value="${escapeHtml(team)}" ${team === dbTeamFilter ? "selected" : ""}>${escapeHtml(team)}</option>`).join("")}</select><select onchange="setDbStatusFilter(this.value)" style="width:130px;">${["전체", "활성", "비활성", "즐겨찾기", "연락처 있음", "연락처 없음"].map(value => `<option value="${value}" ${value === dbStatusFilter ? "selected" : ""}>${value}</option>`).join("")}</select></div></div><div class="db-stat-grid"><div class="db-stat"><small>전체 선수</small><strong>${roster.length}</strong></div><div class="db-stat"><small>활성 선수</small><strong>${activeCount}</strong></div><div class="db-stat"><small>즐겨찾기</small><strong>${favoriteCount}</strong></div><div class="db-stat"><small>연락처 미등록</small><strong>${missingContactCount}</strong></div></div><div class="db-bulk-toolbar"><div><label class="db-checkline"><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /> 표시 목록 일괄선택</label><span class="hint">표시 ${filtered.length}명 · 표시 중 선택 ${visibleSelectedCount}명</span></div><div class="db-bulk-buttons"><button class="ghost" onclick="selectVisiblePlayers()">표시 활성 전체 선택</button><button class="ghost" onclick="deselectVisiblePlayers()">표시 선택 해제</button><button class="ghost" onclick="selectAllActivePlayers()">전체 활성 선택</button>${dbSortButton("nickname", "닉네임")}${dbSortButton("realName", "실명")}${isAdminUser() ? dbSortButton("venue", "경기장") : ""}${dbSortButton("team", "팀명")}${dbSortButton("createdAt", "등록일")}</div></div><div class="roster-table-wrap db-roster-scroll-v98 db-roster-scroll-v99"><table class="roster-table"><thead><tr><th><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /></th><th>★</th>${isAdminUser() ? `<th><button class="ghost table-sort-btn" onclick="setDbSort('venue')">경기장${dbSortField === "venue" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th>` : ""}<th><button class="ghost table-sort-btn" onclick="setDbSort('realName')">실명${dbSortField === "realName" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>연락처</th><th><button class="ghost table-sort-btn" onclick="setDbSort('nickname')">닉네임${dbSortField === "nickname" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('team')">팀명${dbSortField === "team" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('active')">상태${dbSortField === "active" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>메모</th><th>관리</th></tr></thead><tbody>${filtered.map(player => renderRosterRow(player)).join("") || `<tr><td colspan="${isAdminUser() ? 10 : 9}"><div class="db-empty">등록된 선수가 없습니다.</div></td></tr>`}</tbody></table></div></section></main></div></div>`;
       updateSelectedPreview();
     }
 
+    function runDuplicateNameMigration() {
+      // [v114 동명이인 정리] 전 경기장 기준 실명 동명이인에게 등록순 B·C·D 접미사 부여 (관리자 전용)
+      if (!isAdminUser()) { alert("관리자만 실행할 수 있습니다."); return; }
+      if (!confirm("전체 경기장의 동명이인에게 등록순으로 B·C·D 접미사를 부여합니다.\n실행 전 Firebase 데이터 백업을 권장합니다. 계속할까요?")) return;
+      const db = initFirebase();
+      if (!db || !currentAuthUser) { alert("Firebase 연결이 필요합니다."); return; }
+      db.ref("venues").get().then(snapshot => {
+        const allVenues = snapshot.val() || {};
+        const entries = [];
+        Object.keys(allVenues).forEach(vId => {
+          const players = (allVenues[vId] || {}).players || {};
+          Object.keys(players).forEach(key => {
+            const p = players[key] || {};
+            const realName = String(p.realName || "").trim();
+            if (!realName) return; // 실명 없는 선수는 제외
+            entries.push({ vId, key, realName, createdAt: p.createdAt || "" });
+          });
+        });
+        const groups = {};
+        entries.forEach(e => { (groups[e.realName] = groups[e.realName] || []).push(e); });
+        const SUFFIX = "BCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const updates = {};
+        let changed = 0;
+        Object.keys(groups).forEach(name => {
+          const list = groups[name];
+          if (list.length < 2) return; // 동명이인 아님
+          list.sort((a, b) => {
+            if (!a.createdAt && !b.createdAt) return 0;
+            if (!a.createdAt) return 1;
+            if (!b.createdAt) return -1;
+            return a.createdAt < b.createdAt ? -1 : (a.createdAt > b.createdAt ? 1 : 0);
+          });
+          list.forEach((e, idx) => {
+            if (idx === 0) return; // 첫 등록자는 원래 실명 유지
+            const suffix = SUFFIX[idx - 1] || ("_" + (idx + 1));
+            updates["venues/" + e.vId + "/players/" + e.key + "/realName"] = name + suffix;
+            changed++;
+          });
+        });
+        if (changed === 0) { alert("정리할 동명이인이 없습니다. (이미 구분되어 있거나 중복 없음)"); return; }
+        db.ref().update(updates).then(() => {
+          dbCloudLoadedVenueId = null; // 캐시 무효화 → 재로드
+          alert("동명이인 정리 완료: " + changed + "명에게 접미사를 부여했습니다.");
+        }).catch(err => alert("정리 저장 실패: " + (err.message || err)));
+      }).catch(err => alert("경기장 데이터 로드 실패: " + (err.message || err)));
+    }
+
     function renderRosterRow(player) {
-      const adminMode = isAdminUser();
-      const venueCell = adminMode
-        ? `<td data-label="경기장"><span class="venue-badge">${escapeHtml(player.venueName || player.venueId || "-")}</span>${(player.__dupCount || 1) > 1 ? `<span class="dup-badge">중복 ${player.__dupCount}</span>` : ""}</td>`
-        : "";
+      const key = rosterRecordKey(player);
       const contactMissing = contactStatusOf(player) === "missing";
       const contactClass = contactMissing ? "roster-contact-missing" : "roster-contact-ok";
       const contactHint = contactMissing ? `<small class="contact-status missing">연락처 미등록 · 추후 수정 가능</small>` : `<small class="contact-status ok">연락처 있음</small>`;
-      return `<tr class="${contactMissing ? "needs-contact" : ""}"><td data-label="참가"><input type="checkbox" data-roster-select value="${escapeAttr(player.id)}" ${dbSelectedIds.has(player.id) ? "checked" : ""} ${player.active ? "" : "disabled"} onchange="toggleDbSelected('${escapeAttr(player.id)}', this.checked)" /></td><td data-label="즐겨찾기"><button class="ghost" onclick="toggleRosterField('${escapeAttr(player.id)}', 'favorite')">${player.favorite ? "★" : "☆"}</button></td>${venueCell}<td data-label="실명"><input class="mini-input" placeholder="실명 보완" value="${escapeHtml(player.realName || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'realName', this.value)" /></td><td data-label="연락처"><div class="contact-edit-cell"><input class="mini-input ${contactClass}" placeholder="연락처 보완" value="${escapeHtml(player.contact || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'contact', this.value)" />${contactHint}</div></td><td data-label="닉네임/선수명"><input class="mini-input" value="${escapeHtml(player.nickname || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'nickname', this.value)" /></td><td data-label="팀명"><input class="mini-input" list="teamSuggest" placeholder="팀명 보완" value="${escapeHtml(player.team || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'team', this.value)" /></td><td data-label="상태"><button class="${player.active ? "primary" : "ghost"}" onclick="toggleRosterField('${escapeAttr(player.id)}', 'active')">${player.active ? "활성" : "비활성"}</button></td><td data-label="메모"><input class="mini-input" placeholder="메모 보완" value="${escapeHtml(player.memo || "")}" onchange="updateRosterInline('${escapeAttr(player.id)}', 'memo', this.value)" /></td><td data-label="관리"><button class="danger" onclick="deleteRosterPlayer('${escapeAttr(player.id)}')">삭제</button></td></tr>`;
+      const venueBadge = isAdminUser() ? `<small class="admin-venue-badge">${escapeHtml(player.venueName || player.venueId || "경기장")}</small>` : "";
+      return `<tr class="${contactMissing ? "needs-contact" : ""}"><td data-label="참가"><input type="checkbox" data-roster-select value="${escapeAttr(key)}" ${dbSelectedIds.has(key) ? "checked" : ""} ${player.active ? "" : "disabled"} onchange="toggleDbSelected('${escapeAttr(key)}', this.checked)" /></td><td data-label="즐겨찾기"><button class="ghost" onclick="toggleRosterField('${escapeAttr(key)}', 'favorite')">${player.favorite ? "★" : "☆"}</button></td>${isAdminUser() ? `<td data-label="경기장">${venueBadge}<span class="hint">${escapeHtml(player.venueId || "")}</span></td>` : ""}<td data-label="실명"><input class="mini-input" placeholder="실명 보완" value="${escapeHtml(player.realName || "")}" onchange="updateRosterInline('${escapeAttr(key)}', 'realName', this.value)" /></td><td data-label="연락처"><div class="contact-edit-cell"><input class="mini-input ${contactClass}" placeholder="연락처 보완" value="${escapeHtml(player.contact || "")}" onchange="updateRosterInline('${escapeAttr(key)}', 'contact', this.value)" />${contactHint}</div></td><td data-label="닉네임/선수명"><input class="mini-input" value="${escapeHtml(player.nickname || "")}" onchange="updateRosterInline('${escapeAttr(key)}', 'nickname', this.value)" /></td><td data-label="팀명"><input class="mini-input" placeholder="팀명 보완" value="${escapeHtml(player.team || "")}" onchange="updateRosterInline('${escapeAttr(key)}', 'team', this.value)" /></td><td data-label="상태"><button class="${player.active ? "primary" : "ghost"}" onclick="toggleRosterField('${escapeAttr(key)}', 'active')">${player.active ? "활성" : "비활성"}</button></td><td data-label="메모"><input class="mini-input" placeholder="메모 보완" value="${escapeHtml(player.memo || "")}" onchange="updateRosterInline('${escapeAttr(key)}', 'memo', this.value)" /></td><td data-label="관리"><button class="danger" onclick="deleteRosterPlayer('${escapeAttr(key)}')">삭제</button></td></tr>`;
     }
 
     function getCurrentTournamentId() {
@@ -12889,6 +14033,10 @@ function exportTournamentCsv() {
     }
 
     function finishTournament() {
+      finishTournamentAsyncV116();
+    }
+
+    async function finishTournamentAsyncV116() {
       ensureStateDefaults();
       if (!canModifyTournamentAction("대회 종료")) return;
       if (state.tournament.status !== "running" && !confirm("현재 진행중 상태가 아닙니다. 그래도 종료할까요?")) return;
@@ -12897,9 +14045,20 @@ function exportTournamentCsv() {
       state.tournament.endedAtDisplay = formatDateTimeLocal(now);
       state.tournament.status = "finished";
       state.settings.firebaseAutoSave = false;
+      state.updatedAt = Date.now();
+      state.activeRoundIndex = activeRoundIndex;
       createAutoSnapshot("대회 종료");
       saveTournamentRecord();
       logTournamentAction("대회 종료", state.tournament.name || "");
+
+      try {
+        await forceLiveBroadcastSync("tournament-finish");
+      } catch (error) {
+        console.warn("finish live sync failed", error);
+      }
+
+      releaseActiveTournamentForVenue("finished-clear");
+      prepareNextTournamentDraftV116("finish-auto-next");
       renderOperator();
     }
 
@@ -12907,8 +14066,10 @@ function exportTournamentCsv() {
       ensureStateDefaults();
       state.tournament.status = "archived";
       state.settings.firebaseAutoSave = false;
-      localStorage.removeItem("mini4wdActiveLiveId");
+      releaseActiveTournamentForVenue("archived");
+      clearActiveTournamentSessionV116();
       saveTournamentRecord();
+      prepareNextTournamentDraftV116("archive-new-tournament");
       renderOperator();
     }
 
@@ -13834,7 +14995,7 @@ function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
         <section class="live-summary-v89"><span>LIVE <b>${liveCount}</b></span><span>대기 <b>${waitingCount}</b></span><span>빈 슬롯 <b>${emptyCount}</b></span><small>${escapeHtml(nowText)} 기준</small></section>
         <main class="live-grid-v89">${cards.map(cardHtml).join("")}</main>
         <section class="live-history-v89"><h2>최근 경기 히스토리</h2><div class="history-list-v89">${historyHtml || `<div class="live-empty-note-v89">최근 경기 기록이 없습니다.</div>`}</div></section>
-        <footer class="live-footer-v89">BUILD v114 ADMIN ROSTER UNIFY</footer>
+        <footer class="live-footer-v89">BUILD v115 DATA-KEY + PREP UI PATCH</footer>
       </div>`;
     }
 
@@ -13938,7 +15099,7 @@ function stopLiveLobbyRealtimeV50() {
         if (received) return;
         if (viewType === "tv-live") {
           document.body.classList.add("tv-mode");
-          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v114 ADMIN ROSTER UNIFY</span></div></div>`;
+          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v115 DATA-KEY + PREP UI PATCH</span></div></div>`;
         } else {
           renderLiveLobbyPage();
         }
@@ -14226,7 +15387,7 @@ function stopLiveLobbyRealtimeV50() {
       if (window.__mini4wdV102MobileTvLiveSyncHotfixInstalled) return;
       window.__mini4wdV102MobileTvLiveSyncHotfixInstalled = true;
 
-      const V102_BUILD_MARK = "BUILD v114 ADMIN ROSTER UNIFY";
+      const V102_BUILD_MARK = "BUILD v115 DATA-KEY + PREP UI PATCH";
       let v102PendingLocalSaveTimer = null;
       let v102LastLocalSaveAt = 0;
       let v102LastLocalJson = "";
@@ -14562,7 +15723,7 @@ function stopLiveLobbyRealtimeV50() {
 
     /* v104 RACE-DAY PERFORMANCE HOTFIX · mobile lag + live sync batching */
     (function(){
-      const V104_BUILD_MARK = "BUILD v114 ADMIN ROSTER UNIFY";
+      const V104_BUILD_MARK = "BUILD v115 DATA-KEY + PREP UI PATCH";
       let v104LocalTimer = null;
       let v104FirebaseTimer = null;
       let v104LastSnapshotAt = 0;
