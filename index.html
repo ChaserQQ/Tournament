@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v117 GLOBAL UI CONSISTENCY PATCH</title>
-  <!-- BUILD v117 GLOBAL UI CONSISTENCY PATCH · all implemented UI button/category/font spacing refinement; v116 auto-next preserved -->
+  <title>MINI4WD TOURNAMENT MAKER · v118 PLAYER DB FORM CLEANUP PATCH</title>
+  <!-- BUILD v118 PLAYER DB FORM CLEANUP PATCH · player DB add/import UI cleanup; JSON restore removed from visible UI; v116 auto-next and v117 UI normalization preserved -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -9635,6 +9635,109 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
     }
 
 
+    /* v118 PLAYER DB FORM CLEANUP · visible roster import simplified, JSON restore removed */
+    body:not(.tv-mode) .db-actions-toolbar-v118 {
+      display: grid !important;
+      grid-template-columns: repeat(3, minmax(0, max-content)) !important;
+      justify-content: start !important;
+      gap: 8px !important;
+    }
+    body:not(.tv-mode) .db-player-side-v98,
+    body:not(.tv-mode) .db-player-side-v99 {
+      display: grid !important;
+      gap: 10px !important;
+      align-content: start !important;
+    }
+    body:not(.tv-mode) .db-quick-add-card-v96 .form-grid {
+      gap: 8px !important;
+    }
+    body:not(.tv-mode) .db-quick-add-card-v96 .mini-input {
+      min-height: 34px !important;
+      padding: 7px 10px !important;
+      font-size: 12px !important;
+      border-radius: 12px !important;
+    }
+    body:not(.tv-mode) .db-quick-add-card-v96 label {
+      margin-bottom: 4px !important;
+      font-size: 11px !important;
+    }
+    body:not(.tv-mode) .db-quick-add-card-v96 .primary {
+      min-height: 42px !important;
+      margin-top: 9px !important;
+      font-size: 13px !important;
+      border-radius: 14px !important;
+    }
+    body:not(.tv-mode) .db-quick-add-card-v96 .privacy-note {
+      margin-top: 8px !important;
+      padding: 8px 10px !important;
+      font-size: 11px !important;
+      line-height: 1.45 !important;
+    }
+    body:not(.tv-mode) .db-bulk-add-card-v118 {
+      margin-bottom: 0 !important;
+    }
+    body:not(.tv-mode) .db-bulk-add-card-v118 > summary {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      min-height: 42px !important;
+      padding: 11px 13px !important;
+      font-size: 13px !important;
+    }
+    body:not(.tv-mode) .db-bulk-add-card-v118 .details-body {
+      padding: 0 13px 13px !important;
+    }
+    body:not(.tv-mode) .db-bulk-textarea-v118 {
+      min-height: 86px !important;
+      height: 86px !important;
+      resize: vertical !important;
+      padding: 9px 10px !important;
+      font-size: 12px !important;
+      line-height: 1.4 !important;
+      border-radius: 13px !important;
+    }
+    body:not(.tv-mode) .db-wide-action-v118 {
+      width: 100% !important;
+      margin-top: 8px !important;
+      min-height: 38px !important;
+      font-size: 12px !important;
+      border-radius: 12px !important;
+    }
+    body:not(.tv-mode) .selected-box .db-actions {
+      display: grid !important;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      gap: 6px !important;
+      margin-bottom: 8px !important;
+    }
+    body:not(.tv-mode) .selected-box .db-actions button {
+      min-height: 34px !important;
+      padding: 7px 6px !important;
+      font-size: 11px !important;
+      border-radius: 11px !important;
+    }
+    body:not(.tv-mode) .selected-box .primary {
+      min-height: 40px !important;
+      margin-top: 8px !important;
+      font-size: 12px !important;
+    }
+    @media (max-width: 760px) {
+      body:not(.tv-mode) .db-actions-toolbar-v118 {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      }
+      body:not(.tv-mode) .db-actions-toolbar-v118 button,
+      body:not(.tv-mode) .db-actions-toolbar-v118 .upload-button {
+        width: 100% !important;
+      }
+      body:not(.tv-mode) .selected-box .db-actions {
+        grid-template-columns: 1fr !important;
+      }
+      body:not(.tv-mode) .db-bulk-textarea-v118 {
+        min-height: 76px !important;
+        height: 76px !important;
+      }
+    }
+
+
 </style>
 </head>
 <body>
@@ -11267,7 +11370,7 @@ function copyOrShare(url, label) {
               <li>대회 시작 후 경기 방식과 레인 수를 바꾸면 기록이 꼬일 수 있습니다.</li>
               <li>패자부활전은 현재 단계의 진출자를 먼저 선택한 뒤 생성해야 합니다.</li>
               <li>같은 팀 방지와 같은 레인 방지는 초기값이 없음입니다. 필요할 때만 적용하세요.</li>
-              <li>경기 중 수정이 많아질 경우, 중간중간 JSON 백업을 내려받아 두는 것을 권장합니다.</li>
+              <li>경기 중 수정이 많아질 경우, 결과 CSV 또는 브라우저 자동저장 상태를 중간 점검하는 것을 권장합니다.</li>
             </ul>
           </div>
         </section>
@@ -13848,12 +13951,11 @@ function boot() {
         <div class="db-page player-db-light-v96">
           <header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div></div><h1>선수 DB / 경기장별 관리</h1><p class="desc">연락처는 선택값입니다. 닉네임은 대진표 표시명이며, 부족한 실명/연락처/팀명/메모는 나중에 선수 DB에서 수정할 수 있습니다.</p></div>${logoMarkup("header-logo")}</header>
           ${accountBadge()}
-          <div class="toolbar db-actions-toolbar"><button class="ghost" onclick="exportRosterCsv()">CSV 다운로드</button><button class="ghost" onclick="exportRosterJson()">JSON 백업</button><button class="ghost" onclick="downloadRosterTemplate()">선수 양식</button><label class="upload-button ghost">엑셀 업로드<input type="file" accept=".xlsx,.xls,.csv,.tsv" onchange="importRosterExcel(event)" hidden /></label></div>
+          <div class="toolbar db-actions-toolbar db-actions-toolbar-v118"><button class="ghost" onclick="exportRosterCsv()">CSV 다운로드</button><button class="ghost" onclick="downloadRosterTemplate()">선수 양식</button><label class="upload-button ghost">엑셀 업로드<input type="file" accept=".xlsx,.xls,.csv,.tsv" onchange="importRosterExcel(event)" hidden /></label></div>
           <div class="db-grid db-player-layout-v98 db-player-layout-v99"><aside class="db-player-side-v98 db-player-side-v99">
             <section class="card db-quick-add-card-v96" id="dbQuickAddPanel"><div class="db-panel-title"><h2>선수 빠른 추가</h2><span class="pill">${escapeHtml(currentVenueName())}</span></div><div class="form-grid">${isAdminUser() ? `<div class="db-admin-venue-field-v115"><label for="dbAdminVenueName">등록 경기장 *</label><input class="mini-input" id="dbAdminVenueName" placeholder="경기장명 필수" value="${escapeHtml(currentVenueName())}" /></div>` : ""}<div><label>실명</label><input class="mini-input" id="dbRealName" placeholder="나중에 보완 가능" /></div><div><label for="dbContact">연락처</label><input class="mini-input" id="dbContact" placeholder="선택값" /></div><div><label for="dbNickname">닉네임 / 선수명 *</label><input class="mini-input" id="dbNickname" placeholder="대진표 표시명" /></div><div><label for="dbTeam">팀명</label><input class="mini-input" id="dbTeam" list="dbTeamDatalist" placeholder="OPEN CLASS" autocomplete="off" /><datalist id="dbTeamDatalist">${teams.map(t => `<option value="${escapeAttr(t)}"></option>`).join("")}</datalist></div><div><label for="dbMemo">메모</label><input class="mini-input" id="dbMemo" placeholder="차량/특이사항" /></div></div><button class="primary" style="width:100%; margin-top:12px;" onclick="addRosterPlayer()">선수 추가</button><p class="privacy-note" style="margin-top:10px;">연락처가 없어도 등록/참가 가능합니다. 미등록 연락처와 실명은 나중에 이 화면에서 직접 보완할 수 있습니다.</p></section>
             <section class="card selected-box"><div class="db-panel-title"><h2>오늘 참가자</h2><span class="pill"><span id="selectedCount">0</span>명 선택</span></div><div class="db-actions" style="margin-bottom:10px;"><button class="ghost" onclick="selectRecentPlayers()">최근 참가자</button><button class="ghost" onclick="selectFavoritePlayers()">즐겨찾기</button><button class="ghost" onclick="clearSelectedPlayers()">선택 해제</button></div><div id="selectedPreview" class="finalist-grid" style="grid-template-columns:1fr;"></div><button class="primary" style="width:100%; margin-top:12px;" onclick="applySelectedPlayersToTournament()">선택 선수로 대진 생성 준비</button></section>
-            <section class="card"><h2>목록 일괄 추가</h2><p class="hint">형식: 실명/연락처(선택)/닉네임/팀명/메모</p><textarea id="quickImportText" style="min-height:150px;" placeholder="홍길동//마이/GEEKS/MS 플렉스"></textarea><button class="ghost" style="width:100%; margin-top:10px;" onclick="quickImportRosterLines()">목록에서 선수 추가</button></section>
-            <section class="card"><h2>JSON 복원</h2><textarea id="importJsonText" style="min-height:130px;"></textarea><button class="danger" style="width:100%; margin-top:10px;" onclick="importRosterJsonFromText()">JSON 불러오기</button></section>
+            <details class="card db-bulk-add-card-v118"><summary>목록 일괄 추가</summary><div class="details-body"><p class="hint">형식: 실명/연락처(선택)/닉네임/팀명/메모</p><textarea id="quickImportText" class="db-bulk-textarea-v118" placeholder="홍길동//마이/GEEKS/MS 플렉스"></textarea><button class="ghost db-wide-action-v118" onclick="quickImportRosterLines()">목록에서 선수 추가</button></div></details>
           </aside><main class="db-player-main-v98 db-player-main-v99"><section class="card db-roster-list-card-v98 db-roster-list-card-v99"><div class="db-panel-title"><div><h2>선수 명부</h2><div class="meta">총 ${roster.length}명 · 표시 ${filtered.length}명</div></div><div class="db-actions db-filter-actions"><input class="mini-input" placeholder="검색(이름/팀/경기장)" value="${escapeHtml(dbSearchText)}" oninput="setDbSearch(this.value)" style="width:180px;" /><select onchange="setDbTeamFilter(this.value)" style="width:150px;"><option value="전체">전체 팀</option>${teams.map(team => `<option value="${escapeHtml(team)}" ${team === dbTeamFilter ? "selected" : ""}>${escapeHtml(team)}</option>`).join("")}</select><select onchange="setDbStatusFilter(this.value)" style="width:130px;">${["전체", "활성", "비활성", "즐겨찾기", "연락처 있음", "연락처 없음"].map(value => `<option value="${value}" ${value === dbStatusFilter ? "selected" : ""}>${value}</option>`).join("")}</select></div></div><div class="db-stat-grid"><div class="db-stat"><small>전체 선수</small><strong>${roster.length}</strong></div><div class="db-stat"><small>활성 선수</small><strong>${activeCount}</strong></div><div class="db-stat"><small>즐겨찾기</small><strong>${favoriteCount}</strong></div><div class="db-stat"><small>연락처 미등록</small><strong>${missingContactCount}</strong></div></div><div class="db-bulk-toolbar"><div><label class="db-checkline"><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /> 표시 목록 일괄선택</label><span class="hint">표시 ${filtered.length}명 · 표시 중 선택 ${visibleSelectedCount}명</span></div><div class="db-bulk-buttons"><button class="ghost" onclick="selectVisiblePlayers()">표시 활성 전체 선택</button><button class="ghost" onclick="deselectVisiblePlayers()">표시 선택 해제</button><button class="ghost" onclick="selectAllActivePlayers()">전체 활성 선택</button>${dbSortButton("nickname", "닉네임")}${dbSortButton("realName", "실명")}${isAdminUser() ? dbSortButton("venue", "경기장") : ""}${dbSortButton("team", "팀명")}${dbSortButton("createdAt", "등록일")}</div></div><div class="roster-table-wrap db-roster-scroll-v98 db-roster-scroll-v99"><table class="roster-table"><thead><tr><th><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /></th><th>★</th>${isAdminUser() ? `<th><button class="ghost table-sort-btn" onclick="setDbSort('venue')">경기장${dbSortField === "venue" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th>` : ""}<th><button class="ghost table-sort-btn" onclick="setDbSort('realName')">실명${dbSortField === "realName" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>연락처</th><th><button class="ghost table-sort-btn" onclick="setDbSort('nickname')">닉네임${dbSortField === "nickname" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('team')">팀명${dbSortField === "team" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('active')">상태${dbSortField === "active" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>메모</th><th>관리</th></tr></thead><tbody>${filtered.map(player => renderRosterRow(player)).join("") || `<tr><td colspan="${isAdminUser() ? 10 : 9}"><div class="db-empty">등록된 선수가 없습니다.</div></td></tr>`}</tbody></table></div></section></main></div></div>`;
       updateSelectedPreview();
     }
