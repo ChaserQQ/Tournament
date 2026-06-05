@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v122 PERFORMANCE PATCH</title>
-  <!-- BUILD v122 PERFORMANCE PATCH · render/cache/live-sync optimization; rules unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v125 DESIGN SYSTEM 1.0 PATCH</title>
+  <!-- BUILD v125 DESIGN SYSTEM 1.0 PATCH · PC/MOBILE/TV pro UI system; rules unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -20,6 +20,8 @@
   <meta name="twitter:description" content="3레인 & 5레인 토너먼트 대진표" />
   <meta name="twitter:image" content="https://chaserqq.github.io/Tournament/og-image.png?v=51" />
   <style>
+:root{--c-fg:#111827;--c-bg:#ffffff;--c-border:#e5e7eb;--c-brand:#d84d89;--c-muted:#6b7280;--c-surface:#f9fafb;--c-line:#d8e0ea;--c-surface2:#f8fafc;}
+
     * { box-sizing: border-box; }
     :root {
       --bg: #0b1511;
@@ -30,7 +32,7 @@
       --text: #eee9df;
       --muted: #cfc8bb;
       --dim: #9e968a;
-      --point: #d84d89;
+      --point: var(--c-brand);
       --point-dark: #160811;
       --danger: #fb7185;
       --gold: #f8d56b;
@@ -284,48 +286,13 @@
     .tv-brand strong { display:block; font-size: clamp(34px, 4.4vw, 70px); line-height:1.05; margin-top: 4px; }
     .tv-brand .maker { font-size: clamp(16px, 1.5vw, 26px); margin-top: 8px; color: var(--muted); }
     .tv-logo { width: min(18vw, 230px); max-height: 130px; object-fit: contain; }
-    .tv-controls {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:14px;
-      flex-wrap:wrap;
-      background: rgba(18,30,24,.8);
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      padding: 12px;
-    }
-    .tv-stage { min-height:0; display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:16px; }
-    .tv-group {
-      min-height: 0;
-      border: 2px solid var(--line);
-      border-radius: 26px;
-      background: linear-gradient(180deg, rgba(18,30,24,.96), rgba(7,16,13,.96));
-      padding: 18px;
-      display:flex;
-      flex-direction:column;
-      gap: 12px;
-    }
-    .tv-group-title { display:flex; justify-content:space-between; align-items:center; gap:12px; }
-    .tv-group-title strong { font-size: clamp(26px, 2.8vw, 44px); color:var(--text); }
-    .tv-lane {
-      display:grid;
-      grid-template-columns: 132px 1fr auto;
-      align-items:center;
-      gap: 14px;
-      border-radius: 18px;
-      background:#101b16;
-      border:1px solid rgba(51,72,59,.9);
-      padding: 14px 16px;
-    }
-    .tv-lane.selected { background: var(--point); color: var(--point-dark); border-color: var(--point); }
+                            .tv-lane.selected { background: var(--point); color: var(--point-dark); border-color: var(--point); }
     .tv-lane-no { font-size: clamp(28px, 3vw, 48px); font-weight: 1000; letter-spacing:-.06em; color:var(--point); }
     .tv-lane.selected .tv-lane-no { color: var(--point-dark); }
     .tv-player { min-width:0; }
     .tv-player strong { display:block; font-size: clamp(25px, 2.5vw, 42px); line-height:1.12; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .tv-player span { display:block; color:inherit; opacity:.72; font-size: clamp(14px, 1.4vw, 22px); font-weight:900; margin-top: 4px; }
-    .tv-adv { font-size: clamp(16px, 1.6vw, 24px); font-weight:1000; }
-    .tv-foot { display:flex; justify-content:space-between; color:var(--dim); font-size:18px; font-weight:900; }
+        .tv-foot { display:flex; justify-content:space-between; color:var(--dim); font-size:18px; font-weight:900; }
     .mobile-view { max-width: 720px; margin: 0 auto; padding: 18px; }
     .mobile-view .groups { grid-template-columns: 1fr; }
 
@@ -607,15 +574,7 @@
       letter-spacing: -0.06em;
       font-weight: 1000;
     }
-    .tv-group {
-      border-radius: 28px;
-      border-color: rgba(72,94,78,.9);
-    }
-    .tv-group-title strong {
-      letter-spacing: -0.055em;
-      font-weight: 1000;
-    }
-    .tv-player strong {
+            .tv-player strong {
       letter-spacing: -0.06em;
       font-weight: 1000;
     }
@@ -676,20 +635,20 @@
     button { border-color: rgba(238,233,223,.11); background: rgba(27,42,34,.9); }
     button.ghost { background: rgba(238,233,223,.035); color: rgba(238,233,223,.82); }
     button.primary, button.active, button.selected {
-      background: linear-gradient(135deg, #f06aa3, #d84d89);
+      background: linear-gradient(135deg, #f06aa3, var(--c-brand));
       color: #170810;
       border-color: transparent;
     }
     .tabs { overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
     .tabs::-webkit-scrollbar { display: none; }
     .tab-btn { flex: 0 0 auto; min-width: 154px; border-color: rgba(238,233,223,.09); background: rgba(238,233,223,.035); }
-    .tab-btn.active { background: linear-gradient(135deg, #f06aa3, #d84d89); color: #170810; }
+    .tab-btn.active { background: linear-gradient(135deg, #f06aa3, var(--c-brand)); color: #170810; }
     .round-head { padding-bottom: 12px; border-bottom: 1px solid rgba(238,233,223,.07); }
     .stage-card { background: rgba(7,16,13,.72); }
     .groups { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
     .group { background: rgba(4, 11, 9, .78); border-color: rgba(238,233,223,.08); }
     .slot { min-height: 58px; background: rgba(238,233,223,.035); border-color: rgba(238,233,223,.08); }
-    .slot.selected { background: linear-gradient(135deg, #f06aa3, #d84d89); color: #170810; }
+    .slot.selected { background: linear-gradient(135deg, #f06aa3, var(--c-brand)); color: #170810; }
     .lane-label { font-variant-numeric: tabular-nums; }
     .badge, .round-badge, .pill { border: 1px solid rgba(238,233,223,.08); background: rgba(238,233,223,.04); }
     .finalist-badge { background: rgba(216,77,137,.16); color: #ff8dbb; border-color: rgba(216,77,137,.28); }
@@ -697,10 +656,7 @@
     .db-grid { grid-template-columns: 380px minmax(0, 1fr); }
     .roster-table-wrap { border-color: rgba(238,233,223,.08); box-shadow: var(--shadow-card); }
     .roster-table th { background: rgba(27,42,34,.96); }
-    .tv-controls { border-color: rgba(238,233,223,.08); background: rgba(7,16,13,.78); }
-    .tv-group { border-color: rgba(238,233,223,.1); box-shadow: var(--shadow-card); }
-    .tv-lane { background: rgba(238,233,223,.04); border-color: rgba(238,233,223,.08); }
-    @media (max-width: 1180px) {
+                @media (max-width: 1180px) {
       .layout { grid-template-columns: 1fr; }
       .side-area { position: static; }
       .toolbar { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -1079,12 +1035,7 @@
       filter: saturate(.86);
     }
 
-    .tv-lane {
-      grid-template-columns: minmax(150px, .8fr) minmax(0, 1.9fr) minmax(72px, auto);
-      gap: clamp(18px, 2.2vw, 34px);
-      padding: clamp(16px, 1.65vw, 24px) clamp(18px, 1.9vw, 28px);
-    }
-    .tv-lane-no {
+        .tv-lane-no {
       padding-right: clamp(14px, 1.6vw, 26px);
       border-right: 2px solid rgba(216,77,137,.28);
       text-align: right;
@@ -1101,11 +1052,7 @@
     .tv-player span {
       margin-top: 7px;
     }
-    .tv-adv {
-      padding-left: 10px;
-      text-align: right;
-    }
-
+    
     @media (max-width: 760px) {
       .section-label {
         margin-bottom: 6px;
@@ -1190,12 +1137,7 @@
       font-weight: 900;
     }
 
-    .tv-empty-lane {
-      opacity: .50;
-      border-style: dashed;
-      background: rgba(238,233,223,.025);
-    }
-    .tv-empty-lane .tv-lane-no {
+        .tv-empty-lane .tv-lane-no {
       color: rgba(238,233,223,.36);
       border-right-color: rgba(238,233,223,.12);
     }
@@ -1707,117 +1649,7 @@
       margin: 0 0 10px;
       min-height: 38px;
     }
-    .manual-modal {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      display: grid;
-      place-items: center;
-      padding: 18px;
-    }
-    .manual-backdrop {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,.68);
-      backdrop-filter: blur(5px);
-    }
-    .manual-panel {
-      position: relative;
-      width: min(920px, 100%);
-      max-height: min(86vh, 860px);
-      display: flex;
-      flex-direction: column;
-      border-radius: 24px;
-      border: 1px solid rgba(238,233,223,.12);
-      background: linear-gradient(180deg, rgba(18,30,24,.98), rgba(7,16,13,.98));
-      box-shadow: 0 30px 80px rgba(0,0,0,.45);
-      overflow: hidden;
-    }
-    .manual-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      padding: 16px 18px;
-      border-bottom: 1px solid rgba(238,233,223,.08);
-    }
-    .manual-head strong {
-      display: block;
-      color: var(--text);
-      font-size: 15px;
-      letter-spacing: .02em;
-    }
-    .manual-head span {
-      display: block;
-      color: var(--point);
-      font-size: 12px;
-      font-weight: 900;
-      margin-top: 3px;
-    }
-    .manual-head button {
-      min-height: 34px;
-      padding: 7px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-    }
-    .manual-body {
-      overflow: auto;
-      padding: 18px 22px 24px;
-      color: rgba(238,233,223,.86);
-      line-height: 1.68;
-      font-size: 14px;
-    }
-    .manual-body h2 {
-      margin: 20px 0 8px;
-      color: var(--text);
-      font-size: 18px;
-      border-top: 1px solid rgba(238,233,223,.08);
-      padding-top: 16px;
-    }
-    .manual-body h2:first-child {
-      margin-top: 0;
-      border-top: 0;
-      padding-top: 0;
-    }
-    .manual-body h3 {
-      margin: 12px 0 4px;
-      color: #ff8dbb;
-      font-size: 15px;
-    }
-    .manual-body p {
-      margin: 0 0 8px;
-    }
-    .manual-body ol,
-    .manual-body ul {
-      margin: 6px 0 10px 20px;
-      padding: 0;
-    }
-    .manual-body li {
-      margin: 3px 0;
-    }
-    .manual-body b {
-      color: var(--text);
-    }
-    .group-size-control {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 8px;
-      flex-wrap: wrap;
-      width: 100%;
-      margin-top: 10px;
-    }
-    .group-size-control span {
-      color: var(--dim);
-      font-size: 12px;
-      font-weight: 900;
-    }
-    .group-size-control > div {
-      display: flex;
-      gap: 5px;
-      flex-wrap: wrap;
-    }
-    .group-size-control button,
+                                                                            .group-size-control button,
     .download-mini button {
       min-height: 28px;
       padding: 5px 8px;
@@ -1828,21 +1660,7 @@
     .download-mini button {
       margin-top: 5px;
     }
-    .toolbar {
-      display: flex !important;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px;
-    }
-    .toolbar .grow {
-      flex: 1 1 auto;
-      min-width: 24px;
-    }
-    .toolbar button {
-      flex: 0 0 auto;
-      min-width: auto !important;
-    }
-    @media (max-width: 760px) {
+                @media (max-width: 760px) {
       .manual-modal {
         padding: 8px;
         align-items: stretch;
@@ -2374,30 +2192,7 @@
       height: clamp(74px, 9vw, 128px) !important;
       object-fit: contain !important;
     }
-    .tv-stage {
-      gap: clamp(14px, 1.6vw, 24px) !important;
-    }
-    .tv-group {
-      padding: clamp(14px, 1.4vw, 22px) !important;
-      border-radius: 24px !important;
-    }
-    .tv-group-title {
-      margin-bottom: 14px !important;
-    }
-    .tv-group-title strong {
-      font-size: clamp(20px, 2.2vw, 34px) !important;
-    }
-    .tv-lane {
-      display: grid !important;
-      grid-template-columns: minmax(86px, .42fr) minmax(0, 1fr) minmax(60px, .28fr) !important;
-      gap: clamp(10px, 1vw, 18px) !important;
-      align-items: center !important;
-      min-height: clamp(58px, 6vw, 88px) !important;
-      padding: clamp(10px, 1.1vw, 16px) !important;
-      border-radius: 18px !important;
-      margin-top: 8px !important;
-    }
-    .tv-lane-no {
+                        .tv-lane-no {
       font-size: clamp(16px, 1.7vw, 28px) !important;
       font-weight: 1000 !important;
       letter-spacing: -.02em;
@@ -2413,12 +2208,7 @@
       font-size: clamp(12px, 1.2vw, 18px) !important;
       margin-top: 5px !important;
     }
-    .tv-adv {
-      font-size: clamp(13px, 1.2vw, 20px) !important;
-      min-height: 32px !important;
-      border-radius: 999px !important;
-    }
-
+    
     /* Mobile LIVE readability */
     .mobile-view {
       padding: 10px !important;
@@ -2818,19 +2608,7 @@
     }
 
 
-    /* v39 player identity / venue roster */
-    .identity-note {
-      margin-top: 8px;
-      padding: 9px 10px;
-      border-radius: 13px;
-      border: 1px solid rgba(216,77,137,.22);
-      background: rgba(216,77,137,.08);
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.55;
-      font-weight: 800;
-    }
-    .venue-visit-list {
+        .venue-visit-list {
       display: grid;
       gap: 8px;
     }
@@ -2899,11 +2677,7 @@
       font-size:13px;
       line-height:1.5;
     }
-    .history-public-list {
-      display:grid;
-      gap:8px;
-    }
-    .history-public-row {
+        .history-public-row {
       display:grid;
       grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.4fr) auto;
       gap:10px;
@@ -3703,8 +3477,7 @@
     }
     .tv-lane-rate { margin-top: 3px; color: rgba(245,158,11,.85); }
     .tv-lane-no-main { display:block; }
-    .tv-view-mode-note { color: rgba(238,233,223,.62); font-size: 12px; font-weight: 900; }
-    .credit-mark {
+        .credit-mark {
       display: inline-flex !important;
       flex-direction: column !important;
       align-items: flex-end !important;
@@ -3771,24 +3544,7 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .team-inline,
-    .tv-team-inline {
-      flex: 0 0 auto;
-      display: inline-flex !important;
-      align-items: center;
-      max-width: 110px;
-      padding: 3px 7px;
-      border-radius: 999px;
-      background: rgba(245,158,11,.12);
-      color: rgba(245,158,11,.95) !important;
-      font-size: 11px;
-      font-weight: 1000;
-      line-height: 1.1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .slot-metrics-inline {
+        .slot-metrics-inline {
       flex: 999 1 280px;
       display: flex !important;
       flex-wrap: wrap;
@@ -4366,18 +4122,7 @@
     .point-slot .player-card-main {
       width: 100% !important;
     }
-    .tv-stage-title {
-      margin-top: clamp(4px, .5vw, 8px) !important;
-      color: rgba(238,233,223,.72) !important;
-      font-size: clamp(16px, 1.7vw, 28px) !important;
-      font-weight: 1000 !important;
-      line-height: 1.05 !important;
-      letter-spacing: -.045em !important;
-      white-space: nowrap !important;
-      overflow: hidden !important;
-      text-overflow: ellipsis !important;
-    }
-    @media (max-width: 760px) {
+        @media (max-width: 760px) {
       .final-slot-actions {
         grid-template-columns: 1fr !important;
       }
@@ -4458,10 +4203,7 @@
       gap: clamp(7px, .9vw, 14px) !important;
       overflow: hidden !important;
     }
-    body.tv-mode .tv-wrap.tv-wrap-has-leaders {
-      grid-template-rows: auto auto auto minmax(0, 1fr) auto !important;
-    }
-    body.tv-mode .tv-head {
+        body.tv-mode .tv-head {
       min-height: 0 !important;
       padding: 0 0 clamp(7px, .75vw, 13px) !important;
       border-bottom: 1px solid rgba(216,77,137,.46) !important;
@@ -4597,12 +4339,7 @@
       background: rgba(238,233,223,.04) !important;
       border: 1px solid rgba(238,233,223,.085) !important;
     }
-    body.tv-mode .tv-lane.selected {
-      background: linear-gradient(135deg, #f06aa3, #d84d89) !important;
-      color: #170810 !important;
-      border-color: transparent !important;
-    }
-    body.tv-mode .tv-player {
+        body.tv-mode .tv-player {
       min-width: 0 !important;
       display: grid !important;
       grid-template-rows: auto minmax(0, 1fr) !important;
@@ -4632,11 +4369,7 @@
       color: rgba(238,233,223,.68) !important;
       font-weight: 900 !important;
     }
-    body.tv-mode .tv-lane.selected .tv-lane-meta,
-    body.tv-mode .tv-lane.selected .tv-lane-meta span {
-      color: rgba(22,8,17,.82) !important;
-    }
-    body.tv-mode .tv-player-line-vertical {
+        body.tv-mode .tv-player-line-vertical {
       min-width: 0 !important;
       min-height: 0 !important;
       width: 100% !important;
@@ -4909,14 +4642,7 @@
     body.tv-mode .tv-stage {
       max-width: 100% !important;
     }
-    body.tv-mode .tv-stage-groups-1 { grid-template-columns: 1fr !important; }
-    body.tv-mode .tv-stage-groups-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-    body.tv-mode .tv-stage-groups-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
-    body.tv-mode .tv-stage-groups-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
-    body.tv-mode .tv-stage .tv-group:nth-of-type(n+5) {
-      display: none !important;
-    }
-    body.tv-mode .tv-player-line-vertical,
+                        body.tv-mode .tv-player-line-vertical,
     .player-info-name-first-card {
       isolation: isolate;
     }
@@ -4979,10 +4705,7 @@
       letter-spacing: -.02em !important;
       font-weight: 1000 !important;
     }
-    body.tv-mode .tv-lane-meta span {
-      color: rgba(238,233,223,.62) !important;
-    }
-    body.tv-mode .tv-player-line-vertical {
+        body.tv-mode .tv-player-line-vertical {
       grid-template-columns: minmax(0, 1.08fr) minmax(108px, .92fr) !important;
       gap: clamp(3px, .38vw, 7px) !important;
       align-items: center !important;
@@ -5314,7 +5037,7 @@
       border: 1px solid rgba(238,233,223,.085) !important;
     }
     body.tv-mode .tv-lane.selected {
-      background: linear-gradient(135deg, #f06aa3, #d84d89) !important;
+      background: linear-gradient(135deg, #f06aa3, var(--c-brand)) !important;
       color: #170810 !important;
       border-color: transparent !important;
     }
@@ -5664,8 +5387,7 @@
     /* v81 LIVE STRUCTURE FINAL · lobby version choice + automatic broadcast */
     .live-lobby-choice { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:8px !important; width:100% !important; margin-top:10px !important; }
     .live-lobby-choice button { width:100% !important; min-height:44px !important; white-space:nowrap !important; }
-    .tv-controls-readonly { justify-content:flex-start !important; }
-    body.tv-mode .tv-stage-force-4col { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
+        body.tv-mode .tv-stage-force-4col { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
     body.tv-mode .tv-group-placeholder { opacity:.42 !important; border-style:dashed !important; }
     body.tv-mode .tv-placeholder-body { display:grid !important; place-items:center !important; height:100% !important; color:rgba(238,233,223,.52) !important; font-size:clamp(14px,1.1vw,24px) !important; font-weight:1000 !important; }
     body.tv-mode .tv-stage-force-4col .tv-player-line-vertical { grid-template-columns:minmax(0,1.18fr) minmax(82px,.72fr) !important; }
@@ -6542,25 +6264,25 @@
     }
     body.live-lobby-page-v88 {
       background: #f4f6f8 !important;
-      color: #111827 !important;
+      color: var(--c-fg) !important;
       overflow: auto !important;
     }
     body.live-lobby-page-v88 button {
-      color: #111827;
+      color: var(--c-fg);
       background: #fff;
       border: 1px solid #d1d5db;
       box-shadow: none;
     }
     body.live-lobby-page-v88 button.primary {
-      background: #111827 !important;
-      border-color: #111827 !important;
+      background: var(--c-fg) !important;
+      border-color: var(--c-fg) !important;
       color: #fff !important;
     }
     .live-lobby-shell-v88 {
       width: min(100%, 1440px);
       margin: 0 auto;
       padding: 24px 18px 48px;
-      color: #111827;
+      color: var(--c-fg);
       background: #f4f6f8;
       min-height: 100dvh;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -6573,13 +6295,13 @@
       padding: 24px;
       border-radius: 24px;
       background: #fff;
-      border: 1px solid #e5e7eb;
+      border: 1px solid var(--c-border);
       box-shadow: 0 10px 30px rgba(15, 23, 42, .07);
       margin-bottom: 16px;
     }
     .live-eyebrow-v88 { color: #be185d; font-weight: 1000; font-size: 12px; letter-spacing: .18em; }
-    .live-lobby-header-v88 h1 { margin: 6px 0 6px; color: #111827; font-size: clamp(30px, 4vw, 56px); line-height: .95; letter-spacing: -.06em; }
-    .live-lobby-header-v88 p { margin: 0; color: #6b7280; font-weight: 700; line-height: 1.5; }
+    .live-lobby-header-v88 h1 { margin: 6px 0 6px; color: var(--c-fg); font-size: clamp(30px, 4vw, 56px); line-height: .95; letter-spacing: -.06em; }
+    .live-lobby-header-v88 p { margin: 0; color: var(--c-muted); font-weight: 700; line-height: 1.5; }
     .live-header-actions-v88 { flex: 0 0 auto; display: flex; gap: 8px; }
     .live-summary-v88 {
       display: flex;
@@ -6596,12 +6318,12 @@
       padding: 7px 11px;
       border-radius: 999px;
       background: #fff;
-      border: 1px solid #e5e7eb;
+      border: 1px solid var(--c-border);
       color: #4b5563;
       font-weight: 900;
       box-shadow: 0 4px 14px rgba(15,23,42,.04);
     }
-    .live-summary-v88 b { color: #111827; }
+    .live-summary-v88 b { color: var(--c-fg); }
     .live-grid-v88 {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -6617,38 +6339,38 @@
       padding: 18px;
       border-radius: 22px;
       background: #fff;
-      border: 1px solid #e5e7eb;
+      border: 1px solid var(--c-border);
       box-shadow: 0 10px 28px rgba(15,23,42,.07);
       overflow: hidden;
     }
     .live-card-v88.is-live { border-color: #10b981; box-shadow: 0 12px 34px rgba(16,185,129,.15); }
-    .live-card-v88.is-empty { background: #f9fafb; border-style: dashed; box-shadow: none; }
+    .live-card-v88.is-empty { background: var(--c-surface); border-style: dashed; box-shadow: none; }
     .live-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .live-status-v88 { display: inline-flex; align-items: center; justify-content: center; min-height: 26px; padding: 5px 9px; border-radius: 999px; font-size: 11px; font-weight: 1000; background: #e5e7eb; color: #374151; }
+    .live-status-v88 { display: inline-flex; align-items: center; justify-content: center; min-height: 26px; padding: 5px 9px; border-radius: 999px; font-size: 11px; font-weight: 1000; background: var(--c-border); color: #374151; }
     .live-status-v88.on { background: #10b981; color: #052e1f; }
     .live-status-v88.recent { background: #f59e0b; color: #3b2500; }
     .live-status-v88.empty { background: #eef2f7; color: #9ca3af; }
     .live-slot-v88 { color: #9ca3af; font-weight: 1000; font-size: 12px; }
     .live-card-main { min-width: 0; display: grid; gap: 7px; align-content: start; }
     .live-venue-v88 { margin: 0; color: #be185d; font-weight: 1000; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .live-card-v88 h3 { margin: 0; color: #111827; font-size: 21px; line-height: 1.18; letter-spacing: -.04em; overflow-wrap: anywhere; word-break: keep-all; }
-    .live-meta-v88 { display: grid; gap: 4px; color: #6b7280; font-size: 12px; font-weight: 800; line-height: 1.35; }
+    .live-card-v88 h3 { margin: 0; color: var(--c-fg); font-size: 21px; line-height: 1.18; letter-spacing: -.04em; overflow-wrap: anywhere; word-break: keep-all; }
+    .live-meta-v88 { display: grid; gap: 4px; color: var(--c-muted); font-size: 12px; font-weight: 800; line-height: 1.35; }
     .live-meta-v88 span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .live-result-v88 { min-height: 76px; display: grid; gap: 3px; align-content: start; padding: 11px 12px; border-radius: 14px; background: #f3f4f6; border: 1px solid #e5e7eb; }
+    .live-result-v88 { min-height: 76px; display: grid; gap: 3px; align-content: start; padding: 11px 12px; border-radius: 14px; background: #f3f4f6; border: 1px solid var(--c-border); }
     .live-result-v88 span { color: #9ca3af; font-size: 10px; font-weight: 1000; letter-spacing: .08em; }
-    .live-result-v88 b { color: #111827; font-size: 13px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .live-result-v88 small { color: #6b7280; font-weight: 800; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .live-result-v88 b { color: var(--c-fg); font-size: 13px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .live-result-v88 small { color: var(--c-muted); font-weight: 800; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
     .live-result-v88.muted { opacity: .78; }
     .live-lobby-actions { min-height: 42px; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; align-items: stretch; }
     .live-lobby-actions button { width: 100%; min-height: 42px; border-radius: 13px !important; font-size: 13px; font-weight: 1000; }
-    .live-lobby-actions-placeholder { grid-template-columns: 1fr; border: 1px solid #e5e7eb; border-radius: 13px; background: #f9fafb; color: #9ca3af; font-size: 11px; font-weight: 1000; letter-spacing: .08em; place-items: center; }
-    .live-history-v88 { margin-top: 18px; padding: 18px; border-radius: 22px; background: #fff; border: 1px solid #e5e7eb; box-shadow: 0 10px 28px rgba(15,23,42,.06); }
-    .live-section-title-v88 h2 { margin: 0 0 12px; color: #111827; font-size: 20px; }
+    .live-lobby-actions-placeholder { grid-template-columns: 1fr; border: 1px solid var(--c-border); border-radius: 13px; background: var(--c-surface); color: #9ca3af; font-size: 11px; font-weight: 1000; letter-spacing: .08em; place-items: center; }
+    .live-history-v88 { margin-top: 18px; padding: 18px; border-radius: 22px; background: #fff; border: 1px solid var(--c-border); box-shadow: 0 10px 28px rgba(15,23,42,.06); }
+    .live-section-title-v88 h2 { margin: 0 0 12px; color: var(--c-fg); font-size: 20px; }
     .history-list-v88 { display: grid; gap: 8px; }
-    .history-row-v88 { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 10px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 14px; background: #f9fafb; }
-    .history-row-v88 b { display: block; color: #111827; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .history-row-v88 span { display: block; color: #6b7280; font-size: 11px; font-weight: 800; margin-top: 2px; }
-    .live-empty-note-v88 { color: #6b7280; font-weight: 800; padding: 16px; border-radius: 14px; background: #f9fafb; }
+    .history-row-v88 { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 10px; padding: 12px; border: 1px solid var(--c-border); border-radius: 14px; background: var(--c-surface); }
+    .history-row-v88 b { display: block; color: var(--c-fg); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .history-row-v88 span { display: block; color: var(--c-muted); font-size: 11px; font-weight: 800; margin-top: 2px; }
+    .live-empty-note-v88 { color: var(--c-muted); font-weight: 800; padding: 16px; border-radius: 14px; background: var(--c-surface); }
     .live-footer-v88 { margin-top: 16px; color: #9ca3af; font-size: 11px; font-weight: 900; text-align: right; }
     @media (max-width: 1180px) { .live-grid-v88 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
     @media (max-width: 860px) { .live-grid-v88 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -6709,48 +6431,48 @@
     }
 
     body.live-lobby-page-v89,
-    body.live-lobby-page-v89 #app { background: #f4f6f8 !important; color: #111827 !important; min-height: 100dvh !important; overflow: auto !important; }
-    body.live-lobby-page-v89 button { background: #fff !important; color: #111827 !important; border: 1px solid #d1d5db !important; box-shadow: none !important; }
-    body.live-lobby-page-v89 button.primary { background: #111827 !important; color: #fff !important; border-color: #111827 !important; }
-    .live-lobby-shell-v89 { width: min(100%, 1440px); margin: 0 auto; padding: 24px 18px 48px; color: #111827; background: #f4f6f8; min-height: 100dvh; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    .live-lobby-header-v89 { display: flex; justify-content: space-between; align-items: flex-end; gap: 18px; padding: 24px; border-radius: 24px; background: #fff; border: 1px solid #e5e7eb; box-shadow: 0 10px 30px rgba(15,23,42,.07); margin-bottom: 16px; }
+    body.live-lobby-page-v89 #app { background: #f4f6f8 !important; color: var(--c-fg) !important; min-height: 100dvh !important; overflow: auto !important; }
+    body.live-lobby-page-v89 button { background: #fff !important; color: var(--c-fg) !important; border: 1px solid #d1d5db !important; box-shadow: none !important; }
+    body.live-lobby-page-v89 button.primary { background: var(--c-fg) !important; color: #fff !important; border-color: var(--c-fg) !important; }
+    .live-lobby-shell-v89 { width: min(100%, 1440px); margin: 0 auto; padding: 24px 18px 48px; color: var(--c-fg); background: #f4f6f8; min-height: 100dvh; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .live-lobby-header-v89 { display: flex; justify-content: space-between; align-items: flex-end; gap: 18px; padding: 24px; border-radius: 24px; background: #fff; border: 1px solid var(--c-border); box-shadow: 0 10px 30px rgba(15,23,42,.07); margin-bottom: 16px; }
     .live-eyebrow-v89 { color: #be185d; font-weight: 1000; font-size: 12px; letter-spacing: .18em; }
-    .live-lobby-header-v89 h1 { margin: 6px 0 6px; color: #111827; font-size: clamp(30px, 4vw, 56px); line-height: .95; letter-spacing: -.06em; }
-    .live-lobby-header-v89 p { margin: 0; color: #6b7280; font-weight: 750; line-height: 1.5; }
+    .live-lobby-header-v89 h1 { margin: 6px 0 6px; color: var(--c-fg); font-size: clamp(30px, 4vw, 56px); line-height: .95; letter-spacing: -.06em; }
+    .live-lobby-header-v89 p { margin: 0; color: var(--c-muted); font-weight: 750; line-height: 1.5; }
     .live-header-actions-v89 { flex: 0 0 auto; display: flex; gap: 8px; }
     .live-summary-v89 { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; }
-    .live-summary-v89 span, .live-summary-v89 small { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 7px 11px; border-radius: 999px; background: #fff; border: 1px solid #e5e7eb; color: #4b5563; font-weight: 900; box-shadow: 0 4px 14px rgba(15,23,42,.04); }
-    .live-summary-v89 b { color: #111827; }
+    .live-summary-v89 span, .live-summary-v89 small { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 7px 11px; border-radius: 999px; background: #fff; border: 1px solid var(--c-border); color: #4b5563; font-weight: 900; box-shadow: 0 4px 14px rgba(15,23,42,.04); }
+    .live-summary-v89 b { color: var(--c-fg); }
     .live-grid-v89 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; align-items: stretch; }
-    .live-card-v89 { min-width: 0; min-height: 300px; display: grid; grid-template-rows: auto minmax(112px, 1fr) auto auto; gap: 12px; padding: 18px; border-radius: 22px; background: #fff; border: 1px solid #e5e7eb; box-shadow: 0 10px 28px rgba(15,23,42,.07); overflow: hidden; }
+    .live-card-v89 { min-width: 0; min-height: 300px; display: grid; grid-template-rows: auto minmax(112px, 1fr) auto auto; gap: 12px; padding: 18px; border-radius: 22px; background: #fff; border: 1px solid var(--c-border); box-shadow: 0 10px 28px rgba(15,23,42,.07); overflow: hidden; }
     .live-card-v89.is-live { border-color: #10b981; box-shadow: 0 12px 34px rgba(16,185,129,.15); }
-    .live-card-v89.is-empty { background: #f9fafb; border-style: dashed; box-shadow: none; }
+    .live-card-v89.is-empty { background: var(--c-surface); border-style: dashed; box-shadow: none; }
     .live-card-status-v89 { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .live-card-status-v89 b { color: #9ca3af; font-size: 12px; }
-    .live-status-v89 { display: inline-flex; align-items: center; justify-content: center; min-height: 26px; padding: 5px 9px; border-radius: 999px; font-size: 11px; font-weight: 1000; background: #e5e7eb; color: #374151; }
+    .live-status-v89 { display: inline-flex; align-items: center; justify-content: center; min-height: 26px; padding: 5px 9px; border-radius: 999px; font-size: 11px; font-weight: 1000; background: var(--c-border); color: #374151; }
     .live-status-v89.on { background: #10b981; color: #052e1f; }
     .live-status-v89.recent { background: #f59e0b; color: #3b2500; }
     .live-status-v89.empty { background: #eef2f7; color: #9ca3af; }
     .live-card-main-v89 { min-width: 0; display: grid; gap: 7px; align-content: start; }
     .live-venue-v89 { margin: 0; color: #be185d; font-weight: 1000; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .live-card-v89 h3 { margin: 0; color: #111827; font-size: 21px; line-height: 1.18; letter-spacing: -.04em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: keep-all; overflow-wrap: anywhere; }
-    .live-meta-v89 { display: grid; gap: 4px; color: #6b7280; font-size: 12px; font-weight: 800; line-height: 1.35; }
+    .live-card-v89 h3 { margin: 0; color: var(--c-fg); font-size: 21px; line-height: 1.18; letter-spacing: -.04em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: keep-all; overflow-wrap: anywhere; }
+    .live-meta-v89 { display: grid; gap: 4px; color: var(--c-muted); font-size: 12px; font-weight: 800; line-height: 1.35; }
     .live-meta-v89 span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .live-result-v89 { min-height: 76px; display: grid; gap: 3px; align-content: start; padding: 11px 12px; border-radius: 14px; background: #f3f4f6; border: 1px solid #e5e7eb; }
+    .live-result-v89 { min-height: 76px; display: grid; gap: 3px; align-content: start; padding: 11px 12px; border-radius: 14px; background: #f3f4f6; border: 1px solid var(--c-border); }
     .live-result-v89 span { color: #9ca3af; font-size: 10px; font-weight: 1000; letter-spacing: .08em; }
-    .live-result-v89 b { color: #111827; font-size: 13px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .live-result-v89 small { color: #6b7280; font-weight: 800; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .live-result-v89 b { color: var(--c-fg); font-size: 13px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .live-result-v89 small { color: var(--c-muted); font-weight: 800; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
     .live-result-v89.is-muted { opacity: .78; }
     .live-lobby-actions-v89 { min-height: 42px; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; align-items: stretch; }
     .live-lobby-actions-v89 button { width: 100%; min-height: 42px; border-radius: 13px !important; font-size: 13px; font-weight: 1000; }
-    .live-lobby-placeholder-v89 { min-height: 42px; display: grid; place-items: center; border: 1px solid #e5e7eb; border-radius: 13px; background: #f9fafb; color: #9ca3af; font-size: 11px; font-weight: 1000; letter-spacing: .08em; }
-    .live-history-v89 { margin-top: 18px; padding: 18px; border-radius: 22px; background: #fff; border: 1px solid #e5e7eb; box-shadow: 0 10px 28px rgba(15,23,42,.06); }
-    .live-history-v89 h2 { margin: 0 0 12px; color: #111827; font-size: 20px; }
+    .live-lobby-placeholder-v89 { min-height: 42px; display: grid; place-items: center; border: 1px solid var(--c-border); border-radius: 13px; background: var(--c-surface); color: #9ca3af; font-size: 11px; font-weight: 1000; letter-spacing: .08em; }
+    .live-history-v89 { margin-top: 18px; padding: 18px; border-radius: 22px; background: #fff; border: 1px solid var(--c-border); box-shadow: 0 10px 28px rgba(15,23,42,.06); }
+    .live-history-v89 h2 { margin: 0 0 12px; color: var(--c-fg); font-size: 20px; }
     .history-list-v89 { display: grid; gap: 8px; }
-    .history-row-v89 { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 10px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 14px; background: #f9fafb; }
-    .history-row-v89 b { display: block; color: #111827; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .history-row-v89 span { display: block; color: #6b7280; font-size: 11px; font-weight: 800; margin-top: 2px; }
-    .live-empty-note-v89, .live-loading-v89 { color: #6b7280; font-weight: 800; padding: 20px; border-radius: 16px; background: #fff; border: 1px solid #e5e7eb; }
+    .history-row-v89 { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 10px; padding: 12px; border: 1px solid var(--c-border); border-radius: 14px; background: var(--c-surface); }
+    .history-row-v89 b { display: block; color: var(--c-fg); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .history-row-v89 span { display: block; color: var(--c-muted); font-size: 11px; font-weight: 800; margin-top: 2px; }
+    .live-empty-note-v89, .live-loading-v89 { color: var(--c-muted); font-weight: 800; padding: 20px; border-radius: 16px; background: #fff; border: 1px solid var(--c-border); }
     .live-footer-v89 { margin-top: 16px; color: #9ca3af; font-size: 11px; font-weight: 900; text-align: right; }
     @media (max-width: 1180px) { .live-grid-v89 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
     @media (max-width: 900px) { .live-grid-v89 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .history-row-v89 { grid-template-columns: 1fr; } }
@@ -6762,7 +6484,7 @@
     /* v92 PLAYER DB OPTIONAL CONTACT · lane fixed top-left, h2h pushed right */
     body.tv-mode {
       background: #f4f6f8 !important;
-      color: #111827 !important;
+      color: var(--c-fg) !important;
       width: 100vw !important;
       
       height: 100dvh !important;
@@ -6789,7 +6511,7 @@
       padding: clamp(14px, 1.3vw, 26px) !important;
       overflow: hidden !important;
       background: #f4f6f8 !important;
-      color: #111827 !important;
+      color: var(--c-fg) !important;
       font-family: "Pretendard", "SUIT", "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
       letter-spacing: -0.035em !important;
     }
@@ -6801,7 +6523,7 @@
       gap: clamp(12px, 1vw, 22px) !important;
       padding: clamp(12px, 1vw, 20px) clamp(14px, 1.1vw, 24px) !important;
       border-radius: clamp(16px, 1.2vw, 26px) !important;
-      background: #ffffff !important;
+      background: var(--c-bg) !important;
       border: 1px solid #d8dee8 !important;
       box-shadow: 0 14px 34px rgba(17,24,39,.10) !important;
       overflow: hidden !important;
@@ -6810,45 +6532,45 @@
     body.tv-mode .tv90-kicker { display: flex !important; align-items: center !important; gap: clamp(8px, .7vw, 14px) !important; min-width: 0 !important; overflow: hidden !important; white-space: nowrap !important; }
     body.tv-mode .tv90-kicker small { color: #be185d !important; font-size: clamp(12px, .82vw, 17px) !important; font-weight: 1000 !important; letter-spacing: .16em !important; line-height: 1 !important; overflow: hidden !important; text-overflow: ellipsis !important; }
     body.tv-mode .tv90-mode-pill { flex: 0 1 auto !important; min-width: 0 !important; max-width: 42vw !important; padding: .35em .75em !important; border-radius: 999px !important; background: #fce7f3 !important; border: 1px solid #f9a8d4 !important; color: #9d174d !important; font-size: clamp(11px, .72vw, 14px) !important; font-weight: 1000 !important; line-height: 1 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
-    body.tv-mode .tv90-title { margin: 0 !important; color: #111827 !important; font-size: clamp(34px, 3.4vw, 70px) !important; line-height: .98 !important; font-weight: 1000 !important; letter-spacing: -.065em !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+    body.tv-mode .tv90-title { margin: 0 !important; color: var(--c-fg) !important; font-size: clamp(34px, 3.4vw, 70px) !important; line-height: .98 !important; font-weight: 1000 !important; letter-spacing: -.065em !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
     body.tv-mode .tv90-subtitle { color: #4b5563 !important; font-size: clamp(14px, 1vw, 22px) !important; line-height: 1.05 !important; font-weight: 900 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
     body.tv-mode .tv90-logo.credit-mark,
-    body.tv-mode .tv90-logo { width: auto !important; min-width: clamp(118px, 10vw, 180px) !important; max-width: min(18vw, 240px) !important; min-height: clamp(54px, 4.8vw, 86px) !important; max-height: none !important; display: flex !important; flex-direction: column !important; justify-content: center !important; align-items: flex-end !important; gap: 3px !important; padding: clamp(8px, .7vw, 12px) clamp(10px, .8vw, 16px) !important; border-radius: 16px !important; background: #111827 !important; border: 0 !important; color: #fff !important; text-align: right !important; box-shadow: none !important; filter: none !important; overflow: hidden !important; }
+    body.tv-mode .tv90-logo { width: auto !important; min-width: clamp(118px, 10vw, 180px) !important; max-width: min(18vw, 240px) !important; min-height: clamp(54px, 4.8vw, 86px) !important; max-height: none !important; display: flex !important; flex-direction: column !important; justify-content: center !important; align-items: flex-end !important; gap: 3px !important; padding: clamp(8px, .7vw, 12px) clamp(10px, .8vw, 16px) !important; border-radius: 16px !important; background: var(--c-fg) !important; border: 0 !important; color: #fff !important; text-align: right !important; box-shadow: none !important; filter: none !important; overflow: hidden !important; }
     body.tv-mode .tv90-logo span,
     body.tv-mode .tv90-logo small { color: inherit !important; display: block !important; max-width: 100% !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; line-height: 1.1 !important; }
     body.tv-mode .tv90-logo span { font-size: clamp(10px, .78vw, 15px) !important; font-weight: 1000 !important; }
     body.tv-mode .tv90-logo small { font-size: clamp(8px, .64vw, 12px) !important; opacity: .78 !important; }
     body.tv-mode .tv90-grid { min-width: 0 !important; min-height: 0 !important; width: 100% !important; height: 100% !important; display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: clamp(10px, .9vw, 18px) !important; align-items: stretch !important; overflow: hidden !important; }
-    body.tv-mode .tv90-group { min-width: 0 !important; min-height: 0 !important; height: 100% !important; display: grid !important; grid-template-rows: auto repeat(var(--tv90-lane-count, 5), minmax(0, 1fr)) !important; gap: clamp(7px, .58vw, 11px) !important; padding: clamp(10px, .85vw, 16px) !important; border-radius: clamp(18px, 1.2vw, 26px) !important; background: #ffffff !important; border: 1px solid #d8dee8 !important; box-shadow: 0 14px 30px rgba(17,24,39,.09) !important; overflow: hidden !important; }
+    body.tv-mode .tv90-group { min-width: 0 !important; min-height: 0 !important; height: 100% !important; display: grid !important; grid-template-rows: auto repeat(var(--tv90-lane-count, 5), minmax(0, 1fr)) !important; gap: clamp(7px, .58vw, 11px) !important; padding: clamp(10px, .85vw, 16px) !important; border-radius: clamp(18px, 1.2vw, 26px) !important; background: var(--c-bg) !important; border: 1px solid #d8dee8 !important; box-shadow: 0 14px 30px rgba(17,24,39,.09) !important; overflow: hidden !important; }
     body.tv-mode .tv90-group[data-lanes="3"] { --tv90-lane-count: 3; }
     body.tv-mode .tv90-group[data-lanes="5"] { --tv90-lane-count: 5; }
-    body.tv-mode .tv90-group-head { min-width: 0 !important; display: grid !important; grid-template-columns: minmax(0, 1fr) auto !important; gap: 8px !important; align-items: center !important; padding-bottom: clamp(7px, .55vw, 10px) !important; border-bottom: 1px solid #e5e7eb !important; overflow: hidden !important; }
-    body.tv-mode .tv90-group-title { color: #111827 !important; font-size: clamp(18px, 1.35vw, 30px) !important; line-height: 1 !important; font-weight: 1000 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
-    body.tv-mode .tv90-badge { display: inline-flex !important; align-items: center !important; justify-content: center !important; padding: .35em .65em !important; border-radius: 999px !important; background: #f3f4f6 !important; border: 1px solid #e5e7eb !important; color: #374151 !important; font-size: clamp(9px, .62vw, 12px) !important; font-weight: 1000 !important; line-height: 1 !important; white-space: nowrap !important; }
-    body.tv-mode .tv90-lane { min-width: 0 !important; min-height: 0 !important; display: grid !important; grid-template-columns: minmax(54px, .34fr) minmax(0, 1fr) minmax(88px, .72fr) minmax(40px, auto) !important; gap: clamp(7px, .55vw, 12px) !important; align-items: center !important; padding: clamp(7px, .58vw, 11px) !important; border-radius: clamp(13px, .85vw, 18px) !important; background: #f9fafb !important; border: 1px solid #e5e7eb !important; overflow: hidden !important; }
+    body.tv-mode .tv90-group-head { min-width: 0 !important; display: grid !important; grid-template-columns: minmax(0, 1fr) auto !important; gap: 8px !important; align-items: center !important; padding-bottom: clamp(7px, .55vw, 10px) !important; border-bottom: 1px solid var(--c-border) !important; overflow: hidden !important; }
+    body.tv-mode .tv90-group-title { color: var(--c-fg) !important; font-size: clamp(18px, 1.35vw, 30px) !important; line-height: 1 !important; font-weight: 1000 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+    body.tv-mode .tv90-badge { display: inline-flex !important; align-items: center !important; justify-content: center !important; padding: .35em .65em !important; border-radius: 999px !important; background: #f3f4f6 !important; border: 1px solid var(--c-border) !important; color: #374151 !important; font-size: clamp(9px, .62vw, 12px) !important; font-weight: 1000 !important; line-height: 1 !important; white-space: nowrap !important; }
+    body.tv-mode .tv90-lane { min-width: 0 !important; min-height: 0 !important; display: grid !important; grid-template-columns: minmax(54px, .34fr) minmax(0, 1fr) minmax(88px, .72fr) minmax(40px, auto) !important; gap: clamp(7px, .55vw, 12px) !important; align-items: center !important; padding: clamp(7px, .58vw, 11px) !important; border-radius: clamp(13px, .85vw, 18px) !important; background: var(--c-surface) !important; border: 1px solid var(--c-border) !important; overflow: hidden !important; }
     body.tv-mode .tv90-lane.is-selected { background: #fce7f3 !important; border-color: #f472b6 !important; }
     body.tv-mode .tv90-lane.is-empty { background: #f3f4f6 !important; border-style: dashed !important; opacity: .78 !important; }
-    body.tv-mode .tv90-lane-meta { min-width: 0 !important; display: grid !important; grid-template-rows: auto auto !important; gap: 2px !important; align-content: center !important; color: #be185d !important; overflow: hidden !important; border-right: 1px solid #e5e7eb !important; padding-right: clamp(5px, .45vw, 8px) !important; }
+    body.tv-mode .tv90-lane-meta { min-width: 0 !important; display: grid !important; grid-template-rows: auto auto !important; gap: 2px !important; align-content: center !important; color: #be185d !important; overflow: hidden !important; border-right: 1px solid var(--c-border) !important; padding-right: clamp(5px, .45vw, 8px) !important; }
     body.tv-mode .tv90-lane-main { display: flex !important; align-items: baseline !important; gap: 2px !important; min-width: 0 !important; line-height: 1 !important; white-space: nowrap !important; }
     body.tv-mode .tv90-lane-no { font-size: clamp(18px, 1.45vw, 32px) !important; font-weight: 1000 !important; letter-spacing: -.06em !important; line-height: 1 !important; }
     body.tv-mode .tv90-lane-word { font-size: clamp(8px, .58vw, 11px) !important; font-weight: 1000 !important; letter-spacing: .03em !important; line-height: 1 !important; }
-    body.tv-mode .tv90-rate { color: #6b7280 !important; font-size: clamp(7px, .52vw, 10px) !important; font-weight: 900 !important; line-height: 1 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+    body.tv-mode .tv90-rate { color: var(--c-muted) !important; font-size: clamp(7px, .52vw, 10px) !important; font-weight: 900 !important; line-height: 1 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
     body.tv-mode .tv90-player { min-width: 0 !important; display: grid !important; gap: clamp(2px, .18vw, 4px) !important; align-content: center !important; overflow: hidden !important; }
-    body.tv-mode .tv90-name { max-width: 100% !important; color: #111827 !important; font-size: clamp(25px, 2.15vw, 46px) !important; line-height: 1.03 !important; font-weight: 1000 !important; letter-spacing: -.07em !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: clip !important; padding: .04em 0 .08em !important; }
+    body.tv-mode .tv90-name { max-width: 100% !important; color: var(--c-fg) !important; font-size: clamp(25px, 2.15vw, 46px) !important; line-height: 1.03 !important; font-weight: 1000 !important; letter-spacing: -.07em !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: clip !important; padding: .04em 0 .08em !important; }
     body.tv-mode .tv90-name.is-medium { font-size: clamp(22px, 1.85vw, 39px) !important; }
     body.tv-mode .tv90-name.is-long { font-size: clamp(18px, 1.45vw, 30px) !important; letter-spacing: -.045em !important; }
-    body.tv-mode .tv90-team { max-width: 100% !important; color: #6b7280 !important; font-size: clamp(9px, .7vw, 13px) !important; line-height: 1 !important; font-weight: 900 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+    body.tv-mode .tv90-team { max-width: 100% !important; color: var(--c-muted) !important; font-size: clamp(9px, .7vw, 13px) !important; line-height: 1 !important; font-weight: 900 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
     body.tv-mode .tv90-h2h { min-width: 0 !important; display: grid !important; gap: clamp(2px, .18vw, 4px) !important; align-content: center !important; overflow: hidden !important; }
     body.tv-mode .tv90-h2h-title { color: #be185d !important; font-size: clamp(8px, .58vw, 11px) !important; line-height: 1 !important; font-weight: 1000 !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
     body.tv-mode .tv90-h2h-row { color: #374151 !important; font-size: clamp(7px, .52vw, 10px) !important; line-height: 1.08 !important; font-weight: 850 !important; border-left: 2px solid #f9a8d4 !important; padding-left: clamp(4px, .32vw, 6px) !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
     body.tv-mode .tv90-result { min-width: clamp(34px, 2.4vw, 52px) !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; color: #9d174d !important; font-size: clamp(10px, .78vw, 14px) !important; font-weight: 1000 !important; line-height: 1 !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
     body.tv-mode .tv90-placeholder { grid-template-rows: auto minmax(0, 1fr) !important; }
-    body.tv-mode .tv90-placeholder-body { min-height: 0 !important; height: 100% !important; display: grid !important; place-items: center !important; border-radius: clamp(13px, .85vw, 18px) !important; background: #f9fafb !important; border: 1px dashed #d1d5db !important; color: #6b7280 !important; text-align: center !important; font-weight: 1000 !important; font-size: clamp(18px, 1.35vw, 30px) !important; line-height: 1.2 !important; }
-    body.tv-mode .tv90-foot { min-width: 0 !important; display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 12px !important; color: #6b7280 !important; font-size: clamp(10px, .72vw, 14px) !important; font-weight: 900 !important; line-height: 1 !important; overflow: hidden !important; }
+    body.tv-mode .tv90-placeholder-body { min-height: 0 !important; height: 100% !important; display: grid !important; place-items: center !important; border-radius: clamp(13px, .85vw, 18px) !important; background: var(--c-surface) !important; border: 1px dashed #d1d5db !important; color: var(--c-muted) !important; text-align: center !important; font-weight: 1000 !important; font-size: clamp(18px, 1.35vw, 30px) !important; line-height: 1.2 !important; }
+    body.tv-mode .tv90-foot { min-width: 0 !important; display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 12px !important; color: var(--c-muted) !important; font-size: clamp(10px, .72vw, 14px) !important; font-weight: 900 !important; line-height: 1 !important; overflow: hidden !important; }
     body.tv-mode .tv90-foot span { min-width: 0 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
-    body.tv-mode .tv90-empty-screen { display: grid !important; place-items: center !important; min-height: 0 !important; border-radius: 24px !important; background: #fff !important; border: 1px solid #d8dee8 !important; color: #111827 !important; text-align: center !important; padding: 24px !important; }
+    body.tv-mode .tv90-empty-screen { display: grid !important; place-items: center !important; min-height: 0 !important; border-radius: 24px !important; background: #fff !important; border: 1px solid #d8dee8 !important; color: var(--c-fg) !important; text-align: center !important; padding: 24px !important; }
     body.tv-mode .tv90-empty-screen h2 { margin: 0 0 8px !important; font-size: clamp(28px, 2.2vw, 48px) !important; }
-    body.tv-mode .tv90-empty-screen p { margin: 0 !important; color: #6b7280 !important; font-weight: 900 !important; }
+    body.tv-mode .tv90-empty-screen p { margin: 0 !important; color: var(--c-muted) !important; font-weight: 900 !important; }
     @media (max-width: 1100px) {
       body.tv-mode,
       body.tv-mode #app,
@@ -6865,14 +6587,14 @@
     body.tv-mode .tv90-screen,
     body.tv-mode .tv-wrap.tv90-screen {
       background: #f4f6f8 !important;
-      color: #111827 !important;
+      color: var(--c-fg) !important;
     }
     body.tv-mode .tv90-grid {
       grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
       gap: clamp(10px, .9vw, 18px) !important;
     }
     body.tv-mode .tv90-group {
-      background: #ffffff !important;
+      background: var(--c-bg) !important;
       border: 1px solid #d6dde8 !important;
       box-shadow: 0 12px 28px rgba(15, 23, 42, .08) !important;
       overflow: hidden !important;
@@ -6888,7 +6610,7 @@
       align-items: center !important;
       padding: clamp(24px, 1.75vw, 36px) clamp(9px, .82vw, 15px) clamp(8px, .62vw, 12px) clamp(9px, .82vw, 15px) !important;
       border-radius: clamp(13px, .86vw, 18px) !important;
-      background: #f9fafb !important;
+      background: var(--c-surface) !important;
       border: 1px solid #e1e7ef !important;
       overflow: hidden !important;
     }
@@ -6946,7 +6668,7 @@
     body.tv-mode .tv90-rate {
       display: inline-block !important;
       max-width: clamp(46px, 4.2vw, 82px) !important;
-      color: #6b7280 !important;
+      color: var(--c-muted) !important;
       font-size: clamp(7px, .46vw, 9px) !important;
       font-weight: 900 !important;
       line-height: 1 !important;
@@ -6968,7 +6690,7 @@
     body.tv-mode .tv90-name {
       display: block !important;
       max-width: 100% !important;
-      color: #111827 !important;
+      color: var(--c-fg) !important;
       font-size: clamp(31px, 2.78vw, 56px) !important;
       line-height: .95 !important;
       font-weight: 1000 !important;
@@ -7003,7 +6725,7 @@
     }
     body.tv-mode .tv90-team {
       max-width: 100% !important;
-      color: #6b7280 !important;
+      color: var(--c-muted) !important;
       font-size: clamp(10px, .78vw, 15px) !important;
       line-height: 1 !important;
       font-weight: 900 !important;
@@ -7077,9 +6799,9 @@
       color: #fff !important;
     }
     body.tv-mode .tv90-placeholder-body {
-      background: #f9fafb !important;
+      background: var(--c-surface) !important;
       border-color: #d1d5db !important;
-      color: #6b7280 !important;
+      color: var(--c-muted) !important;
     }
     @media (max-width: 960px) {
       body.tv-mode .tv90-grid {
@@ -7093,9 +6815,7 @@
 
     /* v92 player DB optional contact */
     .db-page .db-stat-grid { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important; }
-    .contact-edit-cell { display: grid; gap: 4px; }
-    .contact-status { display: block; font-size: 10.5px; line-height: 1.2; font-weight: 900; }
-    .contact-status.missing { color: #f8d56b; }
+            .contact-status.missing { color: #f8d56b; }
     .contact-status.ok { color: var(--dim); }
     .roster-contact-missing { border-color: rgba(248,213,107,.36) !important; background: rgba(248,213,107,.055) !important; }
     .roster-table tr.needs-contact td { background: rgba(248,213,107,.025); }
@@ -7110,7 +6830,7 @@
       margin: 0 !important;
       padding: clamp(18px, 2vw, 28px) !important;
       background: #f6f7fb !important;
-      color: #111827 !important;
+      color: var(--c-fg) !important;
       overflow-x: hidden !important;
     }
     .admin-light-page *,
@@ -7121,10 +6841,10 @@
     .admin-light-page .header {
       max-width: 1480px !important;
       margin: 0 auto 16px !important;
-      border: 1px solid #e5e7eb !important;
-      background: #ffffff !important;
+      border: 1px solid var(--c-border) !important;
+      background: var(--c-bg) !important;
       box-shadow: 0 14px 34px rgba(15, 23, 42, .08) !important;
-      color: #111827 !important;
+      color: var(--c-fg) !important;
     }
     .admin-light-page .eyebrow,
     .admin-light-page .maker,
@@ -7133,14 +6853,14 @@
     .admin-light-page .meta,
     .admin-light-page .permission-detail,
     .admin-light-page .privacy-note {
-      color: #6b7280 !important;
+      color: var(--c-muted) !important;
     }
     .admin-light-page h1,
     .admin-light-page h2,
     .admin-light-page h3,
     .admin-light-page strong,
     .admin-light-page b {
-      color: #111827 !important;
+      color: var(--c-fg) !important;
     }
     .admin-light-page .account-strip,
     .admin-light-page .toolbar,
@@ -7150,26 +6870,26 @@
       max-width: 1480px !important;
       margin-left: auto !important;
       margin-right: auto !important;
-      border-color: #e5e7eb !important;
-      background: #ffffff !important;
+      border-color: var(--c-border) !important;
+      background: var(--c-bg) !important;
       box-shadow: 0 12px 30px rgba(15, 23, 42, .07) !important;
-      color: #111827 !important;
+      color: var(--c-fg) !important;
     }
     .admin-light-page .account-strip {
       padding: 12px 14px !important;
-      border: 1px solid #e5e7eb !important;
+      border: 1px solid var(--c-border) !important;
       border-radius: 18px !important;
       margin-bottom: 12px !important;
     }
     .admin-light-page .toolbar {
       padding: 12px !important;
-      border: 1px solid #e5e7eb !important;
+      border: 1px solid var(--c-border) !important;
       border-radius: 18px !important;
       margin-bottom: 12px !important;
     }
     .admin-light-page .card {
       padding: 18px !important;
-      border: 1px solid #e5e7eb !important;
+      border: 1px solid var(--c-border) !important;
       border-radius: 22px !important;
     }
     .admin-light-page .roster-table-wrap {
@@ -7178,8 +6898,8 @@
     }
     .admin-light-page .admin-table {
       min-width: 900px !important;
-      color: #111827 !important;
-      background: #ffffff !important;
+      color: var(--c-fg) !important;
+      background: var(--c-bg) !important;
     }
     .admin-light-page .admin-table th {
       position: sticky !important;
@@ -7187,21 +6907,21 @@
       z-index: 1 !important;
       color: #374151 !important;
       background: #f3f4f6 !important;
-      border-bottom: 1px solid #e5e7eb !important;
+      border-bottom: 1px solid var(--c-border) !important;
     }
     .admin-light-page .admin-table td {
-      color: #111827 !important;
-      background: #ffffff !important;
+      color: var(--c-fg) !important;
+      background: var(--c-bg) !important;
       border-bottom: 1px solid #eef2f7 !important;
     }
     .admin-light-page .admin-table tr:hover td {
-      background: #f9fafb !important;
+      background: var(--c-surface) !important;
     }
     .admin-light-page .permission-badge,
     .admin-light-page .permission-flag,
     .admin-light-page .pill {
       border-color: #d1d5db !important;
-      background: #f9fafb !important;
+      background: var(--c-surface) !important;
       color: #374151 !important;
     }
     .admin-light-page .permission-admin {
@@ -7226,23 +6946,23 @@
     }
     .admin-light-page button {
       border-color: #d1d5db !important;
-      background: #ffffff !important;
-      color: #111827 !important;
+      background: var(--c-bg) !important;
+      color: var(--c-fg) !important;
       box-shadow: none !important;
     }
     .admin-light-page button:hover {
-      border-color: #d84d89 !important;
+      border-color: var(--c-brand) !important;
     }
     .admin-light-page button.primary,
     .admin-light-page button.active,
     .admin-light-page button.selected {
-      border-color: #d84d89 !important;
-      background: #d84d89 !important;
-      color: #ffffff !important;
+      border-color: var(--c-brand) !important;
+      background: var(--c-brand) !important;
+      color: var(--c-bg) !important;
     }
     .admin-light-page button.ghost {
-      background: #f9fafb !important;
-      color: #111827 !important;
+      background: var(--c-surface) !important;
+      color: var(--c-fg) !important;
     }
     .admin-light-page button.danger {
       border-color: #fecaca !important;
@@ -7254,19 +6974,19 @@
     .admin-light-page select,
     .admin-light-page textarea {
       border-color: #d1d5db !important;
-      background: #ffffff !important;
-      color: #111827 !important;
+      background: var(--c-bg) !important;
+      color: var(--c-fg) !important;
     }
     .admin-light-page .header-logo,
     .admin-light-page .credit-mark {
       color: #374151 !important;
-      background: #f9fafb !important;
-      border-color: #e5e7eb !important;
+      background: var(--c-surface) !important;
+      border-color: var(--c-border) !important;
     }
     .admin-build-mark {
       max-width: 1480px;
       margin: 12px auto 0;
-      color: #6b7280;
+      color: var(--c-muted);
       font-size: 12px;
       font-weight: 900;
       text-align: right;
@@ -7305,15 +7025,15 @@
     /* v95 OPERATION LIGHT BACKUP CHECK · all application pages use white/light background */
     :root {
       --bg: #f6f8fb !important;
-      --panel: #ffffff !important;
-      --panel2: #ffffff !important;
-      --panel3: #f8fafc !important;
-      --line: #d8e0ea !important;
-      --text: #111827 !important;
+      --panel: var(--c-bg) !important;
+      --panel2: var(--c-bg) !important;
+      --panel3: var(--c-surface2) !important;
+      --line: var(--c-line) !important;
+      --text: var(--c-fg) !important;
       --muted: #4b5563 !important;
-      --dim: #6b7280 !important;
-      --point: #d84d89 !important;
-      --point-dark: #ffffff !important;
+      --dim: var(--c-muted) !important;
+      --point: var(--c-brand) !important;
+      --point-dark: var(--c-bg) !important;
       --danger: #dc2626 !important;
       --gold: #b45309 !important;
       --hairline: rgba(17, 24, 39, .10) !important;
@@ -7324,7 +7044,7 @@
     body,
     #app {
       background: #f6f8fb !important;
-      color: #111827 !important;
+      color: var(--c-fg) !important;
     }
     body {
       background: #f6f8fb !important;
@@ -7337,7 +7057,7 @@
     .live-lobby-v89,
     .print-page {
       background: #f6f8fb !important;
-      color: #111827 !important;
+      color: var(--c-fg) !important;
     }
     .header,
     .card,
@@ -7379,14 +7099,14 @@
     .manual-panel,
     .manual-body,
     .empty {
-      background: #ffffff !important;
-      color: #111827 !important;
-      border-color: #d8e0ea !important;
+      background: var(--c-bg) !important;
+      color: var(--c-fg) !important;
+      border-color: var(--c-line) !important;
       box-shadow: 0 10px 24px rgba(15, 23, 42, .07) !important;
     }
     .header {
-      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
-      border: 1px solid #d8e0ea !important;
+      background: linear-gradient(180deg, var(--c-bg) 0%, var(--c-surface2) 100%) !important;
+      border: 1px solid var(--c-line) !important;
     }
     .header::after,
     .header::before {
@@ -7422,7 +7142,7 @@
     .roster-table th,
     .roster-table td,
     .db-panel-title h2 {
-      color: #111827 !important;
+      color: var(--c-fg) !important;
     }
     .desc,
     .hint,
@@ -7453,8 +7173,8 @@
     input[type="password"],
     select,
     textarea {
-      background: #ffffff !important;
-      color: #111827 !important;
+      background: var(--c-bg) !important;
+      color: var(--c-fg) !important;
       border-color: #cfd8e3 !important;
       box-shadow: none !important;
     }
@@ -7464,7 +7184,7 @@
     select:focus,
     textarea:focus,
     .mini-input:focus {
-      border-color: #d84d89 !important;
+      border-color: var(--c-brand) !important;
       box-shadow: 0 0 0 3px rgba(216, 77, 137, .12) !important;
     }
     button.primary,
@@ -7474,16 +7194,16 @@
     .slot.selected,
     .status-badge,
     .champion {
-      background: #d84d89 !important;
-      color: #ffffff !important;
-      border-color: #d84d89 !important;
+      background: var(--c-brand) !important;
+      color: var(--c-bg) !important;
+      border-color: var(--c-brand) !important;
     }
     button.ghost {
-      background: #f8fafc !important;
-      color: #111827 !important;
+      background: var(--c-surface2) !important;
+      color: var(--c-fg) !important;
     }
     button.danger {
-      background: #ffffff !important;
+      background: var(--c-bg) !important;
       color: #dc2626 !important;
       border-color: #fecaca !important;
     }
@@ -7509,7 +7229,7 @@
     .slot.selected .lane-win-rate,
     .slot.selected .slot-h2h-title,
     .slot.selected .slot-h2h-rows .slot-metric.h2h {
-      color: #ffffff !important;
+      color: var(--c-bg) !important;
       border-color: rgba(255,255,255,.45) !important;
     }
     .slot-metric,
@@ -7521,8 +7241,8 @@
     .venue-visit-row,
     .class-chip,
     .permission-flag {
-      background: #f8fafc !important;
-      border-color: #e5e7eb !important;
+      background: var(--c-surface2) !important;
+      border-color: var(--c-border) !important;
     }
     .roster-table th,
     .admin-table th {
@@ -7531,8 +7251,8 @@
     }
     .roster-table td,
     .admin-table td {
-      color: #111827 !important;
-      border-color: #e5e7eb !important;
+      color: var(--c-fg) !important;
+      border-color: var(--c-border) !important;
     }
     .roster-table tr:hover td {
       background: #fdf2f8 !important;
@@ -7541,9 +7261,9 @@
     .tv-empty-lane,
     .live-lobby-card.live-empty,
     .print-empty td {
-      background: #f8fafc !important;
+      background: var(--c-surface2) !important;
       color: #64748b !important;
-      border-color: #d8e0ea !important;
+      border-color: var(--c-line) !important;
       opacity: 1 !important;
     }
 
@@ -7555,32 +7275,32 @@
     body.live-lobby-mode,
     body.live-lobby-mode #app {
       background: #f6f8fb !important;
-      color: #111827 !important;
+      color: var(--c-fg) !important;
     }
     .live-lobby-card,
     .live-lobby-empty-card,
     .live-lobby-placeholder {
-      background: #ffffff !important;
-      color: #111827 !important;
-      border: 1px solid #d8e0ea !important;
+      background: var(--c-bg) !important;
+      color: var(--c-fg) !important;
+      border: 1px solid var(--c-line) !important;
       box-shadow: 0 10px 24px rgba(15, 23, 42, .07) !important;
     }
     .live-lobby-card.live-on {
-      background: #ffffff !important;
-      border-color: #d84d89 !important;
+      background: var(--c-bg) !important;
+      border-color: var(--c-brand) !important;
       box-shadow: 0 12px 28px rgba(216, 77, 137, .12) !important;
     }
     .live-status,
     .live-status.empty,
     .live-status.recent {
-      background: #f8fafc !important;
+      background: var(--c-surface2) !important;
       color: #475569 !important;
-      border-color: #d8e0ea !important;
+      border-color: var(--c-line) !important;
     }
     .live-status.on {
-      background: #d84d89 !important;
-      color: #ffffff !important;
-      border-color: #d84d89 !important;
+      background: var(--c-brand) !important;
+      color: var(--c-bg) !important;
+      border-color: var(--c-brand) !important;
     }
 
     /* v94 TV: white broadcast page, no dark shell */
@@ -7590,7 +7310,7 @@
     body.tv-mode .tv90-screen,
     body.tv-mode .tv-wrap.tv90-screen {
       background: #f6f8fb !important;
-      color: #111827 !important;
+      color: var(--c-fg) !important;
     }
     body.tv-mode .tv-head,
     body.tv-mode .tv-controls,
@@ -7600,25 +7320,25 @@
     body.tv-mode .tv-group,
     body.tv-mode .tv90-empty-screen,
     body.tv-mode .tv90-placeholder-body {
-      background: #ffffff !important;
-      color: #111827 !important;
-      border-color: #d8e0ea !important;
+      background: var(--c-bg) !important;
+      color: var(--c-fg) !important;
+      border-color: var(--c-line) !important;
       box-shadow: 0 10px 24px rgba(15, 23, 42, .07) !important;
     }
     body.tv-mode .tv90-logo,
     body.tv-mode .tv90-logo.credit-mark,
     body.tv-mode .tv-logo,
     body.tv-mode .credit-mark.tv-logo {
-      background: #ffffff !important;
-      color: #111827 !important;
-      border: 1px solid #d8e0ea !important;
+      background: var(--c-bg) !important;
+      color: var(--c-fg) !important;
+      border: 1px solid var(--c-line) !important;
       box-shadow: 0 8px 18px rgba(15, 23, 42, .06) !important;
     }
     body.tv-mode .tv90-logo span,
     body.tv-mode .tv90-logo small,
     body.tv-mode .credit-mark span,
     body.tv-mode .credit-mark small {
-      color: #111827 !important;
+      color: var(--c-fg) !important;
     }
     body.tv-mode .tv90-title,
     body.tv-mode .tv-brand > strong,
@@ -7626,7 +7346,7 @@
     body.tv-mode .tv-group-title strong,
     body.tv-mode .tv90-name,
     body.tv-mode .tv-player strong {
-      color: #111827 !important;
+      color: var(--c-fg) !important;
     }
     body.tv-mode .tv90-subtitle,
     body.tv-mode .tv-stage-title,
@@ -7639,14 +7359,14 @@
     }
     body.tv-mode .tv90-lane,
     body.tv-mode .tv-lane {
-      background: #f9fafb !important;
-      color: #111827 !important;
+      background: var(--c-surface) !important;
+      color: var(--c-fg) !important;
       border-color: #e1e7ef !important;
     }
     body.tv-mode .tv90-lane.is-selected,
     body.tv-mode .tv-lane.selected {
       background: #fdf2f8 !important;
-      color: #111827 !important;
+      color: var(--c-fg) !important;
       border-color: #f472b6 !important;
     }
     body.tv-mode .tv90-lane-meta,
@@ -7686,7 +7406,7 @@
       .mobile-view,
       .live-lobby-shell {
         background: #f6f8fb !important;
-        color: #111827 !important;
+        color: var(--c-fg) !important;
       }
       .card,
       .round-card,
@@ -7698,9 +7418,9 @@
       .operator-page,
       .live-lobby-card,
       .roster-table tr {
-        background: #ffffff !important;
-        color: #111827 !important;
-        border-color: #d8e0ea !important;
+        background: var(--c-bg) !important;
+        color: var(--c-fg) !important;
+        border-color: var(--c-line) !important;
       }
     }
 
@@ -7708,15 +7428,15 @@
     /* v95 OPERATION LIGHT BACKUP CHECK · hard light theme for real operation screen */
     :root {
       --bg: #f6f8fb !important;
-      --panel: #ffffff !important;
-      --panel2: #f9fafb !important;
+      --panel: var(--c-bg) !important;
+      --panel2: var(--c-surface) !important;
       --panel3: #eef2f7 !important;
-      --line: #d8e0ea !important;
-      --text: #111827 !important;
+      --line: var(--c-line) !important;
+      --text: var(--c-fg) !important;
       --muted: #4b5563 !important;
-      --dim: #6b7280 !important;
-      --point: #d84d89 !important;
-      --point-dark: #ffffff !important;
+      --dim: var(--c-muted) !important;
+      --point: var(--c-brand) !important;
+      --point-dark: var(--c-bg) !important;
       --danger: #dc2626 !important;
       --gold: #b45309 !important;
     }
@@ -7725,7 +7445,7 @@
     body:not(.tv-mode),
     body:not(.tv-mode) #app {
       background: #f6f8fb !important;
-      color: #111827 !important;
+      color: var(--c-fg) !important;
     }
 
     body:not(.tv-mode) {
@@ -7740,7 +7460,7 @@
     body:not(.tv-mode) .live-lobby-shell-v89,
     body:not(.tv-mode) .print-page {
       background: #f6f8fb !important;
-      color: #111827 !important;
+      color: var(--c-fg) !important;
     }
 
     body.operator-light-page-v95 .layout {
@@ -7794,10 +7514,10 @@
     body:not(.tv-mode) .history-public-row,
     body:not(.tv-mode) .score-row,
     body:not(.tv-mode) .empty {
-      background: #ffffff !important;
+      background: var(--c-bg) !important;
       background-image: none !important;
-      color: #111827 !important;
-      border-color: #d8e0ea !important;
+      color: var(--c-fg) !important;
+      border-color: var(--c-line) !important;
       box-shadow: 0 10px 24px rgba(15, 23, 42, .07) !important;
     }
 
@@ -7826,7 +7546,7 @@
     body:not(.tv-mode) .finalist-item b,
     body:not(.tv-mode) .db-stat strong,
     body:not(.tv-mode) .stat strong {
-      color: #111827 !important;
+      color: var(--c-fg) !important;
     }
 
     body:not(.tv-mode) .desc,
@@ -7847,8 +7567,8 @@
     body:not(.tv-mode) button,
     body:not(.tv-mode) .upload-button,
     body:not(.tv-mode) .ghost {
-      background: #ffffff !important;
-      color: #111827 !important;
+      background: var(--c-bg) !important;
+      color: var(--c-fg) !important;
       border-color: #cfd8e3 !important;
       box-shadow: 0 3px 10px rgba(15, 23, 42, .05) !important;
     }
@@ -7858,9 +7578,9 @@
     body:not(.tv-mode) button.selected,
     body:not(.tv-mode) .tab-btn.active,
     body:not(.tv-mode) .slot.selected {
-      background: #d84d89 !important;
-      color: #ffffff !important;
-      border-color: #d84d89 !important;
+      background: var(--c-brand) !important;
+      color: var(--c-bg) !important;
+      border-color: var(--c-brand) !important;
       box-shadow: 0 8px 20px rgba(216, 77, 137, .18) !important;
     }
 
@@ -7875,8 +7595,8 @@
     body:not(.tv-mode) textarea,
     body:not(.tv-mode) select,
     body:not(.tv-mode) .mini-input {
-      background: #ffffff !important;
-      color: #111827 !important;
+      background: var(--c-bg) !important;
+      color: var(--c-fg) !important;
       border-color: #cfd8e3 !important;
       box-shadow: none !important;
     }
@@ -7893,18 +7613,18 @@
     body:not(.tv-mode) .live-status,
     body:not(.tv-mode) .slot-metric,
     body:not(.tv-mode) .permission-badge {
-      background: #f8fafc !important;
+      background: var(--c-surface2) !important;
       color: #374151 !important;
-      border-color: #d8e0ea !important;
+      border-color: var(--c-line) !important;
     }
 
     body:not(.tv-mode) .status-running,
     body:not(.tv-mode) .live-status.on,
     body:not(.tv-mode) .permission-admin,
     body:not(.tv-mode) .finalist-badge {
-      background: #d84d89 !important;
-      color: #ffffff !important;
-      border-color: #d84d89 !important;
+      background: var(--c-brand) !important;
+      color: var(--c-bg) !important;
+      border-color: var(--c-brand) !important;
     }
 
     body:not(.tv-mode) .lane-label,
@@ -7927,12 +7647,12 @@
     body:not(.tv-mode) .admin-table th {
       background: #f1f5f9 !important;
       color: #334155 !important;
-      border-color: #d8e0ea !important;
+      border-color: var(--c-line) !important;
     }
 
     body:not(.tv-mode) .roster-table td,
     body:not(.tv-mode) .admin-table td {
-      color: #111827 !important;
+      color: var(--c-fg) !important;
       border-color: #e5eaf1 !important;
     }
 
@@ -7992,7 +7712,7 @@
     body:not(.tv-mode) .credit-mark,
     body:not(.tv-mode) .header-logo {
       background: transparent !important;
-      color: #111827 !important;
+      color: var(--c-fg) !important;
     }
 
     @media (max-width: 767px) {
@@ -8072,14 +7792,14 @@
     body:not(.tv-mode) .operator-light-page-v95 .stage-card,
     body:not(.tv-mode) .operator-light-page-v95 .group,
     body:not(.tv-mode) .operator-light-page-v95 .slot {
-      background: #ffffff !important;
+      background: var(--c-bg) !important;
       background-image: none !important;
       color: #0f172a !important;
       border: 1px solid #dbe3ef !important;
       box-shadow: 0 12px 28px rgba(15, 23, 42, .07) !important;
     }
     body:not(.tv-mode) .db-page.player-db-light-v96 .db-quick-add-card-v96 {
-      background: #ffffff !important;
+      background: var(--c-bg) !important;
       border-color: #dbe3ef !important;
       color: #0f172a !important;
       padding: clamp(18px, 2vw, 26px) !important;
@@ -8130,7 +7850,7 @@
     body:not(.tv-mode) .operator-light-page-v95 input,
     body:not(.tv-mode) .operator-light-page-v95 select,
     body:not(.tv-mode) .operator-light-page-v95 textarea {
-      background: #ffffff !important;
+      background: var(--c-bg) !important;
       color: #0f172a !important;
       border: 1px solid #cbd5e1 !important;
       border-radius: 16px !important;
@@ -8144,7 +7864,7 @@
     body:not(.tv-mode) .operator-light-page-v95 input:focus,
     body:not(.tv-mode) .operator-light-page-v95 select:focus,
     body:not(.tv-mode) .operator-light-page-v95 textarea:focus {
-      border-color: #d84d89 !important;
+      border-color: var(--c-brand) !important;
       box-shadow: 0 0 0 3px rgba(216,77,137,.16) !important;
       outline: none !important;
     }
@@ -8157,7 +7877,7 @@
     }
     body:not(.tv-mode) .db-page.player-db-light-v96 .privacy-note,
     body:not(.tv-mode) .operator-light-page-v95 .privacy-note {
-      background: #f8fafc !important;
+      background: var(--c-surface2) !important;
       color: #334155 !important;
       border: 1px solid #dbe3ef !important;
       border-radius: 16px !important;
@@ -8178,7 +7898,7 @@
     body:not(.tv-mode) .db-page.player-db-light-v96 .upload-button,
     body:not(.tv-mode) .operator-light-page-v95 button,
     body:not(.tv-mode) .operator-light-page-v95 .upload-button {
-      background: #ffffff !important;
+      background: var(--c-bg) !important;
       color: #0f172a !important;
       border: 1px solid #cbd5e1 !important;
       box-shadow: 0 3px 10px rgba(15,23,42,.05) !important;
@@ -8190,14 +7910,14 @@
     body:not(.tv-mode) .operator-light-page-v95 button.active,
     body:not(.tv-mode) .operator-light-page-v95 button.selected,
     body:not(.tv-mode) .operator-light-page-v95 .slot.selected {
-      background: #d84d89 !important;
-      color: #ffffff !important;
-      border-color: #d84d89 !important;
+      background: var(--c-brand) !important;
+      color: var(--c-bg) !important;
+      border-color: var(--c-brand) !important;
       box-shadow: 0 10px 22px rgba(216, 77, 137, .18) !important;
     }
     body:not(.tv-mode) .db-page.player-db-light-v96 button.ghost,
     body:not(.tv-mode) .operator-light-page-v95 button.ghost {
-      background: #f8fafc !important;
+      background: var(--c-surface2) !important;
       color: #0f172a !important;
     }
     body:not(.tv-mode) .db-page.player-db-light-v96 button.danger,
@@ -8208,7 +7928,7 @@
     }
     body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table,
     body:not(.tv-mode) .db-page.player-db-light-v96 .admin-table {
-      background: #ffffff !important;
+      background: var(--c-bg) !important;
       color: #0f172a !important;
     }
     body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table th,
@@ -8219,12 +7939,12 @@
     }
     body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table td,
     body:not(.tv-mode) .db-page.player-db-light-v96 .admin-table td {
-      background: #ffffff !important;
+      background: var(--c-bg) !important;
       color: #0f172a !important;
       border-bottom: 1px solid #edf2f7 !important;
     }
     body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table tr:hover td {
-      background: #f8fafc !important;
+      background: var(--c-surface2) !important;
     }
     body:not(.tv-mode) .db-page.player-db-light-v96 .contact-status.missing {
       color: #b45309 !important;
@@ -8290,14 +8010,14 @@
     /* v102 MOBILE TV LIVE SYNC HOTFIX · round-final lane controls + broadcast transition hardening */
     body:not(.tv-mode) .round-final-manual-lane-group {
       border-color: rgba(216, 77, 137, .22) !important;
-      background: #ffffff !important;
+      background: var(--c-bg) !important;
     }
     body:not(.tv-mode) .round-final-manual-slot {
       display: block !important;
       cursor: default !important;
-      background: #ffffff !important;
-      border: 1px solid #e5e7eb !important;
-      color: #111827 !important;
+      background: var(--c-bg) !important;
+      border: 1px solid var(--c-border) !important;
+      color: var(--c-fg) !important;
     }
     body:not(.tv-mode) .round-final-slot-actions {
       display: grid !important;
@@ -8339,7 +8059,7 @@
     body:not(.tv-mode) .round-final-manual-slot.selected {
       background: #fff1f7 !important;
       border-color: rgba(216, 77, 137, .38) !important;
-      color: #111827 !important;
+      color: var(--c-fg) !important;
     }
     @media (max-width: 760px) {
       body:not(.tv-mode) .round-final-slot-actions {
@@ -8380,7 +8100,7 @@
     body:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-scroll-v98::-webkit-scrollbar-thumb {
       background: #cbd5e1 !important;
       border-radius: 999px !important;
-      border: 2px solid #f8fafc !important;
+      border: 2px solid var(--c-surface2) !important;
     }
     body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-main-v98 {
       min-width: 0 !important;
@@ -8409,7 +8129,7 @@
       overflow: auto !important;
       overscroll-behavior: contain !important;
       border-radius: 18px !important;
-      background: #ffffff !important;
+      background: var(--c-bg) !important;
     }
     body:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-scroll-v98 .roster-table th {
       position: sticky !important;
@@ -8435,7 +8155,7 @@
       padding: 10px 12px !important;
       border: 1px solid #e2e8f0 !important;
       border-radius: 16px !important;
-      background: #f8fafc !important;
+      background: var(--c-surface2) !important;
     }
     body:not(.tv-mode) .db-page.player-db-light-v96 .db-bulk-buttons {
       display: flex !important;
@@ -8610,17 +8330,7 @@
       gap: 8px !important;
       align-items: end !important;
     }
-    .withdrawn-badge-v99 {
-      display: inline-flex !important;
-      padding: 3px 8px !important;
-      border-radius: 999px !important;
-      background: #ffedd5 !important;
-      border: 1px solid #fdba74 !important;
-      color: #9a3412 !important;
-      font-size: 11px !important;
-      font-weight: 1000 !important;
-    }
-    @media (max-width: 900px) {
+        @media (max-width: 900px) {
       .emergency-adjust-grid-v99 { grid-template-columns: 1fr !important; }
     }
 
@@ -8719,18 +8429,7 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       border-bottom: 1px solid rgba(238,233,223,.08);
       background: radial-gradient(circle at 100% 0%, rgba(216,77,137,.16), transparent 42%), rgba(238,233,223,.025);
     }
-    .prep-kicker-v115 {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      flex-wrap: wrap;
-      color: var(--dim);
-      font-size: 11px;
-      font-weight: 1000;
-      letter-spacing: .04em;
-    }
-    .prep-title-v115 {
+        .prep-title-v115 {
       margin: 0;
       color: var(--text);
       font-size: clamp(21px, 2.1vw, 30px);
@@ -8747,36 +8446,7 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       line-height: 1.45;
       font-weight: 850;
     }
-    .prep-meta-grid-v115 {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-      padding: 12px 16px 0;
-    }
-    .prep-meta-v115 {
-      min-width: 0;
-      padding: 10px;
-      border-radius: 14px;
-      border: 1px solid rgba(238,233,223,.08);
-      background: rgba(238,233,223,.035);
-    }
-    .prep-meta-v115 small {
-      display: block;
-      color: var(--dim);
-      font-size: 10px;
-      font-weight: 1000;
-      margin-bottom: 4px;
-    }
-    .prep-meta-v115 strong {
-      display: block;
-      color: var(--text);
-      font-size: 13px;
-      line-height: 1.22;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .prep-action-v115 {
+                    .prep-action-v115 {
       display: grid;
       grid-template-columns: 1fr;
       gap: 8px;
@@ -8789,16 +8459,7 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       font-size: 16px !important;
       letter-spacing: -.03em;
     }
-    .prep-status-row-v115 {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-      color: var(--dim);
-      font-size: 11px;
-      font-weight: 900;
-    }
-    .prep-form-v115 {
+        .prep-form-v115 {
       display: grid;
       gap: 12px;
       padding: 14px 16px 16px;
@@ -8825,13 +8486,7 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       line-height: 1.45;
       font-weight: 850;
     }
-    .db-admin-venue-field-v115 {
-      border: 1px solid rgba(216,77,137,.22);
-      background: rgba(216,77,137,.07);
-      border-radius: 14px;
-      padding: 10px;
-    }
-    .admin-venue-badge {
+        .admin-venue-badge {
       display: inline-flex;
       align-items: center;
       width: max-content;
@@ -8857,9 +8512,9 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
     body:not(.tv-mode) .prep-card-v116 {
       padding: 0 !important;
       overflow: hidden !important;
-      background: #ffffff !important;
+      background: var(--c-bg) !important;
       background-image: none !important;
-      border: 1px solid #d8e0ea !important;
+      border: 1px solid var(--c-line) !important;
       border-radius: 22px !important;
       box-shadow: 0 12px 28px rgba(15, 23, 42, .07) !important;
     }
@@ -8869,7 +8524,7 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       padding: 16px !important;
       background:
         radial-gradient(circle at 100% 0%, rgba(216,77,137,.12), transparent 42%),
-        linear-gradient(180deg, #ffffff, #fbfdff) !important;
+        linear-gradient(180deg, var(--c-bg), #fbfdff) !important;
     }
     body:not(.tv-mode) .prep-topline-v116 {
       display: flex !important;
@@ -8891,7 +8546,7 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       padding: 14px !important;
       border: 1px solid #dbe3ef !important;
       border-radius: 18px !important;
-      background: #ffffff !important;
+      background: var(--c-bg) !important;
       box-shadow: 0 8px 22px rgba(15, 23, 42, .06) !important;
     }
     body:not(.tv-mode) .prep-preview-main-v116 {
@@ -8903,7 +8558,7 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       display: block !important;
       min-width: 0 !important;
       max-width: 100% !important;
-      color: #111827 !important;
+      color: var(--c-fg) !important;
       font-size: clamp(20px, 2vw, 28px) !important;
       line-height: 1.12 !important;
       font-weight: 1000 !important;
@@ -8944,8 +8599,8 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       min-height: 34px !important;
       font-size: 12px !important;
       color: #475569 !important;
-      background: #f8fafc !important;
-      border-color: #d8e0ea !important;
+      background: var(--c-surface2) !important;
+      border-color: var(--c-line) !important;
     }
     body:not(.tv-mode) .prep-time-row-v116 {
       display: flex !important;
@@ -8965,19 +8620,19 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       word-break: keep-all !important;
     }
     body:not(.tv-mode) .prep-card-v116 .status-badge {
-      color: #ffffff !important;
-      background: #d84d89 !important;
-      border: 1px solid #d84d89 !important;
+      color: var(--c-bg) !important;
+      background: var(--c-brand) !important;
+      border: 1px solid var(--c-brand) !important;
       box-shadow: none !important;
     }
     body:not(.tv-mode) .prep-card-v116 .status-draft {
       color: #334155 !important;
       background: #f1f5f9 !important;
-      border-color: #d8e0ea !important;
+      border-color: var(--c-line) !important;
     }
     body:not(.tv-mode) .prep-card-v116 .status-finished,
     body:not(.tv-mode) .prep-card-v116 .status-archived {
-      color: #ffffff !important;
+      color: var(--c-bg) !important;
       background: #64748b !important;
       border-color: #64748b !important;
     }
@@ -9395,11 +9050,7 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       font-size: 12px !important;
       line-height: 1.25 !important;
     }
-    body:not(.tv-mode) .roster-table th,
-    body:not(.tv-mode) .admin-table th {
-      font-size: 10.5px !important;
-    }
-    body:not(.tv-mode) .live-lobby-grid {
+        body:not(.tv-mode) .live-lobby-grid {
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
     }
     body:not(.tv-mode) .live-lobby-card {
@@ -9713,14 +9364,14 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       padding: 10px 11px !important;
       font-size: 13px !important;
       font-weight: 1000 !important;
-      color: #111827 !important;
+      color: var(--c-fg) !important;
     }
     body:not(.tv-mode) .db-batch-add-card-v119 > summary::-webkit-details-marker { display: none !important; }
     body:not(.tv-mode) .db-batch-add-card-v119 > summary::before {
       content: "▸" !important;
       display: inline-block !important;
       margin-right: 6px !important;
-      color: #d84d89 !important;
+      color: var(--c-brand) !important;
       transition: transform .16s ease !important;
     }
     body:not(.tv-mode) .db-batch-add-card-v119[open] > summary::before { transform: rotate(90deg) !important; }
@@ -9914,7 +9565,7 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
         padding: 8px !important;
         border: 1px solid #dbe3ef !important;
         border-radius: 15px !important;
-        background: #ffffff !important;
+        background: var(--c-bg) !important;
         box-shadow: 0 8px 20px rgba(15, 23, 42, .04) !important;
       }
       body:not(.tv-mode) .roster-table td,
@@ -9929,7 +9580,7 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
         border: 0 !important;
         border-bottom: 1px solid #edf2f7 !important;
         font-size: 12px !important;
-        color: #111827 !important;
+        color: var(--c-fg) !important;
       }
       body:not(.tv-mode) .roster-table td:last-child,
       body:not(.tv-mode) .admin-table td:last-child { border-bottom: 0 !important; }
@@ -10052,10 +9703,10 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       --ui120-title: 17px;
       --ui120-sub: 11.5px;
       --ui120-line-light: #dbe3ef;
-      --ui120-text-light: #111827;
+      --ui120-text-light: var(--c-fg);
       --ui120-muted-light: #64748b;
       --ui120-bg-light: #f4f7fb;
-      --ui120-card-light: #ffffff;
+      --ui120-card-light: var(--c-bg);
     }
 
     body:not(.tv-mode),
@@ -10628,7 +10279,7 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       display: flex !important;
       align-items: center !important;
       border: 1px solid #cbd5e1 !important;
-      background: #f8fafc !important;
+      background: var(--c-surface2) !important;
       color: #475569 !important;
     }
     body:not(.tv-mode) .db-register-card-v121 .privacy-note { display: none !important; }
@@ -10694,7 +10345,7 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
     }
     body:not(.tv-mode) .roster-action-select-v121.inactive {
       border-color: #cbd5e1 !important;
-      background: #f8fafc !important;
+      background: var(--c-surface2) !important;
       color: #64748b !important;
     }
     body:not(.tv-mode) .contact-status,
@@ -10818,6 +10469,1388 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       body:not(.tv-mode) .stage-progress-dock button { white-space: normal !important; }
       body:not(.tv-mode) .mode-row.primary-modes,
       body:not(.tv-mode) .mode-row.nine-mode { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    }
+
+  
+
+    /* v123 DEVICE SPLIT PATCH · PC / MOBILE / TV isolation layer */
+    html[data-ui-mode="pc"] body:not(.tv-mode),
+    body.ui-mode-pc:not(.tv-mode) {
+      --ui-button-height: 36px;
+      --ui-button-font: 12px;
+      --ui-gap: 8px;
+      --ui-card-pad: 14px;
+    }
+    html[data-ui-mode="mobile"] body:not(.tv-mode),
+    body.ui-mode-mobile:not(.tv-mode) {
+      --ui-button-height: 34px;
+      --ui-button-font: 11px;
+      --ui-gap: 6px;
+      --ui-card-pad: 10px;
+      width: 100% !important;
+      max-width: 100% !important;
+      overflow-x: hidden !important;
+    }
+    html[data-ui-mode="tv"] body.tv-mode,
+    body.ui-mode-tv.tv-mode {
+      --ui-button-height: initial;
+      --ui-button-font: initial;
+      --ui-gap: initial;
+      --ui-card-pad: initial;
+    }
+    body.ui-mode-pc:not(.tv-mode) #app,
+    body.ui-mode-mobile:not(.tv-mode) #app {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) button,
+    body.ui-mode-pc:not(.tv-mode) .upload-button,
+    body.ui-mode-mobile:not(.tv-mode) button,
+    body.ui-mode-mobile:not(.tv-mode) .upload-button {
+      min-height: var(--ui-button-height) !important;
+      padding: 7px 10px !important;
+      border-radius: 11px !important;
+      font-size: var(--ui-button-font) !important;
+      line-height: 1.12 !important;
+      font-weight: 900 !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .toolbar,
+    body.ui-mode-pc:not(.tv-mode) .btnrow,
+    body.ui-mode-pc:not(.tv-mode) .section-toolbar,
+    body.ui-mode-pc:not(.tv-mode) .db-actions,
+    body.ui-mode-pc:not(.tv-mode) .account-actions,
+    body.ui-mode-pc:not(.tv-mode) .page-nav,
+    body.ui-mode-mobile:not(.tv-mode) .toolbar,
+    body.ui-mode-mobile:not(.tv-mode) .btnrow,
+    body.ui-mode-mobile:not(.tv-mode) .section-toolbar,
+    body.ui-mode-mobile:not(.tv-mode) .db-actions,
+    body.ui-mode-mobile:not(.tv-mode) .account-actions,
+    body.ui-mode-mobile:not(.tv-mode) .page-nav {
+      gap: var(--ui-gap) !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .card,
+    body.ui-mode-pc:not(.tv-mode) .round-card,
+    body.ui-mode-pc:not(.tv-mode) .stage-card,
+    body.ui-mode-pc:not(.tv-mode) .final-box,
+    body.ui-mode-mobile:not(.tv-mode) .card,
+    body.ui-mode-mobile:not(.tv-mode) .round-card,
+    body.ui-mode-mobile:not(.tv-mode) .stage-card,
+    body.ui-mode-mobile:not(.tv-mode) .final-box {
+      padding: var(--ui-card-pad) !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .wrap,
+    body.ui-mode-mobile:not(.tv-mode) .db-page,
+    body.ui-mode-mobile:not(.tv-mode) .mobile-view {
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 8px !important;
+      overflow-x: hidden !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .header {
+      padding: 12px !important;
+      border-radius: 16px !important;
+      margin-bottom: 8px !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .header h1,
+    body.ui-mode-mobile:not(.tv-mode) h1 {
+      font-size: 19px !important;
+      line-height: 1.16 !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .desc {
+      display: none !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .layout,
+    body.ui-mode-mobile:not(.tv-mode) .db-grid,
+    body.ui-mode-mobile:not(.tv-mode) .dashboard-grid,
+    body.ui-mode-mobile:not(.tv-mode) .dashboard-filter,
+    body.ui-mode-mobile:not(.tv-mode) .form-grid,
+    body.ui-mode-mobile:not(.tv-mode) .prep-form-v115 .form-grid,
+    body.ui-mode-mobile:not(.tv-mode) .account-strip,
+    body.ui-mode-mobile:not(.tv-mode) .account-left,
+    body.ui-mode-mobile:not(.tv-mode) .account-actions,
+    body.ui-mode-mobile:not(.tv-mode) .page-nav,
+    body.ui-mode-mobile:not(.tv-mode) .toolbar,
+    body.ui-mode-mobile:not(.tv-mode) .db-actions,
+    body.ui-mode-mobile:not(.tv-mode) .admin-actions,
+    body.ui-mode-mobile:not(.tv-mode) .section-toolbar,
+    body.ui-mode-mobile:not(.tv-mode) .dashboard-nav-actions,
+    body.ui-mode-mobile:not(.tv-mode) .operator-control-pages,
+    body.ui-mode-mobile:not(.tv-mode) .operator-page-body {
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      gap: var(--ui-gap) !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .side-area,
+    body.ui-mode-mobile:not(.tv-mode) .main-area,
+    body.ui-mode-mobile:not(.tv-mode) .selected-box {
+      position: static !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      order: initial !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .mode-row,
+    body.ui-mode-mobile:not(.tv-mode) .btnrow.mode-row,
+    body.ui-mode-mobile:not(.tv-mode) .btnrow.mode-row.three,
+    body.ui-mode-mobile:not(.tv-mode) .firebase-actions,
+    body.ui-mode-mobile:not(.tv-mode) .live-sync-actions,
+    body.ui-mode-mobile:not(.tv-mode) .stage-progress-dock,
+    body.ui-mode-mobile:not(.tv-mode) .status-actions,
+    body.ui-mode-mobile:not(.tv-mode) .round-head > div:last-child,
+    body.ui-mode-mobile:not(.tv-mode) .stage-head > div:last-child {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: var(--ui-gap) !important;
+      width: 100% !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .mode-row button[data-mode="crow"],
+    body.ui-mode-mobile:not(.tv-mode) .mode-row .crow-mode,
+    body.ui-mode-mobile:not(.tv-mode) .mode-crow,
+    body.ui-mode-mobile:not(.tv-mode) .btnrow.mode-row.three button:nth-child(3),
+    body.ui-mode-mobile:not(.tv-mode) .btnrow.mode-row.three button:nth-child(4) {
+      grid-column: auto !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .toolbar .grow,
+    body.ui-mode-mobile:not(.tv-mode) .account-strip .grow {
+      display: none !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .toolbar button,
+    body.ui-mode-mobile:not(.tv-mode) .db-actions button,
+    body.ui-mode-mobile:not(.tv-mode) .db-actions .upload-button,
+    body.ui-mode-mobile:not(.tv-mode) .section-toolbar button,
+    body.ui-mode-mobile:not(.tv-mode) .account-actions button,
+    body.ui-mode-mobile:not(.tv-mode) .page-nav button,
+    body.ui-mode-mobile:not(.tv-mode) .mode-row button,
+    body.ui-mode-mobile:not(.tv-mode) .btnrow button {
+      width: 100% !important;
+      white-space: normal !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) input,
+    body.ui-mode-mobile:not(.tv-mode) select,
+    body.ui-mode-mobile:not(.tv-mode) textarea,
+    body.ui-mode-mobile:not(.tv-mode) .mini-input {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-height: 32px !important;
+      padding: 6px 8px !important;
+      font-size: 12px !important;
+      border-radius: 10px !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .roster-table-wrap,
+    body.ui-mode-mobile:not(.tv-mode) .admin-table-wrap {
+      overflow: visible !important;
+      border: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .roster-table,
+    body.ui-mode-mobile:not(.tv-mode) .admin-table {
+      display: block !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      table-layout: fixed !important;
+      border-collapse: separate !important;
+      border-spacing: 0 !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .roster-table thead,
+    body.ui-mode-mobile:not(.tv-mode) .admin-table thead {
+      display: none !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .roster-table tbody,
+    body.ui-mode-mobile:not(.tv-mode) .admin-table tbody {
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+      gap: 7px !important;
+      width: 100% !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .roster-table tr,
+    body.ui-mode-mobile:not(.tv-mode) .admin-table tr {
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+      width: 100% !important;
+      padding: 8px !important;
+      border: 1px solid rgba(238,233,223,.09) !important;
+      border-radius: 14px !important;
+      background: rgba(7,16,13,.78) !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .roster-table td,
+    body.ui-mode-mobile:not(.tv-mode) .admin-table td {
+      display: grid !important;
+      grid-template-columns: 72px minmax(0, 1fr) !important;
+      gap: 6px !important;
+      width: 100% !important;
+      padding: 5px 0 !important;
+      border-bottom: 1px solid rgba(238,233,223,.06) !important;
+      font-size: 12px !important;
+      align-items: center !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .roster-table td:last-child,
+    body.ui-mode-mobile:not(.tv-mode) .admin-table td:last-child {
+      border-bottom: 0 !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .roster-table td::before,
+    body.ui-mode-mobile:not(.tv-mode) .admin-table td::before {
+      content: attr(data-label) !important;
+      color: var(--dim) !important;
+      font-size: 10px !important;
+      font-weight: 1000 !important;
+      line-height: 1.2 !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .groups,
+    body.ui-mode-mobile:not(.tv-mode) .finalist-grid,
+    body.ui-mode-mobile:not(.tv-mode) .live-lobby-grid,
+    body.ui-mode-mobile:not(.tv-mode) .scoreboard-list,
+    body.ui-mode-mobile:not(.tv-mode) .history-public-row {
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+      gap: var(--ui-gap) !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .round-head,
+    body.ui-mode-mobile:not(.tv-mode) .stage-head {
+      position: static !important;
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+      gap: var(--ui-gap) !important;
+      margin: 0 0 8px !important;
+      padding: 0 0 8px !important;
+      background: transparent !important;
+      border: 0 !important;
+      backdrop-filter: none !important;
+    }
+    body.ui-mode-tv.tv-mode .wrap,
+    body.ui-mode-tv.tv-mode .db-page,
+    body.ui-mode-tv.tv-mode .toolbar,
+    body.ui-mode-tv.tv-mode .card,
+    body.ui-mode-tv.tv-mode .roster-table,
+    body.ui-mode-tv.tv-mode .admin-table {
+      all: revert-layer;
+    }
+
+  
+
+    /* v124 DEVICE UI AUDIT PATCH · final PC/MOBILE/TV collision cleanup */
+    :root {
+      --v124-pc-btn-h: 34px;
+      --v124-pc-btn-font: 11.5px;
+      --v124-mobile-btn-h: 34px;
+      --v124-mobile-btn-font: 11px;
+      --v124-gap: 7px;
+      --v124-line: var(--c-line);
+      --v124-text: #172033;
+      --v124-muted: #64748b;
+      --v124-surface: var(--c-bg);
+      --v124-soft: var(--c-surface2);
+    }
+
+    body.ui-mode-pc:not(.tv-mode),
+    body.ui-mode-mobile:not(.tv-mode) {
+      overflow-x: hidden !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) *,
+    body.ui-mode-mobile:not(.tv-mode) * {
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    /* PC: keep PC layout stable; do not inherit mobile 1-column table/card rules. */
+    body.ui-mode-pc:not(.tv-mode) .layout {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) 360px !important;
+      gap: 14px !important;
+      align-items: start !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .db-grid,
+    body.ui-mode-pc:not(.tv-mode) .db-player-layout-v121 {
+      display: grid !important;
+      grid-template-columns: 340px minmax(0, 1fr) !important;
+      gap: 14px !important;
+      align-items: start !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .side-area,
+    body.ui-mode-pc:not(.tv-mode) .selected-box {
+      position: sticky !important;
+      top: 12px !important;
+    }
+
+    /* Shared compact control baseline for non-TV only. */
+    body.ui-mode-pc:not(.tv-mode) button,
+    body.ui-mode-pc:not(.tv-mode) .upload-button,
+    body.ui-mode-mobile:not(.tv-mode) button,
+    body.ui-mode-mobile:not(.tv-mode) .upload-button {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      border-radius: 11px !important;
+      font-weight: 950 !important;
+      line-height: 1.08 !important;
+      letter-spacing: -.015em !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) button,
+    body.ui-mode-pc:not(.tv-mode) .upload-button {
+      min-height: var(--v124-pc-btn-h) !important;
+      height: var(--v124-pc-btn-h) !important;
+      padding: 0 10px !important;
+      font-size: var(--v124-pc-btn-font) !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) button,
+    body.ui-mode-mobile:not(.tv-mode) .upload-button {
+      min-height: var(--v124-mobile-btn-h) !important;
+      height: auto !important;
+      padding: 7px 8px !important;
+      font-size: var(--v124-mobile-btn-font) !important;
+      white-space: normal !important;
+    }
+
+    /* Account/nav bars: same category, same visual weight. */
+    body.ui-mode-pc:not(.tv-mode) .account-strip,
+    body.ui-mode-pc:not(.tv-mode) .account-left,
+    body.ui-mode-pc:not(.tv-mode) .account-actions,
+    body.ui-mode-pc:not(.tv-mode) .page-nav,
+    body.ui-mode-pc:not(.tv-mode) .toolbar,
+    body.ui-mode-pc:not(.tv-mode) .db-actions-toolbar-v121,
+    body.ui-mode-pc:not(.tv-mode) .dashboard-nav-actions,
+    body.ui-mode-pc:not(.tv-mode) .section-toolbar {
+      display: flex !important;
+      align-items: center !important;
+      gap: var(--v124-gap) !important;
+      flex-wrap: wrap !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .account-strip {
+      justify-content: space-between !important;
+      padding: 8px 0 !important;
+      margin-bottom: 10px !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .account-left { flex: 1 1 auto !important; }
+    body.ui-mode-pc:not(.tv-mode) .account-actions { flex: 0 0 auto !important; justify-content: flex-end !important; }
+    body.ui-mode-pc:not(.tv-mode) .account-strip .pill {
+      display: inline-flex !important;
+      align-items: center !important;
+      min-height: var(--v124-pc-btn-h) !important;
+      max-width: min(48vw, 620px) !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+      border-radius: 11px !important;
+      padding: 0 10px !important;
+      font-size: 11px !important;
+      line-height: 1 !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .account-strip,
+    body.ui-mode-mobile:not(.tv-mode) .account-left,
+    body.ui-mode-mobile:not(.tv-mode) .account-actions,
+    body.ui-mode-mobile:not(.tv-mode) .page-nav {
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+      width: 100% !important;
+      gap: 6px !important;
+      margin-bottom: 8px !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .page-nav,
+    body.ui-mode-mobile:not(.tv-mode) .account-actions {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .account-actions button:last-child:nth-child(odd),
+    body.ui-mode-mobile:not(.tv-mode) .page-nav button:last-child:nth-child(odd) {
+      grid-column: auto !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .account-strip .pill {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-height: 32px !important;
+      display: flex !important;
+      align-items: center !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+      font-size: 10.5px !important;
+      padding: 0 9px !important;
+      border-radius: 10px !important;
+    }
+
+    /* DB top actions: identical button geometry including upload label. */
+    body.ui-mode-pc:not(.tv-mode) .db-actions-toolbar-v121 {
+      padding: 8px !important;
+      border-radius: 14px !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .db-actions-toolbar-v121 button,
+    body.ui-mode-pc:not(.tv-mode) .db-actions-toolbar-v121 .upload-button {
+      min-width: 104px !important;
+      width: 104px !important;
+      flex: 0 0 104px !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .toolbar,
+    body.ui-mode-mobile:not(.tv-mode) .db-actions-toolbar-v121,
+    body.ui-mode-mobile:not(.tv-mode) .dashboard-nav-actions,
+    body.ui-mode-mobile:not(.tv-mode) .section-toolbar {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      width: 100% !important;
+      gap: 6px !important;
+      padding: 7px !important;
+      border-radius: 13px !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .db-actions-toolbar-v121 button,
+    body.ui-mode-mobile:not(.tv-mode) .db-actions-toolbar-v121 .upload-button,
+    body.ui-mode-mobile:not(.tv-mode) .toolbar button {
+      width: 100% !important;
+    }
+
+    /* Tournament prep and settings cards: avoid label/button collisions. */
+    body.ui-mode-pc:not(.tv-mode) .prep-form-v115,
+    body.ui-mode-mobile:not(.tv-mode) .prep-form-v115 {
+      gap: 8px !important;
+      padding: 12px !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .prep-form-v115 .form-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 8px !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .prep-form-v115 .form-grid {
+      grid-template-columns: 1fr !important;
+      gap: 6px !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) label,
+    body.ui-mode-mobile:not(.tv-mode) label {
+      line-height: 1.12 !important;
+      margin-bottom: 5px !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) input,
+    body.ui-mode-pc:not(.tv-mode) select,
+    body.ui-mode-pc:not(.tv-mode) textarea,
+    body.ui-mode-pc:not(.tv-mode) .mini-input {
+      min-height: 32px !important;
+      padding: 6px 9px !important;
+      font-size: 12px !important;
+      border-radius: 10px !important;
+      line-height: 1.18 !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) input,
+    body.ui-mode-mobile:not(.tv-mode) select,
+    body.ui-mode-mobile:not(.tv-mode) textarea,
+    body.ui-mode-mobile:not(.tv-mode) .mini-input {
+      min-height: 32px !important;
+      padding: 6px 8px !important;
+      font-size: 12px !important;
+      border-radius: 10px !important;
+      line-height: 1.16 !important;
+    }
+
+    /* Match-mode buttons: 4 buttons in one normalized group. */
+    body.ui-mode-pc:not(.tv-mode) .match-mode-grid-v124 {
+      display: grid !important;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      gap: 7px !important;
+      margin: 0 !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .match-mode-grid-v124 {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 6px !important;
+      margin: 0 !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .match-mode-grid-v124 button,
+    body.ui-mode-mobile:not(.tv-mode) .match-mode-grid-v124 button {
+      width: 100% !important;
+      min-width: 0 !important;
+      height: 38px !important;
+      min-height: 38px !important;
+      padding: 0 6px !important;
+      font-size: 11.5px !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .match-mode-grid-v124 button {
+      height: 36px !important;
+      min-height: 36px !important;
+      font-size: 11px !important;
+    }
+
+    /* Round progress controls: flatten secondary-row so all four buttons share one grid. */
+    body.ui-mode-pc:not(.tv-mode) .stage-progress-dock,
+    body.ui-mode-mobile:not(.tv-mode) .stage-progress-dock {
+      display: grid !important;
+      gap: 7px !important;
+      padding: 8px !important;
+      border-radius: 14px !important;
+      align-items: stretch !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .stage-progress-dock {
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .stage-progress-dock {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      position: static !important;
+      width: 100% !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .stage-progress-dock .secondary-row,
+    body.ui-mode-mobile:not(.tv-mode) .stage-progress-dock .secondary-row {
+      display: contents !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .stage-progress-dock button,
+    body.ui-mode-mobile:not(.tv-mode) .stage-progress-dock button {
+      width: 100% !important;
+      min-width: 0 !important;
+      height: 36px !important;
+      min-height: 36px !important;
+    }
+
+    /* Round header action buttons: avoid uneven inline/flex rows. */
+    body.ui-mode-pc:not(.tv-mode) .round-head > div:last-child,
+    body.ui-mode-mobile:not(.tv-mode) .round-head > div:last-child {
+      display: grid !important;
+      gap: 7px !important;
+      align-items: stretch !important;
+      width: 100% !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .round-head > div:last-child {
+      grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)) !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .round-head > div:last-child {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .round-head > div:last-child button,
+    body.ui-mode-mobile:not(.tv-mode) .round-head > div:last-child button {
+      width: 100% !important;
+      min-width: 0 !important;
+    }
+
+    /* Player registration form: one-line compact rows; mobile labels never overlap inputs. */
+    body.ui-mode-pc:not(.tv-mode) .db-register-form-v121,
+    body.ui-mode-mobile:not(.tv-mode) .db-register-form-v121 {
+      display: grid !important;
+      gap: 5px !important;
+      margin-bottom: 8px !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .db-form-row-v121,
+    body.ui-mode-mobile:not(.tv-mode) .db-form-row-v121 {
+      display: grid !important;
+      align-items: center !important;
+      gap: 6px !important;
+      min-height: 31px !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .db-form-row-v121 { grid-template-columns: 74px minmax(0, 1fr) !important; }
+    body.ui-mode-mobile:not(.tv-mode) .db-form-row-v121 { grid-template-columns: 64px minmax(0, 1fr) !important; }
+    body.ui-mode-pc:not(.tv-mode) .db-form-row-v121 label,
+    body.ui-mode-mobile:not(.tv-mode) .db-form-row-v121 label {
+      margin: 0 !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+      font-size: 11px !important;
+      line-height: 1 !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .db-form-row-v121 .mini-input,
+    body.ui-mode-pc:not(.tv-mode) .db-fixed-value-v121,
+    body.ui-mode-mobile:not(.tv-mode) .db-form-row-v121 .mini-input,
+    body.ui-mode-mobile:not(.tv-mode) .db-fixed-value-v121 {
+      min-height: 31px !important;
+      height: 31px !important;
+      padding: 0 9px !important;
+      font-size: 11.5px !important;
+      border-radius: 10px !important;
+      line-height: 1 !important;
+      display: flex !important;
+      align-items: center !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .db-register-card-v121,
+    body.ui-mode-mobile:not(.tv-mode) .db-register-card-v121,
+    body.ui-mode-pc:not(.tv-mode) .db-batch-add-card-v121,
+    body.ui-mode-mobile:not(.tv-mode) .db-batch-add-card-v121,
+    body.ui-mode-pc:not(.tv-mode) .db-selected-card-v121,
+    body.ui-mode-mobile:not(.tv-mode) .db-selected-card-v121 {
+      padding: 10px !important;
+      border-radius: 14px !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .db-batch-add-card-v121 > summary,
+    body.ui-mode-mobile:not(.tv-mode) .db-batch-add-card-v121 > summary {
+      padding: 0 !important;
+      min-height: 32px !important;
+      display: flex !important;
+      align-items: center !important;
+      font-size: 12px !important;
+    }
+
+    /* Roster desktop table: fixed row geometry, no venue/name two-line break. */
+    body.ui-mode-pc:not(.tv-mode) .roster-table-wrap {
+      overflow-x: auto !important;
+      overflow-y: auto !important;
+      max-height: calc(100dvh - 250px) !important;
+      border-radius: 14px !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 {
+      display: table !important;
+      width: 100% !important;
+      min-width: 980px !important;
+      table-layout: fixed !important;
+      border-collapse: collapse !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 thead { display: table-header-group !important; }
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 tbody { display: table-row-group !important; }
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 tr { display: table-row !important; }
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 th,
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 td {
+      display: table-cell !important;
+      padding: 5px 5px !important;
+      height: 40px !important;
+      vertical-align: middle !important;
+      font-size: 11.5px !important;
+      line-height: 1.1 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 td::before { content: none !important; }
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 th:nth-child(1),
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 td:nth-child(1) { width: 34px !important; }
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 th:nth-child(2),
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 td:nth-child(2) { width: 38px !important; }
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 th:last-child,
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 td:last-child { width: 100px !important; }
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 .mini-input,
+    body.ui-mode-pc:not(.tv-mode) .roster-venue-select-v121,
+    body.ui-mode-pc:not(.tv-mode) .roster-action-select-v121 {
+      width: 100% !important;
+      min-width: 0 !important;
+      height: 30px !important;
+      min-height: 30px !important;
+      padding: 0 7px !important;
+      font-size: 11.5px !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .roster-star-btn-v121 {
+      width: 30px !important;
+      height: 30px !important;
+      min-height: 30px !important;
+      padding: 0 !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .table-sort-btn {
+      width: 100% !important;
+      height: 28px !important;
+      min-height: 28px !important;
+      padding: 0 5px !important;
+      justify-content: center !important;
+    }
+
+    /* Roster mobile table becomes cards with predictable row cells. */
+    body.ui-mode-mobile:not(.tv-mode) .db-grid,
+    body.ui-mode-mobile:not(.tv-mode) .db-player-layout-v121 {
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+      gap: 8px !important;
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .roster-table-wrap {
+      overflow: visible !important;
+      border: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .roster-table-v121,
+    body.ui-mode-mobile:not(.tv-mode) .admin-table {
+      display: block !important;
+      width: 100% !important;
+      min-width: 0 !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .roster-table-v121 thead,
+    body.ui-mode-mobile:not(.tv-mode) .admin-table thead { display: none !important; }
+    body.ui-mode-mobile:not(.tv-mode) .roster-table-v121 tbody,
+    body.ui-mode-mobile:not(.tv-mode) .admin-table tbody {
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+      gap: 7px !important;
+      width: 100% !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .roster-table-v121 tr,
+    body.ui-mode-mobile:not(.tv-mode) .admin-table tr {
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+      width: 100% !important;
+      padding: 8px !important;
+      border: 1px solid rgba(15,23,42,.10) !important;
+      border-radius: 13px !important;
+      background: var(--c-bg) !important;
+      box-shadow: 0 6px 16px rgba(15,23,42,.045) !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .roster-table-v121 td,
+    body.ui-mode-mobile:not(.tv-mode) .admin-table td {
+      display: grid !important;
+      grid-template-columns: 62px minmax(0, 1fr) !important;
+      gap: 6px !important;
+      align-items: center !important;
+      width: 100% !important;
+      padding: 5px 0 !important;
+      border-bottom: 1px solid rgba(15,23,42,.07) !important;
+      font-size: 11.5px !important;
+      line-height: 1.12 !important;
+      color: var(--v124-text) !important;
+      overflow: hidden !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .roster-table-v121 td:last-child,
+    body.ui-mode-mobile:not(.tv-mode) .admin-table td:last-child { border-bottom: 0 !important; }
+    body.ui-mode-mobile:not(.tv-mode) .roster-table-v121 td::before,
+    body.ui-mode-mobile:not(.tv-mode) .admin-table td::before {
+      content: attr(data-label) !important;
+      color: var(--v124-muted) !important;
+      font-size: 10px !important;
+      line-height: 1 !important;
+      font-weight: 1000 !important;
+      white-space: nowrap !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .roster-table-v121 .mini-input,
+    body.ui-mode-mobile:not(.tv-mode) .roster-venue-select-v121,
+    body.ui-mode-mobile:not(.tv-mode) .roster-action-select-v121,
+    body.ui-mode-mobile:not(.tv-mode) .admin-table .mini-input {
+      height: 31px !important;
+      min-height: 31px !important;
+      padding: 0 8px !important;
+      font-size: 11.5px !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    /* Prevent helper strings from reappearing in row cells. */
+    body.ui-mode-pc:not(.tv-mode) .contact-status,
+    body.ui-mode-pc:not(.tv-mode) .contact-edit-cell small,
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 .hint,
+    body.ui-mode-mobile:not(.tv-mode) .contact-status,
+    body.ui-mode-mobile:not(.tv-mode) .contact-edit-cell small,
+    body.ui-mode-mobile:not(.tv-mode) .roster-table-v121 .hint {
+      display: none !important;
+    }
+
+    /* Mobile page-level flow: one column, no sticky leftovers. */
+    body.ui-mode-mobile:not(.tv-mode) .wrap,
+    body.ui-mode-mobile:not(.tv-mode) .db-page,
+    body.ui-mode-mobile:not(.tv-mode) .mobile-view,
+    body.ui-mode-mobile:not(.tv-mode) .live-lobby-shell-v89 {
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 8px !important;
+      overflow-x: hidden !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .layout,
+    body.ui-mode-mobile:not(.tv-mode) .dashboard-grid,
+    body.ui-mode-mobile:not(.tv-mode) .dashboard-filter,
+    body.ui-mode-mobile:not(.tv-mode) .operator-control-pages,
+    body.ui-mode-mobile:not(.tv-mode) .operator-page-body,
+    body.ui-mode-mobile:not(.tv-mode) .groups,
+    body.ui-mode-mobile:not(.tv-mode) .finalist-grid,
+    body.ui-mode-mobile:not(.tv-mode) .live-grid-v89,
+    body.ui-mode-mobile:not(.tv-mode) .history-list-v89 {
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+      gap: 8px !important;
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .side-area,
+    body.ui-mode-mobile:not(.tv-mode) .main-area,
+    body.ui-mode-mobile:not(.tv-mode) .selected-box,
+    body.ui-mode-mobile:not(.tv-mode) .round-head {
+      position: static !important;
+      top: auto !important;
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .header {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) auto !important;
+      gap: 8px !important;
+      align-items: center !important;
+      padding: 10px !important;
+      border-radius: 15px !important;
+      margin-bottom: 8px !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .header h1 {
+      font-size: 18px !important;
+      line-height: 1.12 !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .header-logo,
+    body.ui-mode-mobile:not(.tv-mode) .credit-mark {
+      position: static !important;
+      opacity: .8 !important;
+      max-width: 92px !important;
+      max-height: 48px !important;
+    }
+
+    /* TV hard isolation: do not allow PC/mobile utility rules to affect TV cards. */
+    body.ui-mode-tv.tv-mode .db-grid,
+    body.ui-mode-tv.tv-mode .roster-table,
+    body.ui-mode-tv.tv-mode .admin-table,
+    body.ui-mode-tv.tv-mode .account-strip,
+    body.ui-mode-tv.tv-mode .toolbar,
+    body.ui-mode-tv.tv-mode .btnrow,
+    body.ui-mode-tv.tv-mode .match-mode-grid-v124 {
+      display: revert !important;
+      grid-template-columns: revert !important;
+      width: revert !important;
+      height: revert !important;
+      min-height: revert !important;
+      padding: revert !important;
+      font-size: revert !important;
+    }
+
+    @media (max-width: 1180px) and (min-width: 761px) {
+      body.ui-mode-pc:not(.tv-mode) .layout,
+      body.ui-mode-pc:not(.tv-mode) .db-grid,
+      body.ui-mode-pc:not(.tv-mode) .db-player-layout-v121 {
+        grid-template-columns: 1fr !important;
+      }
+      body.ui-mode-pc:not(.tv-mode) .side-area,
+      body.ui-mode-pc:not(.tv-mode) .selected-box { position: static !important; }
+    }
+
+    @media (max-width: 430px) {
+      body.ui-mode-mobile:not(.tv-mode) .toolbar,
+      body.ui-mode-mobile:not(.tv-mode) .db-actions-toolbar-v121,
+      body.ui-mode-mobile:not(.tv-mode) .page-nav,
+      body.ui-mode-mobile:not(.tv-mode) .account-actions,
+      body.ui-mode-mobile:not(.tv-mode) .stage-progress-dock,
+      body.ui-mode-mobile:not(.tv-mode) .round-head > div:last-child {
+        grid-template-columns: 1fr !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .match-mode-grid-v124 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+      body.ui-mode-mobile:not(.tv-mode) .roster-table-v121 td,
+      body.ui-mode-mobile:not(.tv-mode) .admin-table td { grid-template-columns: 56px minmax(0, 1fr) !important; }
+      body.ui-mode-mobile:not(.tv-mode) .db-form-row-v121 { grid-template-columns: 58px minmax(0, 1fr) !important; }
+    }
+
+  
+
+    /* v125 DESIGN SYSTEM 1.0 · PC / MOBILE / TV pro UI layer, rules unchanged */
+    :root {
+      --ds-accent: #d84d89;
+      --ds-accent-2: #f06aa3;
+      --ds-accent-soft: rgba(216,77,137,.12);
+      --ds-accent-line: rgba(216,77,137,.28);
+      --ds-bg-deep: #07100d;
+      --ds-panel: rgba(16,27,22,.86);
+      --ds-panel-2: rgba(8,16,13,.92);
+      --ds-text: #f4efe8;
+      --ds-muted: rgba(244,239,232,.66);
+      --ds-dim: rgba(244,239,232,.46);
+      --ds-line: rgba(244,239,232,.085);
+      --ds-line-strong: rgba(244,239,232,.14);
+      --ds-radius-lg: 22px;
+      --ds-radius-md: 15px;
+      --ds-radius-sm: 10px;
+      --ds-shadow: 0 18px 46px rgba(0,0,0,.24);
+      --ds-shadow-soft: 0 8px 20px rgba(0,0,0,.15);
+      --ds-font: "Pretendard", "Inter", "SUIT", "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body:not(.tv-mode) {
+      font-family: var(--ds-font) !important;
+      background:
+        radial-gradient(circle at 82% -12%, rgba(216,77,137,.20), transparent 31%),
+        radial-gradient(circle at 8% 102%, rgba(216,77,137,.08), transparent 34%),
+        linear-gradient(180deg, #06100c 0%, #0b1511 46%, #050b09 100%) !important;
+      color: var(--ds-text) !important;
+      letter-spacing: -.018em !important;
+    }
+
+    body:not(.tv-mode) .header,
+    body:not(.tv-mode) .card,
+    body:not(.tv-mode) .round-card,
+    body:not(.tv-mode) .stage-card,
+    body:not(.tv-mode) .final-box,
+    body:not(.tv-mode) .operator-page,
+    body:not(.tv-mode) .dashboard-card,
+    body:not(.tv-mode) .live-lobby-card,
+    body:not(.tv-mode) .status-panel,
+    body:not(.tv-mode) .ops-panel,
+    body:not(.tv-mode) .firebase-panel {
+      border: 1px solid var(--ds-line) !important;
+      background: linear-gradient(180deg, rgba(19,31,25,.88), rgba(7,15,12,.92)) !important;
+      box-shadow: var(--ds-shadow-soft) !important;
+      backdrop-filter: blur(10px) !important;
+    }
+
+    body:not(.tv-mode) .header {
+      border-radius: 26px !important;
+      box-shadow: var(--ds-shadow) !important;
+    }
+
+    body:not(.tv-mode) .card h2,
+    body:not(.tv-mode) .round-title h2,
+    body:not(.tv-mode) .stage-head h3,
+    body:not(.tv-mode) .db-panel-title h2,
+    body:not(.tv-mode) .dashboard-card h3,
+    body:not(.tv-mode) .operator-page > summary {
+      letter-spacing: -.045em !important;
+      font-weight: 1000 !important;
+    }
+
+    body:not(.tv-mode) .hint,
+    body:not(.tv-mode) .meta,
+    body:not(.tv-mode) .desc,
+    body:not(.tv-mode) .live-lobby-meta,
+    body:not(.tv-mode) .permission-detail {
+      color: var(--ds-muted) !important;
+    }
+
+    body:not(.tv-mode) button,
+    body:not(.tv-mode) .upload-button,
+    body:not(.tv-mode) .page-nav button,
+    body:not(.tv-mode) .account-actions button,
+    body:not(.tv-mode) .toolbar button,
+    body:not(.tv-mode) .section-toolbar button,
+    body:not(.tv-mode) .db-actions button,
+    body:not(.tv-mode) .db-bulk-buttons button,
+    body:not(.tv-mode) .stage-progress-dock button,
+    body:not(.tv-mode) .match-mode-grid-v124 button {
+      border: 1px solid var(--ds-line-strong) !important;
+      background: rgba(244,239,232,.045) !important;
+      color: rgba(244,239,232,.86) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04) !important;
+      text-transform: none !important;
+      transition: border-color .12s ease, background .12s ease, transform .12s ease, box-shadow .12s ease !important;
+    }
+
+    body:not(.tv-mode) button:hover,
+    body:not(.tv-mode) .upload-button:hover {
+      border-color: var(--ds-accent-line) !important;
+      background: rgba(216,77,137,.10) !important;
+      transform: translateY(-1px) !important;
+    }
+
+    body:not(.tv-mode) button.primary,
+    body:not(.tv-mode) button.active,
+    body:not(.tv-mode) button.selected,
+    body:not(.tv-mode) .primary,
+    body:not(.tv-mode) .match-mode-grid-v124 button.active {
+      color: #180812 !important;
+      background: linear-gradient(135deg, var(--ds-accent-2), var(--ds-accent)) !important;
+      border-color: transparent !important;
+      box-shadow: 0 10px 28px rgba(216,77,137,.20), inset 0 1px 0 rgba(255,255,255,.16) !important;
+    }
+
+    body:not(.tv-mode) button.danger,
+    body:not(.tv-mode) .danger {
+      color: #fecdd3 !important;
+      border-color: rgba(251,113,133,.28) !important;
+      background: rgba(251,113,133,.08) !important;
+    }
+
+    body:not(.tv-mode) input,
+    body:not(.tv-mode) select,
+    body:not(.tv-mode) textarea,
+    body:not(.tv-mode) .mini-input {
+      border: 1px solid rgba(244,239,232,.11) !important;
+      background: rgba(2,8,6,.58) !important;
+      color: var(--ds-text) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.025) !important;
+      outline: none !important;
+    }
+
+    body:not(.tv-mode) input:focus,
+    body:not(.tv-mode) select:focus,
+    body:not(.tv-mode) textarea:focus,
+    body:not(.tv-mode) .mini-input:focus {
+      border-color: rgba(216,77,137,.58) !important;
+      box-shadow: 0 0 0 3px rgba(216,77,137,.10), inset 0 1px 0 rgba(255,255,255,.03) !important;
+    }
+
+    body:not(.tv-mode) .pill,
+    body:not(.tv-mode) .badge,
+    body:not(.tv-mode) .round-badge,
+    body:not(.tv-mode) .live-status,
+    body:not(.tv-mode) .permission-badge,
+    body:not(.tv-mode) .status-badge {
+      border: 1px solid rgba(244,239,232,.10) !important;
+      background: rgba(244,239,232,.055) !important;
+      color: rgba(244,239,232,.72) !important;
+      font-weight: 1000 !important;
+      letter-spacing: -.01em !important;
+    }
+
+    body:not(.tv-mode) .status-running,
+    body:not(.tv-mode) .live-status.on,
+    body:not(.tv-mode) .permission-admin {
+      background: var(--ds-accent-soft) !important;
+      border-color: var(--ds-accent-line) !important;
+      color: #ff8dbb !important;
+    }
+
+    /* PC: dense, aligned dashboard/operator management UI */
+    body.ui-mode-pc:not(.tv-mode) {
+      --ui-button-height: 34px !important;
+      --ui-button-font: 11.5px !important;
+      --ui-gap: 8px !important;
+      --ui-card-pad: 13px !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .wrap,
+    body.ui-mode-pc:not(.tv-mode) .db-page {
+      max-width: 1500px !important;
+      padding: 18px 18px 72px !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .layout {
+      grid-template-columns: minmax(0, 1fr) 360px !important;
+      gap: 16px !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .db-grid,
+    body.ui-mode-pc:not(.tv-mode) .db-player-layout-v121 {
+      grid-template-columns: 340px minmax(0, 1fr) !important;
+      gap: 16px !important;
+      align-items: start !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .toolbar,
+    body.ui-mode-pc:not(.tv-mode) .db-actions-toolbar-v121,
+    body.ui-mode-pc:not(.tv-mode) .section-toolbar,
+    body.ui-mode-pc:not(.tv-mode) .dashboard-nav-actions,
+    body.ui-mode-pc:not(.tv-mode) .db-bulk-buttons {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      align-items: center !important;
+      gap: 8px !important;
+      padding: 8px !important;
+      border-radius: var(--ds-radius-md) !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .db-actions-toolbar-v121 button,
+    body.ui-mode-pc:not(.tv-mode) .db-actions-toolbar-v121 .upload-button,
+    body.ui-mode-pc:not(.tv-mode) .page-nav button,
+    body.ui-mode-pc:not(.tv-mode) .account-actions button,
+    body.ui-mode-pc:not(.tv-mode) .toolbar button,
+    body.ui-mode-pc:not(.tv-mode) .section-toolbar button,
+    body.ui-mode-pc:not(.tv-mode) .db-bulk-buttons button,
+    body.ui-mode-pc:not(.tv-mode) .stage-progress-dock button {
+      height: 34px !important;
+      min-height: 34px !important;
+      padding: 0 10px !important;
+      border-radius: 10px !important;
+      font-size: 11.5px !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .account-strip {
+      align-items: center !important;
+      padding: 8px 10px !important;
+      border: 1px solid var(--ds-line) !important;
+      border-radius: var(--ds-radius-md) !important;
+      background: rgba(4,12,9,.52) !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .page-nav,
+    body.ui-mode-pc:not(.tv-mode) .account-actions {
+      display: flex !important;
+      gap: 7px !important;
+      align-items: center !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .match-mode-grid-v124,
+    body.ui-mode-pc:not(.tv-mode) .stage-progress-dock {
+      display: grid !important;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      gap: 8px !important;
+      padding: 8px !important;
+      border-radius: var(--ds-radius-md) !important;
+      background: rgba(4,12,9,.48) !important;
+      border: 1px solid var(--ds-line) !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .match-mode-grid-v124 button,
+    body.ui-mode-pc:not(.tv-mode) .stage-progress-dock button {
+      width: 100% !important;
+      height: 36px !important;
+      min-height: 36px !important;
+      border-radius: 11px !important;
+      font-size: 11.5px !important;
+      padding: 0 7px !important;
+    }
+
+    /* PC roster: spreadsheet-like, compact but premium */
+    body.ui-mode-pc:not(.tv-mode) .roster-table-wrap {
+      border-radius: 16px !important;
+      border: 1px solid rgba(244,239,232,.10) !important;
+      background: rgba(2,8,6,.44) !important;
+      overflow: auto !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 {
+      min-width: 1000px !important;
+      table-layout: fixed !important;
+      border-spacing: 0 !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 th {
+      height: 34px !important;
+      padding: 0 6px !important;
+      color: rgba(244,239,232,.60) !important;
+      background: rgba(244,239,232,.045) !important;
+      border-bottom: 1px solid rgba(244,239,232,.10) !important;
+      font-size: 10.5px !important;
+      letter-spacing: .01em !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 td {
+      height: 38px !important;
+      padding: 4px 5px !important;
+      border-bottom: 1px solid rgba(244,239,232,.065) !important;
+      background: transparent !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 tr:hover td {
+      background: rgba(216,77,137,.055) !important;
+    }
+    body.ui-mode-pc:not(.tv-mode) .roster-table-v121 .mini-input,
+    body.ui-mode-pc:not(.tv-mode) .roster-venue-select-v121,
+    body.ui-mode-pc:not(.tv-mode) .roster-action-select-v121 {
+      height: 29px !important;
+      min-height: 29px !important;
+      padding: 0 7px !important;
+      border-radius: 8px !important;
+      font-size: 11px !important;
+      background: rgba(2,8,6,.38) !important;
+    }
+
+    /* Mobile: app-like operator UI, not desktop squeezed */
+    body.ui-mode-mobile:not(.tv-mode) {
+      --ui-button-height: 38px !important;
+      --ui-button-font: 12px !important;
+      --ui-gap: 7px !important;
+      --ui-card-pad: 10px !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .wrap,
+    body.ui-mode-mobile:not(.tv-mode) .db-page,
+    body.ui-mode-mobile:not(.tv-mode) .mobile-view,
+    body.ui-mode-mobile:not(.tv-mode) .live-lobby-shell-v89 {
+      padding: 8px !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      overflow-x: hidden !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .header {
+      grid-template-columns: minmax(0, 1fr) auto !important;
+      padding: 11px !important;
+      border-radius: 17px !important;
+      min-height: 64px !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .header h1 {
+      font-size: 18px !important;
+      line-height: 1.12 !important;
+      letter-spacing: -.045em !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .eyebrow {
+      font-size: 9.5px !important;
+      letter-spacing: .12em !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .card,
+    body.ui-mode-mobile:not(.tv-mode) .round-card,
+    body.ui-mode-mobile:not(.tv-mode) .stage-card,
+    body.ui-mode-mobile:not(.tv-mode) .final-box,
+    body.ui-mode-mobile:not(.tv-mode) .operator-page {
+      border-radius: 17px !important;
+      padding: 10px !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .toolbar,
+    body.ui-mode-mobile:not(.tv-mode) .db-actions-toolbar-v121,
+    body.ui-mode-mobile:not(.tv-mode) .section-toolbar,
+    body.ui-mode-mobile:not(.tv-mode) .dashboard-nav-actions,
+    body.ui-mode-mobile:not(.tv-mode) .account-actions,
+    body.ui-mode-mobile:not(.tv-mode) .page-nav {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 7px !important;
+      width: 100% !important;
+      padding: 7px !important;
+      border-radius: 15px !important;
+      background: rgba(4,12,9,.54) !important;
+      border: 1px solid var(--ds-line) !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .toolbar button,
+    body.ui-mode-mobile:not(.tv-mode) .db-actions-toolbar-v121 button,
+    body.ui-mode-mobile:not(.tv-mode) .db-actions-toolbar-v121 .upload-button,
+    body.ui-mode-mobile:not(.tv-mode) .section-toolbar button,
+    body.ui-mode-mobile:not(.tv-mode) .dashboard-nav-actions button,
+    body.ui-mode-mobile:not(.tv-mode) .account-actions button,
+    body.ui-mode-mobile:not(.tv-mode) .page-nav button,
+    body.ui-mode-mobile:not(.tv-mode) .match-mode-grid-v124 button,
+    body.ui-mode-mobile:not(.tv-mode) .stage-progress-dock button {
+      width: 100% !important;
+      height: 38px !important;
+      min-height: 38px !important;
+      padding: 0 8px !important;
+      border-radius: 12px !important;
+      font-size: 12px !important;
+      line-height: 1.1 !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .match-mode-grid-v124,
+    body.ui-mode-mobile:not(.tv-mode) .stage-progress-dock {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 7px !important;
+      padding: 7px !important;
+      border-radius: 15px !important;
+      background: rgba(4,12,9,.54) !important;
+      border: 1px solid var(--ds-line) !important;
+      position: static !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .stage-progress-dock .secondary-row { display: contents !important; }
+
+    /* Mobile Player DB: compact table/list, not card blocks */
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .db-grid,
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .db-player-layout-v121 {
+      grid-template-columns: 1fr !important;
+      gap: 8px !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .db-roster-list-card-v98,
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .db-roster-list-card-v99 {
+      padding: 9px !important;
+      overflow: hidden !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-wrap {
+      overflow-x: auto !important;
+      overflow-y: visible !important;
+      border: 1px solid rgba(244,239,232,.10) !important;
+      border-radius: 14px !important;
+      background: rgba(2,8,6,.42) !important;
+      box-shadow: none !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 {
+      display: table !important;
+      width: 100% !important;
+      min-width: 640px !important;
+      table-layout: fixed !important;
+      border-collapse: collapse !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 thead {
+      display: table-header-group !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 tbody {
+      display: table-row-group !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 tr {
+      display: table-row !important;
+      padding: 0 !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 th,
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 td {
+      display: table-cell !important;
+      height: 34px !important;
+      padding: 3px 4px !important;
+      border-bottom: 1px solid rgba(244,239,232,.065) !important;
+      vertical-align: middle !important;
+      font-size: 10.5px !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      color: rgba(244,239,232,.82) !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 th {
+      color: rgba(244,239,232,.56) !important;
+      background: rgba(244,239,232,.045) !important;
+      font-size: 9.5px !important;
+      font-weight: 1000 !important;
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 2 !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 td::before {
+      content: none !important;
+      display: none !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 th:nth-child(1),
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 td:nth-child(1) { width: 28px !important; }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 th:nth-child(2),
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 td:nth-child(2) { width: 30px !important; }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 th:nth-child(3),
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 td:nth-child(3) { width: 86px !important; }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 th:nth-child(4),
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 td:nth-child(4),
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 th:nth-child(5),
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 td:nth-child(5),
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 th:nth-child(6),
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 td:nth-child(6) { width: 84px !important; }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 th:nth-last-child(3),
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 td:nth-last-child(3),
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 th:nth-last-child(2),
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 td:nth-last-child(2) { width: 88px !important; }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 th:last-child,
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 td:last-child { width: 78px !important; }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 input[type="checkbox"] {
+      width: 16px !important;
+      height: 16px !important;
+      min-height: 0 !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 .mini-input,
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-venue-select-v121,
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-action-select-v121,
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-star-btn-v121 {
+      height: 27px !important;
+      min-height: 27px !important;
+      padding: 0 5px !important;
+      border-radius: 8px !important;
+      font-size: 10.5px !important;
+      width: 100% !important;
+      min-width: 0 !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-star-btn-v121 {
+      padding: 0 !important;
+      font-size: 13px !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .db-stat-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      gap: 5px !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .db-stat {
+      padding: 7px 5px !important;
+      border-radius: 11px !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .db-stat small { font-size: 9px !important; }
+    body.ui-mode-mobile:not(.tv-mode).ui-page-db .db-stat strong { font-size: 15px !important; }
+
+    /* TV: broadcast-grade isolation and stronger hierarchy */
+    body.ui-mode-tv.tv-mode {
+      background: #050d0a !important;
+      color: var(--ds-text) !important;
+      font-family: var(--ds-font) !important;
+    }
+    body.ui-mode-tv.tv-mode .tv-wrap {
+      background:
+        radial-gradient(circle at 78% -18%, rgba(216,77,137,.18), transparent 28%),
+        linear-gradient(180deg, #06100c 0%, #020705 100%) !important;
+    }
+    body.ui-mode-tv.tv-mode .tv-head {
+      border-bottom: 1px solid rgba(216,77,137,.42) !important;
+    }
+    body.ui-mode-tv.tv-mode .tv-group {
+      background: linear-gradient(180deg, rgba(18,30,24,.94), rgba(3,9,7,.98)) !important;
+      border: 1px solid rgba(244,239,232,.10) !important;
+      box-shadow: 0 18px 44px rgba(0,0,0,.30) !important;
+    }
+    body.ui-mode-tv.tv-mode .tv-lane {
+      background: rgba(244,239,232,.045) !important;
+      border: 1px solid rgba(244,239,232,.085) !important;
+    }
+    body.ui-mode-tv.tv-mode .tv-lane.selected {
+      background: linear-gradient(135deg, var(--ds-accent-2), var(--ds-accent)) !important;
+      border-color: transparent !important;
+    }
+    body.ui-mode-tv.tv-mode .tv-player-identity-block > .player-name-fit,
+    body.ui-mode-tv.tv-mode .tv-player-identity-block > strong:not(.player-name-fit) {
+      text-shadow: 0 2px 18px rgba(0,0,0,.22) !important;
+    }
+
+    @media (max-width: 430px) {
+      body.ui-mode-mobile:not(.tv-mode) .toolbar,
+      body.ui-mode-mobile:not(.tv-mode) .db-actions-toolbar-v121,
+      body.ui-mode-mobile:not(.tv-mode) .section-toolbar,
+      body.ui-mode-mobile:not(.tv-mode) .dashboard-nav-actions,
+      body.ui-mode-mobile:not(.tv-mode) .account-actions,
+      body.ui-mode-mobile:not(.tv-mode) .page-nav {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode).ui-page-db .roster-table-v121 { min-width: 610px !important; }
+      body.ui-mode-mobile:not(.tv-mode).ui-page-db .db-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
     }
 
   </style>
@@ -11825,7 +12858,7 @@ function isPointRound(roundIndex) {
       state.broadcast = { mode: "stage", roundIndex, stageIndex: round.stages.length - 1 };
       activeRoundIndex = roundIndex;
       renderOperator();
-      queueFirebaseSave();
+      forceLiveBroadcastSync("createPointNextStage");
       requestAnimationFrame(() => document.getElementById("currentStageTop")?.scrollIntoView({ behavior: "smooth", block: "start" }));
     }
 function setBroadcastStage(roundIndex, stageIndex) {
@@ -12370,8 +13403,7 @@ function copyOrShare(url, label) {
 
                   <section class="card">
                     <h2>경기 방식</h2>
-                    <div class="btnrow mode-row primary-modes"><button class="${state.settings.matchMode === 'basic' ? "active" : ""}" onclick="setMatchMode('basic')">토너먼트</button><button class="${state.settings.matchMode === 'points' ? "active" : ""}" onclick="setMatchMode('points')">포인트전</button><button class="${state.settings.matchMode === 'revival' ? "active" : ""}" onclick="setMatchMode('revival')">패자부활</button></div>
-                    <div class="btnrow mode-row nine-mode"><button class="crow-mode-btn ${state.settings.matchMode === 'crow' ? "active" : ""}" onclick="setMatchMode('crow')"><span>토너먼트</span><strong>(9강)</strong></button></div>
+                    <div class="btnrow mode-row match-mode-grid-v124"><button class="${state.settings.matchMode === 'basic' ? "active" : ""}" onclick="setMatchMode('basic')">토너먼트</button><button class="${state.settings.matchMode === 'points' ? "active" : ""}" onclick="setMatchMode('points')">포인트전</button><button class="${state.settings.matchMode === 'revival' ? "active" : ""}" onclick="setMatchMode('revival')">패자부활</button><button class="${state.settings.matchMode === 'crow' ? "active" : ""}" onclick="setMatchMode('crow')">토너먼트(9강)</button></div>
                     ${state.settings.matchMode === 'crow' ? `<p class="hint">토너먼트(9강): 라운드별 1~3위 총 9명으로 준결/결승을 진행합니다.</p>` : ""}
                   </section>
                 </div>
@@ -12409,7 +13441,7 @@ function copyOrShare(url, label) {
               <li>대회명과 경기장은 필수로 입력합니다. 클래스는 오픈, 스톡, 어드&비맥스, 기타 클래스 순서로 선택합니다.</li>
               <li>경기 방식을 선택합니다. 토너먼트, 포인트전, 패자부활, 토너먼트(9강) 중 하나를 고릅니다.</li>
               <li>경기 타입을 3레인 또는 5레인으로 선택합니다. 레인 수는 실제 경기장 레인 수입니다.</li>
-              <li>참가자 명단을 한 줄에 한 명씩 입력합니다. 형식은 <b>이름/팀명</b>입니다.</li>
+              <li>선수 DB에서 참가자를 선택하거나 목록 일괄 추가로 명단을 불러옵니다.</li>
               <li><b>대회 시작</b>을 누르면 시작 시간이 기록됩니다.</li>
               <li>각 조에서 진출자를 선택하고 <b>다음 경기 진행</b>을 누릅니다.</li>
               <li>마지막 결승 또는 최종 결승에서 우승자를 확정합니다.</li>
@@ -13815,7 +14847,7 @@ function renderTvStage() {
               ${logoMarkup("tv90-logo")}
             </header>
             <section class="tv90-empty-screen"><div><h2>LIVE 대기중</h2><p>운영 화면에서 경기를 시작하면 자동으로 표시됩니다.</p></div></section>
-            <footer class="tv90-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v122 PERFORMANCE PATCH</span></footer>
+            <footer class="tv90-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v115 DATA-KEY + PREP UI PATCH</span></footer>
           </div>`;
         return;
       }
@@ -13846,7 +14878,7 @@ function renderTvStage() {
           <main class="tv90-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
             ${currentGroups.slice(0, 4).map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap, laneCount)).join("")}
           </main>
-          <footer class="tv90-foot"><span>${escapeHtml(laneCount)} LANE · ${escapeHtml((target.groups || []).length)} GROUPS · LIVE 자동 송출</span><span>BUILD v122 PERFORMANCE PATCH</span></footer>
+          <footer class="tv90-foot"><span>${escapeHtml(laneCount)} LANE · ${escapeHtml((target.groups || []).length)} GROUPS · LIVE 자동 송출</span><span>BUILD v115 DATA-KEY + PREP UI PATCH</span></footer>
         </div>`;
     }
 
@@ -14740,7 +15772,7 @@ function boot() {
         const profiles = snapshot.val() || {};
         syncPublicVenuesFromProfiles(profiles);
         const rows = Object.entries(profiles).sort((a,b) => String(a[1].email || "").localeCompare(String(b[1].email || "")));
-        app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar admin-actions-toolbar"><button class="ghost" onclick="renderAdminPage()">새로고침</button><button class="primary" onclick="runDuplicateNameMigration()">동명이인 정리 (BCD 부여)</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section><div class="admin-build-mark">BUILD v122 PERFORMANCE PATCH</div></div>`;
+        app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${accountBadge()}<div class="toolbar admin-actions-toolbar"><button class="ghost" onclick="renderAdminPage()">새로고침</button><button class="primary" onclick="runDuplicateNameMigration()">동명이인 정리 (BCD 부여)</button></div><section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section><div class="admin-build-mark">BUILD v115 DATA-KEY + PREP UI PATCH</div></div>`;
       }).catch(error => alert(`사용자 목록 로드 실패: ${error.message || error}`));
     }
 
@@ -15217,9 +16249,9 @@ function boot() {
               <div class="db-panel-title"><h2>선수 등록</h2><span class="pill">${escapeHtml(fixedVenueName)}</span></div>
               ${isAdminUser() ? `<input type="hidden" id="dbAdminVenueName" value="${escapeAttr(fixedVenueName)}" />` : ""}
               <div class="db-register-form-v121">
-                <div class="db-form-row-v121"><label>등록 경기장</label><div class="db-fixed-value-v121">${escapeHtml(fixedVenueName)}</div></div>
+                <div class="db-form-row-v121"><label>경기장</label><div class="db-fixed-value-v121">${escapeHtml(fixedVenueName)}</div></div>
                 <div class="db-form-row-v121"><label for="dbRealName">실명</label><input class="mini-input" id="dbRealName" placeholder="입력" /></div>
-                <div class="db-form-row-v121"><label for="dbNickname">닉네임 / 선수명 *</label><input class="mini-input" id="dbNickname" placeholder="입력" /></div>
+                <div class="db-form-row-v121"><label for="dbNickname">닉네임</label><input class="mini-input" id="dbNickname" placeholder="입력" /></div>
                 <div class="db-form-row-v121"><label for="dbTeam">팀명</label><input class="mini-input" id="dbTeam" list="dbTeamDatalist" placeholder="입력" autocomplete="off" /><datalist id="dbTeamDatalist">${teams.map(t => `<option value="${escapeAttr(t)}"></option>`).join("")}</datalist></div>
                 <div class="db-form-row-v121"><label for="dbContact">연락처</label><input class="mini-input" id="dbContact" placeholder="입력" /></div>
                 <div class="db-form-row-v121"><label for="dbMemo">메모</label><input class="mini-input" id="dbMemo" placeholder="입력" /></div>
@@ -15227,7 +16259,7 @@ function boot() {
               <button class="primary db-primary-action-v120 db-primary-action-v121" onclick="addRosterPlayer()">선수 추가</button>
             </section>
 
-            <details class="card db-batch-add-card-v119 db-batch-add-card-v121" open><summary>목록 일괄 추가</summary><div class="details-body"><p class="hint">형식: 실명/연락처(선택)/닉네임/팀명/메모</p><textarea id="quickImportText" placeholder="홍길동//마이/GEEKS/MS 플렉스"></textarea><button class="ghost db-primary-action-v120 db-primary-action-v121" onclick="quickImportRosterLines()">목록에서 선수 추가</button></div></details>
+            <details class="card db-batch-add-card-v119 db-batch-add-card-v121"><summary>목록 일괄 추가</summary><div class="details-body"><p class="hint">형식: 실명/연락처(선택)/닉네임/팀명/메모</p><textarea id="quickImportText" placeholder="홍길동//마이/GEEKS/MS 플렉스"></textarea><button class="ghost db-primary-action-v120 db-primary-action-v121" onclick="quickImportRosterLines()">목록에서 선수 추가</button></div></details>
 
             <section class="card selected-box db-selected-card-v121"><div class="db-panel-title"><h2>참가자 선택</h2><span class="pill"><span id="selectedCount">0</span>명 선택</span></div><div class="db-actions db-selected-actions-v121" style="margin-bottom:10px;"><button class="ghost" onclick="selectRecentPlayers()">최근 참가자</button><button class="ghost" onclick="selectFavoritePlayers()">즐겨찾기</button><button class="ghost" onclick="clearSelectedPlayers()">선택 해제</button></div><div id="selectedPreview" class="finalist-grid" ></div><button class="primary db-primary-action-v120 db-primary-action-v121" onclick="applySelectedPlayersToTournament()">선택 선수로 대진 생성 준비</button></section>
           </aside><main class="db-player-main-v98 db-player-main-v99"><section class="card db-roster-list-card-v98 db-roster-list-card-v99"><div class="db-panel-title"><div><h2>선수 명부</h2><div class="meta">총 ${roster.length}명 · 표시 ${filtered.length}명</div></div><div class="db-actions db-filter-actions"><input class="mini-input" placeholder="검색(이름/팀/경기장)" value="${escapeHtml(dbSearchText)}" oninput="setDbSearch(this.value)"  /><select onchange="setDbTeamFilter(this.value)" ><option value="전체">전체 팀</option>${teams.map(team => `<option value="${escapeHtml(team)}" ${team === dbTeamFilter ? "selected" : ""}>${escapeHtml(team)}</option>`).join("")}</select><select onchange="setDbStatusFilter(this.value)" >${["전체", "활성", "비활성", "즐겨찾기", "연락처 있음", "연락처 없음"].map(value => `<option value="${value}" ${value === dbStatusFilter ? "selected" : ""}>${value}</option>`).join("")}</select></div></div><div class="db-stat-grid"><div class="db-stat"><small>전체 선수</small><strong>${roster.length}</strong></div><div class="db-stat"><small>활성 선수</small><strong>${activeCount}</strong></div><div class="db-stat"><small>즐겨찾기</small><strong>${favoriteCount}</strong></div><div class="db-stat"><small>연락처 미등록</small><strong>${missingContactCount}</strong></div></div><div class="db-bulk-toolbar"><div><label class="db-checkline"><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /> 표시 목록 일괄선택</label><span class="hint">표시 ${filtered.length}명 · 표시 중 선택 ${visibleSelectedCount}명</span></div><div class="db-bulk-buttons"><button class="ghost" onclick="selectVisiblePlayers()">표시 활성 전체 선택</button><button class="ghost" onclick="deselectVisiblePlayers()">표시 선택 해제</button><button class="ghost" onclick="selectAllActivePlayers()">전체 활성 선택</button>${dbSortButton("realName", "실명")}${dbSortButton("nickname", "닉네임")}${dbSortButton("team", "팀명")}${isAdminUser() ? dbSortButton("venue", "경기장") : ""}${dbSortButton("createdAt", "등록일")}</div></div><div class="roster-table-wrap db-roster-scroll-v98 db-roster-scroll-v99"><table class="roster-table roster-table-v121"><thead><tr><th><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /></th><th>★</th>${isAdminUser() ? `<th><button class="ghost table-sort-btn" onclick="setDbSort('venue')">경기장${dbSortField === "venue" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th>` : ""}<th><button class="ghost table-sort-btn" onclick="setDbSort('realName')">실명${dbSortField === "realName" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('nickname')">닉네임${dbSortField === "nickname" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('team')">팀명${dbSortField === "team" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>연락처</th><th>메모</th><th>상태&관리</th></tr></thead><tbody>${filtered.map(player => renderRosterRow(player)).join("") || `<tr><td colspan="${rosterColspan}"><div class="db-empty">등록된 선수가 없습니다.</div></td></tr>`}</tbody></table></div></section></main></div></div>`;
@@ -15740,17 +16772,7 @@ function flattenPrivateResultLogs(raw = {}) {
     window.addEventListener("resize", () => requestAnimationFrame(applyResponsiveUxModeV83));
     window.addEventListener("orientationchange", () => setTimeout(applyResponsiveUxModeV83, 120));
 
-    async function refreshAfterAuthChangeV83() {
-      try {
-        firebaseAuthReadyPromise = null;
-        await initAuthState();
-        applyResponsiveUxModeV83();
-        await bootV33();
-      } catch (error) {
-        console.warn("v83 auth refresh failed", error);
-      }
-    }
-
+    async 
 async function bootV33() {
       try {
         restorePersistedStateV95();
@@ -15881,14 +16903,14 @@ function normalizePlayerForFinal(player, extra = {}) {
       activeRoundIndex = nextIndex;
       state.broadcast = { mode: "stage", roundIndex: nextIndex, stageIndex: nextRound.stages.length - 1 };
       logTournamentAction("다음 라운드 전환", `${currentRound.title} 확정 → ${nextRound.title}`);
-      queueFirebaseSave();
+      forceLiveBroadcastSync("activateNextRoundAfterFinalist");
       return true;
     }
 
     function goToNextRoundAfterFinalist(roundIndex) {
       if (activateNextRoundAfterFinalist(roundIndex, false)) {
         renderOperator();
-        queueFirebaseSave();
+        forceLiveBroadcastSync("goToNextRoundAfterFinalist");
         requestAnimationFrame(() => document.getElementById("currentStageTop")?.scrollIntoView({ behavior: "smooth", block: "start" }));
       }
     }
@@ -15909,7 +16931,7 @@ function normalizePlayerForFinal(player, extra = {}) {
         state.broadcast = { mode: "stage", roundIndex, stageIndex: round.stages.length - 1 };
         logTournamentAction("9강 순위 확정", `${round.title}: ${round.crowFinalists.map(p => `${p.crowRank}위 ${p.name}`).join(" / ")}`);
         renderOperator();
-        queueFirebaseSave();
+        forceLiveBroadcastSync("confirmRoundFinalist-crow");
         return;
       }
 
@@ -15920,7 +16942,7 @@ function normalizePlayerForFinal(player, extra = {}) {
       state.broadcast = { mode: "stage", roundIndex, stageIndex: round.stages.length - 1 };
       if (lastStage.type === "pointFinal") activateNextRoundAfterFinalist(roundIndex, true);
       renderOperator();
-      queueFirebaseSave();
+      forceLiveBroadcastSync("confirmRoundFinalist");
     }
 
     function makeCrowSemiGroup(name, players) {
@@ -16375,7 +17397,7 @@ function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
         <section class="live-summary-v89"><span>LIVE <b>${liveCount}</b></span><span>대기 <b>${waitingCount}</b></span><span>빈 슬롯 <b>${emptyCount}</b></span><small>${escapeHtml(nowText)} 기준</small></section>
         <main class="live-grid-v89">${cards.map(cardHtml).join("")}</main>
         <section class="live-history-v89"><h2>최근 경기 히스토리</h2><div class="history-list-v89">${historyHtml || `<div class="live-empty-note-v89">최근 경기 기록이 없습니다.</div>`}</div></section>
-        <footer class="live-footer-v89">BUILD v122 PERFORMANCE PATCH</footer>
+        <footer class="live-footer-v89">BUILD v115 DATA-KEY + PREP UI PATCH</footer>
       </div>`;
     }
 
@@ -16400,10 +17422,7 @@ function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
       }
     }
 
-    function mobileLobbyUrlV50() {
-      return `${location.origin}${location.pathname}#view=live-list`;
-    }
-
+    
     function openDetachedWindowV87(url, name = "mini4wd_live_lobby") {
       try {
         const win = window.open(url, "_blank", "noopener");
@@ -16479,7 +17498,7 @@ function stopLiveLobbyRealtimeV50() {
         if (received) return;
         if (viewType === "tv-live") {
           document.body.classList.add("tv-mode");
-          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v122 PERFORMANCE PATCH</span></div></div>`;
+          app.innerHTML = `<div class="tv-wrap"><div class="empty"><div><h2>LIVE 대기중</h2><p>해당 경기의 송출 데이터가 아직 없습니다.</p><p>${escapeHtml(tournamentId)}</p></div></div><div class="tv-foot"><span>MINI4WD TOURNAMENT MAKER</span><span>BUILD v115 DATA-KEY + PREP UI PATCH</span></div></div>`;
         } else {
           renderLiveLobbyPage();
         }
@@ -16691,11 +17710,7 @@ function stopLiveLobbyRealtimeV50() {
       restoreModeRowPositionV57(anchorTopBefore, fallbackY);
     }
 
-    function auditCoreButtonsV57() {
-      const required = ['setMatchMode','renderDashboardPage','renderLiveLobbyPage','copyLiveLink','openLiveLobbyPage','openFirebaseTvLive','renderDbPage','openAdminPage','goHome','goBack'];
-      return required.map(name => ({ name, ok: typeof window[name] === 'function' }));
-    }
-
+    
 
     function runV77CleanupAudit() {
       const report = {
@@ -16767,7 +17782,7 @@ function stopLiveLobbyRealtimeV50() {
       if (window.__mini4wdV102MobileTvLiveSyncHotfixInstalled) return;
       window.__mini4wdV102MobileTvLiveSyncHotfixInstalled = true;
 
-      const V102_BUILD_MARK = "BUILD v122 PERFORMANCE PATCH";
+      const V102_BUILD_MARK = "BUILD v115 DATA-KEY + PREP UI PATCH";
       let v102PendingLocalSaveTimer = null;
       let v102LastLocalSaveAt = 0;
       let v102LastLocalJson = "";
@@ -17093,7 +18108,7 @@ function stopLiveLobbyRealtimeV50() {
 
     /* v104 RACE-DAY PERFORMANCE HOTFIX · mobile lag + live sync batching */
     (function(){
-      const V104_BUILD_MARK = "BUILD v122 PERFORMANCE PATCH";
+      const V104_BUILD_MARK = "BUILD v115 DATA-KEY + PREP UI PATCH";
       let v104LocalTimer = null;
       let v104FirebaseTimer = null;
       let v104LastSnapshotAt = 0;
@@ -17274,6 +18289,150 @@ function stopLiveLobbyRealtimeV50() {
       window.__mini4wdV104PerformancePatch = { build: V104_BUILD_MARK, localDelay: V104_LOCAL_DELAY, firebaseDelay: V104_FIREBASE_DELAY, snapshotInterval: V104_SNAPSHOT_INTERVAL };
     })();
 
+
+
+    /* v123 device split guardrails: PC / MOBILE / TV are explicit runtime modes */
+    (function installV123DeviceSplitPatch(){
+      if (window.__mini4wdV123DeviceSplitPatchInstalled) return;
+      window.__mini4wdV123DeviceSplitPatchInstalled = true;
+      const V123_BUILD_MARK = "BUILD v123 DEVICE SPLIT PATCH";
+      const MODE_CLASSES = ["ui-mode-pc", "ui-mode-mobile", "ui-mode-tv"];
+      const PAGE_CLASSES = [
+        "ui-page-operator", "ui-page-db", "ui-page-admin", "ui-page-dashboard",
+        "ui-page-live-lobby", "ui-page-mobile-live", "ui-page-tv-live", "ui-page-login",
+        "ui-page-print", "ui-page-restricted"
+      ];
+      let lastAppliedMode = "";
+      let resizeTimer = null;
+
+      function getHashViewV123(){
+        try { return (getHashParams().get("view") || "operator").trim(); }
+        catch (error) { return "operator"; }
+      }
+
+      function isMobileViewportV123(){
+        try {
+          if (window.matchMedia && window.matchMedia("(max-width: 760px)").matches) return true;
+          if (window.matchMedia && window.matchMedia("(pointer: coarse) and (max-width: 1024px)").matches) return true;
+          return window.innerWidth <= 760;
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function computeUiModeV123(explicitMode){
+        if (explicitMode === "pc" || explicitMode === "mobile" || explicitMode === "tv") return explicitMode;
+        const view = getHashViewV123();
+        if (view === "tv" || view === "tv-live") return "tv";
+        if (view === "mobile" || view === "mobile-live" || view === "live") return "mobile";
+        return isMobileViewportV123() ? "mobile" : "pc";
+      }
+
+      function setUiModeV123(explicitMode, pageClass){
+        const mode = computeUiModeV123(explicitMode);
+        try {
+          MODE_CLASSES.forEach(cls => document.body.classList.remove(cls));
+          if (pageClass) PAGE_CLASSES.forEach(cls => document.body.classList.remove(cls));
+          document.body.classList.add(`ui-mode-${mode}`);
+          if (pageClass) document.body.classList.add(pageClass);
+          if (mode === "tv") document.body.classList.add("tv-mode");
+          else document.body.classList.remove("tv-mode");
+          document.documentElement.setAttribute("data-ui-mode", mode);
+          document.documentElement.setAttribute("data-ui-page", pageClass || "");
+          lastAppliedMode = mode;
+        } catch (error) {
+          console.warn("v123 set UI mode failed", error);
+        }
+        return mode;
+      }
+
+      function wrapRenderV123(name, mode, pageClass){
+        const original = window[name];
+        if (typeof original !== "function" || original.__v123Wrapped) return false;
+        const wrapped = function(...args){
+          setUiModeV123(typeof mode === "function" ? mode.apply(this, args) : mode, pageClass);
+          return original.apply(this, args);
+        };
+        wrapped.__v123Wrapped = true;
+        wrapped.__v123Original = original;
+        try { window[name] = wrapped; } catch (error) { console.warn(`v123 wrap failed: ${name}`, error); return false; }
+        return true;
+      }
+
+      function stampTableLabelsV123(root = document){
+        try {
+          root.querySelectorAll("table.roster-table, table.admin-table").forEach(table => {
+            const headers = Array.from(table.querySelectorAll("thead th")).map(th => (th.textContent || "").trim());
+            table.querySelectorAll("tbody tr").forEach(row => {
+              Array.from(row.children).forEach((cell, index) => {
+                if (!cell.getAttribute("data-label")) cell.setAttribute("data-label", headers[index] || "항목");
+              });
+            });
+          });
+        } catch (error) { /* non-fatal */ }
+      }
+
+      const observer = new MutationObserver(() => {
+        if (document.body.classList.contains("ui-mode-mobile") && !document.body.classList.contains("tv-mode")) {
+          stampTableLabelsV123(document);
+        }
+      });
+
+      try { observer.observe(document.documentElement, { childList: true, subtree: true }); } catch (error) {}
+
+      wrapRenderV123("renderOperator", null, "ui-page-operator");
+      wrapRenderV123("renderDbPage", null, "ui-page-db");
+      wrapRenderV123("renderAdminPage", null, "ui-page-admin");
+      wrapRenderV123("renderDashboardPage", null, "ui-page-dashboard");
+      wrapRenderV123("renderDashboardWithRecords", null, "ui-page-dashboard");
+      wrapRenderV123("renderLiveLobbyPage", null, "ui-page-live-lobby");
+      wrapRenderV123("renderLiveLobbyWithData", null, "ui-page-live-lobby");
+      wrapRenderV123("renderLoginPage", null, "ui-page-login");
+      wrapRenderV123("renderPendingPage", null, "ui-page-restricted");
+      wrapRenderV123("renderRestrictedPage", null, "ui-page-restricted");
+      wrapRenderV123("renderPrintView", "pc", "ui-page-print");
+      wrapRenderV123("renderMobileSnapshot", "mobile", "ui-page-mobile-live");
+      wrapRenderV123("renderTvLiveView", "tv", "ui-page-tv-live");
+      wrapRenderV123("renderTvStage", "tv", "ui-page-tv-live");
+      wrapRenderV123("renderTvSnapshot", function(payload, viewType){ return viewType === "mobile" ? "mobile" : "tv"; }, "ui-page-tv-live");
+
+      const originalBootV123 = window.bootV33 || window.boot;
+      if (typeof originalBootV123 === "function" && !originalBootV123.__v123WrappedBoot) {
+        const bootWrapper = async function bootV123DeviceSplit(){
+          setUiModeV123(null, "");
+          const result = await originalBootV123.apply(this, arguments);
+          setTimeout(() => stampTableLabelsV123(document), 0);
+          return result;
+        };
+        bootWrapper.__v123WrappedBoot = true;
+        try {
+          if (window.bootV33) window.bootV33 = bootWrapper;
+          if (window.boot) window.boot = bootWrapper;
+        } catch (error) { console.warn("v123 boot wrap failed", error); }
+      }
+
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          if (document.body.classList.contains("tv-mode")) return;
+          const nextMode = computeUiModeV123(null);
+          if (nextMode !== lastAppliedMode) setUiModeV123(nextMode, document.documentElement.getAttribute("data-ui-page") || "");
+          if (nextMode === "mobile") stampTableLabelsV123(document);
+        }, 160);
+      });
+
+      window.setUiModeV123 = setUiModeV123;
+      window.computeUiModeV123 = computeUiModeV123;
+      window.__mini4wdV123DeviceSplitPatch = {
+        build: V123_BUILD_MARK,
+        modes: ["pc", "mobile", "tv"],
+        tvClass: "ui-mode-tv tv-mode",
+        mobileClass: "ui-mode-mobile",
+        pcClass: "ui-mode-pc",
+        rulesChanged: false
+      };
+    })();
+
     /* v122 final performance guardrails */
     (function(){
       const V122_BUILD_MARK = "BUILD v122 PERFORMANCE PATCH";
@@ -17293,6 +18452,136 @@ function stopLiveLobbyRealtimeV50() {
       } catch (error) {
         console.warn("v122 performance guard init failed", error);
       }
+    })();
+
+
+    /* v124 device UI audit runtime: apply mode immediately and after all render mutations */
+    (function installV124DeviceUiAuditPatch(){
+      if (window.__mini4wdV124DeviceUiAuditPatchInstalled) return;
+      window.__mini4wdV124DeviceUiAuditPatchInstalled = true;
+      const BUILD = "BUILD v124 DEVICE UI AUDIT PATCH";
+      const MODE_CLASSES = ["ui-mode-pc", "ui-mode-mobile", "ui-mode-tv"];
+      const PAGE_CLASSES = [
+        "ui-page-operator", "ui-page-db", "ui-page-admin", "ui-page-dashboard",
+        "ui-page-live-lobby", "ui-page-mobile-live", "ui-page-tv-live", "ui-page-login",
+        "ui-page-print", "ui-page-restricted"
+      ];
+      let pending = 0;
+
+      function hashViewV124(){
+        try { return (getHashParams().get("view") || "operator").trim(); }
+        catch (error) { return "operator"; }
+      }
+      function isMobileViewportV124(){
+        try {
+          if (window.matchMedia && window.matchMedia("(max-width: 760px)").matches) return true;
+          if (window.matchMedia && window.matchMedia("(pointer: coarse) and (max-width: 1024px)").matches) return true;
+          return window.innerWidth <= 760;
+        } catch (error) { return false; }
+      }
+      function pageClassV124(view){
+        if (view === "db") return "ui-page-db";
+        if (view === "admin") return "ui-page-admin";
+        if (view === "dashboard") return "ui-page-dashboard";
+        if (view === "live-lobby") return "ui-page-live-lobby";
+        if (view === "mobile" || view === "mobile-live" || view === "live") return "ui-page-mobile-live";
+        if (view === "tv" || view === "tv-live") return "ui-page-tv-live";
+        if (view === "print") return "ui-page-print";
+        if (view === "login") return "ui-page-login";
+        return "ui-page-operator";
+      }
+      function modeV124(view){
+        if (view === "tv" || view === "tv-live") return "tv";
+        if (view === "mobile" || view === "mobile-live" || view === "live") return "mobile";
+        return isMobileViewportV124() ? "mobile" : "pc";
+      }
+      function stampTableLabelsV124(root){
+        try {
+          (root || document).querySelectorAll("table.roster-table, table.admin-table").forEach(table => {
+            const headers = Array.from(table.querySelectorAll("thead th")).map(th => (th.textContent || "").replace(/▲|▼/g, "").trim() || "항목");
+            table.querySelectorAll("tbody tr").forEach(row => {
+              Array.from(row.children).forEach((cell, idx) => {
+                if (!cell.getAttribute("data-label")) cell.setAttribute("data-label", headers[idx] || "항목");
+              });
+            });
+          });
+        } catch (error) {}
+      }
+      function applyV124(){
+        try {
+          const view = hashViewV124();
+          const mode = modeV124(view);
+          const page = pageClassV124(view);
+          MODE_CLASSES.forEach(cls => document.body.classList.remove(cls));
+          PAGE_CLASSES.forEach(cls => document.body.classList.remove(cls));
+          document.body.classList.add(`ui-mode-${mode}`, page);
+          if (mode === "tv") document.body.classList.add("tv-mode");
+          else document.body.classList.remove("tv-mode");
+          document.documentElement.setAttribute("data-ui-mode", mode);
+          document.documentElement.setAttribute("data-ui-page", page);
+          stampTableLabelsV124(document);
+        } catch (error) { console.warn("v124 UI mode apply failed", error); }
+      }
+      function scheduleV124(){
+        clearTimeout(pending);
+        pending = setTimeout(applyV124, 0);
+      }
+      window.applyDeviceUiModeV124 = applyV124;
+      window.addEventListener("resize", () => setTimeout(applyV124, 80));
+      window.addEventListener("orientationchange", () => setTimeout(applyV124, 160));
+      window.addEventListener("hashchange", () => setTimeout(applyV124, 0));
+      try {
+        new MutationObserver(scheduleV124).observe(document.getElementById("app") || document.body, { childList: true, subtree: true });
+      } catch (error) {}
+      applyV124();
+      setTimeout(applyV124, 0);
+      setTimeout(applyV124, 250);
+      window.__mini4wdV124DeviceUiAuditPatch = {
+        build: BUILD,
+        modes: ["pc", "mobile", "tv"],
+        initialModeApply: true,
+        tableLabelStamp: true,
+        rulesChanged: false
+      };
+    })();
+
+
+    /* v125 design system runtime marker */
+    (function installV125DesignSystemPatch(){
+      if (window.__mini4wdV125DesignSystemPatchInstalled) return;
+      window.__mini4wdV125DesignSystemPatchInstalled = true;
+      const BUILD = "BUILD v125 DESIGN SYSTEM 1.0 PATCH";
+      function applyV125PageClass(){
+        try {
+          const view = (typeof getHashParams === "function" ? (getHashParams().get("view") || "operator") : "operator").trim();
+          document.documentElement.setAttribute("data-v125-view", view);
+          document.body.classList.toggle("v125-player-db", view === "db");
+          document.body.classList.toggle("v125-tv", view === "tv" || view === "tv-live");
+          document.body.classList.toggle("v125-mobile-live", view === "mobile" || view === "mobile-live" || view === "live");
+        } catch (error) {}
+      }
+      const originalRenderV125 = window.render;
+      if (typeof originalRenderV125 === "function" && !originalRenderV125.__v125Wrapped) {
+        const wrapped = function(){
+          applyV125PageClass();
+          const result = originalRenderV125.apply(this, arguments);
+          setTimeout(applyV125PageClass, 0);
+          return result;
+        };
+        wrapped.__v125Wrapped = true;
+        wrapped.__v125Original = originalRenderV125;
+        try { window.render = wrapped; } catch (error) {}
+      }
+      window.addEventListener("hashchange", () => setTimeout(applyV125PageClass, 0));
+      window.addEventListener("resize", () => setTimeout(applyV125PageClass, 120));
+      setTimeout(applyV125PageClass, 0);
+      window.__mini4wdV125DesignSystemPatch = {
+        build: BUILD,
+        pc: "dense dashboard/operator UI",
+        mobile: "compact roster table/list, card roster removed",
+        tv: "broadcast isolated hierarchy",
+        rulesChanged: false
+      };
     })();
 </script>
 </body>
