@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v133 URGENT UI FIT PATCH</title>
-  <!-- BUILD v133 URGENT UI FIT PATCH · PC/mobile header, stage meta, compact controls; rules unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v134 MOBILE PLAYER DB TABLE PATCH</title>
+  <!-- BUILD v134 MOBILE PLAYER DB TABLE PATCH · mobile roster list table; rules unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -13375,6 +13375,407 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       body:not(.tv-mode) .app-titlebar-v132 .desc { height: 14px !important; font-size: 11px !important; line-height: 14px !important; }
     }
 
+
+
+    /* v134 MOBILE PLAYER DB TABLE PATCH · mobile roster uses PC-like compact table, not card grid */
+    @media (max-width: 760px) {
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-list-card-v98,
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-list-card-v99 {
+        padding: 9px !important;
+        overflow: hidden !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-list-card-v98 > .db-panel-title,
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-list-card-v99 > .db-panel-title {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 6px !important;
+        margin-bottom: 7px !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .db-filter-actions {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1.3fr) minmax(76px, .85fr) minmax(86px, .9fr) !important;
+        gap: 5px !important;
+        width: 100% !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .db-filter-actions input,
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .db-filter-actions select {
+        width: 100% !important;
+        height: 28px !important;
+        min-height: 28px !important;
+        padding: 0 7px !important;
+        border-radius: 8px !important;
+        font-size: 11px !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .db-stat-grid {
+        display: grid !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 4px !important;
+        margin: 0 0 7px !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .db-stat {
+        padding: 5px 4px !important;
+        border-radius: 8px !important;
+        min-height: 38px !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .db-stat small {
+        font-size: 8.5px !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .db-stat strong {
+        font-size: 15px !important;
+        line-height: 1.05 !important;
+        margin-top: 2px !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .db-bulk-toolbar {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 5px !important;
+        padding: 6px !important;
+        margin: 0 0 7px !important;
+        border-radius: 9px !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .db-checkline {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        margin: 0 !important;
+        font-size: 10.5px !important;
+        white-space: nowrap !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .db-bulk-count-v130 {
+        display: inline-flex !important;
+        align-items: center !important;
+        margin: 0 0 0 7px !important;
+        font-size: 10px !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .db-bulk-buttons {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        gap: 4px !important;
+        overflow-x: auto !important;
+        padding-bottom: 1px !important;
+        scrollbar-width: none !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .db-bulk-buttons::-webkit-scrollbar { display: none !important; }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .db-bulk-buttons button {
+        flex: 0 0 auto !important;
+        width: auto !important;
+        height: 24px !important;
+        min-height: 24px !important;
+        padding: 0 7px !important;
+        border-radius: 7px !important;
+        font-size: 10px !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+      }
+
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-wrap,
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-scroll-v98,
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-scroll-v99 {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        overflow-y: visible !important;
+        -webkit-overflow-scrolling: touch !important;
+        border: 1px solid #dbe3ef !important;
+        border-radius: 10px !important;
+        background: #fff !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table,
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 {
+        display: table !important;
+        table-layout: fixed !important;
+        width: 850px !important;
+        min-width: 850px !important;
+        max-width: none !important;
+        border-collapse: collapse !important;
+        border-spacing: 0 !important;
+        background: #fff !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table thead,
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 thead {
+        display: table-header-group !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table tbody,
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 tbody {
+        display: table-row-group !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table tr,
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 tr {
+        display: table-row !important;
+        width: auto !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table th,
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table td,
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 th,
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 td {
+        display: table-cell !important;
+        width: auto !important;
+        min-width: 0 !important;
+        vertical-align: middle !important;
+        padding: 4px 4px !important;
+        border-bottom: 1px solid #e5edf6 !important;
+        border-right: 1px solid #eef2f7 !important;
+        background: transparent !important;
+        font-size: 11px !important;
+        line-height: 1.1 !important;
+        white-space: nowrap !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table th,
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 th {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 2 !important;
+        height: 26px !important;
+        padding-top: 3px !important;
+        padding-bottom: 3px !important;
+        background: #f1f5f9 !important;
+        color: #334155 !important;
+        font-weight: 1000 !important;
+        text-align: center !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table td::before,
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 td::before {
+        content: none !important;
+        display: none !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table td[data-label="참가"],
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 td[data-label="참가"],
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table th:nth-child(1) {
+        width: 30px !important;
+        text-align: center !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table td[data-label="즐겨찾기"],
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 td[data-label="즐겨찾기"],
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table th:nth-child(2) {
+        width: 34px !important;
+        text-align: center !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table td[data-label="경기장"],
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 td[data-label="경기장"] { width: 100px !important; }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table td[data-label="실명"],
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 td[data-label="실명"] { width: 86px !important; }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table td[data-label="닉네임"],
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 td[data-label="닉네임"] { width: 92px !important; }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table td[data-label="팀명"],
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 td[data-label="팀명"] { width: 90px !important; }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table td[data-label="연락처"],
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 td[data-label="연락처"] { width: 104px !important; }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table td[data-label="메모"],
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 td[data-label="메모"] { width: 118px !important; }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table td[data-label="상태&관리"],
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 td[data-label="상태&관리"] { width: 84px !important; }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table .mini-input,
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 .mini-input,
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-venue-select-v121,
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-action-select-v121 {
+        display: block !important;
+        width: 100% !important;
+        height: 27px !important;
+        min-height: 27px !important;
+        padding: 0 6px !important;
+        border-radius: 7px !important;
+        font-size: 11px !important;
+        line-height: 27px !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table input[type="checkbox"] {
+        width: 15px !important;
+        height: 15px !important;
+        transform: none !important;
+        margin: 0 !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-star-btn-v121 {
+        width: 24px !important;
+        min-width: 24px !important;
+        height: 24px !important;
+        min-height: 24px !important;
+        padding: 0 !important;
+        border-radius: 7px !important;
+        font-size: 13px !important;
+        line-height: 1 !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table .table-sort-btn {
+        width: 100% !important;
+        height: 22px !important;
+        min-height: 22px !important;
+        padding: 0 2px !important;
+        border: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        font-size: 10px !important;
+        color: #334155 !important;
+      }
+    }
+
+
+    /* v135 ACTIVE BACKUP + AUTO CLOSE + MOBILE DENSITY GUARD */
+    .active-backup-panel-v135 {
+      display: grid !important;
+      gap: 8px !important;
+    }
+    .active-backup-panel-v135 .ops-row {
+      align-items: flex-start !important;
+    }
+    .active-backup-list-v135 {
+      display: grid !important;
+      gap: 6px !important;
+      margin-top: 4px !important;
+    }
+    .active-backup-item-v135 {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) auto !important;
+      align-items: center !important;
+      gap: 8px !important;
+      padding: 8px 9px !important;
+      border: 1px solid rgba(238,233,223,.08) !important;
+      border-radius: 12px !important;
+      background: rgba(238,233,223,.035) !important;
+      min-width: 0 !important;
+    }
+    .active-backup-main-v135 {
+      min-width: 0 !important;
+      display: grid !important;
+      gap: 2px !important;
+    }
+    .active-backup-main-v135 strong,
+    .active-backup-main-v135 span {
+      display: block !important;
+      min-width: 0 !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+    .active-backup-main-v135 strong {
+      font-size: 12px !important;
+      line-height: 1.25 !important;
+      color: var(--text) !important;
+      font-weight: 1000 !important;
+    }
+    .active-backup-main-v135 span {
+      font-size: 11px !important;
+      line-height: 1.25 !important;
+      color: var(--dim) !important;
+      font-weight: 850 !important;
+    }
+    .active-backup-item-v135 button {
+      min-height: 28px !important;
+      height: 28px !important;
+      padding: 0 9px !important;
+      border-radius: 9px !important;
+      font-size: 11px !important;
+      white-space: nowrap !important;
+    }
+    .auto-close-note-v135 {
+      margin: 0 !important;
+      color: var(--dim) !important;
+      font-size: 11px !important;
+      line-height: 1.4 !important;
+      font-weight: 850 !important;
+    }
+
+    @media (max-width: 760px) {
+      html, body {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode),
+      body.ui-mode-mobile:not(.tv-mode) #app,
+      body.ui-mode-mobile:not(.tv-mode) .wrap,
+      body.ui-mode-mobile:not(.tv-mode) .db-page,
+      body.ui-mode-mobile:not(.tv-mode) .layout,
+      body.ui-mode-mobile:not(.tv-mode) .main-area,
+      body.ui-mode-mobile:not(.tv-mode) .side-area,
+      body.ui-mode-mobile:not(.tv-mode) .operator-control-pages,
+      body.ui-mode-mobile:not(.tv-mode) .operator-page,
+      body.ui-mode-mobile:not(.tv-mode) .operator-page-body,
+      body.ui-mode-mobile:not(.tv-mode) .card,
+      body.ui-mode-mobile:not(.tv-mode) .round-card,
+      body.ui-mode-mobile:not(.tv-mode) .stage-card,
+      body.ui-mode-mobile:not(.tv-mode) .status-panel,
+      body.ui-mode-mobile:not(.tv-mode) .toolbar {
+        max-width: 100% !important;
+        min-width: 0 !important;
+        overflow-x: hidden !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-wrap {
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        overflow-y: visible !important;
+        -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior-x: contain !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121,
+      body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table {
+        min-width: 760px !important;
+        width: max-content !important;
+        max-width: none !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .operator-page > summary,
+      body.ui-mode-mobile:not(.tv-mode) .card h2,
+      body.ui-mode-mobile:not(.tv-mode) .round-title h2,
+      body.ui-mode-mobile:not(.tv-mode) .stage-head h3,
+      body.ui-mode-mobile:not(.tv-mode) .db-panel-title h2 {
+        font-size: 13px !important;
+        line-height: 1.22 !important;
+        letter-spacing: -.025em !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) label,
+      body.ui-mode-mobile:not(.tv-mode) .hint,
+      body.ui-mode-mobile:not(.tv-mode) .meta,
+      body.ui-mode-mobile:not(.tv-mode) .pill,
+      body.ui-mode-mobile:not(.tv-mode) .badge,
+      body.ui-mode-mobile:not(.tv-mode) .auto-close-note-v135 {
+        font-size: 11px !important;
+        line-height: 1.35 !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) button,
+      body.ui-mode-mobile:not(.tv-mode) .upload-button,
+      body.ui-mode-mobile:not(.tv-mode) .mini-input,
+      body.ui-mode-mobile:not(.tv-mode) select,
+      body.ui-mode-mobile:not(.tv-mode) input,
+      body.ui-mode-mobile:not(.tv-mode) textarea {
+        font-size: 11px !important;
+        line-height: 1.2 !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .toolbar button,
+      body.ui-mode-mobile:not(.tv-mode) .btnrow button,
+      body.ui-mode-mobile:not(.tv-mode) .ops-buttons button,
+      body.ui-mode-mobile:not(.tv-mode) .section-toolbar button,
+      body.ui-mode-mobile:not(.tv-mode) .dashboard-actions-toolbar button {
+        min-height: 31px !important;
+        height: auto !important;
+        padding: 6px 8px !important;
+        border-radius: 10px !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .ops-panel,
+      body.ui-mode-mobile:not(.tv-mode) .firebase-panel,
+      body.ui-mode-mobile:not(.tv-mode) .active-backup-panel-v135 {
+        padding: 8px !important;
+        border-radius: 13px !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .active-backup-item-v135 {
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        padding: 7px !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .active-backup-main-v135 strong {
+        font-size: 11.5px !important;
+      }
+      body.ui-mode-mobile:not(.tv-mode) .active-backup-main-v135 span {
+        font-size: 10.5px !important;
+      }
+    }
+
 </style>
 </head>
 <body>
@@ -19604,6 +20005,310 @@ function stopLiveLobbyRealtimeV50() {
       return report;
     }
 
+
+
+    /* v135 active tournament backup loader + 60-minute auto close */
+    (function installV135ActiveBackupAndAutoClose(){
+      if (window.__mini4wdV135ActiveBackupInstalled) return;
+      window.__mini4wdV135ActiveBackupInstalled = true;
+      const V135_BUILD_MARK = "BUILD v135 ACTIVE BACKUP AUTO CLOSE PATCH";
+      const AUTO_CLOSE_MS_V135 = 60 * 60 * 1000;
+      let activeListV135 = [];
+      let activeListLoadingV135 = false;
+      let activeListErrorV135 = "";
+      let autoCloseBusyV135 = false;
+
+      function nowV135(){ return Date.now(); }
+      function safeTextV135(value){ return String(value == null ? "" : value); }
+      function timeTextV135(value){
+        if (!value) return "-";
+        try { return new Date(Number(value) || value).toLocaleString("ko-KR"); }
+        catch (error) { return "-"; }
+      }
+      function twoDigitV135(value){ return String(Number(value) || 0).padStart(2, "0"); }
+      function elapsedTextV135(ms){
+        const minutes = Math.max(0, Math.floor((Number(ms) || 0) / 60000));
+        if (minutes < 60) return `${minutes}분 전`;
+        const hours = Math.floor(minutes / 60);
+        const rest = minutes % 60;
+        return rest ? `${hours}시간 ${rest}분 전` : `${hours}시간 전`;
+      }
+      function currentVenueKeyV135(){
+        try { return normalizeKey(currentVenueId() || currentVenueName() || ""); }
+        catch (error) { return ""; }
+      }
+      function stateVenueKeysV135(sourceState){
+        const t = sourceState?.tournament || {};
+        return [t.venueId, t.venue, t.venueName].filter(Boolean).map(v => normalizeKey(v));
+      }
+      function isSameVenueV135(sourceState){
+        const currentKey = currentVenueKeyV135();
+        if (!currentKey) return false;
+        return stateVenueKeysV135(sourceState).includes(currentKey);
+      }
+      function tournamentLastAtV135(record){
+        const stateValue = record?.state || record || {};
+        const candidates = [stateValue.updatedAt, record?.updatedAt, stateValue.tournament?.updatedAt, stateValue.tournament?.startedAtISO];
+        for (const item of candidates) {
+          if (!item) continue;
+          const numberValue = Number(item);
+          if (Number.isFinite(numberValue) && numberValue > 0) return numberValue;
+          const parsed = Date.parse(item);
+          if (Number.isFinite(parsed)) return parsed;
+        }
+        return 0;
+      }
+      function activeRoundLabelV135(sourceState){
+        try {
+          const rounds = sourceState.qualifierRounds || [];
+          const idx = Math.max(0, Math.min(Number(sourceState.activeRoundIndex || 0), Math.max(0, rounds.length - 1)));
+          const round = rounds[idx];
+          if (!round) return "라운드 미생성";
+          const currentStage = (round.stages || [])[Math.max(0, (round.stages || []).length - 1)];
+          return currentStage ? `${round.title || "라운드"} · ${currentStage.name || "진행중"}` : `${round.title || "라운드"} · 대기`;
+        } catch (error) { return "-"; }
+      }
+      function activeTournamentEntryV135(id, raw){
+        const sourceState = raw?.state || raw || {};
+        const status = sourceState?.tournament?.status || raw?.status || "draft";
+        const lastAt = tournamentLastAtV135(raw);
+        const participants = (() => {
+          try { return String(sourceState.inputText || "").split(/\n+/).map(v => v.trim()).filter(Boolean).length; }
+          catch (error) { return 0; }
+        })();
+        return { id, state: sourceState, status, lastAt, participants };
+      }
+      function activeTournamentLabelV135(entry){
+        const t = entry.state?.tournament || {};
+        const name = t.name || entry.state?.tournamentName || "대회명 미입력";
+        const klass = t.raceClass || "오픈";
+        const venue = t.venue || t.venueName || "경기장";
+        return `${venue} · ${name} · ${klass}`;
+      }
+      function activeTournamentMetaV135(entry){
+        const passed = entry.lastAt ? nowV135() - entry.lastAt : 0;
+        const stale = entry.lastAt && passed >= AUTO_CLOSE_MS_V135;
+        return `${entry.participants || 0}명 · ${activeRoundLabelV135(entry.state)} · 마지막 변경 ${entry.lastAt ? elapsedTextV135(passed) : "-"}${stale ? " · 자동종료 대상" : ""}`;
+      }
+      async function fetchActiveTournamentEntriesV135({ closeStale = false } = {}){
+        const db = initFirebase();
+        if (!db || !currentAuthUser) throw new Error("Firebase 로그인 상태가 필요합니다.");
+        const snap = await db.ref("tournaments").get();
+        const raw = snap.val() || {};
+        const entries = Object.entries(raw).map(([id, value]) => activeTournamentEntryV135(id, value))
+          .filter(entry => entry.status === "running")
+          .filter(entry => isSameVenueV135(entry.state) || isAdminUser())
+          .sort((a, b) => (b.lastAt || 0) - (a.lastAt || 0));
+        if (closeStale) {
+          for (const entry of entries) {
+            if (entry.lastAt && nowV135() - entry.lastAt >= AUTO_CLOSE_MS_V135) {
+              await closeRemoteTournamentV135(entry.id, entry.state, "60분 무변화 자동 종료");
+            }
+          }
+          if (entries.some(entry => entry.lastAt && nowV135() - entry.lastAt >= AUTO_CLOSE_MS_V135)) {
+            const snap2 = await db.ref("tournaments").get();
+            const raw2 = snap2.val() || {};
+            return Object.entries(raw2).map(([id, value]) => activeTournamentEntryV135(id, value))
+              .filter(entry => entry.status === "running")
+              .filter(entry => isSameVenueV135(entry.state) || isAdminUser())
+              .sort((a, b) => (b.lastAt || 0) - (a.lastAt || 0));
+          }
+        }
+        return entries;
+      }
+      async function closeRemoteTournamentV135(id, sourceState, reason){
+        const db = initFirebase();
+        if (!db || !id || !sourceState) return false;
+        const nextState = normalizeImportedState(sourceState);
+        const endedISO = new Date().toISOString();
+        nextState.tournament = {
+          ...(nextState.tournament || {}),
+          status: "finished",
+          endedAtISO: nextState.tournament?.endedAtISO || endedISO,
+          endedAtDisplay: nextState.tournament?.endedAtDisplay || formatDisplayDateTime(new Date()),
+          liveStopped: true,
+          autoClosed: true,
+          autoCloseReason: reason,
+          autoClosedAt: endedISO
+        };
+        nextState.updatedAt = nowV135();
+        const publicLive = {
+          id,
+          liveSignature: nextState.tournament?.liveSignature || id,
+          venueId: nextState.tournament?.venueId || "",
+          venueName: nextState.tournament?.venue || nextState.tournament?.venueName || "",
+          tournamentName: nextState.tournament?.name || "대회명 미입력",
+          raceClass: nextState.tournament?.raceClass || "오픈",
+          status: "finished",
+          live: false,
+          liveKeyLabel: `${nextState.tournament?.venue || ""} · ${nextState.tournament?.name || "대회명 미입력"}`,
+          updatedAt: nextState.updatedAt,
+          state: nextState,
+          autoCloseReason: reason
+        };
+        const updates = {};
+        updates[`tournaments/${id}/state`] = nextState;
+        updates[`tournaments/${id}/updatedAt`] = firebase.database.ServerValue.TIMESTAMP;
+        updates[`${PUBLIC_LIVE_PATH}/${id}`] = publicLive;
+        await db.ref().update(updates);
+        return true;
+      }
+      async function closeCurrentTournamentV135(reason = "60분 무변화 자동 종료"){
+        if (autoCloseBusyV135 || !state?.tournament || state.tournament.status !== "running") return false;
+        autoCloseBusyV135 = true;
+        try {
+          const id = getCurrentTournamentId();
+          const endedISO = new Date().toISOString();
+          if (typeof createAutoSnapshot === "function") createAutoSnapshot("자동 종료 전 백업");
+          state.tournament.status = "finished";
+          state.tournament.endedAtISO = state.tournament.endedAtISO || endedISO;
+          state.tournament.endedAtDisplay = state.tournament.endedAtDisplay || formatDisplayDateTime(new Date());
+          state.tournament.liveStopped = true;
+          state.tournament.autoClosed = true;
+          state.tournament.autoCloseReason = reason;
+          state.tournament.autoClosedAt = endedISO;
+          state.updatedAt = nowV135();
+          safeSetItem(STORAGE_KEY, JSON.stringify(exportState()));
+          if (typeof logTournamentAction === "function") logTournamentAction("자동 종료", reason);
+          await forceLiveBroadcastSync("auto-close-60m-v135");
+          if (!document.body.classList.contains("tv-mode") && typeof renderOperator === "function") renderOperator();
+          return true;
+        } catch (error) {
+          console.warn("v135 current tournament auto-close failed", error);
+          return false;
+        } finally {
+          autoCloseBusyV135 = false;
+        }
+      }
+      function checkCurrentTournamentAutoCloseV135(){
+        try {
+          if (!state?.tournament || state.tournament.status !== "running") return false;
+          const lastAt = Number(state.updatedAt || 0);
+          if (!lastAt || nowV135() - lastAt < AUTO_CLOSE_MS_V135) return false;
+          closeCurrentTournamentV135("60분 이상 상태 변화 없음");
+          return true;
+        } catch (error) {
+          console.warn("v135 auto-close check failed", error);
+          return false;
+        }
+      }
+      async function ensureNoOtherRunningTournamentV135(){
+        try {
+          if (!state?.tournament || state.tournament.status === "running") return true;
+          const currentId = getCurrentTournamentId();
+          const entries = await fetchActiveTournamentEntriesV135({ closeStale: true });
+          const other = entries.find(entry => entry.id !== currentId);
+          if (!other) return true;
+          activeListV135 = entries;
+          activeListErrorV135 = "";
+          alert(`이미 진행중인 대회가 있습니다.\n${activeTournamentLabelV135(other)}\n\n먼저 진행중 대회를 불러오거나 종료한 뒤 새 대회를 시작하세요.`);
+          if (typeof renderOperator === "function") renderOperator();
+          return false;
+        } catch (error) {
+          console.warn("v135 active tournament guard failed", error);
+          return true;
+        }
+      }
+      window.requestActiveTournamentListV135 = async function requestActiveTournamentListV135(){
+        try {
+          activeListLoadingV135 = true;
+          activeListErrorV135 = "";
+          if (typeof renderOperator === "function") renderOperator();
+          activeListV135 = await fetchActiveTournamentEntriesV135({ closeStale: true });
+        } catch (error) {
+          activeListErrorV135 = error?.message || String(error);
+          activeListV135 = [];
+        } finally {
+          activeListLoadingV135 = false;
+          if (typeof renderOperator === "function") renderOperator();
+        }
+      };
+      window.loadActiveTournamentV135 = async function loadActiveTournamentV135(id){
+        try {
+          const db = initFirebase();
+          if (!db || !id) return alert("불러올 대회를 찾지 못했습니다.");
+          const snap = await db.ref(`tournaments/${id}/state`).get();
+          const payload = snap.val();
+          if (!payload) return alert("진행중 대회 상태를 읽지 못했습니다.");
+          if (!confirm("선택한 진행중 대회를 현재 운영 화면으로 불러올까요?")) return;
+          state = normalizeImportedState(payload);
+          state.tournament.liveId = id;
+          state.tournament.liveSignature = state.tournament.liveSignature || buildAutoTournamentId();
+          activeRoundIndex = Math.max(0, Math.min(Number(state.activeRoundIndex || 0), Math.max(0, (state.qualifierRounds || []).length - 1)));
+          state.activeRoundIndex = activeRoundIndex;
+          firebaseTournamentId = id;
+          safeSetItem("mini4wdTournamentId", id);
+          safeSetItem("mini4wdActiveLiveId", id);
+          safeSetItem("mini4wdActiveLiveSignature", state.tournament.liveSignature || id);
+          safeSetItem(STORAGE_KEY, JSON.stringify(exportState()));
+          if (typeof createAutoSnapshot === "function") createAutoSnapshot("진행중 대회 불러오기");
+          if (typeof logTournamentAction === "function") logTournamentAction("진행중 대회 불러오기", id);
+          if (typeof renderOperator === "function") renderOperator();
+        } catch (error) {
+          alert("진행중 대회 불러오기 실패: " + (error?.message || String(error)));
+        }
+      };
+      window.closeCurrentTournamentV135 = closeCurrentTournamentV135;
+      window.checkCurrentTournamentAutoCloseV135 = checkCurrentTournamentAutoCloseV135;
+
+      const originalStartAllFirstStagesV135 = typeof startAllFirstStages === "function" ? startAllFirstStages : null;
+      if (originalStartAllFirstStagesV135 && !originalStartAllFirstStagesV135.__v135Wrapped) {
+        const wrappedStartAllFirstStagesV135 = async function startAllFirstStagesV135(){
+          const ok = await ensureNoOtherRunningTournamentV135();
+          if (!ok) return false;
+          return originalStartAllFirstStagesV135.apply(this, arguments);
+        };
+        wrappedStartAllFirstStagesV135.__v135Wrapped = true;
+        try { startAllFirstStages = wrappedStartAllFirstStagesV135; window.startAllFirstStages = wrappedStartAllFirstStagesV135; } catch (error) {}
+      }
+
+      const originalRenderOperationPanelV135 = typeof renderOperationPanel === "function" ? renderOperationPanel : null;
+      if (originalRenderOperationPanelV135 && !originalRenderOperationPanelV135.__v135Wrapped) {
+        const renderOperationPanelWrappedV135 = function renderOperationPanelWrappedV135(){
+          const lock = typeof operationLockText === "function" ? operationLockText() : { on:false, text:"운영 잠금 상태를 확인할 수 없습니다." };
+          const snapshots = typeof loadSnapshots === "function" ? loadSnapshots().slice(0, 1) : [];
+          const activeList = activeListV135 || [];
+          const listHtml = activeListLoadingV135
+            ? `<div class="hint">진행중 대회를 확인하는 중입니다.</div>`
+            : activeListErrorV135
+              ? `<div class="hint">불러오기 오류: ${escapeHtml(activeListErrorV135)}</div>`
+              : activeList.length
+                ? `<div class="active-backup-list-v135">${activeList.map(entry => `<div class="active-backup-item-v135"><div class="active-backup-main-v135"><strong>${escapeHtml(activeTournamentLabelV135(entry))}</strong><span>${escapeHtml(activeTournamentMetaV135(entry))}</span></div><button class="ghost" onclick="loadActiveTournamentV135('${escapeAttr(entry.id)}')">불러오기</button></div>`).join("")}</div>`
+                : `<div class="hint">현재 불러올 진행중 대회가 없습니다.</div>`;
+          const snapshotHtml = snapshots.length
+            ? `<div class="snapshot-list">${snapshots.map(s => `<div class="snapshot-item"><span>${escapeHtml(s.label)} · ${escapeHtml(formatSnapshotTime(s.createdAt))}</span><button class="ghost" onclick="restoreSnapshot('${escapeAttr(s.id)}')">로컬 복구</button></div>`).join("")}</div>`
+            : `<div class="hint">로컬 임시 저장 상태가 없습니다.</div>`;
+          return `<section class="ops-panel active-backup-panel-v135"><div class="ops-row"><div><strong>운영 안정화</strong><br><span class="${lock.on ? 'lock-on' : 'lock-off'}">${escapeHtml(lock.text)}</span><p class="auto-close-note-v135">진행중 대회는 마지막 상태 변경 후 60분이 지나면 자동 종료 처리됩니다.</p></div><div class="ops-buttons"><button class="${lock.on ? 'ghost' : 'primary'}" onclick="acquireOperationLock()">운영 잠금</button><button class="ghost" onclick="releaseOperationLock(false)">잠금 해제</button><button class="ghost" onclick="createManualSnapshot()">현재 상태 저장</button><button class="ghost" onclick="requestActiveTournamentListV135()">진행중 대회 불러오기</button></div></div>${listHtml}${snapshotHtml}</section>`;
+        };
+        renderOperationPanelWrappedV135.__v135Wrapped = true;
+        try { renderOperationPanel = renderOperationPanelWrappedV135; window.renderOperationPanel = renderOperationPanelWrappedV135; } catch (error) {}
+      }
+
+      const originalRenderOperatorV135 = typeof renderOperator === "function" ? renderOperator : null;
+      if (originalRenderOperatorV135 && !originalRenderOperatorV135.__v135Wrapped) {
+        const renderOperatorWrappedV135 = function renderOperatorWrappedV135(){
+          checkCurrentTournamentAutoCloseV135();
+          return originalRenderOperatorV135.apply(this, arguments);
+        };
+        renderOperatorWrappedV135.__v135Wrapped = true;
+        try { renderOperator = renderOperatorWrappedV135; window.renderOperator = renderOperatorWrappedV135; } catch (error) {}
+      }
+
+      if (!window.__mini4wdV135AutoCloseTimer) {
+        window.__mini4wdV135AutoCloseTimer = setInterval(checkCurrentTournamentAutoCloseV135, 60 * 1000);
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible") setTimeout(checkCurrentTournamentAutoCloseV135, 250);
+        });
+      }
+      window.__mini4wdV135ActiveBackupAutoClosePatch = {
+        build: V135_BUILD_MARK,
+        autoCloseMinutes: 60,
+        backupSource: "Firebase tournaments/{id}/state + localStorage latest snapshot",
+        rulesChanged: false
+      };
+    })();
+
+
     /* v78 self-audit before single boot */
     try { runV77CleanupAudit(); } catch (error) { console.warn("v78 audit failed", error); }
     try { runCommercialSelfAuditV58(); } catch (error) { console.warn("commercial audit failed", error); }
@@ -20068,6 +20773,16 @@ function stopLiveLobbyRealtimeV50() {
         build: "BUILD v133 URGENT UI FIT PATCH",
         basedOn: "v131 UI STRUCTURE CORRECTION",
         focus: ["group-size css recovery", "equal empty lanes", "unified titlebar metrics"],
+        rulesChanged: false
+      };
+    } catch (error) {}
+
+
+    try {
+      window.__mini4wdV135Delivery = {
+        build: "BUILD v135 ACTIVE BACKUP AUTO CLOSE PATCH",
+        basedOn: "v134 MOBILE PLAYER DB TABLE PATCH",
+        focus: ["active tournament load", "60-minute auto close", "mobile font/overflow guard"],
         rulesChanged: false
       };
     } catch (error) {}
