@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v131 UI STRUCTURE CORRECTION</title>
-  <!-- BUILD v132 FINAL PRACTICAL STRUCTURE · PC/mobile header, stage meta, compact controls; rules unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v133 URGENT UI FIT PATCH</title>
+  <!-- BUILD v133 URGENT UI FIT PATCH · PC/mobile header, stage meta, compact controls; rules unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -13188,6 +13188,193 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
     }
 
 
+
+    /* v133 URGENT UI FIT PATCH · group-size control, equal empty lanes, unified titlebar metrics */
+    body:not(.tv-mode) .round-head > div.group-size-control.group-size-control-v133,
+    body:not(.tv-mode) .round-head > .group-size-control.group-size-control-v133,
+    body:not(.tv-mode) .group-size-control.group-size-control-v133 {
+      grid-column: 1 / -1 !important;
+      display: flex !important;
+      flex-direction: row !important;
+      justify-content: flex-start !important;
+      align-items: center !important;
+      align-content: center !important;
+      flex-wrap: nowrap !important;
+      width: max-content !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      gap: 5px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      justify-self: start !important;
+    }
+    body:not(.tv-mode) .group-size-control.group-size-control-v133 > span {
+      display: inline-flex !important;
+      align-items: center !important;
+      width: auto !important;
+      min-width: 0 !important;
+      height: 22px !important;
+      margin: 0 3px 0 0 !important;
+      color: #334155 !important;
+      font-size: 11px !important;
+      font-weight: 900 !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+      flex: 0 0 auto !important;
+    }
+    body:not(.tv-mode) .group-size-control.group-size-control-v133 > div {
+      display: inline-flex !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      gap: 4px !important;
+      width: auto !important;
+      min-width: 0 !important;
+      flex: 0 0 auto !important;
+    }
+    body:not(.tv-mode) .group-size-control.group-size-control-v133 button {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: auto !important;
+      min-width: 0 !important;
+      max-width: none !important;
+      height: 22px !important;
+      min-height: 22px !important;
+      padding: 0 8px !important;
+      border-radius: 7px !important;
+      font-size: 10px !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+      flex: 0 0 auto !important;
+    }
+
+    body:not(.tv-mode) .slot,
+    body:not(.tv-mode) button.slot {
+      display: flex !important;
+      align-items: stretch !important;
+      width: 100% !important;
+      min-height: 72px !important;
+    }
+    body:not(.tv-mode) .slot > .slot-inner,
+    body:not(.tv-mode) button.slot > .slot-inner {
+      width: 100% !important;
+      min-height: 56px !important;
+      align-items: stretch !important;
+    }
+    body:not(.tv-mode) .empty-lane,
+    body:not(.tv-mode) .slot.empty-lane {
+      min-height: 72px !important;
+      opacity: .78 !important;
+    }
+    body:not(.tv-mode) .player-card-main,
+    body:not(.tv-mode) .player-card-main-active,
+    body:not(.tv-mode) .player-card-main-empty-v133 {
+      width: 100% !important;
+      min-height: 56px !important;
+    }
+    body:not(.tv-mode) .empty-lane-grid-v133 {
+      height: 100% !important;
+      grid-template-columns: minmax(0, 2.35fr) minmax(62px, .62fr) !important;
+      align-items: center !important;
+    }
+    body:not(.tv-mode) .empty-h2h-placeholder-v133 {
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+    body:not(.tv-mode) .empty-lane .player-identity-block {
+      align-content: center !important;
+    }
+
+    body:not(.tv-mode) .app-titlebar-v132,
+    body:not(.tv-mode) .db-page.player-db-light-v96 > .header.app-titlebar-v132,
+    body:not(.tv-mode) .dashboard-page-v132 > .header.app-titlebar-v132,
+    body:not(.tv-mode).operator-light-page-v95 .app-titlebar-v132 {
+      height: 64px !important;
+      min-height: 64px !important;
+      max-height: 64px !important;
+      padding: 9px 14px !important;
+      margin: 0 0 8px !important;
+      border-radius: 14px !important;
+      align-items: center !important;
+      overflow: hidden !important;
+    }
+    body:not(.tv-mode) .app-titlebar-v132 .header-copy {
+      height: 46px !important;
+      display: grid !important;
+      grid-template-rows: 11px 20px 15px !important;
+      align-content: center !important;
+      gap: 0 !important;
+      min-width: 0 !important;
+    }
+    body:not(.tv-mode) .app-titlebar-v132 .brand-line {
+      height: 11px !important;
+      min-height: 11px !important;
+      max-height: 11px !important;
+      align-items: center !important;
+      overflow: hidden !important;
+    }
+    body:not(.tv-mode) .app-titlebar-v132 .eyebrow,
+    body:not(.tv-mode) .app-titlebar-v132 .maker {
+      font-size: 10px !important;
+      line-height: 11px !important;
+      height: 11px !important;
+    }
+    body:not(.tv-mode) .app-titlebar-v132 h1 {
+      height: 20px !important;
+      font-size: 18px !important;
+      line-height: 20px !important;
+      margin: 0 !important;
+    }
+    body:not(.tv-mode) .app-titlebar-v132 .desc {
+      height: 15px !important;
+      font-size: 12px !important;
+      line-height: 15px !important;
+      margin: 0 !important;
+    }
+    @media (max-width: 760px) {
+      body:not(.tv-mode) .round-head > div.group-size-control.group-size-control-v133,
+      body:not(.tv-mode) .group-size-control.group-size-control-v133 {
+        overflow-x: auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-bottom: 2px !important;
+        scrollbar-width: none !important;
+      }
+      body:not(.tv-mode) .group-size-control.group-size-control-v133::-webkit-scrollbar { display: none !important; }
+      body:not(.tv-mode) .group-size-control.group-size-control-v133 button { height: 24px !important; min-height: 24px !important; }
+      body:not(.tv-mode) .slot,
+      body:not(.tv-mode) button.slot,
+      body:not(.tv-mode) .empty-lane,
+      body:not(.tv-mode) .slot.empty-lane { min-height: 66px !important; }
+      body:not(.tv-mode) .slot > .slot-inner,
+      body:not(.tv-mode) button.slot > .slot-inner,
+      body:not(.tv-mode) .player-card-main,
+      body:not(.tv-mode) .player-card-main-active,
+      body:not(.tv-mode) .player-card-main-empty-v133 { min-height: 50px !important; }
+      body:not(.tv-mode) .app-titlebar-v132,
+      body:not(.tv-mode) .db-page.player-db-light-v96 > .header.app-titlebar-v132,
+      body:not(.tv-mode) .dashboard-page-v132 > .header.app-titlebar-v132,
+      body:not(.tv-mode).operator-light-page-v95 .app-titlebar-v132 {
+        height: 58px !important;
+        min-height: 58px !important;
+        max-height: 58px !important;
+        padding: 8px 10px !important;
+      }
+      body:not(.tv-mode) .app-titlebar-v132 .header-copy {
+        height: 42px !important;
+        grid-template-rows: 10px 18px 14px !important;
+      }
+      body:not(.tv-mode) .app-titlebar-v132 .eyebrow,
+      body:not(.tv-mode) .app-titlebar-v132 .maker { font-size: 9px !important; line-height: 10px !important; height: 10px !important; }
+      body:not(.tv-mode) .app-titlebar-v132 h1 { height: 18px !important; font-size: 16px !important; line-height: 18px !important; }
+      body:not(.tv-mode) .app-titlebar-v132 .desc { height: 14px !important; font-size: 11px !important; line-height: 14px !important; }
+    }
+
 </style>
 </head>
 <body>
@@ -13535,7 +13722,7 @@ function shuffle(array) {
     function renderGroupSizeControl() {
       const options = ["", ...Array.from({ length: Math.max(0, state.settings.laneCount - 1) }, (_, index) => index + 2)];
       return `
-        <div class="group-size-control">
+        <div class="group-size-control group-size-control-v133">
           <span>다음 경기 조 인원</span>
           <div>
             ${options.map(option => `
@@ -15353,10 +15540,19 @@ function copyOrShare(url, label) {
     function renderPlayerCardMain(player, group) {
       if (player?.isEmptyLane) {
         return `
-          <div class="player-card-main player-card-main-empty">
+          <div class="player-card-main player-card-main-empty player-card-main-empty-v133">
             <div class="slot-card-lane-line">${renderLaneLabelWithRate(player.lane, player)}</div>
-            <div class="player-info">
-              <strong class="player-name-fit name-fit-empty">빈 레인</strong>
+            <div class="player-info player-info-with-h2h player-info-name-first-card empty-lane-grid-v133">
+              <div class="player-identity-block">
+                <strong class="player-name-fit name-fit-empty">빈 레인</strong>
+              </div>
+              <div class="slot-metrics slot-metrics-inline slot-h2h-rows empty-h2h-placeholder-v133" aria-hidden="true" style="--h2h-row-count:4">
+                <div class="slot-h2h-title">최근 3개월 전적</div>
+                <span class="slot-metric h2h">-</span>
+                <span class="slot-metric h2h">-</span>
+                <span class="slot-metric h2h">-</span>
+                <span class="slot-metric h2h">-</span>
+              </div>
             </div>
           </div>
         `;
@@ -19869,9 +20065,9 @@ function stopLiveLobbyRealtimeV50() {
     } catch (error) {}
     try {
       window.__mini4wdV132FinalPracticalStructure = {
-        build: "BUILD v132 FINAL PRACTICAL STRUCTURE",
+        build: "BUILD v133 URGENT UI FIT PATCH",
         basedOn: "v131 UI STRUCTURE CORRECTION",
-        focus: ["unified titlebars", "compact round controls", "mobile compact rebuild", "status badge cleanup"],
+        focus: ["group-size css recovery", "equal empty lanes", "unified titlebar metrics"],
         rulesChanged: false
       };
     } catch (error) {}
