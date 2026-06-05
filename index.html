@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v130 PRACTICAL UI CORRECTION</title>
-  <!-- BUILD v130 PRACTICAL UI CORRECTION · requested compact DB / operator / player-card cleanup; rules unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v131 UI STRUCTURE CORRECTION</title>
+  <!-- BUILD v131 UI STRUCTURE CORRECTION · PC/mobile header, stage meta, compact controls; rules unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -12580,6 +12580,323 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       body:not(.tv-mode) .round-head .group-size-control { justify-content: flex-start !important; }
       body:not(.tv-mode) .player-info-name-first-card { grid-template-columns: minmax(0, 2fr) minmax(70px, .72fr) !important; }
     }
+
+
+    /* v131 UI STRUCTURE CORRECTION · compact title/toolbars + mobile rebuild */
+    body:not(.tv-mode) .db-page.player-db-light-v96 {
+      padding: 10px 14px 48px !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 > .header.db-titlebar-v131 {
+      display: flex !important;
+      min-height: 58px !important;
+      margin: 0 0 8px !important;
+      padding: 10px 14px !important;
+      border-radius: 14px !important;
+      background: rgba(255,255,255,.90) !important;
+      border: 1px solid rgba(15,23,42,.10) !important;
+      box-shadow: 0 8px 22px rgba(15,23,42,.055) !important;
+      color: #0f172a !important;
+    }
+    body:not(.tv-mode) .db-titlebar-v131 .header-copy { display: grid !important; gap: 2px !important; }
+    body:not(.tv-mode) .db-titlebar-v131 .brand-line { margin: 0 !important; }
+    body:not(.tv-mode) .db-titlebar-v131 .eyebrow {
+      font-size: 10px !important;
+      letter-spacing: .16em !important;
+      line-height: 1 !important;
+      color: #d84d89 !important;
+    }
+    body:not(.tv-mode) .db-titlebar-v131 h1 {
+      font-size: 18px !important;
+      line-height: 1.12 !important;
+      color: #0f172a !important;
+      letter-spacing: -.045em !important;
+    }
+    body:not(.tv-mode) .db-titlebar-v131 .desc {
+      display: block !important;
+      margin: 0 !important;
+      font-size: 12px !important;
+      line-height: 1.25 !important;
+      color: #64748b !important;
+    }
+    body:not(.tv-mode) .db-titlebar-v131 .header-logo,
+    body:not(.tv-mode) .db-titlebar-v131 .credit-mark { display: none !important; }
+    body:not(.tv-mode) .db-topline-v131 {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 8px !important;
+      padding: 7px 8px !important;
+      margin: 0 0 8px !important;
+      border-radius: 12px !important;
+      background: rgba(255,255,255,.86) !important;
+      border: 1px solid rgba(15,23,42,.10) !important;
+      box-shadow: none !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      white-space: nowrap !important;
+    }
+    body:not(.tv-mode) .db-venue-line-v131 {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      gap: 6px !important;
+      flex: 0 1 auto !important;
+      min-width: max-content !important;
+      margin-right: auto !important;
+    }
+    body:not(.tv-mode) .db-top-actions-v131,
+    body:not(.tv-mode) .db-top-actions-v131 .page-nav {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: flex-end !important;
+      flex-wrap: nowrap !important;
+      gap: 6px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      width: auto !important;
+    }
+    body:not(.tv-mode) .db-topline-v131 button,
+    body:not(.tv-mode) .db-topline-v131 .upload-button,
+    body:not(.tv-mode) .db-topline-v131 .pill {
+      height: 28px !important;
+      min-height: 28px !important;
+      padding: 0 10px !important;
+      border-radius: 9px !important;
+      font-size: 11px !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+      background: rgba(248,250,252,.86) !important;
+      color: #0f172a !important;
+      border: 1px solid rgba(148,163,184,.45) !important;
+      box-shadow: none !important;
+    }
+    body:not(.tv-mode) .db-topline-v131 .upload-button input { display: none !important; }
+    body:not(.tv-mode) .db-email-pill-v131 { color: #334155 !important; }
+    body:not(.tv-mode) #selectedPreview .hint {
+      white-space: nowrap !important;
+      margin: 0 !important;
+      line-height: 1.2 !important;
+    }
+    body:not(.tv-mode) .stage-head-v131 {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      gap: 10px !important;
+      padding-bottom: 8px !important;
+      margin-bottom: 10px !important;
+    }
+    body:not(.tv-mode) .stage-title-line-v131 {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      gap: 8px !important;
+      flex-wrap: wrap !important;
+      min-width: 0 !important;
+      width: 100% !important;
+    }
+    body:not(.tv-mode) .stage-title-line-v131 h3 {
+      margin: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      flex: 0 0 auto !important;
+      font-size: 16px !important;
+      line-height: 1 !important;
+    }
+    body:not(.tv-mode) .stage-meta-inline-v131 {
+      display: inline-flex !important;
+      align-items: center !important;
+      flex-wrap: wrap !important;
+      gap: 0 !important;
+      margin: 0 !important;
+      font-size: 11px !important;
+      line-height: 1 !important;
+      color: #64748b !important;
+    }
+    body:not(.tv-mode) .stage-meta-inline-v131 span {
+      display: inline-flex !important;
+      align-items: center !important;
+      white-space: nowrap !important;
+    }
+    body:not(.tv-mode) .stage-meta-inline-v131 span + span::before {
+      content: "·";
+      padding: 0 5px;
+      color: #94a3b8;
+    }
+    body:not(.tv-mode) .current-stage-area .section-label { display: none !important; }
+    body:not(.tv-mode) .round-head .group-size-control {
+      justify-content: flex-start !important;
+      gap: 6px !important;
+      margin-top: 4px !important;
+    }
+    body:not(.tv-mode) .round-head .group-size-control span {
+      font-size: 11px !important;
+      color: #334155 !important;
+      font-weight: 900 !important;
+    }
+    body:not(.tv-mode) .round-head .group-size-control > div {
+      display: inline-flex !important;
+      flex: 0 0 auto !important;
+      width: auto !important;
+      gap: 4px !important;
+    }
+    body:not(.tv-mode) .round-head .group-size-control button {
+      min-width: 0 !important;
+      width: auto !important;
+      min-height: 22px !important;
+      height: 22px !important;
+      padding: 0 8px !important;
+      border-radius: 7px !important;
+      font-size: 10px !important;
+      line-height: 1 !important;
+    }
+    body:not(.tv-mode) .prep-topline-v116 span:first-child { font-size: 12px !important; }
+    body:not(.tv-mode) .prep-sub-v116 { white-space: nowrap !important; }
+
+    @media (max-width: 760px) {
+      body:not(.tv-mode) .db-page.player-db-light-v96,
+      body:not(.tv-mode).operator-light-page-v95 .wrap {
+        padding: 8px 8px 44px !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 > .header.db-titlebar-v131 {
+        display: flex !important;
+        padding: 9px 10px !important;
+        min-height: 50px !important;
+        margin-bottom: 6px !important;
+        border-radius: 12px !important;
+      }
+      body:not(.tv-mode) .db-titlebar-v131 h1 { font-size: 16px !important; }
+      body:not(.tv-mode) .db-titlebar-v131 .desc { font-size: 11px !important; }
+      body:not(.tv-mode) .db-topline-v131 {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 6px !important;
+        padding: 7px !important;
+      }
+      body:not(.tv-mode) .db-venue-line-v131 {
+        width: 100% !important;
+        min-width: 0 !important;
+        overflow-x: auto !important;
+      }
+      body:not(.tv-mode) .db-top-actions-v131 {
+        justify-content: flex-start !important;
+        overflow-x: auto !important;
+        padding-bottom: 1px !important;
+      }
+      body:not(.tv-mode) .db-topline-v131 button,
+      body:not(.tv-mode) .db-topline-v131 .upload-button,
+      body:not(.tv-mode) .db-topline-v131 .pill {
+        height: 26px !important;
+        min-height: 26px !important;
+        padding: 0 8px !important;
+        font-size: 10px !important;
+        border-radius: 8px !important;
+        flex: 0 0 auto !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-layout-v98,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-layout-v99,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-layout-v121 {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-quick-add-card-v96,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-register-card-v121,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-selected-card-v121,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-list-card-v98,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-list-card-v99,
+      body:not(.tv-mode).operator-light-page-v95 .card,
+      body:not(.tv-mode).operator-light-page-v95 .round-card,
+      body:not(.tv-mode).operator-light-page-v95 .stage-card {
+        padding: 9px !important;
+        border-radius: 12px !important;
+        margin-bottom: 8px !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-register-form-v121,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-selected-actions-v121 {
+        gap: 5px !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-panel-title h2,
+      body:not(.tv-mode).operator-light-page-v95 .card h2 {
+        font-size: 15px !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .mini-input,
+      body:not(.tv-mode).operator-light-page-v95 .mini-input,
+      body:not(.tv-mode).operator-light-page-v95 select,
+      body:not(.tv-mode).operator-light-page-v95 textarea {
+        min-height: 28px !important;
+        height: 28px !important;
+        padding: 0 8px !important;
+        font-size: 11px !important;
+        border-radius: 8px !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 button,
+      body:not(.tv-mode).operator-light-page-v95 button,
+      body:not(.tv-mode).operator-light-page-v95 .upload-button {
+        min-height: 28px !important;
+        height: 28px !important;
+        padding: 0 9px !important;
+        border-radius: 8px !important;
+        font-size: 10.5px !important;
+        width: auto !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-primary-action-v120,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-primary-action-v121,
+      body:not(.tv-mode).operator-light-page-v95 .prep-main-action-v116 {
+        width: 100% !important;
+        min-height: 34px !important;
+        height: 34px !important;
+        font-size: 12px !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-stat-grid { grid-template-columns: repeat(4, minmax(0,1fr)) !important; gap: 4px !important; }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-stat { padding: 6px !important; min-height: 38px !important; }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-stat small { font-size: 9px !important; }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-stat strong { font-size: 15px !important; }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-bulk-toolbar {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 5px !important;
+        padding: 6px !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-bulk-toolbar > div:first-child,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-bulk-buttons {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: flex-start !important;
+        gap: 4px !important;
+      }
+      body:not(.tv-mode) .stage-head-v131 {
+        display: block !important;
+        padding-bottom: 6px !important;
+        margin-bottom: 7px !important;
+      }
+      body:not(.tv-mode) .stage-title-line-v131 {
+        gap: 5px !important;
+        align-items: baseline !important;
+      }
+      body:not(.tv-mode) .stage-title-line-v131 h3 { font-size: 15px !important; }
+      body:not(.tv-mode) .stage-meta-inline-v131 { font-size: 10px !important; gap: 0 !important; }
+      body:not(.tv-mode) .round-head .group-size-control {
+        justify-content: flex-start !important;
+        align-items: center !important;
+        flex-wrap: wrap !important;
+        gap: 5px !important;
+      }
+      body:not(.tv-mode) .round-head .group-size-control span { width: auto !important; font-size: 10px !important; }
+      body:not(.tv-mode) .round-head .group-size-control button { height: 22px !important; min-height: 22px !important; font-size: 10px !important; }
+      body:not(.tv-mode) .player-info-name-first-card { grid-template-columns: minmax(0, 2.2fr) minmax(66px, .66fr) !important; }
+      body:not(.tv-mode) .slot-card-lane-line .lane-label,
+      body:not(.tv-mode) .slot-card-lane-line .lane-win-rate { font-size: 8.5px !important; }
+      body:not(.tv-mode) .player-name-fit.name-fit-short { font-size: 23px !important; }
+      body:not(.tv-mode) .player-name-fit.name-fit-medium { font-size: 20px !important; }
+      body:not(.tv-mode) .player-name-fit.name-fit-long { font-size: 16px !important; }
+      body:not(.tv-mode) .slot-h2h-title { font-size: 7px !important; }
+      body:not(.tv-mode) .slot-h2h-rows .slot-metric.h2h { font-size: 6.8px !important; }
+    }
+
 </style>
 </head>
 <body>
@@ -14420,7 +14737,6 @@ function copyOrShare(url, label) {
           ${currentStage ? `
             ${isPointRound(roundIndex) ? renderPointScoreboard(round) : ""}
             <div id="currentStageTop" class="current-stage-area">
-              <div class="section-label">현재 진행</div>
               ${renderStage(currentStage, roundIndex, currentStageIndex, false)}
               ${renderRoundProgressDock(roundIndex, currentStage)}
             </div>
@@ -14469,16 +14785,13 @@ function copyOrShare(url, label) {
       if (stage.type === "points") return renderPointStage(stage, roundIndex, stageIndex, isPast);
 
       const isBroadcast = state.broadcast.mode === "stage" && state.broadcast.roundIndex === roundIndex && state.broadcast.stageIndex === stageIndex;
+      const reviewCount = String(Number(stage.meta?.attempts || 0)).padStart(2, "0");
       return `
         <section class="stage-card ${isPast ? "past-stage" : "current-stage"}">
-          <div class="stage-head">
-            <div>
+          <div class="stage-head stage-head-v131">
+            <div class="stage-title-line-v131">
               <h3>${escapeHtml(stage.name)} ${isBroadcast ? `<span class="round-badge live-badge">● TV 송출중</span>` : ""}</h3>
-              <div class="meta">${stage.groups.length}개 조 · 배정 점수 ${stage.meta.score} · 같은 팀 배정 조 ${stage.meta.sameTeam}개</div>
-            </div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button class="${isBroadcast ? "primary" : "ghost"}" onclick="setBroadcastStage(${roundIndex}, ${stageIndex})">TV 송출</button>
-              <span class="badge">대진 후보 검토 ${stage.meta.attempts.toLocaleString()}회</span>
+              <div class="meta stage-meta-inline-v131"><span>${stage.groups.length}개 조</span><span>배정 점수 ${stage.meta.score}</span><span>같은 팀 배정 조 ${stage.meta.sameTeam}개</span><span>대진표 검토 ${reviewCount}회</span></div>
             </div>
           </div>
 
@@ -14496,14 +14809,10 @@ function copyOrShare(url, label) {
       const isBroadcast = state.broadcast.mode === "stage" && state.broadcast.roundIndex === roundIndex && state.broadcast.stageIndex === stageIndex;
       return `
         <section class="stage-card point-stage ${isPast ? "past-stage" : "current-stage"}">
-          <div class="stage-head">
-            <div>
+          <div class="stage-head stage-head-v131">
+            <div class="stage-title-line-v131">
               <h3>${escapeHtml(stage.name)} ${isBroadcast ? `<span class="round-badge live-badge">● TV 송출중</span>` : ""}</h3>
-              <div class="meta">포인트 선택: ${stage.pointOptions.join(" / ")}점 · ${stage.groups.length}개 조</div>
-            </div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button class="${isBroadcast ? "primary" : "ghost"}" onclick="setBroadcastStage(${roundIndex}, ${stageIndex})">TV 송출</button>
-              <span class="badge">포인트전</span>
+              <div class="meta stage-meta-inline-v131"><span>포인트 선택 ${stage.pointOptions.join(" / ")}점</span><span>${stage.groups.length}개 조</span><span>포인트전</span></div>
             </div>
           </div>
 
@@ -15265,13 +15574,13 @@ function renderTournamentStatusPanel() {
       return `
         <div class="prep-hero-v116">
           <div class="prep-topline-v116">
-            <span>대회 노출 정보</span>
+            <span>대회 정보</span>
             <span class="status-badge status-${status}">${statusText}</span>
           </div>
           <div class="prep-preview-v116">
             <div class="prep-preview-main-v116">
               <strong class="prep-title-v116">${escapeHtml(tournamentName)}</strong>
-              <span class="prep-sub-v116">${escapeHtml(venueName)} · ${escapeHtml(raceClassName)} · 참가자 ${participantCount}명</span>
+              <span class="prep-sub-v116">참가자 ${participantCount}명</span>
             </div>
             <div class="prep-action-v116">${actionButtons}</div>
           </div>
@@ -16951,10 +17260,14 @@ function boot() {
 
       app.innerHTML = `
         <div class="db-page player-db-light-v96 player-db-v121">
-          <header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div></div><h1>선수 DB / 경기장별 관리</h1><p class="desc">선수 등록, 명부 수정, 참가자 선택을 한 화면에서 관리합니다.</p></div>${logoMarkup("header-logo")}</header>
-          <div class="db-topline-v130">
-            ${accountBadge()}
-            <div class="toolbar db-actions-toolbar db-actions-toolbar-v121"><button class="ghost" onclick="exportRosterCsv()">CSV 다운로드</button><button class="ghost" onclick="downloadRosterTemplate()">선수 양식</button><label class="upload-button ghost">엑셀 업로드<input type="file" accept=".xlsx,.xls,.csv,.tsv" onchange="importRosterExcel(event)" hidden /></label></div>
+          <header class="header db-titlebar-v131"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div></div><h1>선수 DB</h1><p class="desc">선수 등록, 명부 수정, 참가자 선택을 한 화면에서 관리합니다.</p></div>${logoMarkup("header-logo")}</header>
+          <div class="db-topline-v130 db-topline-v131">
+            <div class="db-venue-line-v131"><span class="pill">VENUE · ${escapeHtml(fixedVenueName || "-")}</span><span class="pill db-email-pill-v131">${escapeHtml(currentAuthUser?.email || "")}</span></div>
+            <div class="db-top-actions-v131">
+              ${renderPageNav()}
+              <button class="ghost" onclick="openDashboardPage()">DASHBOARD</button>${isAdminUser() ? `<button class="ghost" onclick="openAdminPage()">ADMIN</button>` : ""}<button class="ghost" onclick="logoutUser()">LOGOUT</button>
+              <button class="ghost" onclick="exportRosterCsv()">CSV 다운로드</button><button class="ghost" onclick="downloadRosterTemplate()">선수 양식</button><label class="upload-button ghost">엑셀 업로드<input type="file" accept=".xlsx,.xls,.csv,.tsv" onchange="importRosterExcel(event)" hidden /></label>
+            </div>
           </div>
           <div class="db-grid db-player-layout-v98 db-player-layout-v99 db-player-layout-v121"><aside class="db-player-side-v98 db-player-side-v99">
             <section class="card db-quick-add-card-v96 db-register-card-v121" id="dbQuickAddPanel">
@@ -17795,7 +18108,7 @@ function normalizePlayerForFinal(player, extra = {}) {
       const winners = groups.flatMap(group => group.slots.filter(player => !player.isEmptyLane && (group.advanceIds || []).includes(player.id)));
       const isBroadcast = state.broadcast.mode === "final";
       const isCrowSemi = state.finalRace.type === "crowSemi";
-      return `<section class="final-box"><div class="round-head" style="margin-bottom:12px;"><h2>${escapeHtml(state.finalRace.name || "최종 결승")} ${isBroadcast ? `<span class="round-badge live-badge">● TV 송출중</span>` : ""}</h2><div><button class="${isBroadcast ? "primary" : "ghost"}" onclick="state.broadcast={mode:'final'}; renderOperator();">TV 송출</button>${isCrowSemi ? `<button class="primary" onclick="createCrowFinalFromSemi()">결승 생성</button>` : ""}</div></div><div class="groups" style="grid-template-columns:${groups.length > 1 ? "repeat(3,minmax(0,1fr))" : "1fr"};">${groups.map(group => renderFinalGroup(group, state.finalRace.type)).join("")}</div>${winners.length ? `<div class="champion"><small>${isCrowSemi ? "9강 SEMI RESULT" : "FINAL RESULT"}</small><strong>${winners.map(p => escapeHtml(p.name)).join(", ")}</strong><span>${isCrowSemi ? "결승 진출자" : winners.length > 1 ? "공동 최종 선정" : "최종 우승자"}</span></div>` : ""}</section>`;
+      return `<section class="final-box"><div class="round-head" style="margin-bottom:12px;"><h2>${escapeHtml(state.finalRace.name || "최종 결승")} ${isBroadcast ? `<span class="round-badge live-badge">● TV 송출중</span>` : ""}</h2><div>${isCrowSemi ? `<button class="primary" onclick="createCrowFinalFromSemi()">결승 생성</button>` : ""}</div></div><div class="groups" style="grid-template-columns:${groups.length > 1 ? "repeat(3,minmax(0,1fr))" : "1fr"};">${groups.map(group => renderFinalGroup(group, state.finalRace.type)).join("")}</div>${winners.length ? `<div class="champion"><small>${isCrowSemi ? "9강 SEMI RESULT" : "FINAL RESULT"}</small><strong>${winners.map(p => escapeHtml(p.name)).join(", ")}</strong><span>${isCrowSemi ? "결승 진출자" : winners.length > 1 ? "공동 최종 선정" : "최종 우승자"}</span></div>` : ""}</section>`;
     }
 
     function getBroadcastTarget(payload) {
