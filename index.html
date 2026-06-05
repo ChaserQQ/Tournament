@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v129 PRACTICAL UI REBUILD</title>
-  <!-- BUILD v129 PRACTICAL UI REBUILD · v127 stable base; mode-specific practical density rebuild; rules unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v130 PRACTICAL UI CORRECTION</title>
+  <!-- BUILD v130 PRACTICAL UI CORRECTION · requested compact DB / operator / player-card cleanup; rules unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -12293,7 +12293,294 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       color: #fff !important;
     }
 
-  </style>
+  
+
+    /* v130 PRACTICAL UI CORRECTION · requested compact DB / operator / player-card cleanup */
+    body:not(.tv-mode) .db-page.player-db-light-v96 {
+      max-width: none !important;
+      padding: 8px 12px 48px !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 > .header {
+      display: none !important;
+    }
+    body:not(.tv-mode) .db-topline-v130 {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      width: 100% !important;
+      margin: 0 0 8px !important;
+      padding: 8px !important;
+      border: 1px solid rgba(15,23,42,.10) !important;
+      border-radius: 12px !important;
+      background: rgba(255,255,255,.78) !important;
+      box-shadow: 0 8px 24px rgba(15,23,42,.06) !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      white-space: nowrap !important;
+    }
+    body:not(.tv-mode) .db-topline-v130 .account-strip,
+    body:not(.tv-mode) .db-topline-v130 .account-left,
+    body:not(.tv-mode) .db-topline-v130 .account-actions,
+    body:not(.tv-mode) .db-topline-v130 .page-nav,
+    body:not(.tv-mode) .db-topline-v130 .toolbar {
+      display: flex !important;
+      align-items: center !important;
+      flex-wrap: nowrap !important;
+      gap: 6px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      width: auto !important;
+      min-width: max-content !important;
+    }
+    body:not(.tv-mode) .db-topline-v130 .account-strip { flex: 1 0 auto !important; justify-content: space-between !important; }
+    body:not(.tv-mode) .db-topline-v130 button,
+    body:not(.tv-mode) .db-topline-v130 .upload-button,
+    body:not(.tv-mode) .db-topline-v130 .pill {
+      min-height: 28px !important;
+      height: 28px !important;
+      padding: 0 10px !important;
+      border-radius: 9px !important;
+      font-size: 11px !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+      flex: 0 0 auto !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-layout-v98,
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-layout-v99,
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-layout-v121 {
+      display: grid !important;
+      grid-template-columns: 282px minmax(0, 1fr) !important;
+      gap: 10px !important;
+      align-items: start !important;
+      width: 100% !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-side-v98,
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-side-v99 {
+      width: 282px !important;
+      max-width: 282px !important;
+      display: grid !important;
+      gap: 8px !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-quick-add-card-v96,
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-register-card-v121,
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-selected-card-v121 {
+      width: 100% !important;
+      margin: 0 !important;
+      padding: 12px !important;
+      border-radius: 16px !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-batch-add-card-v119,
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-batch-add-card-v121 {
+      display: none !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-main-v98,
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-main-v99,
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-list-card-v98,
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-list-card-v99 {
+      min-width: 0 !important;
+      width: 100% !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-list-card-v98,
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-list-card-v99 {
+      padding: 12px !important;
+      border-radius: 16px !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-stat-grid {
+      grid-template-columns: repeat(4, minmax(0,1fr)) !important;
+      gap: 6px !important;
+      margin-bottom: 8px !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-stat {
+      min-height: 48px !important;
+      padding: 8px 10px !important;
+      border-radius: 12px !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-bulk-toolbar {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 8px !important;
+      padding: 8px 10px !important;
+      margin-bottom: 8px !important;
+      border-radius: 13px !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-bulk-toolbar > div:first-child {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      min-width: max-content !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-checkline {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 5px !important;
+      margin: 0 !important;
+      font-size: 12px !important;
+      white-space: nowrap !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-bulk-count-v130 {
+      margin: 0 !important;
+      font-size: 11px !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+      color: #64748b !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-bulk-buttons {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-end !important;
+      flex-wrap: wrap !important;
+      gap: 5px !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .db-bulk-buttons button,
+    body:not(.tv-mode) .db-page.player-db-light-v96 .table-sort-btn {
+      min-height: 28px !important;
+      height: 28px !important;
+      padding: 0 9px !important;
+      border-radius: 9px !important;
+      font-size: 11px !important;
+      white-space: nowrap !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-wrap {
+      width: 100% !important;
+      max-width: 100% !important;
+      overflow: auto !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table,
+    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 {
+      width: 100% !important;
+      min-width: 0 !important;
+      table-layout: fixed !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table th,
+    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table td {
+      padding: 5px 6px !important;
+      height: 34px !important;
+      font-size: 12px !important;
+      vertical-align: middle !important;
+    }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table th:nth-child(1),
+    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table td:nth-child(1) { width: 30px !important; }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table th:nth-child(2),
+    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table td:nth-child(2) { width: 38px !important; }
+    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table .mini-input {
+      min-height: 26px !important;
+      height: 26px !important;
+      padding: 0 8px !important;
+      border-radius: 8px !important;
+      font-size: 12px !important;
+    }
+    body:not(.tv-mode) .stage-progress-dock { display: none !important; }
+    body:not(.tv-mode) .round-head .group-size-control {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-end !important;
+      gap: 8px !important;
+      width: 100% !important;
+      margin-top: 6px !important;
+    }
+    body:not(.tv-mode) .round-head .group-size-control span {
+      width: auto !important;
+      margin: 0 !important;
+      font-size: 11px !important;
+      color: #64748b !important;
+      white-space: nowrap !important;
+    }
+    body:not(.tv-mode) .round-head .group-size-control > div {
+      display: flex !important;
+      align-items: center !important;
+      gap: 5px !important;
+      width: auto !important;
+      flex-wrap: nowrap !important;
+    }
+    body:not(.tv-mode) .round-head .group-size-control button {
+      width: auto !important;
+      min-width: 56px !important;
+      min-height: 28px !important;
+      height: 28px !important;
+      padding: 0 10px !important;
+      border-radius: 9px !important;
+      font-size: 11px !important;
+      white-space: nowrap !important;
+    }
+    body:not(.tv-mode) .slot-inner-name-first {
+      gap: 4px !important;
+      align-items: stretch !important;
+    }
+    body:not(.tv-mode) .slot-card-lane-line {
+      min-height: 10px !important;
+      margin-bottom: 1px !important;
+    }
+    body:not(.tv-mode) .slot-card-lane-line .lane-label {
+      font-size: 9.5px !important;
+      line-height: 1 !important;
+      letter-spacing: -.02em !important;
+      gap: 3px !important;
+      min-width: 0 !important;
+    }
+    body:not(.tv-mode) .slot-card-lane-line .lane-win-rate,
+    body:not(.tv-mode) .lane-label .lane-win-rate {
+      font-size: 9.5px !important;
+      line-height: 1 !important;
+    }
+    body:not(.tv-mode) .player-info-name-first-card {
+      grid-template-columns: minmax(0, 2.05fr) minmax(72px, .72fr) !important;
+      gap: 4px !important;
+      align-items: center !important;
+    }
+    body:not(.tv-mode) .player-name-fit.name-fit-short {
+      font-size: clamp(26px, 4vw, 36px) !important;
+      letter-spacing: -.05em !important;
+    }
+    body:not(.tv-mode) .player-name-fit.name-fit-medium {
+      font-size: clamp(23px, 3.2vw, 32px) !important;
+      letter-spacing: -.045em !important;
+    }
+    body:not(.tv-mode) .player-name-fit.name-fit-long {
+      font-size: clamp(18px, 2.45vw, 25px) !important;
+      letter-spacing: -.035em !important;
+    }
+    body:not(.tv-mode) .player-name-fit.name-fit-xlong {
+      font-size: clamp(15px, 1.95vw, 20px) !important;
+      letter-spacing: -.025em !important;
+    }
+    body:not(.tv-mode) .slot-h2h-title {
+      font-size: 7.5px !important;
+      margin-bottom: 0 !important;
+    }
+    body:not(.tv-mode) .slot-h2h-rows {
+      gap: 0 !important;
+    }
+    body:not(.tv-mode) .slot-h2h-rows .slot-metric.h2h,
+    body:not(.tv-mode) .player-info-with-h2h .slot-metric.h2h {
+      font-size: 7.4px !important;
+      line-height: 1.02 !important;
+      padding: 0 0 0 3px !important;
+      border-left-width: 1px !important;
+      letter-spacing: -.03em !important;
+    }
+    @media (max-width: 760px) {
+      body:not(.tv-mode) .db-topline-v130 { align-items: flex-start !important; }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-layout-v98,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-layout-v99,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-layout-v121 {
+        grid-template-columns: 1fr !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-side-v98,
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-player-side-v99 {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-stat-grid { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-bulk-toolbar { display: grid !important; grid-template-columns: 1fr !important; align-items: stretch !important; }
+      body:not(.tv-mode) .db-page.player-db-light-v96 .db-bulk-buttons { justify-content: flex-start !important; }
+      body:not(.tv-mode) .round-head .group-size-control { justify-content: flex-start !important; }
+      body:not(.tv-mode) .player-info-name-first-card { grid-template-columns: minmax(0, 2fr) minmax(70px, .72fr) !important; }
+    }
+</style>
 </head>
 <body>
   <div id="app"></div>
@@ -13881,7 +14168,7 @@ function copyOrShare(url, label) {
               <li>대회명과 경기장은 필수로 입력합니다. 클래스는 오픈, 스톡, 어드&비맥스, 기타 클래스 순서로 선택합니다.</li>
               <li>경기 방식을 선택합니다. 토너먼트, 포인트전, 패자부활, 토너먼트(9강) 중 하나를 고릅니다.</li>
               <li>경기 타입을 3레인 또는 5레인으로 선택합니다. 레인 수는 실제 경기장 레인 수입니다.</li>
-              <li>선수 DB에서 참가자를 선택하거나 목록 일괄 추가로 명단을 불러옵니다.</li>
+              <li>선수 DB에서 참가자를 선택해 대진 명단을 구성합니다.</li>
               <li><b>대회 시작</b>을 누르면 시작 시간이 기록됩니다.</li>
               <li>각 조에서 진출자를 선택하고 <b>다음 경기 진행</b>을 누릅니다.</li>
               <li>마지막 결승 또는 최종 결승에서 우승자를 확정합니다.</li>
@@ -14096,21 +14383,7 @@ function copyOrShare(url, label) {
 
 
     function renderRoundProgressDock(roundIndex, currentStage) {
-      if (!currentStage) return "";
-      const isPointFinalStage = currentStage?.type === "pointFinal";
-      const nextLabel = isPointFinalStage ? "진출 확정 후 다음 라운드" : currentStage?.type === "revival" ? "패자부활 진출자 합류" : "다음 경기 진행";
-      const nextAction = isPointFinalStage ? `goToNextRoundAfterFinalist(${roundIndex})` : `createNextStage(${roundIndex})`;
-      const confirmLabel = isPointFinalStage ? "1차 진출자 확정" : isRevivalMode() ? "우승자 확정" : isCrowMode() ? "1~3위 확정" : "결승 진출자 확정";
-      return `
-        <div class="stage-progress-dock" aria-label="진행 단계 빠른 실행">
-          <button class="ghost" onclick="${nextAction}">${nextLabel}</button>
-          <button class="primary" onclick="confirmRoundFinalist(${roundIndex})">${confirmLabel}</button>
-          <div class="secondary-row">
-            <button class="ghost" onclick="setBroadcastStage(${roundIndex}, ${(state.qualifierRounds[roundIndex]?.stages?.length || 1) - 1})">TV 송출</button>
-            <button class="ghost" onclick="document.querySelector('.operator-control-pages')?.scrollIntoView({behavior:'smooth', block:'start'})">설정 보기</button>
-          </div>
-        </div>
-      `;
+      return "";
     }
 
     function renderActiveRound(round, roundIndex) {
@@ -14470,8 +14743,8 @@ function copyOrShare(url, label) {
       const h2hCount = Math.max(1, Math.min(4, (stats.h2h || []).length || 1));
       const h2hRows = (stats.h2h || []).map(item => {
         const label = item.matches
-          ? `${item.name} · ${item.wins}승 ${item.losses}패 · ${item.rateText}`
-          : `${item.name} · 전적없음`;
+          ? `${item.name} ${item.wins}승${item.losses}패`
+          : `${item.name} 전적없음`;
         return `<span class="slot-metric h2h ${item.matches ? "" : "h2h-empty"}">${escapeHtml(label)}</span>`;
       }).join("");
       return `<div class="slot-metrics slot-metrics-inline slot-h2h-rows" title="최근 3개월 전적" style="--h2h-row-count:${h2hCount}"><div class="slot-h2h-title">최근 3개월 전적</div>${h2hRows || `<span class="slot-metric h2h h2h-empty">상대전적 없음</span>`}</div>`;
@@ -14573,7 +14846,6 @@ function copyOrShare(url, label) {
             <div class="slot-inner final-slot-actions round-final-slot-actions">
               ${renderPlayerCardMain(player, group)}
               <div class="final-card-actions round-final-card-actions">
-                ${selected ? `<span class="advance-mark">${isCrowMode() ? "순위" : "진출"}</span>` : ""}
                 <button class="${selected ? "primary" : "ghost"}" onclick="toggleAdvance(${roundIndex}, ${stageIndex}, '${escapeAttr(group.id)}', '${escapeAttr(player.id)}')">${selected ? "선택 해제" : isCrowMode() ? "순위 선택" : "진출 선택"}</button>
                 ${renderStageLaneTools(stage, group, player, roundIndex, stageIndex)}
               </div>
@@ -14586,7 +14858,6 @@ function copyOrShare(url, label) {
         <button class="slot ${selected ? "selected" : ""}" onclick="toggleAdvance(${roundIndex}, ${stageIndex}, '${escapeAttr(group.id)}', '${escapeAttr(player.id)}')">
           <div class="slot-inner slot-inner-name-first">
             ${renderPlayerCardMain(player, group)}
-            ${selected ? `<span class="advance-mark">진출</span>` : ""}
           </div>
         </button>
       `;
@@ -15419,7 +15690,6 @@ function renderReadOnlyPointGroup(group, stage) {
               <div class="slot ${selected ? "selected" : ""}" style="cursor:default;">
                 <div class="slot-inner slot-inner-name-first">
                   ${renderPlayerCardMain(player, group)}
-                  ${selected ? `<span class="advance-mark">${isFinal ? "최종" : "진출"}</span>` : ""}
                 </div>
               </div>
             `;
@@ -16682,8 +16952,10 @@ function boot() {
       app.innerHTML = `
         <div class="db-page player-db-light-v96 player-db-v121">
           <header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div></div><h1>선수 DB / 경기장별 관리</h1><p class="desc">선수 등록, 명부 수정, 참가자 선택을 한 화면에서 관리합니다.</p></div>${logoMarkup("header-logo")}</header>
-          ${accountBadge()}
-          <div class="toolbar db-actions-toolbar db-actions-toolbar-v121"><button class="ghost" onclick="exportRosterCsv()">CSV 다운로드</button><button class="ghost" onclick="downloadRosterTemplate()">선수 양식</button><label class="upload-button ghost">엑셀 업로드<input type="file" accept=".xlsx,.xls,.csv,.tsv" onchange="importRosterExcel(event)" hidden /></label></div>
+          <div class="db-topline-v130">
+            ${accountBadge()}
+            <div class="toolbar db-actions-toolbar db-actions-toolbar-v121"><button class="ghost" onclick="exportRosterCsv()">CSV 다운로드</button><button class="ghost" onclick="downloadRosterTemplate()">선수 양식</button><label class="upload-button ghost">엑셀 업로드<input type="file" accept=".xlsx,.xls,.csv,.tsv" onchange="importRosterExcel(event)" hidden /></label></div>
+          </div>
           <div class="db-grid db-player-layout-v98 db-player-layout-v99 db-player-layout-v121"><aside class="db-player-side-v98 db-player-side-v99">
             <section class="card db-quick-add-card-v96 db-register-card-v121" id="dbQuickAddPanel">
               <div class="db-panel-title"><h2>선수 등록</h2><span class="pill">${escapeHtml(fixedVenueName)}</span></div>
@@ -16699,10 +16971,8 @@ function boot() {
               <button class="primary db-primary-action-v120 db-primary-action-v121" onclick="addRosterPlayer()">선수 추가</button>
             </section>
 
-            <details class="card db-batch-add-card-v119 db-batch-add-card-v121"><summary>목록 일괄 추가</summary><div class="details-body"><p class="hint">형식: 실명/연락처(선택)/닉네임/팀명/메모</p><textarea id="quickImportText" placeholder="홍길동//마이/GEEKS/MS 플렉스"></textarea><button class="ghost db-primary-action-v120 db-primary-action-v121" onclick="quickImportRosterLines()">목록에서 선수 추가</button></div></details>
-
             <section class="card selected-box db-selected-card-v121"><div class="db-panel-title"><h2>참가자 선택</h2><span class="pill"><span id="selectedCount">0</span>명 선택</span></div><div class="db-actions db-selected-actions-v121" style="margin-bottom:10px;"><button class="ghost" onclick="selectRecentPlayers()">최근 참가자</button><button class="ghost" onclick="selectFavoritePlayers()">즐겨찾기</button><button class="ghost" onclick="clearSelectedPlayers()">선택 해제</button></div><div id="selectedPreview" class="finalist-grid" ></div><button class="primary db-primary-action-v120 db-primary-action-v121" onclick="applySelectedPlayersToTournament()">선택 선수로 대진 생성 준비</button></section>
-          </aside><main class="db-player-main-v98 db-player-main-v99"><section class="card db-roster-list-card-v98 db-roster-list-card-v99"><div class="db-panel-title"><div><h2>선수 명부</h2><div class="meta">총 ${roster.length}명 · 표시 ${filtered.length}명</div></div><div class="db-actions db-filter-actions"><input class="mini-input" placeholder="검색(이름/팀/경기장)" value="${escapeHtml(dbSearchText)}" oninput="setDbSearch(this.value)"  /><select onchange="setDbTeamFilter(this.value)" ><option value="전체">전체 팀</option>${teams.map(team => `<option value="${escapeHtml(team)}" ${team === dbTeamFilter ? "selected" : ""}>${escapeHtml(team)}</option>`).join("")}</select><select onchange="setDbStatusFilter(this.value)" >${["전체", "활성", "비활성", "즐겨찾기", "연락처 있음", "연락처 없음"].map(value => `<option value="${value}" ${value === dbStatusFilter ? "selected" : ""}>${value}</option>`).join("")}</select></div></div><div class="db-stat-grid"><div class="db-stat"><small>전체 선수</small><strong>${roster.length}</strong></div><div class="db-stat"><small>활성 선수</small><strong>${activeCount}</strong></div><div class="db-stat"><small>즐겨찾기</small><strong>${favoriteCount}</strong></div><div class="db-stat"><small>연락처 미등록</small><strong>${missingContactCount}</strong></div></div><div class="db-bulk-toolbar"><div><label class="db-checkline"><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /> 표시 목록 일괄선택</label><span class="hint">표시 ${filtered.length}명 · 표시 중 선택 ${visibleSelectedCount}명</span></div><div class="db-bulk-buttons"><button class="ghost" onclick="selectVisiblePlayers()">표시 활성 전체 선택</button><button class="ghost" onclick="deselectVisiblePlayers()">표시 선택 해제</button><button class="ghost" onclick="selectAllActivePlayers()">전체 활성 선택</button>${dbSortButton("realName", "실명")}${dbSortButton("nickname", "닉네임")}${dbSortButton("team", "팀명")}${isAdminUser() ? dbSortButton("venue", "경기장") : ""}${dbSortButton("createdAt", "등록일")}</div></div><div class="roster-table-wrap db-roster-scroll-v98 db-roster-scroll-v99"><table class="roster-table roster-table-v121"><thead><tr><th><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /></th><th>★</th>${isAdminUser() ? `<th><button class="ghost table-sort-btn" onclick="setDbSort('venue')">경기장${dbSortField === "venue" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th>` : ""}<th><button class="ghost table-sort-btn" onclick="setDbSort('realName')">실명${dbSortField === "realName" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('nickname')">닉네임${dbSortField === "nickname" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('team')">팀명${dbSortField === "team" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>연락처</th><th>메모</th><th>상태&관리</th></tr></thead><tbody>${filtered.map(player => renderRosterRow(player)).join("") || `<tr><td colspan="${rosterColspan}"><div class="db-empty">등록된 선수가 없습니다.</div></td></tr>`}</tbody></table></div></section></main></div></div>`;
+          </aside><main class="db-player-main-v98 db-player-main-v99"><section class="card db-roster-list-card-v98 db-roster-list-card-v99"><div class="db-panel-title"><div><h2>선수 명부</h2><div class="meta">총 ${roster.length}명 · 표시 ${filtered.length}명</div></div><div class="db-actions db-filter-actions"><input class="mini-input" placeholder="검색(이름/팀/경기장)" value="${escapeHtml(dbSearchText)}" oninput="setDbSearch(this.value)"  /><select onchange="setDbTeamFilter(this.value)" ><option value="전체">전체 팀</option>${teams.map(team => `<option value="${escapeHtml(team)}" ${team === dbTeamFilter ? "selected" : ""}>${escapeHtml(team)}</option>`).join("")}</select><select onchange="setDbStatusFilter(this.value)" >${["전체", "활성", "비활성", "즐겨찾기", "연락처 있음", "연락처 없음"].map(value => `<option value="${value}" ${value === dbStatusFilter ? "selected" : ""}>${value}</option>`).join("")}</select></div></div><div class="db-stat-grid"><div class="db-stat"><small>전체 선수</small><strong>${roster.length}</strong></div><div class="db-stat"><small>활성 선수</small><strong>${activeCount}</strong></div><div class="db-stat"><small>즐겨찾기</small><strong>${favoriteCount}</strong></div><div class="db-stat"><small>연락처 미등록</small><strong>${missingContactCount}</strong></div></div><div class="db-bulk-toolbar"><div><label class="db-checkline"><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /> 일괄 선택</label><span class="hint db-bulk-count-v130">${filtered.length}명 · 선택 ${visibleSelectedCount}명</span></div><div class="db-bulk-buttons"><button class="ghost" onclick="selectVisiblePlayers()">전체 선택</button><button class="ghost" onclick="deselectVisiblePlayers()">선택 해제</button><button class="ghost" onclick="selectAllActivePlayers()">활성 선수만 선택</button>${dbSortButton("realName", "실명")}${dbSortButton("nickname", "닉네임")}${dbSortButton("team", "팀명")}${isAdminUser() ? dbSortButton("venue", "경기장") : ""}${dbSortButton("createdAt", "등록일")}</div></div><div class="roster-table-wrap db-roster-scroll-v98 db-roster-scroll-v99"><table class="roster-table roster-table-v121"><thead><tr><th><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /></th><th>★</th>${isAdminUser() ? `<th><button class="ghost table-sort-btn" onclick="setDbSort('venue')">경기장${dbSortField === "venue" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th>` : ""}<th><button class="ghost table-sort-btn" onclick="setDbSort('realName')">실명${dbSortField === "realName" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('nickname')">닉네임${dbSortField === "nickname" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('team')">팀명${dbSortField === "team" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>연락처</th><th>메모</th><th>상태&관리</th></tr></thead><tbody>${filtered.map(player => renderRosterRow(player)).join("") || `<tr><td colspan="${rosterColspan}"><div class="db-empty">등록된 선수가 없습니다.</div></td></tr>`}</tbody></table></div></section></main></div></div>`;
       updateSelectedPreview();
     }
 
@@ -17508,7 +17778,6 @@ function normalizePlayerForFinal(player, extra = {}) {
             <div class="slot-inner final-slot-actions">
               ${renderPlayerCardMain(player, group)}
               <div class="final-card-actions">
-                ${selected ? `<span class="advance-mark">${finalRaceType === "crowSemi" ? "결승" : "최종"}</span>` : ""}
                 <button class="${selected ? "primary" : "ghost"}" onclick="toggleFinalWinner('${escapeAttr(player.id)}','${escapeAttr(group.id)}')">${selected ? "선택 해제" : finalRaceType === "crowSemi" ? "결승 진출" : "우승 선택"}</button>
                 ${renderFinalLaneTools(group, player)}
               </div>
@@ -17809,7 +18078,7 @@ function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
         const updated = formatTime(item.updatedAt);
         const liveId = item.id || "";
         const meta = empty
-          ? ["경기 시작 시 자동 표시", "운영 화면과 분리된 새창 로비", "TV/모바일 보기 버튼은 LIVE 카드에만 표시"]
+          ? ["경기 시작 시 자동 표시", "LIVE 대기중", "LIVE 중인 대회를 선택해 확인"]
           : live
             ? [raceText, updated || "송출 시간 확인중", liveId]
             : [raceText, updated ? `최근 갱신 ${updated}` : "진행중인 LIVE 없음", item.venueId || "대기 상태"];
@@ -17832,7 +18101,7 @@ function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
       const historyHtml = recent.map(record => `<div class="history-row-v89"><div><b>${escapeHtml(record.venueName || record.venueId || "경기장")}</b><span>${escapeHtml(normalizeRaceClassName(record.raceClass))}</span></div><div><b>${escapeHtml(record.tournamentName || "대회명 미입력")}</b><span>${escapeHtml(record.endedAtISO ? new Date(record.endedAtISO).toLocaleString("ko-KR") : record.createdAt ? new Date(record.createdAt).toLocaleString("ko-KR") : "")}</span></div><div><b>${escapeHtml(getRecordWinnerText(record))}</b><span>우승/상위 결과</span></div></div>`).join("");
 
       app.innerHTML = `<div class="live-lobby-shell-v89">
-        <header class="live-lobby-header-v89"><div><div class="live-eyebrow-v89">MINI4WD TOURNAMENT MAKER</div><h1>LIVE LOBBY</h1><p>운영 화면과 분리된 흰색 새창 로비입니다. LIVE 중인 경기만 TV버전/모바일버전으로 진입합니다.</p></div><div class="live-header-actions-v89"><button onclick="renderLiveLobbyPage()">새로고침</button></div></header>
+        <header class="live-lobby-header-v89"><div><div class="live-eyebrow-v89">MINI4WD TOURNAMENT MAKER</div><h1>LIVE LOBBY</h1><p>LIVE 중인 대회를 선택하면 현재 경기 현황을 실시간으로 볼 수 있습니다.</p></div><div class="live-header-actions-v89"><button onclick="renderLiveLobbyPage()">새로고침</button></div></header>
         <section class="live-summary-v89"><span>LIVE <b>${liveCount}</b></span><span>대기 <b>${waitingCount}</b></span><span>빈 슬롯 <b>${emptyCount}</b></span><small>${escapeHtml(nowText)} 기준</small></section>
         <main class="live-grid-v89">${cards.map(cardHtml).join("")}</main>
         <section class="live-history-v89"><h2>최근 경기 히스토리</h2><div class="history-list-v89">${historyHtml || `<div class="live-empty-note-v89">최근 경기 기록이 없습니다.</div>`}</div></section>
