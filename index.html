@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MINI4WD TOURNAMENT MAKER · v131 UI STRUCTURE CORRECTION</title>
-  <!-- BUILD v131 UI STRUCTURE CORRECTION · PC/mobile header, stage meta, compact controls; rules unchanged -->
+  <!-- BUILD v132 FINAL PRACTICAL STRUCTURE · PC/mobile header, stage meta, compact controls; rules unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -12897,6 +12897,297 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       body:not(.tv-mode) .slot-h2h-rows .slot-metric.h2h { font-size: 6.8px !important; }
     }
 
+
+    /* v132 FINAL PRACTICAL STRUCTURE · topbar unification + compact operator controls */
+    body:not(.tv-mode) .app-titlebar-v132,
+    body:not(.tv-mode) .db-page.player-db-light-v96 > .header.app-titlebar-v132,
+    body:not(.tv-mode) .dashboard-page-v132 > .header.app-titlebar-v132,
+    body:not(.tv-mode).operator-light-page-v95 .app-titlebar-v132 {
+      min-height: 58px !important;
+      margin: 0 0 8px !important;
+      padding: 10px 14px !important;
+      border-radius: 14px !important;
+      border: 1px solid rgba(15,23,42,.10) !important;
+      background: rgba(255,255,255,.92) !important;
+      box-shadow: 0 8px 22px rgba(15,23,42,.055) !important;
+      color: #0f172a !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 12px !important;
+      overflow: hidden !important;
+    }
+    body:not(.tv-mode) .app-titlebar-v132::after { display: none !important; }
+    body:not(.tv-mode) .app-titlebar-v132 .header-copy {
+      display: grid !important;
+      gap: 2px !important;
+      min-width: 0 !important;
+      z-index: 1 !important;
+    }
+    body:not(.tv-mode) .app-titlebar-v132 .brand-line {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      margin: 0 !important;
+      min-width: 0 !important;
+    }
+    body:not(.tv-mode) .app-titlebar-v132 .eyebrow {
+      margin: 0 !important;
+      font-size: 10px !important;
+      line-height: 1 !important;
+      letter-spacing: .16em !important;
+      color: #d84d89 !important;
+      white-space: nowrap !important;
+    }
+    body:not(.tv-mode) .app-titlebar-v132 .maker {
+      margin: 0 !important;
+      padding-left: 8px !important;
+      border-left: 1px solid rgba(148,163,184,.35) !important;
+      font-size: 10px !important;
+      line-height: 1 !important;
+      color: #64748b !important;
+      white-space: nowrap !important;
+    }
+    body:not(.tv-mode) .app-titlebar-v132 h1 {
+      margin: 0 !important;
+      font-size: 18px !important;
+      line-height: 1.12 !important;
+      letter-spacing: -.045em !important;
+      color: #0f172a !important;
+      font-weight: 1000 !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+    body:not(.tv-mode) .app-titlebar-v132 .desc {
+      display: block !important;
+      margin: 0 !important;
+      max-width: 860px !important;
+      font-size: 12px !important;
+      line-height: 1.25 !important;
+      color: #64748b !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+    body:not(.tv-mode) .app-titlebar-v132 .header-logo,
+    body:not(.tv-mode) .app-titlebar-v132 .credit-mark { display: none !important; }
+
+    /* Shared compact page action geometry: DB / Operator / Dashboard */
+    body:not(.tv-mode) .db-topline-v131,
+    body:not(.tv-mode) .dashboard-nav-actions,
+    body:not(.tv-mode).operator-light-page-v95 .toolbar {
+      min-height: 38px !important;
+      padding: 6px 8px !important;
+      margin: 0 0 8px !important;
+      border-radius: 12px !important;
+      border: 1px solid rgba(15,23,42,.10) !important;
+      background: rgba(255,255,255,.88) !important;
+      box-shadow: none !important;
+      gap: 6px !important;
+      align-items: center !important;
+    }
+    body:not(.tv-mode) .dashboard-nav-actions,
+    body:not(.tv-mode).operator-light-page-v95 .toolbar {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      justify-content: flex-start !important;
+    }
+    body:not(.tv-mode) .db-topline-v131 button,
+    body:not(.tv-mode) .db-topline-v131 .upload-button,
+    body:not(.tv-mode) .db-topline-v131 .pill,
+    body:not(.tv-mode) .dashboard-nav-actions button,
+    body:not(.tv-mode).operator-light-page-v95 .toolbar button {
+      height: 28px !important;
+      min-height: 28px !important;
+      width: auto !important;
+      min-width: 0 !important;
+      padding: 0 10px !important;
+      border-radius: 9px !important;
+      font-size: 11px !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+      color: #0f172a !important;
+      background: rgba(248,250,252,.90) !important;
+      border: 1px solid rgba(148,163,184,.45) !important;
+      box-shadow: none !important;
+      flex: 0 0 auto !important;
+    }
+    body:not(.tv-mode) .db-venue-line-v131 {
+      justify-content: flex-start !important;
+      margin-right: auto !important;
+      text-align: left !important;
+    }
+    body:not(.tv-mode) .db-top-actions-v131 { justify-content: flex-end !important; }
+
+    /* Round header: remove status badges, keep useful stage metadata in one compact line. */
+    body:not(.tv-mode) .round-title .round-badge:not(.finalist-badge) { display: none !important; }
+    body:not(.tv-mode) .round-head {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) auto !important;
+      gap: 6px 10px !important;
+      align-items: start !important;
+      padding-bottom: 8px !important;
+      margin-bottom: 10px !important;
+    }
+    body:not(.tv-mode) .round-head > div:first-child { min-width: 0 !important; }
+    body:not(.tv-mode) .round-title {
+      display: flex !important;
+      align-items: baseline !important;
+      gap: 6px !important;
+      flex-wrap: wrap !important;
+    }
+    body:not(.tv-mode) .round-title h2 {
+      margin: 0 !important;
+      font-size: 19px !important;
+      line-height: 1 !important;
+      color: #0f172a !important;
+    }
+    body:not(.tv-mode) .round-head > div:first-child > .meta {
+      margin-top: 5px !important;
+      font-size: 11px !important;
+      line-height: 1.25 !important;
+      color: #64748b !important;
+    }
+    body:not(.tv-mode) .round-head > div:nth-child(2) {
+      display: inline-flex !important;
+      width: auto !important;
+      justify-content: flex-end !important;
+      align-items: center !important;
+      gap: 5px !important;
+      flex-wrap: wrap !important;
+    }
+    body:not(.tv-mode) .round-head > div:nth-child(2) button {
+      width: auto !important;
+      height: 28px !important;
+      min-height: 28px !important;
+      padding: 0 9px !important;
+      border-radius: 8px !important;
+      font-size: 10.5px !important;
+      line-height: 1 !important;
+    }
+
+    /* Group-size selector: left aligned compact inline control. */
+    body:not(.tv-mode) .round-head .group-size-control,
+    body:not(.tv-mode) .group-size-control {
+      grid-column: 1 / -1 !important;
+      display: inline-flex !important;
+      justify-content: flex-start !important;
+      align-items: center !important;
+      flex-wrap: wrap !important;
+      gap: 5px !important;
+      width: auto !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+    }
+    body:not(.tv-mode) .round-head .group-size-control span,
+    body:not(.tv-mode) .group-size-control span {
+      width: auto !important;
+      flex: 0 0 auto !important;
+      margin: 0 3px 0 0 !important;
+      color: #334155 !important;
+      font-size: 11px !important;
+      font-weight: 900 !important;
+      line-height: 22px !important;
+      white-space: nowrap !important;
+    }
+    body:not(.tv-mode) .round-head .group-size-control > div,
+    body:not(.tv-mode) .group-size-control > div {
+      display: inline-flex !important;
+      flex: 0 0 auto !important;
+      width: auto !important;
+      min-width: 0 !important;
+      gap: 4px !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+    }
+    body:not(.tv-mode) .round-head .group-size-control button,
+    body:not(.tv-mode) .group-size-control button {
+      width: auto !important;
+      min-width: 34px !important;
+      max-width: none !important;
+      height: 22px !important;
+      min-height: 22px !important;
+      padding: 0 8px !important;
+      border-radius: 7px !important;
+      font-size: 10px !important;
+      line-height: 1 !important;
+      flex: 0 0 auto !important;
+    }
+
+    /* Stage header: no redundant broadcast button, metadata remains informative not button-like. */
+    body:not(.tv-mode) .stage-head-v131 {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      padding-bottom: 7px !important;
+      margin-bottom: 8px !important;
+    }
+    body:not(.tv-mode) .stage-title-line-v131 h3 { font-size: 16px !important; line-height: 1 !important; }
+    body:not(.tv-mode) .stage-meta-inline-v131 { font-size: 10.5px !important; }
+
+    /* Player cards: name-first compactness; advance state is color only. */
+    body:not(.tv-mode) .slot.selected .advance-mark,
+    body:not(.tv-mode) .slot .advance-mark { display: none !important; }
+    body:not(.tv-mode) .player-info-name-first-card {
+      grid-template-columns: minmax(0, 2.35fr) minmax(62px, .62fr) !important;
+      gap: 3px !important;
+    }
+    body:not(.tv-mode) .slot-card-lane-line .lane-label,
+    body:not(.tv-mode) .slot-card-lane-line .lane-win-rate,
+    body:not(.tv-mode) .lane-label .lane-win-rate {
+      font-size: 8px !important;
+      line-height: 1 !important;
+    }
+    body:not(.tv-mode) .slot-h2h-rows .slot-metric.h2h,
+    body:not(.tv-mode) .player-info-with-h2h .slot-metric.h2h {
+      font-size: 6.6px !important;
+      line-height: 1.02 !important;
+      padding-left: 2px !important;
+      border-left-width: 1px !important;
+      letter-spacing: -.035em !important;
+    }
+
+    @media (max-width: 760px) {
+      body:not(.tv-mode) .app-titlebar-v132,
+      body:not(.tv-mode) .db-page.player-db-light-v96 > .header.app-titlebar-v132,
+      body:not(.tv-mode) .dashboard-page-v132 > .header.app-titlebar-v132,
+      body:not(.tv-mode).operator-light-page-v95 .app-titlebar-v132 {
+        min-height: 50px !important;
+        padding: 9px 10px !important;
+        margin-bottom: 6px !important;
+        border-radius: 12px !important;
+      }
+      body:not(.tv-mode) .app-titlebar-v132 h1 { font-size: 16px !important; }
+      body:not(.tv-mode) .app-titlebar-v132 .desc { font-size: 11px !important; }
+      body:not(.tv-mode) .round-head {
+        grid-template-columns: 1fr !important;
+        gap: 6px !important;
+      }
+      body:not(.tv-mode) .round-head > div:nth-child(2) {
+        justify-content: flex-start !important;
+      }
+      body:not(.tv-mode) .group-size-control,
+      body:not(.tv-mode) .round-head .group-size-control {
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+        padding-bottom: 1px !important;
+      }
+      body:not(.tv-mode) .group-size-control button,
+      body:not(.tv-mode) .round-head .group-size-control button {
+        min-width: 32px !important;
+      }
+      body:not(.tv-mode) .dashboard-nav-actions,
+      body:not(.tv-mode).operator-light-page-v95 .toolbar {
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+      }
+    }
+
+
 </style>
 </head>
 <body>
@@ -14386,7 +14677,7 @@ function copyOrShare(url, label) {
 
       app.innerHTML = `
         <div class="wrap">
-          <header class="header">
+          <header class="header app-titlebar-v132 operator-titlebar-v132">
             <div class="header-copy">
               <div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div></div>
               <h1>${matchModeLabel()} · ${state.settings.laneCount}레인</h1>
@@ -14718,7 +15009,7 @@ function copyOrShare(url, label) {
             <div>
               <div class="round-title">
                 <h2>${escapeHtml(round.title)}</h2>
-                ${round.finalist ? `<span class="round-badge finalist-badge">${isRevivalMode() ? "우승:" : "진출:"} ${escapeHtml(round.finalist.name)}</span>` : `<span class="round-badge">대기중</span>`}
+                ${round.finalist ? `<span class="round-badge finalist-badge">${isRevivalMode() ? "우승:" : "진출:"} ${escapeHtml(round.finalist.name)}</span>` : ``}
               </div>
               <div class="meta">
                 경기 순서 : ${round.stagePlan.length ? round.stagePlan.join(" → ") : makeStagePlan(Math.max(2, parseParticipants().length), state.settings.laneCount).join(" → ")}
@@ -17260,7 +17551,7 @@ function boot() {
 
       app.innerHTML = `
         <div class="db-page player-db-light-v96 player-db-v121">
-          <header class="header db-titlebar-v131"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div></div><h1>선수 DB</h1><p class="desc">선수 등록, 명부 수정, 참가자 선택을 한 화면에서 관리합니다.</p></div>${logoMarkup("header-logo")}</header>
+          <header class="header db-titlebar-v131 app-titlebar-v132 db-titlebar-v132"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div></div><h1>선수 DB</h1><p class="desc">선수 등록, 명부 수정, 참가자 선택을 한 화면에서 관리합니다.</p></div>${logoMarkup("header-logo")}</header>
           <div class="db-topline-v130 db-topline-v131">
             <div class="db-venue-line-v131"><span class="pill">VENUE · ${escapeHtml(fixedVenueName || "-")}</span><span class="pill db-email-pill-v131">${escapeHtml(currentAuthUser?.email || "")}</span></div>
             <div class="db-top-actions-v131">
@@ -17685,7 +17976,7 @@ function exportTournamentCsv() {
       const stats = analyzeRecords(filtered);
       const venueVisits = analyzePlayerVenueVisits(filtered);
       document.body.classList.remove("tv-mode");
-      app.innerHTML = `<div class="db-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">DASHBOARD</div></div><h1>상시 데이터 대시보드</h1><p class="desc">기간별 · 경기장별 · 클래스별 경기 기록 분석</p></div>${logoMarkup("header-logo")}</header>${currentAuthUser ? accountBadge() : renderPageNav()}<div class="toolbar dashboard-actions-toolbar"><button class="ghost" onclick="dashboardFilter.venue='전체'; renderDashboardWithRecords(window.__dashboardRecords||[])">전체 경기장</button><button class="ghost" onclick="openDashboardPage()">새로고침</button></div><section class="card"><div class="dashboard-filter"><div><label>시작일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.from)}" onchange="dashboardFilter.from=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>종료일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.to)}" onchange="dashboardFilter.to=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>경기장</label><select class="mini-input" onchange="dashboardFilter.venue=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 경기장</option>${venueOptions.map(v => `<option value="${escapeHtml(v.id)}" ${dashboardFilter.venue===v.id || dashboardFilter.venue===v.name || (v.aliases || []).includes(dashboardFilter.venue) || normalizeKey(dashboardFilter.venue)===v.id ? "selected" : ""}>${escapeHtml(v.name)}</option>`).join("")}</select></div><div><label>클래스</label><select class="mini-input" onchange="dashboardFilter.raceClass=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 클래스</option>${classes.map(c => `<option value="${escapeHtml(c)}" ${dashboardFilter.raceClass===c?"selected":""}>${escapeHtml(c)}</option>`).join("")}</select></div><div><label>검색</label><input class="mini-input" placeholder="대회명/경기장/클래스" value="${escapeHtml(dashboardFilter.keyword)}" oninput="dashboardFilter.keyword=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div></div><div class="dashboard-period-row"><button class="ghost" onclick="setDashboardPeriod('all')">전체 기간</button><button class="ghost" onclick="setDashboardPeriod('month')">이번달</button><button class="ghost" onclick="setDashboardPeriod('30d')">최근 30일</button></div><div class="db-stat-grid" style="margin-top:12px;"><div class="db-stat"><small>대회 기록</small><strong>${filtered.length}</strong></div><div class="db-stat"><small>경기장</small><strong>${new Set(filtered.map(r=>r.venueName||r.venueId)).size}</strong></div><div class="db-stat"><small>선수</small><strong>${stats.players.length}</strong></div></div></section><div class="dashboard-grid"><section class="dashboard-card"><h3>클래스별 기록</h3><div class="class-chip-wrap">${classStats.map(item => `<div class="class-chip"><span>${escapeHtml(item.raceClass)}</span><b>${item.count}회</b></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>선수별 경기장 방문</h3>${renderVenueVisitList(venueVisits)}</section><section class="dashboard-card"><h3>최다승 유저</h3>${rankList(stats.mostWins, "wins", "승")}</section><section class="dashboard-card"><h3>자주 우승하는 사람</h3>${rankList(stats.mostChampions, "championships", "회")}</section><section class="dashboard-card"><h3>자주 지는 사람</h3>${rankList(stats.mostLosses, "losses", "패")}</section><section class="dashboard-card"><h3>참가 횟수 랭킹</h3>${rankList(stats.mostParticipants, "matches", "회")}</section><section class="dashboard-card"><h3>포인트전 누적</h3>${rankList(stats.mostPoints, "points", "P")}</section><section class="dashboard-card"><h3>한 레인 편중</h3><div class="rank-list">${stats.oneLane.slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)} · ${p.mainLane}LANE</span><strong>${Math.round(p.laneRate*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>레인별 승률</h3><div class="rank-list">${stats.laneStats.map(l=>`<div class="rank-row"><b>${l.lane}</b><span class="rank-name">${l.matches}경기</span><strong>${l.matches ? Math.round(l.wins/l.matches*100) : 0}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>결승 진출률</h3><div class="rank-list">${stats.players.filter(p=>p.matches).sort((a,b)=>(b.finals/b.matches)-(a.finals/a.matches)).slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)}</span><strong>${Math.round(p.finals/p.matches*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section></div></div>`;
+      app.innerHTML = `<div class="db-page dashboard-page-v132"><header class="header app-titlebar-v132 dashboard-titlebar-v132"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">DASHBOARD</div></div><h1>상시 데이터 대시보드</h1><p class="desc">기간별 · 경기장별 · 클래스별 경기 기록 분석</p></div>${logoMarkup("header-logo")}</header>${currentAuthUser ? accountBadge() : renderPageNav()}<div class="toolbar dashboard-actions-toolbar"><button class="ghost" onclick="dashboardFilter.venue='전체'; renderDashboardWithRecords(window.__dashboardRecords||[])">전체 경기장</button><button class="ghost" onclick="openDashboardPage()">새로고침</button></div><section class="card"><div class="dashboard-filter"><div><label>시작일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.from)}" onchange="dashboardFilter.from=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>종료일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.to)}" onchange="dashboardFilter.to=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>경기장</label><select class="mini-input" onchange="dashboardFilter.venue=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 경기장</option>${venueOptions.map(v => `<option value="${escapeHtml(v.id)}" ${dashboardFilter.venue===v.id || dashboardFilter.venue===v.name || (v.aliases || []).includes(dashboardFilter.venue) || normalizeKey(dashboardFilter.venue)===v.id ? "selected" : ""}>${escapeHtml(v.name)}</option>`).join("")}</select></div><div><label>클래스</label><select class="mini-input" onchange="dashboardFilter.raceClass=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 클래스</option>${classes.map(c => `<option value="${escapeHtml(c)}" ${dashboardFilter.raceClass===c?"selected":""}>${escapeHtml(c)}</option>`).join("")}</select></div><div><label>검색</label><input class="mini-input" placeholder="대회명/경기장/클래스" value="${escapeHtml(dashboardFilter.keyword)}" oninput="dashboardFilter.keyword=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div></div><div class="dashboard-period-row"><button class="ghost" onclick="setDashboardPeriod('all')">전체 기간</button><button class="ghost" onclick="setDashboardPeriod('month')">이번달</button><button class="ghost" onclick="setDashboardPeriod('30d')">최근 30일</button></div><div class="db-stat-grid" style="margin-top:12px;"><div class="db-stat"><small>대회 기록</small><strong>${filtered.length}</strong></div><div class="db-stat"><small>경기장</small><strong>${new Set(filtered.map(r=>r.venueName||r.venueId)).size}</strong></div><div class="db-stat"><small>선수</small><strong>${stats.players.length}</strong></div></div></section><div class="dashboard-grid"><section class="dashboard-card"><h3>클래스별 기록</h3><div class="class-chip-wrap">${classStats.map(item => `<div class="class-chip"><span>${escapeHtml(item.raceClass)}</span><b>${item.count}회</b></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>선수별 경기장 방문</h3>${renderVenueVisitList(venueVisits)}</section><section class="dashboard-card"><h3>최다승 유저</h3>${rankList(stats.mostWins, "wins", "승")}</section><section class="dashboard-card"><h3>자주 우승하는 사람</h3>${rankList(stats.mostChampions, "championships", "회")}</section><section class="dashboard-card"><h3>자주 지는 사람</h3>${rankList(stats.mostLosses, "losses", "패")}</section><section class="dashboard-card"><h3>참가 횟수 랭킹</h3>${rankList(stats.mostParticipants, "matches", "회")}</section><section class="dashboard-card"><h3>포인트전 누적</h3>${rankList(stats.mostPoints, "points", "P")}</section><section class="dashboard-card"><h3>한 레인 편중</h3><div class="rank-list">${stats.oneLane.slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)} · ${p.mainLane}LANE</span><strong>${Math.round(p.laneRate*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>레인별 승률</h3><div class="rank-list">${stats.laneStats.map(l=>`<div class="rank-row"><b>${l.lane}</b><span class="rank-name">${l.matches}경기</span><strong>${l.matches ? Math.round(l.wins/l.matches*100) : 0}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>결승 진출률</h3><div class="rank-list">${stats.players.filter(p=>p.matches).sort((a,b)=>(b.finals/b.matches)-(a.finals/a.matches)).slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)}</span><strong>${Math.round(p.finals/p.matches*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section></div></div>`;
     }
 
     function liveStatusLabel(status) {
@@ -19576,6 +19867,15 @@ function stopLiveLobbyRealtimeV50() {
         rulesChanged: false
       };
     } catch (error) {}
+    try {
+      window.__mini4wdV132FinalPracticalStructure = {
+        build: "BUILD v132 FINAL PRACTICAL STRUCTURE",
+        basedOn: "v131 UI STRUCTURE CORRECTION",
+        focus: ["unified titlebars", "compact round controls", "mobile compact rebuild", "status badge cleanup"],
+        rulesChanged: false
+      };
+    } catch (error) {}
+
 </script>
 </body>
 </html>
