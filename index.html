@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MINI4WD TOURNAMENT MAKER · v137 ROSTER TABLE ALIGN HOTFIX</title>
-  <!-- BUILD v137 ROSTER TABLE ALIGN HOTFIX · bulk-toolbar one-line and roster columns fit; rules unchanged -->
+  <!-- BUILD v140 RULE ENGINE SPLIT PATCH · points3/points5Tree separated; tournament flow guarded; rules unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -14139,7 +14139,245 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       }
     }
 
-</style>
+
+
+    /* v138 FOCUSED STABILITY PATCH · final practical overrides */
+    body:not(.tv-mode) .round-head > .group-size-control-v138,
+    body:not(.tv-mode) .round-head > div.group-size-control-v138,
+    body:not(.tv-mode) .group-size-control-v138 {
+      display: inline-flex !important;
+      flex: 0 0 auto !important;
+      width: auto !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      align-self: flex-start !important;
+      gap: 8px !important;
+      margin: 6px 0 0 0 !important;
+      padding: 0 !important;
+      background: transparent !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      overflow: visible !important;
+    }
+    body:not(.tv-mode) .group-size-control-v138 .group-size-label-v138 {
+      display: inline-flex !important;
+      flex: 0 0 auto !important;
+      width: auto !important;
+      min-width: 0 !important;
+      margin: 0 4px 0 0 !important;
+      color: #23324a !important;
+      font-size: 12px !important;
+      line-height: 1 !important;
+      font-weight: 900 !important;
+      white-space: nowrap !important;
+    }
+    body:not(.tv-mode) .group-size-control-v138 .group-size-buttons-v138 {
+      display: inline-flex !important;
+      flex: 0 0 auto !important;
+      width: auto !important;
+      min-width: 0 !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      gap: 5px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    body:not(.tv-mode) .group-size-control-v138 .group-size-button-v138 {
+      flex: 0 0 auto !important;
+      width: auto !important;
+      min-width: 38px !important;
+      max-width: none !important;
+      height: 24px !important;
+      min-height: 24px !important;
+      padding: 0 11px !important;
+      border-radius: 9px !important;
+      font-size: 11px !important;
+      line-height: 22px !important;
+      font-weight: 900 !important;
+      white-space: nowrap !important;
+      box-shadow: none !important;
+      text-transform: none !important;
+    }
+    body:not(.tv-mode) .group-size-control-v138 .group-size-button-v138.active {
+      background: var(--point) !important;
+      border-color: var(--point) !important;
+      color: #fff !important;
+      box-shadow: 0 4px 12px rgba(216,77,137,.18) !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .group-size-control-v138 {
+      display: flex !important;
+      width: 100% !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      padding-bottom: 2px !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+    body.ui-mode-mobile:not(.tv-mode) .group-size-control-v138::-webkit-scrollbar { display: none !important; }
+    body.ui-mode-mobile:not(.tv-mode) .group-size-control-v138 .group-size-label-v138 { font-size: 11px !important; }
+    body.ui-mode-mobile:not(.tv-mode) .group-size-control-v138 .group-size-button-v138 {
+      min-width: 34px !important;
+      height: 23px !important;
+      min-height: 23px !important;
+      padding: 0 9px !important;
+      font-size: 10.5px !important;
+      border-radius: 8px !important;
+    }
+    body:not(.tv-mode) .slot.empty-lane,
+    body:not(.tv-mode) .slot.empty-lane .slot-inner,
+    body:not(.tv-mode) .slot.empty-lane .player-card-main,
+    body:not(.tv-mode) .slot.empty-lane .player-card-main-empty {
+      min-height: var(--player-card-min-height-v138, 72px) !important;
+    }
+    body:not(.tv-mode) .slot.empty-lane {
+      display: flex !important;
+      align-items: stretch !important;
+      opacity: .74 !important;
+    }
+    body:not(.tv-mode) .slot.empty-lane .slot-inner { width: 100% !important; }
+    body.tv-mode .tv90-result:empty {
+      display: none !important;
+    }
+    body.tv-mode .tv90-lane.is-selected .tv90-result:empty {
+      display: none !important;
+    }
+    body.tv-mode .tv90-lane-meta {
+      align-items: flex-start !important;
+    }
+    body.tv-mode .tv90-lane-main {
+      display: inline-flex !important;
+      align-items: baseline !important;
+      gap: .18em !important;
+      line-height: 1 !important;
+    }
+    body.tv-mode .tv90-lane-no,
+    body.tv-mode .tv90-lane-word,
+    body.tv-mode .tv-lane-meta strong {
+      font-size: clamp(7.5px, .62vw, 11px) !important;
+      line-height: 1 !important;
+      letter-spacing: -.02em !important;
+    }
+    body.tv-mode .tv90-rate,
+    body.tv-mode .tv-lane-meta span {
+      font-size: clamp(7.5px, .62vw, 11px) !important;
+      line-height: 1 !important;
+    }
+    body.tv-mode .tv90-h2h-row,
+    body.tv-mode .tv-h2h-line {
+      letter-spacing: -.035em !important;
+    }
+
+  
+
+    /* v139 TV POINT SCALE PATCH · TV only, point leaderboard readability */
+    body.tv-mode .tv-point-leaders {
+      padding: clamp(8px, .85vw, 14px) !important;
+      border-radius: clamp(12px, 1vw, 18px) !important;
+      background: rgba(7, 16, 13, .88) !important;
+      border: 1px solid rgba(238,233,223,.14) !important;
+      box-shadow: 0 12px 30px rgba(0,0,0,.22) !important;
+    }
+    body.tv-mode .tv-point-leaders-title {
+      margin: 0 0 clamp(6px, .65vw, 11px) !important;
+      color: rgba(245,158,11,.98) !important;
+      font-size: clamp(16px, 1.55vw, 28px) !important;
+      line-height: 1 !important;
+      font-weight: 1000 !important;
+      letter-spacing: -.035em !important;
+      white-space: nowrap !important;
+    }
+    body.tv-mode .tv-point-leaders-list {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+      gap: clamp(7px, .8vw, 13px) !important;
+      align-items: stretch !important;
+      min-width: 0 !important;
+    }
+    body.tv-mode .tv-point-leader {
+      min-width: 0 !important;
+      min-height: clamp(48px, 4.8vw, 86px) !important;
+      display: grid !important;
+      grid-template-columns: clamp(34px, 3vw, 58px) minmax(0, 1fr) auto !important;
+      align-items: center !important;
+      gap: clamp(7px, .9vw, 16px) !important;
+      padding: clamp(8px, .85vw, 15px) clamp(9px, 1vw, 18px) !important;
+      border-radius: clamp(11px, .9vw, 17px) !important;
+      background: rgba(238,233,223,.06) !important;
+      border: 1px solid rgba(238,233,223,.12) !important;
+      overflow: hidden !important;
+    }
+    body.tv-mode .tv-point-leader b {
+      width: clamp(30px, 2.7vw, 54px) !important;
+      height: clamp(30px, 2.7vw, 54px) !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      border-radius: 999px !important;
+      background: rgba(216,77,137,.22) !important;
+      color: #ff8dbb !important;
+      font-size: clamp(18px, 1.9vw, 36px) !important;
+      line-height: 1 !important;
+      font-weight: 1000 !important;
+      font-variant-numeric: tabular-nums !important;
+    }
+    body.tv-mode .tv-point-leader span {
+      min-width: 0 !important;
+      display: block !important;
+      color: rgba(238,233,223,.92) !important;
+      font-size: clamp(18px, 2vw, 36px) !important;
+      line-height: 1.04 !important;
+      font-weight: 1000 !important;
+      letter-spacing: -.055em !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+    body.tv-mode .tv-point-leader strong {
+      display: block !important;
+      color: rgba(245,158,11,.98) !important;
+      font-size: clamp(24px, 3.15vw, 58px) !important;
+      line-height: .92 !important;
+      font-weight: 1000 !important;
+      letter-spacing: -.06em !important;
+      font-variant-numeric: tabular-nums !important;
+      white-space: nowrap !important;
+    }
+    body.tv-mode .tv-point-leaders .score-row strong,
+    body.tv-mode .tv-point-leaders .score-row b {
+      font-size: clamp(18px, 2vw, 36px) !important;
+    }
+    @media (max-width: 960px) {
+      body.tv-mode .tv-point-leaders-list {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
+
+    /* v140 RULE ENGINE SPLIT PATCH · mode buttons are explicit but compact */
+    body:not(.tv-mode) .match-mode-grid-v140 {
+      display: grid !important;
+      grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+      gap: 6px !important;
+    }
+    body:not(.tv-mode) .match-mode-grid-v140 button {
+      min-height: 34px !important;
+      padding: 7px 8px !important;
+      font-size: 11.5px !important;
+      border-radius: 10px !important;
+      white-space: nowrap !important;
+    }
+    @media (max-width: 760px) {
+      body:not(.tv-mode) .match-mode-grid-v140 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+      body:not(.tv-mode) .match-mode-grid-v140 button {
+        min-height: 32px !important;
+        font-size: 11px !important;
+      }
+    }
+
+  </style>
 </head>
 <body>
   <div id="app"></div>
@@ -14486,11 +14724,11 @@ function shuffle(array) {
     function renderGroupSizeControl() {
       const options = ["", ...Array.from({ length: Math.max(0, state.settings.laneCount - 1) }, (_, index) => index + 2)];
       return `
-        <div class="group-size-control group-size-control-v133 group-size-control-v136">
-          <span>다음 경기 조 인원</span>
-          <div>
+        <div class="group-size-control group-size-control-v133 group-size-control-v136 group-size-control-v138" role="group" aria-label="다음 경기 조 인원">
+          <span class="group-size-label-v138">다음 경기 조 인원</span>
+          <div class="group-size-buttons-v138">
             ${options.map(option => `
-              <button class="${String(state.settings.nextGroupSize || "") === String(option) ? "active" : ""}" onclick="setNextGroupSize('${option}')">${option === "" ? "자동" : `${option}명`}</button>
+              <button type="button" class="group-size-button-v138 ${String(state.settings.nextGroupSize || "") === String(option) ? "active" : ""}" onclick="setNextGroupSize('${option}')">${option === "" ? "자동" : `${option}명`}</button>
             `).join("")}
           </div>
         </div>
@@ -14638,6 +14876,7 @@ function shuffle(array) {
     function ensureStateDefaults() {
       state.settings = state.settings || {};
       if (!state.settings.matchMode) state.settings.matchMode = "basic";
+      if (state.settings.matchMode === "points") state.settings.matchMode = "points3";
       if (state.settings.sameLanePrevention === undefined) state.settings.sameLanePrevention = true;
       if (!state.tournament) {
         state.tournament = { name: "", venue: "", raceClass: "오픈", status: "draft", startedAtISO: "", startedAtDisplay: "", endedAtISO: "", endedAtDisplay: "" };
@@ -14858,27 +15097,62 @@ function isTournamentLocked() {
 
 
 
-function isPointRound(roundIndex) {
-      return state.settings.matchMode === "points" && roundIndex === 0;
+function normalizeMatchMode(mode = state?.settings?.matchMode) {
+      const raw = String(mode || "basic");
+      // v140: legacy "points" is kept as the existing 3-race Athens style point mode.
+      if (raw === "points") return "points3";
+      return raw;
+    }
+
+    function isPointMode(mode = state?.settings?.matchMode) {
+      const normalized = normalizeMatchMode(mode);
+      return normalized === "points3" || normalized === "points5Tree";
+    }
+
+    function isPointRound(roundIndex) {
+      return isPointMode(state.settings.matchMode) && roundIndex === 0;
+    }
+
+    function isPointFiveTreeMode(mode = state?.settings?.matchMode) {
+      return normalizeMatchMode(mode) === "points5Tree";
+    }
+
+    function getPointStageLimit(mode = state?.settings?.matchMode) {
+      return isPointFiveTreeMode(mode) ? 5 : 3;
+    }
+
+    function getPointFinalLabel(mode = state?.settings?.matchMode) {
+      const limit = getPointStageLimit(mode);
+      return isPointFiveTreeMode(mode)
+        ? `포인트 ${limit}회 누적 하위 ${state.settings.laneCount}명 트리타기`
+        : `포인트 상위 ${state.settings.laneCount}명 결정전`;
+    }
+
+    function makePointStagePlan(mode = state?.settings?.matchMode) {
+      const limit = getPointStageLimit(mode);
+      return [
+        ...Array.from({ length: limit }, (_, index) => `포인트 ${index + 1}차전`),
+        getPointFinalLabel(mode)
+      ];
     }
 
     function isRevivalMode() {
       return state.settings.matchMode === "revival";
     }
 
-    function getPointOptions(stageName) {
-      // Extended point options: allow up to 5 point stages and apply Athens rule for certain classes.
-      // Determine stage number from the stage name if available.
-      const match = String(stageName || "").match(/포인트\s*([0-9]+)차전/);
-      const num = match ? Number(match[1]) : null;
-      // Normalize race class name and define classes that follow the Athens rule (no 5‑point round).
+    function isAthensPointClass() {
       const raceClass = (state?.tournament?.raceClass || "").trim();
       const athensClasses = ["비맥스", "스톡", "비맥스 클래스", "스톡 클래스", "비맥스클래스", "스톡클래스"];
-      const noFivePointRule = athensClasses.some(c => raceClass.includes(c));
-      // If the race class follows Athens rule, always return standard 3/2/1/0 scoring.
-      if (noFivePointRule) return [3, 2, 1, 0];
-      // Use 5/2/1/0 scoring only on the 3rd stage for regular classes; other stages use 3/2/1/0.
-      if (num === 3) return [5, 2, 1, 0];
+      return athensClasses.some(c => raceClass.includes(c));
+    }
+
+    function getPointOptions(stageName) {
+      const match = String(stageName || "").match(/포인트\s*([0-9]+)차전/);
+      const num = match ? Number(match[1]) : null;
+      // 비맥스/스톡은 기존 요청대로 포인트 3차 5점룰을 쓰지 않는다.
+      if (isAthensPointClass()) return [3, 2, 1, 0];
+      // 일반 3회 포인트전만 3차 5점룰. 5회 트리타기는 5회 모두 3/2/1/0으로 고정해 룰 충돌을 막는다.
+      if (normalizeMatchMode(state.settings.matchMode) === "points3" && num === 3) return [5, 2, 1, 0];
       return [3, 2, 1, 0];
     }
 
@@ -14939,33 +15213,44 @@ function isPointRound(roundIndex) {
       renderOperator();
     }
 
+    function selectPointFinalistsByCutoff(totals, limit, ascending = false) {
+      const sorted = totals.slice().sort((a, b) => {
+        const score = ascending ? a.total - b.total : b.total - a.total;
+        return score || a.name.localeCompare(b.name, "ko");
+      });
+      if (!sorted.length) return [];
+      const cutoffIndex = Math.min(limit, sorted.length) - 1;
+      const cutoffScore = sorted[cutoffIndex]?.total;
+      return sorted.filter(player => ascending ? player.total <= cutoffScore : player.total >= cutoffScore);
+    }
+
     function createPointNextStage(roundIndex) {
       const round = state.qualifierRounds[roundIndex];
-      const lastStage = round.stages[round.stages.length - 1];
-      if (lastStage.type === "pointFinal") return showError("상위 결정전에서는 결승 진출자 확정을 사용하세요.");
+      const lastStage = round?.stages?.[round.stages.length - 1];
+      if (!round || !lastStage) return showError("먼저 포인트전을 시작하세요.");
+      if (lastStage.type === "pointFinal") return showError("결정전에서는 진출자 확정을 사용하세요.");
       if (lastStage.type !== "points") return showError("포인트전 단계가 아닙니다.");
 
-      // Count the number of existing point stages. We now support up to five point stages before the final.
       const pointStageCount = round.stages.filter(stage => stage.type === "points").length;
+      const pointLimit = getPointStageLimit(state.settings.matchMode);
       const allPlayers = getPointPlayers(round);
       let generatedStageName = "";
 
-      if (pointStageCount < 5) {
-        // Create additional points stages (1st through 5th).
+      if (pointStageCount < pointLimit) {
         const nextIndex = pointStageCount + 1;
         generatedStageName = `포인트 ${nextIndex}차전`;
         round.stages.push(generatePointStage(allPlayers, round.index, round.stages.length + 1, generatedStageName));
       } else {
-        // After five point stages, create a final stage based on lowest cumulative points (tree climbing concept).
         const totals = computePointTotals(round);
         if (!totals.length) return showError("결정전을 만들 참가자가 부족합니다.");
-        // Sort ascending by total points; lower points rank higher.
-        const sortedAsc = totals.slice().sort((a, b) => a.total - b.total || a.name.localeCompare(b.name, "ko"));
-        const finalists = sortedAsc.slice(0, state.settings.laneCount);
+        const lowScoreTree = isPointFiveTreeMode(state.settings.matchMode);
+        const finalists = selectPointFinalistsByCutoff(totals, state.settings.laneCount, lowScoreTree);
         if (finalists.length < 2) return showError("결정전을 만들 참가자가 부족합니다.");
-        generatedStageName = `포인트 최하위 ${state.settings.laneCount}명 결정전`;
+        generatedStageName = getPointFinalLabel(state.settings.matchMode);
         const finalStage = generateStage(finalists.map(p => ({ id: p.id, name: p.name, team: p.team })), round.index, round.stages.length + 1, generatedStageName);
         finalStage.type = "pointFinal";
+        finalStage.pointFinalRule = lowScoreTree ? "low-score-tree" : "top-score";
+        finalStage.pointFinalSource = totals.map(item => ({ id: item.id, name: item.name, team: item.team, total: item.total }));
         round.stages.push(finalStage);
       }
 
@@ -14973,6 +15258,7 @@ function isPointRound(roundIndex) {
       activeRoundIndex = roundIndex;
       logTournamentAction("다음 경기 생성", generatedStageName);
       renderOperator();
+      forceLiveBroadcastSync("createPointNextStage");
       requestAnimationFrame(() => document.getElementById("currentStageTop")?.scrollIntoView({ behavior: "smooth", block: "start" }));
     }
 
@@ -15063,7 +15349,7 @@ function isPointRound(roundIndex) {
       if (error) return showError(error);
 
       if (isPointRound(roundIndex)) {
-        round.stagePlan = ["포인트 1차전", "포인트 2차전", "포인트 3차전", `포인트 상위 ${state.settings.laneCount}명 결정전`];
+        round.stagePlan = makePointStagePlan(state.settings.matchMode);
         round.stages = [];
         round.finalist = null;
         round.stages = [generatePointStage(players, round.index, 1, "포인트 1차전")];
@@ -15392,7 +15678,7 @@ function copyOrShare(url, label) {
         const roundPlayers = state.settings.excludeFinalists ? getEligibleParticipants() : parseParticipants();
 
         if (isPointRound(index)) {
-          round.stagePlan = ["포인트 1차전", "포인트 2차전", "포인트 3차전", `포인트 상위 ${state.settings.laneCount}명 결정전`];
+          round.stagePlan = makePointStagePlan(state.settings.matchMode);
           round.stages = [generatePointStage(roundPlayers, round.index, 1, "포인트 1차전")];
         } else if (isRevivalMode()) {
           const plan = makeStagePlan(roundPlayers.length, state.settings.laneCount).map(name => name === "라운드 결승" ? "결승" : name);
@@ -15689,7 +15975,9 @@ function copyOrShare(url, label) {
 
                   <section class="card">
                     <h2>경기 방식</h2>
-                    <div class="btnrow mode-row match-mode-grid-v124"><button class="${state.settings.matchMode === 'basic' ? "active" : ""}" onclick="setMatchMode('basic')">토너먼트</button><button class="${state.settings.matchMode === 'points' ? "active" : ""}" onclick="setMatchMode('points')">포인트전</button><button class="${state.settings.matchMode === 'revival' ? "active" : ""}" onclick="setMatchMode('revival')">패자부활</button><button class="${state.settings.matchMode === 'crow' ? "active" : ""}" onclick="setMatchMode('crow')">토너먼트(9강)</button></div>
+                    <div class="btnrow mode-row match-mode-grid-v124 match-mode-grid-v140"><button class="${normalizeMatchMode(state.settings.matchMode) === 'basic' ? "active" : ""}" onclick="setMatchMode('basic')">토너먼트</button><button class="${normalizeMatchMode(state.settings.matchMode) === 'points3' ? "active" : ""}" onclick="setMatchMode('points3')">포인트전 3회</button><button class="${normalizeMatchMode(state.settings.matchMode) === 'points5Tree' ? "active" : ""}" onclick="setMatchMode('points5Tree')">포인트전 5회</button><button class="${state.settings.matchMode === 'revival' ? "active" : ""}" onclick="setMatchMode('revival')">패자부활</button><button class="${state.settings.matchMode === 'crow' ? "active" : ""}" onclick="setMatchMode('crow')">토너먼트(9강)</button></div>
+                    ${normalizeMatchMode(state.settings.matchMode) === 'points3' ? `<p class="hint">포인트전 3회: 1·2차 3/2/1/0, 일반 클래스 3차 5/2/1/0. 비맥스·스톡은 3차도 3/2/1/0.</p>` : ""}
+                    ${normalizeMatchMode(state.settings.matchMode) === 'points5Tree' ? `<p class="hint">포인트전 5회: 5회 누적 후 낮은 점수 순으로 트리타기 결정전을 생성합니다. 동점자는 컷 기준에 함께 포함됩니다.</p>` : ""}
                     ${state.settings.matchMode === 'crow' ? `<p class="hint">토너먼트(9강): 라운드별 1~3위 총 9명으로 준결/결승을 진행합니다.</p>` : ""}
                   </section>
                 </div>
@@ -15996,6 +16284,12 @@ function copyOrShare(url, label) {
     }
 
 
+    function getPointRuleSummaryText(mode = state.settings.matchMode) {
+      if (isPointFiveTreeMode(mode)) return "5회 모두 3/2/1/0 · 누적 하위 트리타기";
+      if (isAthensPointClass()) return "비맥스/스톡 3회 모두 3/2/1/0";
+      return "1·2차 3/2/1/0 · 3차 5/2/1/0";
+    }
+
     function renderPointScoreboard(round) {
       const totals = computePointTotals(round);
       if (!totals.length) return "";
@@ -16008,7 +16302,7 @@ function copyOrShare(url, label) {
         <section class="athens-scoreboard${showRank ? " show-rank" : " hide-rank"}">
           <div class="scoreboard-head">
             <strong>포인트 합산 순위</strong>
-            <span class="badge">1·2차전 3/2/1/0 · 3차전 5/2/1/0</span>
+            <span class="badge">${escapeHtml(getPointRuleSummaryText())}</span>
           </div>
           <div class="scoreboard-list">
             ${totals.map((player, index) => `
@@ -16873,7 +17167,7 @@ function avoidanceLabel(level) {
     }
 
     function renderTvPointLeaders(target) {
-      if (target.stageType !== "points" || target.stageName !== "포인트 3차전" || !target.pointLeaders?.length) return "";
+      if (target.stageType !== "points" || !/^포인트\s*[0-9]+차전$/.test(String(target.stageName || "")) || !target.pointLeaders?.length) return "";
       return `
         <section class="tv-point-leaders">
           <div class="tv-point-leaders-title">포인트 TOP 3</div>
@@ -17031,7 +17325,7 @@ function getTvWindowGroups(target) {
       const stats = getGroupMatchStatsForPlayer(player, group);
       const h2hCount = Math.max(1, Math.min(4, (stats.h2h || []).length || 1));
       const rows = (stats.h2h || []).map(item => {
-        const label = item.matches ? `${item.name} · ${item.wins}승 ${item.losses}패` : `${item.name} · 전적없음`;
+        const label = item.matches ? `${item.name} ${item.wins}승${item.losses}패` : `${item.name} 전적없음`;
         return `<div class="tv-h2h-line">${escapeHtml(label)}</div>`;
       }).join("");
       return `<div class="tv-h2h-list tv-h2h-rows" title="최근 3개월 전적" style="--h2h-row-count:${h2hCount}"><div class="tv-h2h-title">최근 3개월 전적</div>${rows || `<div class="tv-h2h-line">상대전적 없음</div>`}</div>`;
@@ -17086,7 +17380,7 @@ function getTvWindowGroups(target) {
       }
       const selected = (group?.advanceIds || []).includes(player.id);
       const pointValue = Number(pointTotalsMap?.[player.id] ?? (group?.points || {})[player.id] ?? 0);
-      const resultText = stageType === "points" ? `${pointValue}P` : (selected ? (isFinal ? "최종" : "진출") : "");
+      const resultText = stageType === "points" ? `${pointValue}P` : "";
       const stats = getGroupMatchStatsForPlayer(player, group || {});
       const rows = (stats.h2h || []).slice(0, 3).map(item => {
         const label = item.matches ? `${item.name} ${item.wins}승 ${item.losses}패` : `${item.name} 전적없음`;
@@ -19097,21 +19391,25 @@ function flattenPrivateResultLogs(raw = {}) {
     }
 
     function ruleSummary(mode = state.settings.matchMode) {
+      const normalized = normalizeMatchMode(mode);
       return {
         basic: "라운드별 결승 진출자를 모아 최종 결승을 진행합니다.",
         crow: "라운드별 1~3위 총 9명으로 준결/결승을 진행합니다.",
-        points: "추가 예정입니다.",
-        revival: "추가 예정입니다."
-      }[mode] || "라운드별 결승 진출자를 모아 최종 결승을 진행합니다.";
+        points3: "3회 포인트 합산 후 상위 결정전을 진행합니다.",
+        points5Tree: "5회 포인트 합산 후 낮은 점수 순 트리타기 결정전을 진행합니다.",
+        revival: "패자부활 토너먼트입니다."
+      }[normalized] || "라운드별 결승 진출자를 모아 최종 결승을 진행합니다.";
     }
 
     function matchModeLabel(mode = state.settings.matchMode) {
+      const normalized = normalizeMatchMode(mode);
       return {
         basic: "토너먼트",
         crow: "토너먼트(9강)",
-        points: "1라운드 포인트전",
+        points3: "포인트전 3회",
+        points5Tree: "포인트전 5회",
         revival: "패자부활 토너먼트"
-      }[mode] || "토너먼트";
+      }[normalized] || "토너먼트";
     }
 function normalizePlayerForFinal(player, extra = {}) {
       return { id: player.id, name: player.name, nickname: player.nickname || player.name, team: player.team || "", realName: player.realName || "", contact: player.contact || "", ...extra };
@@ -19193,7 +19491,7 @@ function normalizePlayerForFinal(player, extra = {}) {
       if (!round || !round.stages.length) return showError("먼저 해당 라운드를 진행하세요.");
       const lastStage = round.stages[round.stages.length - 1];
       const validFinalStage = lastStage.name === "라운드 결승" || lastStage.name === "결승" || lastStage.type === "pointFinal";
-      if (!validFinalStage) return showError(isRevivalMode() ? "결승 경기에서만 우승자를 확정할 수 있습니다." : "라운드 결승 또는 포인트 상위 결정전에서만 확정할 수 있습니다.");
+      if (!validFinalStage) return showError(isRevivalMode() ? "결승 경기에서만 우승자를 확정할 수 있습니다." : "라운드 결승 또는 포인트 결정전에서만 확정할 수 있습니다.");
       const selected = getSelectedFromStage(lastStage);
 
       if (isCrowMode()) {
@@ -19374,7 +19672,9 @@ function normalizePlayerForFinal(player, extra = {}) {
       if (!round || !stage) return null;
       const pointTotals = stage.type === "points" ? computePointTotalsUpToStage(round, broadcast.stageIndex) : [];
       const pointTotalsMap = Object.fromEntries(pointTotals.map(player => [player.id, player.total]));
-      return { title: `${round.title} · ${stage.name}`, tournamentName, laneCount: payload.settings.laneCount, groups: stage.groups, round, stage, stageType: stage.type || "stage", stageName: stage.name, pointLeaders: stage.type === "points" && stage.name === "포인트 3차전" ? getPointLeadersWithTies(pointTotals, 3) : [], pointTotalsMap };
+      const pointLimit = getPointStageLimit(payload.settings?.matchMode || state.settings.matchMode);
+      const isFinalPointHeat = stage.type === "points" && stage.name === `포인트 ${pointLimit}차전`;
+      return { title: `${round.title} · ${stage.name}`, tournamentName, laneCount: payload.settings.laneCount, groups: stage.groups, round, stage, stageType: stage.type || "stage", stageName: stage.name, pointLeaders: isFinalPointHeat ? getPointLeadersWithTies(pointTotals, 3) : [], pointTotalsMap };
     }
 
     function getCurrentStageForPrint(payload = state) {
@@ -19958,7 +20258,7 @@ function stopLiveLobbyRealtimeV50() {
       const row = getModeRowAnchorV57();
       const anchorTopBefore = row ? row.getBoundingClientRect().top : 0;
       const fallbackY = window.scrollY || 0;
-      const sameMode = state.settings.matchMode === mode;
+      const sameMode = normalizeMatchMode(state.settings.matchMode) === normalizeMatchMode(mode);
       if (sameMode) {
         restoreModeRowPositionV57(anchorTopBefore, fallbackY);
         return;
@@ -21156,6 +21456,9 @@ function stopLiveLobbyRealtimeV50() {
 
     /* v137 marker */
     try { window.__mini4wdV137RosterTableAlignHotfix = { build: "BUILD v137 ROSTER TABLE ALIGN HOTFIX", rulesChanged: false }; } catch (_) {}
+
+    try { window.__mini4wdV139TvPointScalePatch = { build: "BUILD v139 TV POINT SCALE PATCH", rulesChanged: false }; } catch (_) {}
+    try { window.__mini4wdV140RuleEngineSplitPatch = { build: "BUILD v140 RULE ENGINE SPLIT PATCH", rulesChanged: false, modes: ["basic", "points3", "points5Tree", "revival", "crow"] }; } catch (_) {}
 </script>
 </body>
 </html>
