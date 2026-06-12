@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v141 RESET MODE PRESERVATION PATCH</title>
-  <!-- BUILD v141 RESET MODE PRESERVATION PATCH · resetTournament keeps active matchMode; rules unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v142 FINAL COMPLETION FLOW PATCH</title>
+  <!-- BUILD v142 FINAL COMPLETION FLOW PATCH · finish action appears after final result; rules unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -14377,6 +14377,64 @@ body:not(.tv-mode):not(.live-lobby-page-v89) .status-panel .status-actions {
       }
     }
 
+
+    /* v142 FINAL COMPLETION FLOW PATCH · operator only */
+    body:not(.tv-mode) .tournament-finish-wait-v142 {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 7px 10px;
+      border: 1px solid rgba(35, 50, 74, .14);
+      border-radius: 10px;
+      color: #667085;
+      background: #f8fafc;
+      font-size: 11.5px;
+      font-weight: 800;
+      line-height: 1.2;
+      text-align: left;
+    }
+    body:not(.tv-mode) .final-complete-actions-v142 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border: 1px solid rgba(216, 77, 137, .24);
+      border-radius: 14px;
+      background: rgba(216, 77, 137, .07);
+    }
+    body:not(.tv-mode) .final-complete-copy-v142 {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+    }
+    body:not(.tv-mode) .final-complete-copy-v142 strong {
+      color: #182230;
+      font-size: 14px;
+      line-height: 1.2;
+    }
+    body:not(.tv-mode) .final-complete-copy-v142 span {
+      color: #667085;
+      font-size: 11.5px;
+      line-height: 1.35;
+    }
+    body:not(.tv-mode) .final-complete-actions-v142 button {
+      flex: 0 0 auto;
+      min-height: 36px;
+      padding: 8px 16px;
+      white-space: nowrap;
+    }
+    @media (max-width: 760px) {
+      body:not(.tv-mode) .final-complete-actions-v142 {
+        align-items: stretch;
+        flex-direction: column;
+      }
+      body:not(.tv-mode) .final-complete-actions-v142 button {
+        width: 100%;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -17093,6 +17151,8 @@ function currentActorLabel() {
 function renderTournamentStatusPanel() {
       ensureStateDefaults();
       const status = state.tournament.status || "draft";
+      const finalResultReady = isTournamentFinalResultReady();
+      const finishRequirement = getTournamentFinishRequirementText();
       const tournamentName = state.tournament.name || "대회명 미입력";
       const venueName = state.tournament.venue || currentVenueName() || "경기장 미입력";
       const raceClassName = normalizeRaceClassName(state.tournament.raceClass);
@@ -17105,7 +17165,7 @@ function renderTournamentStatusPanel() {
       const statusNote = status === "draft"
         ? (missing.length ? `시작 전 ${missing.join(" / ")} 입력 필요` : "시작 가능")
         : status === "running"
-          ? "진행 중 · 종료 시 기록 저장 후 새 대회 준비로 전환"
+          ? (finalResultReady ? "최종 결과 확정 · 대회 종료 가능" : `진행 중 · ${finishRequirement}`)
           : status === "finished"
             ? "종료됨 · 새 대회 준비 가능"
             : "저장 완료 · 새 대회 준비 가능";
@@ -17113,7 +17173,9 @@ function renderTournamentStatusPanel() {
       const actionButtons = status === "draft"
         ? `<button class="primary prep-main-action-v116" onclick="startTournament()">대회 시작</button>`
         : status === "running"
-          ? `<button class="primary prep-main-action-v116" onclick="finishTournament()">대회 종료 후 새 대회 준비</button>`
+          ? (finalResultReady
+            ? `<button class="primary prep-main-action-v116" onclick="finishTournament()">대회 종료</button>`
+            : `<span class="tournament-finish-wait-v142">${escapeHtml(finishRequirement)}</span>`)
           : `<button class="primary prep-main-action-v116" onclick="prepareNewTournamentFromFinished()">새 대회 준비</button><button class="ghost prep-sub-action-v116" onclick="reopenTournament()">종료 취소</button>`;
 
       return `
@@ -19010,10 +19072,37 @@ function exportTournamentCsv() {
       finishTournamentAsyncV116();
     }
 
+    function getFinalWinners(finalRace = state.finalRace) {
+    return getFinalGroups(finalRace).flatMap(group =>
+      (group.slots || []).filter(player =>
+        !player.isEmptyLane && (group.advanceIds || []).includes(player.id)
+      )
+    );
+  }
+
+  function isTournamentFinalResultReady() {
+    if (isRevivalMode()) return Boolean(state.qualifierRounds?.[0]?.finalist);
+    if (!state.finalRace || state.finalRace.type === "crowSemi") return false;
+    return getFinalWinners().length > 0;
+  }
+
+  function getTournamentFinishRequirementText() {
+    return isRevivalMode()
+      ? "결승 우승자 확정 후 종료 가능"
+      : "최종 결승 우승자 확정 후 종료 가능";
+  }
+
     async function finishTournamentAsyncV116() {
       ensureStateDefaults();
       if (!canModifyTournamentAction("대회 종료")) return;
-      if (state.tournament.status !== "running" && !confirm("현재 진행중 상태가 아닙니다. 그래도 종료할까요?")) return;
+      if (state.tournament.status === "running" && !isTournamentFinalResultReady()) {
+      const message = getTournamentFinishRequirementText();
+      showError(message);
+      alert(message);
+      return;
+    }
+    if (state.tournament.status === "running" && !confirm("최종 결과를 저장하고 대회를 종료할까요?\n종료 후 새 대회 준비 상태로 전환됩니다.")) return;
+    if (state.tournament.status !== "running" && !confirm("현재 진행중 상태가 아닙니다. 그래도 종료할까요?")) return;
       const now = new Date();
       state.tournament.endedAtISO = now.toISOString();
       state.tournament.endedAtDisplay = formatDateTimeLocal(now);
@@ -19654,10 +19743,13 @@ function normalizePlayerForFinal(player, extra = {}) {
         return `<section class="final-box"><h2>${isCrowMode() ? "9강 최종 준결" : "최종 결승"}</h2><p class="hint">${isCrowMode() ? "각 라운드 결승에서 1~3위를 확정하면 9명 9강 준결을 생성할 수 있습니다." : `${state.settings.laneCount}명의 라운드 결승 진출자가 모두 확정되면 최종 결승을 진행할 수 있습니다.`}</p><div class="finalist-grid">${state.qualifierRounds.map(round => `<div class="finalist-item"><b>${round.title}</b><br>${isCrowMode() ? getCrowRankHtml(round) : (round.finalist ? `${escapeHtml(round.finalist.name)}${round.finalist.team ? " / " + escapeHtml(round.finalist.team) : ""}` : "대기중")}</div>`).join("")}</div><button class="primary" style="margin-top:12px;" onclick="createFinalRace()">${isCrowMode() ? "9강 준결 생성" : "최종 결승 진행"}</button></section>`;
       }
       const groups = getFinalGroups();
-      const winners = groups.flatMap(group => group.slots.filter(player => !player.isEmptyLane && (group.advanceIds || []).includes(player.id)));
+      const winners = getFinalWinners();
       const isBroadcast = state.broadcast.mode === "final";
       const isCrowSemi = state.finalRace.type === "crowSemi";
-      return `<section class="final-box"><div class="round-head" style="margin-bottom:12px;"><h2>${escapeHtml(state.finalRace.name || "최종 결승")} ${isBroadcast ? `<span class="round-badge live-badge">● TV 송출중</span>` : ""}</h2><div>${isCrowSemi ? `<button class="primary" onclick="createCrowFinalFromSemi()">결승 생성</button>` : ""}</div></div><div class="groups" style="grid-template-columns:${groups.length > 1 ? "repeat(3,minmax(0,1fr))" : "1fr"};">${groups.map(group => renderFinalGroup(group, state.finalRace.type)).join("")}</div>${winners.length ? `<div class="champion"><small>${isCrowSemi ? "9강 SEMI RESULT" : "FINAL RESULT"}</small><strong>${winners.map(p => escapeHtml(p.name)).join(", ")}</strong><span>${isCrowSemi ? "결승 진출자" : winners.length > 1 ? "공동 최종 선정" : "최종 우승자"}</span></div>` : ""}</section>`;
+      const finishAction = !isCrowSemi && state.tournament.status === "running" && isTournamentFinalResultReady()
+        ? `<div class="final-complete-actions-v142"><div class="final-complete-copy-v142"><strong>최종 결승 종료</strong><span>결과를 저장하고 새 대회 준비 상태로 전환합니다.</span></div><button class="primary" onclick="finishTournament()">대회 종료</button></div>`
+        : "";
+      return `<section class="final-box"><div class="round-head" style="margin-bottom:12px;"><h2>${escapeHtml(state.finalRace.name || "최종 결승")} ${isBroadcast ? `<span class="round-badge live-badge">● TV 송출중</span>` : ""}</h2><div>${isCrowSemi ? `<button class="primary" onclick="createCrowFinalFromSemi()">결승 생성</button>` : ""}</div></div><div class="groups" style="grid-template-columns:${groups.length > 1 ? "repeat(3,minmax(0,1fr))" : "1fr"};">${groups.map(group => renderFinalGroup(group, state.finalRace.type)).join("")}</div>${winners.length ? `<div class="champion"><small>${isCrowSemi ? "9강 SEMI RESULT" : "FINAL RESULT"}</small><strong>${winners.map(p => escapeHtml(p.name)).join(", ")}</strong><span>${isCrowSemi ? "결승 진출자" : winners.length > 1 ? "공동 최종 선정" : "최종 우승자"}</span></div>` : ""}${finishAction}</section>`;
     }
 
     function getBroadcastTarget(payload) {
@@ -21460,6 +21552,7 @@ function stopLiveLobbyRealtimeV50() {
     try { window.__mini4wdV139TvPointScalePatch = { build: "BUILD v139 TV POINT SCALE PATCH", rulesChanged: false }; } catch (_) {}
     try { window.__mini4wdV140RuleEngineSplitPatch = { build: "BUILD v140 RULE ENGINE SPLIT PATCH", rulesChanged: false, modes: ["basic", "points3", "points5Tree", "revival", "crow"] }; } catch (_) {}
     try { window.__mini4wdV141ResetModePreservationPatch = { build: "BUILD v141 RESET MODE PRESERVATION PATCH", rulesChanged: false }; } catch (_) {}
+    try { window.__mini4wdV142FinalCompletionFlowPatch = { build: "BUILD v142 FINAL COMPLETION FLOW PATCH", rulesChanged: false }; } catch (_) {}
 </script>
 </body>
 </html>
