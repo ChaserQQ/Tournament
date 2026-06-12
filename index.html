@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v147 MOBILE OPERATOR RENEWAL PATCH</title>
-  <!-- BUILD v147 MOBILE OPERATOR RENEWAL PATCH · mobile operator structure and design renewal; rules unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v148 PC OPERATOR RENEWAL + LEGACY CLEANUP PATCH</title>
+  <!-- BUILD v148 PC OPERATOR RENEWAL + LEGACY CLEANUP PATCH · PC operator renewal and scoped legacy cleanup; rules unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -14961,100 +14961,6 @@ body.ui-mode-mobile:not(.tv-mode) .mobile-point-score-v145 {
   white-space: nowrap !important;
 }
 
-/* v146: scoped control-dashboard geometry and requested screen alignment. */
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) {
-  --op146-gap: 10px;
-  --op146-inset: 12px;
-  --op146-radius: 16px;
-  --op146-line: #dce3ec;
-  --op146-shadow: 0 8px 22px rgba(15, 23, 42, .055);
-  --op146-button-h: 32px;
-}
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .wrap {
-  max-width: 1580px !important;
-  padding: 12px 14px 54px !important;
-}
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .header {
-  margin: 0 0 var(--op146-gap) !important;
-  padding: 14px var(--op146-inset) !important;
-  border-radius: var(--op146-radius) !important;
-  box-shadow: var(--op146-shadow) !important;
-}
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .layout {
-  grid-template-columns: minmax(0, 1fr) 330px !important;
-  gap: var(--op146-gap) !important;
-}
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .main-area,
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .side-area {
-  display: grid !important;
-  align-content: start !important;
-  gap: var(--op146-gap) !important;
-}
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .main-area > *,
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .side-area > * {
-  width: 100% !important;
-  margin: 0 !important;
-  box-sizing: border-box !important;
-}
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .main-area > .toolbar {
-  min-height: 44px !important;
-  padding: 6px var(--op146-inset) !important;
-  gap: 6px !important;
-  border: 1px solid var(--op146-line) !important;
-  border-radius: var(--op146-radius) !important;
-  background: #fff !important;
-  box-shadow: var(--op146-shadow) !important;
-}
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .main-area > .toolbar button {
-  width: auto !important;
-  min-height: var(--op146-button-h) !important;
-  height: var(--op146-button-h) !important;
-  padding: 0 11px !important;
-}
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .final-box,
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .tabs,
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .round-card,
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .stage-card,
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-page,
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .ops-panel {
-  border-radius: var(--op146-radius) !important;
-  border-color: var(--op146-line) !important;
-  box-shadow: var(--op146-shadow) !important;
-}
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .final-box,
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .round-card {
-  padding: var(--op146-inset) !important;
-}
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .tabs {
-  min-height: 44px !important;
-  padding: 6px !important;
-}
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .round-head {
-  padding: 0 0 10px !important;
-  margin: 0 0 10px !important;
-}
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .stage-card {
-  padding: 12px !important;
-  background: #fff !important;
-}
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-page > summary {
-  min-height: 40px !important;
-  padding: 10px 12px !important;
-  font-weight: 1000 !important;
-}
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-page-body {
-  padding: 0 10px 10px !important;
-}
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-page-body > .card,
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-page-body > .ops-panel {
-  margin: 0 0 8px !important;
-  padding: 12px !important;
-  border-radius: 14px !important;
-  box-shadow: none !important;
-}
-body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-page-body > :last-child {
-  margin-bottom: 0 !important;
-}
 body:not(.tv-mode) .prep-summary-v143 {
   grid-template-columns: minmax(0, 1fr) !important;
   width: 100% !important;
@@ -15737,6 +15643,381 @@ body.tv-mode .mobile-operator-dock-v147 {
   body:not(.tv-mode) .dashboard-page-v132 > .card > .dashboard-filter > div:last-child { grid-column: 1 / -1 !important; }
   html body.ui-mode-mobile:not(.tv-mode) .selected-preview-v145 {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+/* v148: final PC operator design layer. Replaces the removed v146 PC override block. */
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) {
+  --pc148-bg: #eef2f7;
+  --pc148-surface: #ffffff;
+  --pc148-soft: #f7f9fc;
+  --pc148-line: #dbe2eb;
+  --pc148-text: #101828;
+  --pc148-muted: #667085;
+  --pc148-brand: #db3f82;
+  --pc148-brand-dark: #b92364;
+  --pc148-radius: 18px;
+  --pc148-gap: 12px;
+  --pc148-shadow: 0 9px 24px rgba(15, 23, 42, .06);
+  background: var(--pc148-bg) !important;
+  color: var(--pc148-text) !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .wrap {
+  max-width: 1720px !important;
+  padding: 14px 16px 56px !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-titlebar-v132 {
+  min-height: 78px !important;
+  margin: 0 0 var(--pc148-gap) !important;
+  padding: 15px 18px !important;
+  border: 1px solid var(--pc148-line) !important;
+  border-radius: var(--pc148-radius) !important;
+  background: linear-gradient(135deg, #fff 0%, #fff8fb 100%) !important;
+  box-shadow: var(--pc148-shadow) !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-titlebar-v132 .header-copy {
+  gap: 4px !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-titlebar-v132 .eyebrow {
+  font-size: 10px !important;
+  letter-spacing: .18em !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-titlebar-v132 h1 {
+  font-size: 25px !important;
+  line-height: 1.05 !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-titlebar-v132 .desc {
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .layout {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 370px !important;
+  gap: var(--pc148-gap) !important;
+  align-items: start !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .main-area,
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .side-area {
+  display: grid !important;
+  align-content: start !important;
+  gap: var(--pc148-gap) !important;
+  min-width: 0 !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .main-area { order: 1 !important; }
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .side-area {
+  order: 2 !important;
+  position: sticky !important;
+  top: 12px !important;
+  max-height: calc(100vh - 24px) !important;
+  overflow-y: auto !important;
+  scrollbar-width: thin !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .main-area > *,
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .side-area > * {
+  width: 100% !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .main-area > .toolbar {
+  order: -5 !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  min-height: 48px !important;
+  padding: 7px 9px !important;
+  gap: 6px !important;
+  border: 1px solid var(--pc148-line) !important;
+  border-radius: 15px !important;
+  background: var(--pc148-surface) !important;
+  box-shadow: var(--pc148-shadow) !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .main-area > .toolbar button {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  padding: 0 11px !important;
+  font-size: 10.5px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .pc-operator-overview-v148 {
+  order: -4 !important;
+  display: grid !important;
+  grid-template-columns: minmax(260px, 1.8fr) repeat(3, minmax(110px, .65fr)) !important;
+  gap: 8px !important;
+  padding: 9px !important;
+  border: 1px solid var(--pc148-line) !important;
+  border-radius: var(--pc148-radius) !important;
+  background: var(--pc148-surface) !important;
+  box-shadow: var(--pc148-shadow) !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .pc-overview-main-v148,
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .pc-overview-stat-v148 {
+  display: grid !important;
+  align-content: center !important;
+  min-width: 0 !important;
+  min-height: 64px !important;
+  padding: 10px 12px !important;
+  border: 1px solid #e6ebf1 !important;
+  border-radius: 13px !important;
+  background: var(--pc148-soft) !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .pc-overview-main-v148 small,
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .pc-overview-stat-v148 small {
+  color: var(--pc148-muted) !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .pc-overview-main-v148 strong {
+  margin-top: 6px !important;
+  overflow: hidden !important;
+  font-size: 17px !important;
+  line-height: 1.05 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .pc-overview-main-v148 span {
+  margin-top: 4px !important;
+  overflow: hidden !important;
+  color: var(--pc148-muted) !important;
+  font-size: 10.5px !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .pc-overview-stat-v148 strong {
+  margin-top: 5px !important;
+  color: var(--pc148-brand-dark) !important;
+  font-size: 23px !important;
+  line-height: 1 !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .main-area > .tabs { order: -3 !important; }
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .main-area > .round-card { order: -2 !important; }
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .main-area > .final-box { order: -1 !important; }
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .main-area > .error { order: 1 !important; }
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .tabs {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 6px !important;
+  min-height: 52px !important;
+  padding: 6px !important;
+  overflow-x: auto !important;
+  scrollbar-width: none !important;
+  border: 1px solid var(--pc148-line) !important;
+  border-radius: 15px !important;
+  background: var(--pc148-surface) !important;
+  box-shadow: var(--pc148-shadow) !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .tabs::-webkit-scrollbar { display: none !important; }
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .tab-btn {
+  flex: 0 0 auto !important;
+  min-width: 140px !important;
+  min-height: 38px !important;
+  padding: 7px 11px !important;
+  text-align: left !important;
+  border-radius: 10px !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .tab-btn.active {
+  background: linear-gradient(135deg, var(--pc148-brand), var(--pc148-brand-dark)) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .round-card,
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .final-box,
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .stage-card,
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-page {
+  border: 1px solid var(--pc148-line) !important;
+  border-radius: var(--pc148-radius) !important;
+  background: var(--pc148-surface) !important;
+  box-shadow: var(--pc148-shadow) !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .round-card,
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .final-box {
+  padding: 14px !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .round-head {
+  display: grid !important;
+  grid-template-columns: minmax(220px, 1fr) minmax(520px, auto) !important;
+  gap: 9px 14px !important;
+  align-items: start !important;
+  padding: 0 0 11px !important;
+  margin: 0 0 11px !important;
+  border: 0 !important;
+  border-bottom: 1px solid #e7ebf1 !important;
+  background: transparent !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .round-title h2 {
+  font-size: 23px !important;
+  line-height: 1.05 !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .round-head .meta {
+  margin-top: 5px !important;
+  color: var(--pc148-muted) !important;
+  font-size: 10.5px !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .round-actions-compact-v136 {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  gap: 5px !important;
+  width: auto !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .round-actions-compact-v136 > button {
+  width: auto !important;
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 0 10px !important;
+  white-space: nowrap !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .round-actions-compact-v136 > .mobile-next-action-v147 {
+  background: linear-gradient(135deg, var(--pc148-brand), var(--pc148-brand-dark)) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: 0 7px 16px rgba(219, 63, 130, .2) !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .round-actions-compact-v136 > .mobile-reset-action-v147 {
+  color: #b42318 !important;
+  background: #fff7f6 !important;
+  border-color: #f2c8c4 !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .round-head > .group-size-control-v145 {
+  grid-column: 1 / -1 !important;
+  width: max-content !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .stage-card {
+  padding: 12px !important;
+  background: #fbfcfe !important;
+  box-shadow: none !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .stage-head-v131 {
+  padding: 0 0 9px !important;
+  margin: 0 0 9px !important;
+  border-bottom: 1px solid #e8edf3 !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .stage-head-v131 h3 {
+  font-size: 18px !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .stage-card > .groups {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 9px !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .group {
+  padding: 10px !important;
+  border: 1px solid #e1e7ef !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .group-title {
+  min-height: 30px !important;
+  padding-bottom: 7px !important;
+  margin-bottom: 7px !important;
+  border-bottom: 1px solid #edf0f4 !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .slot {
+  min-height: 58px !important;
+  margin-bottom: 6px !important;
+  padding: 8px 9px !important;
+  border: 1px solid #dce3ec !important;
+  border-radius: 11px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .slot.selected {
+  border-color: var(--pc148-brand) !important;
+  background: #fff5fa !important;
+  box-shadow: inset 4px 0 0 var(--pc148-brand) !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .slot.empty-lane {
+  min-height: 58px !important;
+  background: #f5f7fa !important;
+  border-style: dashed !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .player-name-fit {
+  font-size: 20px !important;
+  line-height: 1.02 !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .point-buttons {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 4px !important;
+  margin-top: 6px !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .point-buttons button {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 30px !important;
+  padding: 4px !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-page {
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-page > summary {
+  display: flex !important;
+  align-items: center !important;
+  min-height: 46px !important;
+  padding: 11px 14px !important;
+  color: var(--pc148-text) !important;
+  font-size: 13px !important;
+  font-weight: 1000 !important;
+  background: #fff !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-page[open] > summary {
+  color: var(--pc148-brand-dark) !important;
+  border-bottom: 1px solid var(--pc148-line) !important;
+  background: #fff9fc !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-page-body {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 9px !important;
+  padding: 9px !important;
+  background: #f7f9fc !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-page-body > .card,
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-page-body > .ops-panel {
+  margin: 0 !important;
+  padding: 11px !important;
+  border: 1px solid #e2e7ee !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .prep-card-v116 .form-grid {
+  grid-template-columns: 1fr !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .match-mode-grid-v140 {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .finalist-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .finalist-item {
+  min-height: 58px !important;
+  padding: 9px !important;
+  border-radius: 11px !important;
+  background: var(--pc148-soft) !important;
+  box-shadow: none !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .mobile-operator-overview-v147,
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .mobile-operator-dock-v147 {
+  display: none !important;
+}
+@media (max-width: 1280px) and (min-width: 761px) {
+  body.ui-mode-pc.ui-page-operator:not(.tv-mode) .layout {
+    grid-template-columns: minmax(0, 1fr) 330px !important;
+  }
+  body.ui-mode-pc.ui-page-operator:not(.tv-mode) .stage-card > .groups {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  body.ui-mode-pc.ui-page-operator:not(.tv-mode) .round-head {
+    grid-template-columns: 1fr !important;
+  }
+  body.ui-mode-pc.ui-page-operator:not(.tv-mode) .round-actions-compact-v136 {
+    justify-content: flex-start !important;
   }
 }
 </style>
@@ -17315,6 +17596,7 @@ function copyOrShare(url, label) {
                 <div class="grow"></div>
               </div>
 
+              ${renderPcOperatorOverviewV148(activeRound)}
               ${renderMobileOperatorOverviewV147(activeRound)}
 
               ${!isRevivalMode() ? renderFinalRace() : ""}
@@ -17625,6 +17907,25 @@ function copyOrShare(url, label) {
         <div class="mobile-overview-main-v147"><small>${escapeHtml(statusLabel(status))}</small><strong>${escapeHtml(stageLabel)}</strong></div>
         <div class="mobile-overview-stat-v147"><small>참가자</small><strong>${participantCount}</strong></div>
         <div class="mobile-overview-stat-v147"><small>진출 확정</small><strong>${state.qualifierRounds.filter(item => item.finalist).length}</strong></div>
+      </section>`;
+    }
+
+    function renderPcOperatorOverviewV148(round) {
+      const currentStage = round?.stages?.[round.stages.length - 1];
+      const participantCount = parseParticipants().filter(player => player && !player.isEmptyLane).length;
+      const totalGroups = currentStage?.groups?.length || 0;
+      const finalizedCount = state.qualifierRounds.filter(item => item.finalist).length;
+      const stageLabel = currentStage ? `${round.title} · ${currentStage.name}` : `${round?.title || "1차 라운드"} 준비`;
+      const venueLabel = state.tournament?.venue || currentVenueName() || "경기장 미입력";
+      return `<section class="pc-operator-overview-v148" aria-label="PC 운영 현황">
+        <div class="pc-overview-main-v148">
+          <small>${escapeHtml(statusLabel(state.tournament?.status || "draft"))}</small>
+          <strong>${escapeHtml(stageLabel)}</strong>
+          <span>${escapeHtml(state.tournament?.name || "대회명 미입력")} · ${escapeHtml(venueLabel)}</span>
+        </div>
+        <div class="pc-overview-stat-v148"><small>참가자</small><strong>${participantCount}</strong></div>
+        <div class="pc-overview-stat-v148"><small>현재 조</small><strong>${totalGroups}</strong></div>
+        <div class="pc-overview-stat-v148"><small>진출 확정</small><strong>${finalizedCount}</strong></div>
       </section>`;
     }
 
@@ -19790,7 +20091,7 @@ function boot() {
         const profiles = snapshot.val() || {};
         syncPublicVenuesFromProfiles(profiles);
         const rows = Object.entries(profiles).sort((a,b) => String(a[1].email || "").localeCompare(String(b[1].email || "")));
-        app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${renderAdminUnifiedToolbarV145("users")}<section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section><div class="admin-build-mark">BUILD v147 MOBILE OPERATOR RENEWAL PATCH</div></div>`;
+        app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${renderAdminUnifiedToolbarV145("users")}<section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section><div class="admin-build-mark">BUILD v148 PC OPERATOR RENEWAL + LEGACY CLEANUP PATCH</div></div>`;
       }).catch(error => alert(`사용자 목록 로드 실패: ${error.message || error}`));
     }
 
@@ -19837,7 +20138,7 @@ function boot() {
             </tr>`;
           }).join("")
         : `<tr><td colspan="6">저장된 경기 기록이 없습니다.</td></tr>`;
-      app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>경기 데이터 관리</h1><p class="desc">전 경기장 대회 기록 · 총 ${list.length}건</p></div>${logoMarkup("header-logo")}</header>${renderAdminUnifiedToolbarV145("matches")}<section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>대회명</th><th>경기장</th><th>클래스</th><th>종료/저장 시각</th><th style="text-align:right;">기록행</th><th>관리</th></tr></thead><tbody>${rowsHtml}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">삭제 시 비공개 기록(privateResultLogs)·공개 기록(publicHistory)·로컬 기록에서 함께 제거됩니다. 되돌릴 수 없습니다.</p></section><div class="admin-build-mark">BUILD v147 MOBILE OPERATOR RENEWAL PATCH</div></div>`;
+      app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>경기 데이터 관리</h1><p class="desc">전 경기장 대회 기록 · 총 ${list.length}건</p></div>${logoMarkup("header-logo")}</header>${renderAdminUnifiedToolbarV145("matches")}<section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>대회명</th><th>경기장</th><th>클래스</th><th>종료/저장 시각</th><th style="text-align:right;">기록행</th><th>관리</th></tr></thead><tbody>${rowsHtml}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">삭제 시 비공개 기록(privateResultLogs)·공개 기록(publicHistory)·로컬 기록에서 함께 제거됩니다. 되돌릴 수 없습니다.</p></section><div class="admin-build-mark">BUILD v148 PC OPERATOR RENEWAL + LEGACY CLEANUP PATCH</div></div>`;
     }
 
     function deleteAdminTournamentRecord(id, venueId) {
@@ -23059,7 +23360,7 @@ function stopLiveLobbyRealtimeV50() {
     try { window.__mini4wdV141ResetModePreservationPatch = { build: "BUILD v141 RESET MODE PRESERVATION PATCH", rulesChanged: false }; } catch (_) {}
     try { window.__mini4wdV142FinalCompletionFlowPatch = { build: "BUILD v142 FINAL COMPLETION FLOW PATCH", rulesChanged: false }; } catch (_) {}
     try { window.__mini4wdV143UiCoherenceMetricPatch = { build: "BUILD v143 UI COHERENCE + METRIC PATCH", rulesChanged: false, scopes: ["pc", "mobile", "tv"] }; } catch (_) {}
-    try { window.__mini4wdV147MobileOperatorRenewalPatch = { build: "BUILD v147 MOBILE OPERATOR RENEWAL PATCH", rulesChanged: false, scopes: ["mobile-operator"] }; } catch (_) {}
+    try { window.__mini4wdV148PcOperatorRenewalLegacyCleanupPatch = { build: "BUILD v148 PC OPERATOR RENEWAL + LEGACY CLEANUP PATCH", rulesChanged: false, scopes: ["pc-operator"] }; } catch (_) {}
 </script>
 </body>
 </html>
