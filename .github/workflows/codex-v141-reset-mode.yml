@@ -1,0 +1,149 @@
+name: Codex v141 reset mode patch
+
+on:
+  push:
+    paths:
+      - .github/workflows/codex-v141-reset-mode.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: codex-v141-reset-mode
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out patch branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch and verify
+        shell: bash
+        run: |
+          python - <<'PY'
+          from collections import Counter
+          from pathlib import Path
+          import re
+          import zipfile
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+          old_title = '<title>MINI4WD TOURNAMENT MAKER · v137 ROSTER TABLE ALIGN HOTFIX</title>'
+          new_title = '<title>MINI4WD TOURNAMENT MAKER · v141 RESET MODE PRESERVATION PATCH</title>'
+          old_marker = '<!-- BUILD v140 RULE ENGINE SPLIT PATCH · points3/points5Tree separated; tournament flow guarded; rules unchanged -->'
+          new_marker = '<!-- BUILD v141 RESET MODE PRESERVATION PATCH · resetTournament keeps active matchMode; rules unchanged -->'
+          old_reset = 'state.qualifierRounds = makeQualifierRounds(state.settings.laneCount);'
+          new_reset = 'state.qualifierRounds = makeQualifierRounds(state.settings.laneCount, state.settings.matchMode);'
+          v140_runtime = '    try { window.__mini4wdV140RuleEngineSplitPatch = { build: "BUILD v140 RULE ENGINE SPLIT PATCH", rulesChanged: false, modes: ["basic", "points3", "points5Tree", "revival", "crow"] }; } catch (_) {}'
+          v141_runtime = '    try { window.__mini4wdV141ResetModePreservationPatch = { build: "BUILD v141 RESET MODE PRESERVATION PATCH", rulesChanged: false }; } catch (_) {}'
+
+          ignored_calls = {
+              'alert', 'confirm', 'prompt', 'Number', 'String', 'Boolean', 'Array', 'Object',
+              'Date', 'Math', 'JSON', 'Set', 'Map', 'URL', 'URLSearchParams', 'Blob',
+              'encodeURIComponent', 'decodeURIComponent', 'parseInt', 'parseFloat',
+              'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval',
+              'requestAnimationFrame', 'cancelAnimationFrame'
+          }
+
+          def inspect(source, label, marker):
+              script_open = len(re.findall(r'<script\b', source, flags=re.I))
+              script_close = len(re.findall(r'</script\s*>', source, flags=re.I))
+              style_open = len(re.findall(r'<style\b', source, flags=re.I))
+              style_close = len(re.findall(r'</style\s*>', source, flags=re.I))
+              if script_open != script_close:
+                  raise RuntimeError(f'{label}: script tag mismatch {script_open}/{script_close}')
+              if style_open != style_close:
+                  raise RuntimeError(f'{label}: style tag mismatch {style_open}/{style_close}')
+              if re.search(r'^\s*async\s*$', source, flags=re.M):
+                  raise RuntimeError(f'{label}: standalone async token found')
+
+              names = re.findall(r'\b(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(', source)
+              duplicates = sorted(name for name, count in Counter(names).items() if count > 1)
+              if duplicates:
+                  raise RuntimeError(f'{label}: duplicate functions: {duplicates}')
+
+              declared = set(names)
+              declared.update(re.findall(r'\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>', source))
+              handlers = [match[1] for match in re.findall(r'\bon[a-z]+\s*=\s*(["\'])(.*?)\1', source, flags=re.I | re.S)]
+              handler_calls = set()
+              for handler in handlers:
+                  handler_calls.update(re.findall(r'(?<![\w$.])([A-Za-z_$][\w$]*)\s*\(', handler))
+              missing = sorted(handler_calls - declared - ignored_calls)
+              if missing:
+                  raise RuntimeError(f'{label}: missing inline handler functions: {missing}')
+              if marker not in source:
+                  raise RuntimeError(f'{label}: version marker missing')
+              return script_open, script_close, style_open, style_close
+
+          inspect(text, 'before', old_marker)
+          for target, label in [(old_title, 'title'), (old_marker, 'marker'), (old_reset, 'reset call'), (v140_runtime, 'runtime marker')]:
+              if text.count(target) != 1:
+                  raise RuntimeError(f'before: expected {label} count 1, got {text.count(target)}')
+
+          required_rule_guards = [
+              'if (raw === "points") return "points3";',
+              'return normalized === "points3" || normalized === "points5Tree";',
+              'if (isPointRound(roundIndex)) return createPointNextStage(roundIndex);',
+              'const lowScoreTree = isPointFiveTreeMode(state.settings.matchMode);',
+              'selectPointFinalistsByCutoff(totals, state.settings.laneCount, lowScoreTree);'
+          ]
+          missing_guards = [item for item in required_rule_guards if item not in text]
+          if missing_guards:
+              raise RuntimeError(f'before: v140 rule guards missing: {missing_guards}')
+
+          text = text.replace(old_title, new_title, 1)
+          text = text.replace(old_marker, new_marker, 1)
+          text = text.replace(old_reset, new_reset, 1)
+          text = text.replace(v140_runtime, v140_runtime + '\n' + v141_runtime, 1)
+          path.write_text(text, encoding='utf-8', newline='')
+
+          inspect(text, 'after', new_marker)
+          if text.count(new_reset) != 1 or old_reset in text:
+              raise RuntimeError('after: resetTournament matchMode patch failed')
+          if text.count('BUILD v141 RESET MODE PRESERVATION PATCH') < 2:
+              raise RuntimeError('after: v141 marker count is insufficient')
+          if 'if (matchMode === "revival") {' not in text:
+              raise RuntimeError('after: revival round factory guard missing')
+
+          inline_scripts = re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script\s*>', text, flags=re.I | re.S)
+          if not inline_scripts:
+              raise RuntimeError('after: inline script not found')
+          Path('.codex-inline-check.js').write_text('\n'.join(inline_scripts), encoding='utf-8')
+
+          zip_name = 'mini4wd_v141_reset_mode_preservation_patch.zip'
+          with zipfile.ZipFile(zip_name, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+              archive.write(path, arcname='index.html')
+          with zipfile.ZipFile(zip_name, 'r') as archive:
+              if archive.namelist() != ['index.html']:
+                  raise RuntimeError(f'zip entries invalid: {archive.namelist()}')
+              zipped_text = archive.read('index.html').decode('utf-8')
+              if new_marker not in zipped_text:
+                  raise RuntimeError('zip version marker missing')
+
+          print('JS structure: pass')
+          print('duplicate functions: 0')
+          print('missing inline handlers: 0')
+          print('standalone async: 0')
+          print('script/style pairs: pass')
+          print('rule guards: pass')
+          print('ZIP entries: index.html only')
+          print('Firebase rules changed: false')
+          PY
+
+      - name: Check JavaScript syntax
+        run: node --check .codex-inline-check.js
+
+      - name: Commit verified patch and remove workflow
+        shell: bash
+        run: |
+          rm -f .codex-inline-check.js
+          git rm .github/workflows/codex-v141-reset-mode.yml
+          git add index.html mini4wd_v141_reset_mode_preservation_patch.zip
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "fix: preserve match mode when resetting tournament"
+          git push origin HEAD:codex/v141-reset-mode-preservation
