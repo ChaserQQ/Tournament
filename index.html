@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v146 OPERATOR DESIGN + UI ALIGNMENT PATCH</title>
-  <!-- BUILD v146 OPERATOR DESIGN + UI ALIGNMENT PATCH · scoped PC operator and requested UI alignment; rules unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v147 MOBILE OPERATOR RENEWAL PATCH</title>
+  <!-- BUILD v147 MOBILE OPERATOR RENEWAL PATCH · mobile operator structure and design renewal; rules unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -15239,6 +15239,475 @@ body.tv-mode .tv-point-leader span {
 body.tv-mode .tv-point-leader strong {
   font-size: clamp(22px, 2.15vw, 40px) !important;
 }
+
+/* v147: mobile operator renewal. Isolated from PC, player DB and TV. */
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) {
+  --mob147-bg: #f3f6fa;
+  --mob147-surface: #ffffff;
+  --mob147-surface-soft: #f8fafc;
+  --mob147-line: #dce3ec;
+  --mob147-text: #111827;
+  --mob147-muted: #667085;
+  --mob147-brand: #db3f82;
+  --mob147-brand-dark: #be2868;
+  --mob147-radius: 16px;
+  --mob147-gap: 9px;
+  background: var(--mob147-bg) !important;
+  color: var(--mob147-text) !important;
+  padding-bottom: 72px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .wrap {
+  padding: 8px 8px 82px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-titlebar-v132 {
+  min-height: 0 !important;
+  padding: 13px 14px !important;
+  margin: 0 0 var(--mob147-gap) !important;
+  border: 1px solid var(--mob147-line) !important;
+  border-radius: var(--mob147-radius) !important;
+  background: linear-gradient(145deg, #fff 0%, #fff8fb 100%) !important;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, .06) !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-titlebar-v132 .eyebrow {
+  margin: 0 0 4px !important;
+  font-size: 9px !important;
+  line-height: 1 !important;
+  letter-spacing: .16em !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-titlebar-v132 h1 {
+  margin: 0 !important;
+  font-size: 20px !important;
+  line-height: 1.08 !important;
+  letter-spacing: -.04em !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-titlebar-v132 .desc {
+  display: block !important;
+  margin: 5px 0 0 !important;
+  max-width: calc(100% - 56px) !important;
+  color: var(--mob147-muted) !important;
+  font-size: 10.5px !important;
+  line-height: 1.35 !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-titlebar-v132 .header-logo {
+  right: 12px !important;
+  top: 12px !important;
+  width: 54px !important;
+  opacity: .16 !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .layout {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--mob147-gap) !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .main-area {
+  display: grid !important;
+  order: 1 !important;
+  gap: var(--mob147-gap) !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .side-area {
+  display: grid !important;
+  order: 2 !important;
+  gap: var(--mob147-gap) !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .main-area > *,
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .side-area > * {
+  width: 100% !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .main-area > .toolbar {
+  order: -4 !important;
+  position: sticky !important;
+  top: 5px !important;
+  z-index: 30 !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 5px !important;
+  width: 100% !important;
+  min-height: 43px !important;
+  padding: 5px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none !important;
+  border: 1px solid var(--mob147-line) !important;
+  border-radius: 14px !important;
+  background: rgba(255, 255, 255, .96) !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, .09) !important;
+  backdrop-filter: blur(12px) !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .main-area > .mobile-operator-overview-v147 { order: -3 !important; }
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .main-area > .tabs { order: -2 !important; }
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .main-area > .round-card { order: -1 !important; }
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .main-area > .final-box { order: 0 !important; }
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .main-area > .error { order: 1 !important; }
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .main-area > .toolbar::-webkit-scrollbar { display: none !important; }
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .main-area > .toolbar button {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 68px !important;
+  height: 31px !important;
+  min-height: 31px !important;
+  padding: 0 9px !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .mobile-operator-overview-v147 {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, .7fr)) !important;
+  gap: 6px !important;
+  padding: 9px !important;
+  border: 1px solid var(--mob147-line) !important;
+  border-radius: var(--mob147-radius) !important;
+  background: var(--mob147-surface) !important;
+  box-shadow: 0 7px 18px rgba(15, 23, 42, .05) !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .mobile-overview-main-v147,
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .mobile-overview-stat-v147 {
+  display: grid !important;
+  align-content: center !important;
+  min-width: 0 !important;
+  min-height: 52px !important;
+  padding: 8px 9px !important;
+  border-radius: 11px !important;
+  background: var(--mob147-surface-soft) !important;
+  border: 1px solid #e8edf3 !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .mobile-overview-main-v147 small,
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .mobile-overview-stat-v147 small {
+  color: var(--mob147-muted) !important;
+  font-size: 9px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .mobile-overview-main-v147 strong {
+  margin-top: 5px !important;
+  overflow: hidden !important;
+  color: var(--mob147-text) !important;
+  font-size: 13px !important;
+  line-height: 1.1 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .mobile-overview-stat-v147 strong {
+  margin-top: 4px !important;
+  color: var(--mob147-brand-dark) !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .final-box,
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .tabs,
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .round-card,
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .stage-card,
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-page {
+  border: 1px solid var(--mob147-line) !important;
+  border-radius: var(--mob147-radius) !important;
+  background: var(--mob147-surface) !important;
+  box-shadow: 0 7px 18px rgba(15, 23, 42, .05) !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .final-box,
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .round-card {
+  padding: 10px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .final-box h2 {
+  color: var(--mob147-text) !important;
+  font-size: 16px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .finalist-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 5px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .finalist-item {
+  min-height: 48px !important;
+  padding: 7px !important;
+  border-radius: 10px !important;
+  background: var(--mob147-surface-soft) !important;
+  font-size: 10px !important;
+  line-height: 1.25 !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .final-box > button.primary {
+  width: 100% !important;
+  min-height: 40px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .tabs {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 5px !important;
+  padding: 5px !important;
+  overflow-x: auto !important;
+  scrollbar-width: none !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .tabs::-webkit-scrollbar { display: none !important; }
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .tab-btn {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 108px !important;
+  min-height: 42px !important;
+  padding: 7px 9px !important;
+  border-radius: 10px !important;
+  font-size: 11px !important;
+  text-align: left !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .tab-btn small {
+  margin-top: 3px !important;
+  font-size: 8.5px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .round-head {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 8px !important;
+  padding: 2px 0 9px !important;
+  margin: 0 0 9px !important;
+  border: 0 !important;
+  border-bottom: 1px solid #e7ebf1 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .round-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .round-title h2 {
+  margin: 0 !important;
+  font-size: 18px !important;
+  line-height: 1.05 !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .round-head .meta {
+  margin-top: 4px !important;
+  color: var(--mob147-muted) !important;
+  font-size: 9.5px !important;
+  line-height: 1.35 !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .round-actions-compact-v136 {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 5px !important;
+  width: 100% !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .round-actions-compact-v136 > button {
+  width: 100% !important;
+  min-height: 36px !important;
+  height: auto !important;
+  padding: 7px 6px !important;
+  white-space: normal !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .round-actions-compact-v136 > .mobile-next-action-v147 {
+  grid-column: 1 / -1 !important;
+  min-height: 42px !important;
+  background: linear-gradient(135deg, var(--mob147-brand), var(--mob147-brand-dark)) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: 0 8px 18px rgba(219, 63, 130, .22) !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .round-actions-compact-v136 > .mobile-reset-action-v147 {
+  color: #b42318 !important;
+  background: #fff7f6 !important;
+  border-color: #f2c8c4 !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .round-head > .group-size-control-v145 {
+  width: 100% !important;
+  padding-top: 1px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .group-size-control-v145 .group-size-label-v145 {
+  font-size: 9.5px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .stage-card {
+  padding: 9px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .stage-head-v131 {
+  padding: 0 0 8px !important;
+  margin: 0 0 8px !important;
+  border: 0 !important;
+  border-bottom: 1px solid #edf0f4 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .stage-head-v131 h3 {
+  margin: 0 !important;
+  font-size: 15px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .stage-meta-inline-v131 {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 3px 7px !important;
+  margin-top: 4px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .stage-meta-inline-v131 span {
+  font-size: 9px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .groups {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 7px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .group {
+  padding: 8px !important;
+  border: 1px solid #e3e8ef !important;
+  border-radius: 13px !important;
+  background: #fbfcfe !important;
+  box-shadow: none !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .group-title {
+  min-height: 28px !important;
+  margin-bottom: 5px !important;
+  padding-bottom: 5px !important;
+  border-bottom: 1px solid #edf0f4 !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .group-title strong {
+  font-size: 14px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .slot {
+  min-height: 52px !important;
+  margin-bottom: 5px !important;
+  padding: 7px 8px !important;
+  border: 1px solid #dce3ec !important;
+  border-radius: 11px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) button.slot {
+  width: 100% !important;
+  text-align: left !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .slot.selected {
+  border-color: var(--mob147-brand) !important;
+  background: #fff5fa !important;
+  box-shadow: inset 3px 0 0 var(--mob147-brand) !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .slot.empty-lane {
+  min-height: 52px !important;
+  opacity: .68 !important;
+  background: #f5f7fa !important;
+  border-style: dashed !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .player-name-fit {
+  font-size: 16px !important;
+  line-height: 1.05 !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .point-buttons {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 4px !important;
+  margin-top: 6px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .point-buttons button {
+  width: 100% !important;
+  min-height: 34px !important;
+  padding: 5px 3px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .athens-scoreboard {
+  padding: 9px !important;
+  border-radius: var(--mob147-radius) !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .scoreboard-head {
+  display: grid !important;
+  gap: 5px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .scoreboard-list {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 5px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .score-row {
+  grid-template-columns: 20px minmax(0, 1fr) auto !important;
+  padding: 6px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-page {
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-page > summary {
+  display: flex !important;
+  align-items: center !important;
+  min-height: 44px !important;
+  padding: 11px 13px !important;
+  color: var(--mob147-text) !important;
+  font-size: 13px !important;
+  font-weight: 1000 !important;
+  background: #fff !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-page[open] > summary {
+  color: var(--mob147-brand-dark) !important;
+  border-bottom: 1px solid var(--mob147-line) !important;
+  background: #fff9fc !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-page-body {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 8px !important;
+  padding: 8px !important;
+  background: #f7f9fc !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-page-body > .card,
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-page-body > .ops-panel {
+  margin: 0 !important;
+  padding: 10px !important;
+  border: 1px solid #e2e7ee !important;
+  border-radius: 13px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .prep-card-v116 .prep-form-v115 {
+  display: grid !important;
+  gap: 7px !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .prep-helper-v115 {
+  margin: 0 !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .match-mode-grid-v140 {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .active-backup-panel-v135 .ops-buttons {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .mobile-operator-dock-v147 {
+  position: fixed !important;
+  left: 8px !important;
+  right: 8px !important;
+  bottom: max(8px, env(safe-area-inset-bottom)) !important;
+  z-index: 80 !important;
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 4px !important;
+  padding: 5px !important;
+  border: 1px solid rgba(203, 213, 225, .94) !important;
+  border-radius: 15px !important;
+  background: rgba(255, 255, 255, .96) !important;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, .18) !important;
+  backdrop-filter: blur(14px) !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .mobile-operator-dock-v147 button {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 42px !important;
+  padding: 5px 2px !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  color: #475467 !important;
+  font-size: 9.5px !important;
+  line-height: 1.15 !important;
+  box-shadow: none !important;
+}
+body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .mobile-operator-dock-v147 button:first-child {
+  color: #fff !important;
+  background: linear-gradient(135deg, var(--mob147-brand), var(--mob147-brand-dark)) !important;
+}
+body:not(.ui-mode-mobile) .mobile-operator-overview-v147,
+body:not(.ui-mode-mobile) .mobile-operator-dock-v147,
+body.tv-mode .mobile-operator-overview-v147,
+body.tv-mode .mobile-operator-dock-v147 {
+  display: none !important;
+}
+@media (max-width: 360px) {
+  body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .mobile-operator-overview-v147 {
+    grid-template-columns: minmax(0, 1fr) repeat(2, 62px) !important;
+  }
+  body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .mobile-operator-dock-v147 button {
+    font-size: 9px !important;
+  }
+}
 @media (max-width: 760px) {
   body:not(.tv-mode) .dashboard-class-summary-v146 {
     display: grid !important;
@@ -16835,7 +17304,7 @@ function copyOrShare(url, label) {
           </header>
 
           <div class="layout">
-            <main class="main-area">
+            <main class="main-area" id="operatorMatchAreaV147">
               <div class="toolbar">
                 <button class="ghost" onclick="openLiveLobbyPage()">LIVE 로비</button>
                 <button class="ghost" onclick="openDbPage()">PLAYER DB</button>
@@ -16846,6 +17315,8 @@ function copyOrShare(url, label) {
                 <div class="grow"></div>
               </div>
 
+              ${renderMobileOperatorOverviewV147(activeRound)}
+
               ${!isRevivalMode() ? renderFinalRace() : ""}
 
               ${!isRevivalMode() ? `<div class="tabs">${state.qualifierRounds.map((round, index) => renderRoundTab(round, index)).join("")}</div>` : ""}
@@ -16855,7 +17326,7 @@ function copyOrShare(url, label) {
               <div class="error" id="error"></div>
             </main>
 
-            <aside class="side-area operator-control-pages">
+            <aside class="side-area operator-control-pages" id="operatorControlAreaV147">
               <details class="operator-page" open>
                 <summary>대회준비</summary>
                 <div class="operator-page-body">
@@ -16899,6 +17370,12 @@ function copyOrShare(url, label) {
               </details>
             </aside>
           </div>
+          <nav class="mobile-operator-dock-v147" aria-label="모바일 운영 빠른 이동">
+            <button type="button" onclick="scrollOperatorSectionV147('operatorCurrentRoundV147')">현재 경기</button>
+            <button type="button" onclick="scrollOperatorSectionV147('operatorControlAreaV147')">대회 설정</button>
+            <button type="button" onclick="openLiveLobbyPage()">LIVE</button>
+            <button type="button" onclick="openDbPage()">선수 DB</button>
+          </nav>
         </div>
       `;
     }
@@ -17139,6 +17616,23 @@ function copyOrShare(url, label) {
       return `<div class="finalist-item"><b>현재 TV 송출</b><br>${escapeHtml(target.title)}</div>`;
     }
 
+    function renderMobileOperatorOverviewV147(round) {
+      const currentStage = round?.stages?.[round.stages.length - 1];
+      const stageLabel = currentStage ? `${round.title} · ${currentStage.name}` : `${round?.title || "1차 라운드"} 준비`;
+      const participantCount = parseParticipants().filter(player => player && !player.isEmptyLane).length;
+      const status = state.tournament?.status || "draft";
+      return `<section class="mobile-operator-overview-v147" aria-label="모바일 운영 현황">
+        <div class="mobile-overview-main-v147"><small>${escapeHtml(statusLabel(status))}</small><strong>${escapeHtml(stageLabel)}</strong></div>
+        <div class="mobile-overview-stat-v147"><small>참가자</small><strong>${participantCount}</strong></div>
+        <div class="mobile-overview-stat-v147"><small>진출 확정</small><strong>${state.qualifierRounds.filter(item => item.finalist).length}</strong></div>
+      </section>`;
+    }
+
+    function scrollOperatorSectionV147(targetId) {
+      const target = document.getElementById(targetId);
+      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
 
     function renderRoundProgressDock(roundIndex, currentStage) {
       return "";
@@ -17154,7 +17648,7 @@ function copyOrShare(url, label) {
       const headConfirmLabel = isPointFinalStage ? "1차 진출자 확정" : isRevivalMode() ? "우승자 확정" : isCrowMode() ? "1~3위 확정" : "결승 진출자 확정";
 
       return `
-        <section class="round-card">
+        <section class="round-card" id="operatorCurrentRoundV147">
           <div class="round-head">
             <div>
               <div class="round-title">
@@ -17166,11 +17660,11 @@ function copyOrShare(url, label) {
               </div>
             </div>
             <div class="round-actions-compact-v136" style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button class="primary" onclick="startQualifierRound(${roundIndex})">${round.stages.length ? "이번 라운드 재추첨" : "이 라운드 시작"}</button>
-              <button class="ghost" onclick="${headNextAction}">${headNextLabel}</button>
+              <button class="${round.stages.length ? "ghost" : "primary"} mobile-start-action-v147" onclick="startQualifierRound(${roundIndex})">${round.stages.length ? "이번 라운드 재추첨" : "이 라운드 시작"}</button>
+              <button class="${round.stages.length ? "primary" : "ghost"} mobile-next-action-v147" onclick="${headNextAction}">${headNextLabel}</button>
               ${isRevivalMode() && currentStage && currentStage.type !== "revival" && currentStage.name !== "라운드 결승" ? `<button class="ghost" onclick="createRevivalStage(${roundIndex})">패자부활전 생성</button>` : ""}
               <button class="ghost" onclick="confirmRoundFinalist(${roundIndex})">${headConfirmLabel}</button>
-              <button class="danger" onclick="resetQualifierRound(${roundIndex})">라운드 초기화</button>
+              <button class="danger mobile-reset-action-v147" onclick="resetQualifierRound(${roundIndex})">라운드 초기화</button>
             </div>
             ${renderGroupSizeControl()}
           </div>
@@ -19296,7 +19790,7 @@ function boot() {
         const profiles = snapshot.val() || {};
         syncPublicVenuesFromProfiles(profiles);
         const rows = Object.entries(profiles).sort((a,b) => String(a[1].email || "").localeCompare(String(b[1].email || "")));
-        app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${renderAdminUnifiedToolbarV145("users")}<section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section><div class="admin-build-mark">BUILD v146 OPERATOR DESIGN + UI ALIGNMENT PATCH</div></div>`;
+        app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${renderAdminUnifiedToolbarV145("users")}<section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section><div class="admin-build-mark">BUILD v147 MOBILE OPERATOR RENEWAL PATCH</div></div>`;
       }).catch(error => alert(`사용자 목록 로드 실패: ${error.message || error}`));
     }
 
@@ -19343,7 +19837,7 @@ function boot() {
             </tr>`;
           }).join("")
         : `<tr><td colspan="6">저장된 경기 기록이 없습니다.</td></tr>`;
-      app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>경기 데이터 관리</h1><p class="desc">전 경기장 대회 기록 · 총 ${list.length}건</p></div>${logoMarkup("header-logo")}</header>${renderAdminUnifiedToolbarV145("matches")}<section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>대회명</th><th>경기장</th><th>클래스</th><th>종료/저장 시각</th><th style="text-align:right;">기록행</th><th>관리</th></tr></thead><tbody>${rowsHtml}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">삭제 시 비공개 기록(privateResultLogs)·공개 기록(publicHistory)·로컬 기록에서 함께 제거됩니다. 되돌릴 수 없습니다.</p></section><div class="admin-build-mark">BUILD v146 OPERATOR DESIGN + UI ALIGNMENT PATCH</div></div>`;
+      app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>경기 데이터 관리</h1><p class="desc">전 경기장 대회 기록 · 총 ${list.length}건</p></div>${logoMarkup("header-logo")}</header>${renderAdminUnifiedToolbarV145("matches")}<section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>대회명</th><th>경기장</th><th>클래스</th><th>종료/저장 시각</th><th style="text-align:right;">기록행</th><th>관리</th></tr></thead><tbody>${rowsHtml}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">삭제 시 비공개 기록(privateResultLogs)·공개 기록(publicHistory)·로컬 기록에서 함께 제거됩니다. 되돌릴 수 없습니다.</p></section><div class="admin-build-mark">BUILD v147 MOBILE OPERATOR RENEWAL PATCH</div></div>`;
     }
 
     function deleteAdminTournamentRecord(id, venueId) {
@@ -22565,7 +23059,7 @@ function stopLiveLobbyRealtimeV50() {
     try { window.__mini4wdV141ResetModePreservationPatch = { build: "BUILD v141 RESET MODE PRESERVATION PATCH", rulesChanged: false }; } catch (_) {}
     try { window.__mini4wdV142FinalCompletionFlowPatch = { build: "BUILD v142 FINAL COMPLETION FLOW PATCH", rulesChanged: false }; } catch (_) {}
     try { window.__mini4wdV143UiCoherenceMetricPatch = { build: "BUILD v143 UI COHERENCE + METRIC PATCH", rulesChanged: false, scopes: ["pc", "mobile", "tv"] }; } catch (_) {}
-    try { window.__mini4wdV146OperatorDesignUiAlignmentPatch = { build: "BUILD v146 OPERATOR DESIGN + UI ALIGNMENT PATCH", rulesChanged: false, scopes: ["pc-operator", "dashboard", "player-db", "tv-points"] }; } catch (_) {}
+    try { window.__mini4wdV147MobileOperatorRenewalPatch = { build: "BUILD v147 MOBILE OPERATOR RENEWAL PATCH", rulesChanged: false, scopes: ["mobile-operator"] }; } catch (_) {}
 </script>
 </body>
 </html>
