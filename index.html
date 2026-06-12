@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v145 UI CONFLICT CLEANUP PATCH</title>
-  <!-- BUILD v145 UI CONFLICT CLEANUP PATCH · scoped layout cleanup; rules unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v146 OPERATOR DESIGN + UI ALIGNMENT PATCH</title>
+  <!-- BUILD v146 OPERATOR DESIGN + UI ALIGNMENT PATCH · scoped PC operator and requested UI alignment; rules unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -14960,6 +14960,299 @@ body.ui-mode-mobile:not(.tv-mode) .mobile-point-score-v145 {
   font-weight: 1000 !important;
   white-space: nowrap !important;
 }
+
+/* v146: scoped control-dashboard geometry and requested screen alignment. */
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) {
+  --op146-gap: 10px;
+  --op146-inset: 12px;
+  --op146-radius: 16px;
+  --op146-line: #dce3ec;
+  --op146-shadow: 0 8px 22px rgba(15, 23, 42, .055);
+  --op146-button-h: 32px;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .wrap {
+  max-width: 1580px !important;
+  padding: 12px 14px 54px !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .header {
+  margin: 0 0 var(--op146-gap) !important;
+  padding: 14px var(--op146-inset) !important;
+  border-radius: var(--op146-radius) !important;
+  box-shadow: var(--op146-shadow) !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .layout {
+  grid-template-columns: minmax(0, 1fr) 330px !important;
+  gap: var(--op146-gap) !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .main-area,
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .side-area {
+  display: grid !important;
+  align-content: start !important;
+  gap: var(--op146-gap) !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .main-area > *,
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .side-area > * {
+  width: 100% !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .main-area > .toolbar {
+  min-height: 44px !important;
+  padding: 6px var(--op146-inset) !important;
+  gap: 6px !important;
+  border: 1px solid var(--op146-line) !important;
+  border-radius: var(--op146-radius) !important;
+  background: #fff !important;
+  box-shadow: var(--op146-shadow) !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .main-area > .toolbar button {
+  width: auto !important;
+  min-height: var(--op146-button-h) !important;
+  height: var(--op146-button-h) !important;
+  padding: 0 11px !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .final-box,
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .tabs,
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .round-card,
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .stage-card,
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-page,
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .ops-panel {
+  border-radius: var(--op146-radius) !important;
+  border-color: var(--op146-line) !important;
+  box-shadow: var(--op146-shadow) !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .final-box,
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .round-card {
+  padding: var(--op146-inset) !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .tabs {
+  min-height: 44px !important;
+  padding: 6px !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .round-head {
+  padding: 0 0 10px !important;
+  margin: 0 0 10px !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .stage-card {
+  padding: 12px !important;
+  background: #fff !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-page > summary {
+  min-height: 40px !important;
+  padding: 10px 12px !important;
+  font-weight: 1000 !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-page-body {
+  padding: 0 10px 10px !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-page-body > .card,
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-page-body > .ops-panel {
+  margin: 0 0 8px !important;
+  padding: 12px !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+}
+body.ui-mode-pc.ui-page-operator:not(.tv-mode) .operator-page-body > :last-child {
+  margin-bottom: 0 !important;
+}
+body:not(.tv-mode) .prep-summary-v143 {
+  grid-template-columns: minmax(0, 1fr) !important;
+  width: 100% !important;
+  padding: 9px 0 !important;
+  gap: 7px !important;
+  box-sizing: border-box !important;
+}
+body:not(.tv-mode) .prep-action-v116 {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  gap: 6px !important;
+}
+body:not(.tv-mode) .tournament-finish-wait-v142 {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: 34px !important;
+  padding: 7px 9px !important;
+  box-sizing: border-box !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  line-height: 1.3 !important;
+}
+body:not(.tv-mode) .prep-status-meta-v143 {
+  margin: 0 !important;
+  padding-top: 1px !important;
+}
+body:not(.tv-mode) .active-backup-panel-v135 {
+  display: grid !important;
+  gap: 8px !important;
+  padding: 12px !important;
+}
+body:not(.tv-mode) .active-backup-panel-v135 .ops-row {
+  display: grid !important;
+  gap: 8px !important;
+  align-items: start !important;
+}
+body:not(.tv-mode) .active-backup-panel-v135 .ops-row > div:first-child {
+  display: grid !important;
+  gap: 3px !important;
+  line-height: 1.25 !important;
+}
+body:not(.tv-mode) .active-backup-panel-v135 .ops-row br { display: none !important; }
+body:not(.tv-mode) .active-backup-panel-v135 .auto-close-note-v135 {
+  margin: 2px 0 0 !important;
+  line-height: 1.45 !important;
+}
+body:not(.tv-mode) .active-backup-panel-v135 .ops-buttons {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+body:not(.tv-mode) .active-backup-panel-v135 .ops-buttons button {
+  width: auto !important;
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 0 9px !important;
+  line-height: 1 !important;
+}
+body:not(.tv-mode) .active-backup-panel-v135 > .hint {
+  margin: 0 !important;
+  padding: 2px 0 !important;
+}
+body:not(.tv-mode) .active-backup-panel-v135 .snapshot-list,
+body:not(.tv-mode) .active-backup-panel-v135 .active-backup-list-v135 {
+  margin: 0 !important;
+}
+body:not(.tv-mode) .active-backup-panel-v135 .snapshot-item,
+body:not(.tv-mode) .active-backup-panel-v135 .active-backup-item-v135 {
+  min-height: 40px !important;
+  align-items: center !important;
+  padding: 6px 8px !important;
+}
+body:not(.tv-mode) .active-backup-panel-v135 .snapshot-item button,
+body:not(.tv-mode) .active-backup-panel-v135 .active-backup-item-v135 button {
+  min-height: 28px !important;
+  height: 28px !important;
+}
+body:not(.tv-mode) .dashboard-toolbar-v146,
+body:not(.tv-mode) .db-toolbar-v146 {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 5px !important;
+  min-height: 44px !important;
+  padding: 6px 7px !important;
+  margin: 0 0 9px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none !important;
+  white-space: nowrap !important;
+  border: 1px solid #dce3ec !important;
+  border-radius: 13px !important;
+  background: #fff !important;
+}
+body:not(.tv-mode) .dashboard-toolbar-v146::-webkit-scrollbar,
+body:not(.tv-mode) .db-toolbar-v146::-webkit-scrollbar { display: none !important; }
+body:not(.tv-mode) .dashboard-toolbar-v146 button,
+body:not(.tv-mode) .dashboard-toolbar-v146 .pill,
+body:not(.tv-mode) .db-toolbar-v146 button,
+body:not(.tv-mode) .db-toolbar-v146 .pill,
+body:not(.tv-mode) .db-toolbar-v146 .upload-button {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: auto !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  margin: 0 !important;
+  padding: 0 9px !important;
+  box-sizing: border-box !important;
+  font-size: 10.5px !important;
+  line-height: 1 !important;
+  vertical-align: middle !important;
+  white-space: nowrap !important;
+}
+body:not(.tv-mode) .toolbar-spacer-v146 { flex: 1 0 18px !important; }
+body:not(.tv-mode) .db-toolbar-v146 .upload-button {
+  cursor: pointer !important;
+  background: #fff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 9px !important;
+}
+body:not(.tv-mode) .db-toolbar-v146 .upload-button input { display: none !important; }
+body:not(.tv-mode) .dashboard-class-summary-v146 {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-height: 0 !important;
+  padding: 10px 12px !important;
+  margin: 0 0 10px !important;
+}
+body:not(.tv-mode) .dashboard-class-summary-v146 h3 {
+  flex: 0 0 auto !important;
+  margin: 0 !important;
+  font-size: 14px !important;
+}
+body:not(.tv-mode) .dashboard-class-summary-v146 .class-chip-wrap {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 5px !important;
+}
+body:not(.tv-mode) .dashboard-class-summary-v146 .class-chip {
+  min-height: 28px !important;
+  padding: 5px 8px !important;
+}
+body:not(.tv-mode) .dashboard-page-v132 > .dashboard-grid {
+  align-items: start !important;
+}
+body.tv-mode .tv-point-leaders {
+  padding: clamp(6px, .55vw, 10px) !important;
+  border-radius: clamp(10px, .7vw, 14px) !important;
+}
+body.tv-mode .tv-point-leaders-title {
+  margin: 0 0 clamp(4px, .4vw, 7px) !important;
+  font-size: clamp(14px, 1.1vw, 21px) !important;
+}
+body.tv-mode .tv-point-leaders-list {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) !important;
+  gap: clamp(5px, .45vw, 8px) !important;
+}
+body.tv-mode .tv-point-leader {
+  min-height: clamp(38px, 3.2vw, 56px) !important;
+  grid-template-columns: clamp(24px, 1.8vw, 34px) minmax(0, 1fr) auto !important;
+  gap: clamp(5px, .45vw, 8px) !important;
+  padding: clamp(5px, .45vw, 8px) !important;
+  border-radius: clamp(9px, .65vw, 12px) !important;
+}
+body.tv-mode .tv-point-leader b {
+  width: clamp(23px, 1.75vw, 33px) !important;
+  height: clamp(23px, 1.75vw, 33px) !important;
+  font-size: clamp(13px, 1.15vw, 22px) !important;
+}
+body.tv-mode .tv-point-leader span {
+  font-size: clamp(14px, 1.35vw, 25px) !important;
+  letter-spacing: -.04em !important;
+}
+body.tv-mode .tv-point-leader strong {
+  font-size: clamp(22px, 2.15vw, 40px) !important;
+}
+@media (max-width: 760px) {
+  body:not(.tv-mode) .dashboard-class-summary-v146 {
+    display: grid !important;
+    gap: 7px !important;
+  }
+  body:not(.tv-mode) .tournament-finish-wait-v142 { font-size: 10.5px !important; }
+  body:not(.tv-mode) .active-backup-panel-v135 .ops-buttons {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  body:not(.tv-mode) .active-backup-panel-v135 .ops-buttons button {
+    width: 100% !important;
+  }
+}
 @media (max-width: 760px) {
   html body.ui-mode-mobile.ui-page-operator:not(.tv-mode) .round-head > div.group-size-control-v145 {
     grid-column: 1 / -1 !important;
@@ -18854,6 +19147,21 @@ function boot() {
       </div>`;
     }
 
+    function renderDashboardToolbarV146() {
+      if (!currentAuthUser) return renderPageNav();
+      const role = isAdminUser() ? "ADMIN" : "VENUE";
+      return `<div class="toolbar dashboard-toolbar-v146">
+        <button class="ghost" onclick="goBack()">뒤로가기</button>
+        <button class="ghost" onclick="goHome()">홈</button>
+        <button class="ghost" onclick="openDashboardPage()">새로고침</button>
+        ${isAdminUser() ? `<button class="ghost" onclick="openAdminPage()">관리자</button>` : ""}
+        <span class="toolbar-spacer-v146"></span>
+        <span class="pill">${role}${isVenueUser() ? ` · ${escapeHtml(currentVenueName())}` : ""}</span>
+        <span class="pill">${escapeHtml(currentAuthUser.email || "")}</span>
+        <button class="ghost" onclick="logoutUser()">로그아웃</button>
+      </div>`;
+    }
+
     function renderLoginPage(message = "운영자 화면은 로그인이 필요합니다.") {
       document.body.classList.remove("tv-mode");
       app.innerHTML = `
@@ -18988,7 +19296,7 @@ function boot() {
         const profiles = snapshot.val() || {};
         syncPublicVenuesFromProfiles(profiles);
         const rows = Object.entries(profiles).sort((a,b) => String(a[1].email || "").localeCompare(String(b[1].email || "")));
-        app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${renderAdminUnifiedToolbarV145("users")}<section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section><div class="admin-build-mark">BUILD v145 UI CONFLICT CLEANUP PATCH</div></div>`;
+        app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>사용자 / 경기장 관리</h1><p class="desc">권한 부여/해제 및 경기장 계정 관리</p></div>${logoMarkup("header-logo")}</header>${renderAdminUnifiedToolbarV145("users")}<section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>이메일</th><th>현재 권한</th><th>경기장 범위</th><th>승인 상태</th><th>관리</th></tr></thead><tbody>${rows.map(([uid,p]) => `<tr><td>${escapeHtml(p.email || "")}</td><td>${renderPermissionCell(p)}</td><td>${escapeHtml(p.venueName || p.venueId || "미지정")}</td><td>${escapeHtml(renderApprovedCell(p))}</td><td>${adminActionButtons(uid, p)}</td></tr>`).join("") || `<tr><td colspan="5">사용자가 없습니다.</td></tr>`}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">운영 권한, 대시보드 권한, 관리자 권한을 각각 부여/해제할 수 있습니다.</p></section><div class="admin-build-mark">BUILD v146 OPERATOR DESIGN + UI ALIGNMENT PATCH</div></div>`;
       }).catch(error => alert(`사용자 목록 로드 실패: ${error.message || error}`));
     }
 
@@ -19035,7 +19343,7 @@ function boot() {
             </tr>`;
           }).join("")
         : `<tr><td colspan="6">저장된 경기 기록이 없습니다.</td></tr>`;
-      app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>경기 데이터 관리</h1><p class="desc">전 경기장 대회 기록 · 총 ${list.length}건</p></div>${logoMarkup("header-logo")}</header>${renderAdminUnifiedToolbarV145("matches")}<section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>대회명</th><th>경기장</th><th>클래스</th><th>종료/저장 시각</th><th style="text-align:right;">기록행</th><th>관리</th></tr></thead><tbody>${rowsHtml}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">삭제 시 비공개 기록(privateResultLogs)·공개 기록(publicHistory)·로컬 기록에서 함께 제거됩니다. 되돌릴 수 없습니다.</p></section><div class="admin-build-mark">BUILD v145 UI CONFLICT CLEANUP PATCH</div></div>`;
+      app.innerHTML = `<div class="db-page admin-light-page"><header class="header"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">ADMIN</div></div><h1>경기 데이터 관리</h1><p class="desc">전 경기장 대회 기록 · 총 ${list.length}건</p></div>${logoMarkup("header-logo")}</header>${renderAdminUnifiedToolbarV145("matches")}<section class="card"><div class="roster-table-wrap"><table class="admin-table"><thead><tr><th>대회명</th><th>경기장</th><th>클래스</th><th>종료/저장 시각</th><th style="text-align:right;">기록행</th><th>관리</th></tr></thead><tbody>${rowsHtml}</tbody></table></div><p class="privacy-note" style="margin-top:12px;">삭제 시 비공개 기록(privateResultLogs)·공개 기록(publicHistory)·로컬 기록에서 함께 제거됩니다. 되돌릴 수 없습니다.</p></section><div class="admin-build-mark">BUILD v146 OPERATOR DESIGN + UI ALIGNMENT PATCH</div></div>`;
     }
 
     function deleteAdminTournamentRecord(id, venueId) {
@@ -19527,13 +19835,19 @@ function boot() {
       app.innerHTML = `
         <div class="db-page player-db-light-v96 player-db-v121">
           <header class="header db-titlebar-v131 app-titlebar-v132 db-titlebar-v132"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div></div><h1>선수 DB</h1><p class="desc">선수 등록, 명부 수정, 참가자 선택을 한 화면에서 관리합니다.</p></div>${logoMarkup("header-logo")}</header>
-          <div class="db-topline-v130 db-topline-v131">
-            <div class="db-venue-line-v131"><span class="pill">VENUE · ${escapeHtml(fixedVenueName || "-")}</span><span class="pill db-email-pill-v131">${escapeHtml(currentAuthUser?.email || "")}</span></div>
-            <div class="db-top-actions-v131">
-              ${renderPageNav()}
-              <button class="ghost" onclick="openDashboardPage()">DASHBOARD</button>${isAdminUser() ? `<button class="ghost" onclick="openAdminPage()">ADMIN</button>` : ""}<button class="ghost" onclick="logoutUser()">LOGOUT</button>
-              <button class="ghost" onclick="exportRosterCsv()">CSV 다운로드</button><button class="ghost" onclick="downloadRosterTemplate()">선수 양식</button><label class="upload-button ghost">엑셀 업로드<input type="file" accept=".xlsx,.xls,.csv,.tsv" onchange="importRosterExcel(event)" hidden /></label>
-            </div>
+          <div class="db-topline-v130 db-topline-v131 db-toolbar-v146">
+            <button class="ghost" onclick="goBack()">뒤로가기</button>
+            <button class="ghost" onclick="goHome()">홈</button>
+            <button class="ghost" onclick="renderDbPage()">새로고침</button>
+            <button class="ghost" onclick="openDashboardPage()">대시보드</button>
+            ${isAdminUser() ? `<button class="ghost" onclick="openAdminPage()">관리자</button>` : ""}
+            <button class="ghost" onclick="exportRosterCsv()">CSV 다운로드</button>
+            <button class="ghost" onclick="downloadRosterTemplate()">선수 양식</button>
+            <label class="upload-button ghost">엑셀 업로드<input type="file" accept=".xlsx,.xls,.csv,.tsv" onchange="importRosterExcel(event)" hidden /></label>
+            <span class="toolbar-spacer-v146"></span>
+            <span class="pill">VENUE · ${escapeHtml(fixedVenueName || "-")}</span>
+            <span class="pill db-email-pill-v131">${escapeHtml(currentAuthUser?.email || "")}</span>
+            <button class="ghost" onclick="logoutUser()">로그아웃</button>
           </div>
           <div class="db-grid db-player-layout-v98 db-player-layout-v99 db-player-layout-v121"><aside class="db-player-side-v98 db-player-side-v99">
             <section class="card db-quick-add-card-v96 db-register-card-v121" id="dbQuickAddPanel">
@@ -20006,6 +20320,16 @@ function exportTournamentCsv() {
       const venueVisits = analyzePlayerVenueVisits(filtered);
       document.body.classList.remove("tv-mode");
       app.innerHTML = `<div class="db-page dashboard-page-v132"><header class="header app-titlebar-v132 dashboard-titlebar-v132"><div class="header-copy"><div class="brand-line"><div class="eyebrow">MINI4WD TOURNAMENT MAKER</div><div class="maker">DASHBOARD</div></div><h1>상시 데이터 대시보드</h1><p class="desc">기간별 · 경기장별 · 클래스별 경기 기록 분석</p></div>${logoMarkup("header-logo")}</header>${currentAuthUser ? accountBadge() : renderPageNav()}<div class="toolbar dashboard-actions-toolbar"><button class="ghost" onclick="dashboardFilter.venue='전체'; renderDashboardWithRecords(window.__dashboardRecords||[])">전체 경기장</button><button class="ghost" onclick="openDashboardPage()">새로고침</button></div><section class="card"><div class="dashboard-filter"><div><label>시작일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.from)}" onchange="dashboardFilter.from=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>종료일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.to)}" onchange="dashboardFilter.to=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>경기장</label><select class="mini-input" onchange="dashboardFilter.venue=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 경기장</option>${venueOptions.map(v => `<option value="${escapeHtml(v.id)}" ${dashboardFilter.venue===v.id || dashboardFilter.venue===v.name || (v.aliases || []).includes(dashboardFilter.venue) || normalizeKey(dashboardFilter.venue)===v.id ? "selected" : ""}>${escapeHtml(v.name)}</option>`).join("")}</select></div><div><label>클래스</label><select class="mini-input" onchange="dashboardFilter.raceClass=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 클래스</option>${classes.map(c => `<option value="${escapeHtml(c)}" ${dashboardFilter.raceClass===c?"selected":""}>${escapeHtml(c)}</option>`).join("")}</select></div><div><label>검색</label><input class="mini-input" placeholder="대회명/경기장/클래스" value="${escapeHtml(dashboardFilter.keyword)}" oninput="dashboardFilter.keyword=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div></div><div class="dashboard-period-row"><button class="ghost" onclick="setDashboardPeriod('all')">전체 기간</button><button class="ghost" onclick="setDashboardPeriod('month')">이번달</button><button class="ghost" onclick="setDashboardPeriod('30d')">최근 30일</button></div><div class="db-stat-grid" style="margin-top:12px;"><div class="db-stat"><small>대회 기록</small><strong>${filtered.length}</strong></div><div class="db-stat"><small>경기장</small><strong>${new Set(filtered.map(r=>r.venueName||r.venueId)).size}</strong></div><div class="db-stat"><small>선수</small><strong>${stats.players.length}</strong></div></div></section><div class="dashboard-grid"><section class="dashboard-card"><h3>클래스별 기록</h3><div class="class-chip-wrap">${classStats.map(item => `<div class="class-chip"><span>${escapeHtml(item.raceClass)}</span><b>${item.count}회</b></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>선수별 경기장 방문</h3>${renderVenueVisitList(venueVisits)}</section><section class="dashboard-card"><h3>최다승 유저</h3>${rankList(stats.mostWins, "wins", "승")}</section><section class="dashboard-card"><h3>자주 우승하는 사람</h3>${rankList(stats.mostChampions, "championships", "회")}</section><section class="dashboard-card"><h3>자주 지는 사람</h3>${rankList(stats.mostLosses, "losses", "패")}</section><section class="dashboard-card"><h3>참가 횟수 랭킹</h3>${rankList(stats.mostParticipants, "matches", "회")}</section><section class="dashboard-card"><h3>포인트전 누적</h3>${rankList(stats.mostPoints, "points", "P")}</section><section class="dashboard-card"><h3>한 레인 편중</h3><div class="rank-list">${stats.oneLane.slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)} · ${p.mainLane}LANE</span><strong>${Math.round(p.laneRate*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>레인별 승률</h3><div class="rank-list">${stats.laneStats.map(l=>`<div class="rank-row"><b>${l.lane}</b><span class="rank-name">${l.matches}경기</span><strong>${l.matches ? Math.round(l.wins/l.matches*100) : 0}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card"><h3>결승 진출률</h3><div class="rank-list">${stats.players.filter(p=>p.matches).sort((a,b)=>(b.finals/b.matches)-(a.finals/a.matches)).slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)}</span><strong>${Math.round(p.finals/p.matches*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section></div></div>`;
+      const legacyDashboardActions = app.querySelector(".dashboard-actions-toolbar");
+      if (legacyDashboardActions) legacyDashboardActions.remove();
+      const dashboardAccountStrip = app.querySelector(".dashboard-page-v132 > .account-strip");
+      if (dashboardAccountStrip) dashboardAccountStrip.outerHTML = renderDashboardToolbarV146();
+      const dashboardGrid = app.querySelector(".dashboard-page-v132 > .dashboard-grid");
+      const classSummary = dashboardGrid?.querySelector(":scope > .dashboard-card:first-child");
+      if (dashboardGrid && classSummary) {
+        classSummary.classList.add("dashboard-class-summary-v146");
+        dashboardGrid.before(classSummary);
+      }
     }
 
     function liveStatusLabel(status) {
@@ -22241,7 +22565,7 @@ function stopLiveLobbyRealtimeV50() {
     try { window.__mini4wdV141ResetModePreservationPatch = { build: "BUILD v141 RESET MODE PRESERVATION PATCH", rulesChanged: false }; } catch (_) {}
     try { window.__mini4wdV142FinalCompletionFlowPatch = { build: "BUILD v142 FINAL COMPLETION FLOW PATCH", rulesChanged: false }; } catch (_) {}
     try { window.__mini4wdV143UiCoherenceMetricPatch = { build: "BUILD v143 UI COHERENCE + METRIC PATCH", rulesChanged: false, scopes: ["pc", "mobile", "tv"] }; } catch (_) {}
-    try { window.__mini4wdV145UiConflictCleanupPatch = { build: "BUILD v145 UI CONFLICT CLEANUP PATCH", rulesChanged: false, scopes: ["pc", "mobile", "tv"] }; } catch (_) {}
+    try { window.__mini4wdV146OperatorDesignUiAlignmentPatch = { build: "BUILD v146 OPERATOR DESIGN + UI ALIGNMENT PATCH", rulesChanged: false, scopes: ["pc-operator", "dashboard", "player-db", "tv-points"] }; } catch (_) {}
 </script>
 </body>
 </html>
