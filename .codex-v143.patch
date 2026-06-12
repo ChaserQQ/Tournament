@@ -1,0 +1,474 @@
+--- a/index.html
++++ b/index.html
+@@ -3,8 +3,8 @@
+ <head>
+   <meta charset="UTF-8" />
+   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+-  <title>MINI4WD TOURNAMENT MAKER · v142 FINAL COMPLETION FLOW PATCH</title>
+-  <!-- BUILD v142 FINAL COMPLETION FLOW PATCH · finish action appears after final result; rules unchanged -->
++  <title>MINI4WD TOURNAMENT MAKER · v143 UI COHERENCE + METRIC PATCH</title>
++  <!-- BUILD v143 UI COHERENCE + METRIC PATCH · PC/mobile/TV scoped UI and lane metric fixes; rules unchanged -->
+   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
+   <meta property="og:type" content="website" />
+   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
+@@ -14435,6 +14435,317 @@
+       }
+     }
+ 
++    /* v143 UI COHERENCE + METRIC PATCH · PC/mobile/TV scopes stay separate */
++    body:not(.tv-mode) .header {
++      min-height: 86px !important;
++      padding: 16px 20px !important;
++      display: flex !important;
++      align-items: center !important;
++      gap: 18px !important;
++      margin-bottom: 14px !important;
++    }
++    body:not(.tv-mode) .header .header-copy {
++      display: grid !important;
++      gap: 4px !important;
++      min-width: 0 !important;
++    }
++    body:not(.tv-mode) .header .eyebrow {
++      margin: 0 !important;
++      font-size: 11px !important;
++      line-height: 1.15 !important;
++    }
++    body:not(.tv-mode) .header h1 {
++      margin: 0 !important;
++      line-height: 1.08 !important;
++    }
++    body:not(.tv-mode) .header .desc {
++      margin: 0 !important;
++      line-height: 1.35 !important;
++    }
++    body:not(.tv-mode) .tabs {
++      margin: 0 0 16px !important;
++    }
++    body:not(.tv-mode) .round-card {
++      margin-top: 0 !important;
++    }
++    body:not(.tv-mode) .round-head {
++      column-gap: 12px !important;
++      row-gap: 10px !important;
++    }
++    body.ui-mode-pc:not(.tv-mode) .round-head {
++      grid-template-columns: minmax(150px, 1fr) auto auto !important;
++      align-items: center !important;
++    }
++    body:not(.tv-mode) .group-size-control-v143 {
++      display: inline-flex !important;
++      flex: 0 0 auto !important;
++      width: max-content !important;
++      max-width: 100% !important;
++      min-width: 0 !important;
++      align-items: center !important;
++      justify-content: flex-start !important;
++      gap: 7px !important;
++      margin: 0 !important;
++      padding: 0 !important;
++      overflow-x: auto !important;
++      scrollbar-width: none !important;
++      white-space: nowrap !important;
++    }
++    body:not(.tv-mode) .group-size-control-v143::-webkit-scrollbar { display: none !important; }
++    body:not(.tv-mode) .group-size-control-v143 .group-size-label-v143 {
++      flex: 0 0 auto !important;
++      width: auto !important;
++      margin: 0 !important;
++      font-size: 11px !important;
++      font-weight: 900 !important;
++      line-height: 24px !important;
++    }
++    body:not(.tv-mode) .group-size-control-v143 .group-size-buttons-v143 {
++      display: inline-flex !important;
++      flex: 0 0 auto !important;
++      width: auto !important;
++      gap: 4px !important;
++    }
++    body:not(.tv-mode) .group-size-control-v143 .group-size-button-v143 {
++      flex: 0 0 auto !important;
++      width: auto !important;
++      min-width: 42px !important;
++      max-width: none !important;
++      height: 26px !important;
++      min-height: 26px !important;
++      padding: 4px 9px !important;
++      font-size: 10.5px !important;
++      line-height: 1 !important;
++      white-space: nowrap !important;
++    }
++    body:not(.tv-mode) .prep-hero-v143 {
++      display: grid !important;
++      gap: 10px !important;
++      padding: 0 !important;
++      border: 0 !important;
++      background: transparent !important;
++      box-shadow: none !important;
++    }
++    body:not(.tv-mode) .prep-summary-v143 {
++      display: grid !important;
++      grid-template-columns: minmax(0, 1fr) auto !important;
++      align-items: center !important;
++      gap: 12px !important;
++      padding: 12px 0 !important;
++      border-top: 1px solid rgba(35,50,74,.09) !important;
++      border-bottom: 1px solid rgba(35,50,74,.09) !important;
++    }
++    body:not(.tv-mode) .prep-summary-copy-v143 {
++      min-width: 0 !important;
++      display: grid !important;
++      gap: 4px !important;
++    }
++    body:not(.tv-mode) .prep-summary-copy-v143 strong {
++      font-size: 19px !important;
++      line-height: 1.1 !important;
++      overflow-wrap: anywhere !important;
++    }
++    body:not(.tv-mode) .prep-summary-copy-v143 span,
++    body:not(.tv-mode) .prep-status-meta-v143 {
++      color: #667085 !important;
++      font-size: 11.5px !important;
++      line-height: 1.35 !important;
++    }
++    body:not(.tv-mode) .prep-status-meta-v143 {
++      display: flex !important;
++      flex-wrap: wrap !important;
++      gap: 5px 12px !important;
++    }
++    body:not(.tv-mode) .prep-status-meta-v143 span {
++      white-space: nowrap !important;
++    }
++    body:not(.tv-mode) .db-register-card-v121,
++    body:not(.tv-mode) .db-selected-card-v121 {
++      padding: 14px !important;
++      border-radius: 16px !important;
++      border-color: #d8dee8 !important;
++      box-shadow: 0 8px 20px rgba(17,24,39,.055) !important;
++    }
++    body:not(.tv-mode) .db-register-card-v121 .db-panel-title,
++    body:not(.tv-mode) .db-selected-card-v121 .db-panel-title {
++      min-height: 28px !important;
++      margin-bottom: 12px !important;
++      align-items: center !important;
++    }
++    body:not(.tv-mode) .db-register-card-v121 .db-form-row-v121 {
++      min-height: 32px !important;
++      gap: 8px !important;
++    }
++    body:not(.tv-mode) .db-register-card-v121 .db-primary-action-v121,
++    body:not(.tv-mode) .db-selected-card-v121 .db-primary-action-v121 {
++      min-height: 44px !important;
++      margin-top: 12px !important;
++    }
++    body.ui-mode-pc:not(.tv-mode) .db-bulk-toolbar {
++      display: flex !important;
++      flex-wrap: nowrap !important;
++      align-items: center !important;
++      justify-content: space-between !important;
++      min-height: 50px !important;
++      gap: 12px !important;
++      padding: 8px !important;
++    }
++    body.ui-mode-pc:not(.tv-mode) .db-bulk-toolbar > div:first-child,
++    body.ui-mode-pc:not(.tv-mode) .db-bulk-buttons {
++      display: inline-flex !important;
++      flex: 0 0 auto !important;
++      width: auto !important;
++      align-items: center !important;
++      gap: 6px !important;
++      white-space: nowrap !important;
++    }
++    body.ui-mode-pc:not(.tv-mode) .db-bulk-buttons {
++      margin-left: auto !important;
++    }
++    body.ui-mode-pc:not(.tv-mode) .account-strip {
++      display: flex !important;
++      flex-wrap: nowrap !important;
++      align-items: center !important;
++      min-height: 48px !important;
++      padding: 7px 8px !important;
++      gap: 10px !important;
++    }
++    body.ui-mode-pc:not(.tv-mode) .account-strip .account-left,
++    body.ui-mode-pc:not(.tv-mode) .account-strip .account-actions,
++    body.ui-mode-pc:not(.tv-mode) .account-strip .page-nav {
++      display: inline-flex !important;
++      flex-wrap: nowrap !important;
++      align-items: center !important;
++      width: auto !important;
++      gap: 5px !important;
++    }
++    body.ui-mode-pc:not(.tv-mode) .account-strip .account-actions {
++      margin-left: auto !important;
++    }
++    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-wrap {
++      width: 100% !important;
++      max-width: 100% !important;
++      overflow-x: auto !important;
++      overflow-y: visible !important;
++    }
++    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 {
++      table-layout: fixed !important;
++      border-collapse: separate !important;
++      border-spacing: 0 4px !important;
++    }
++    body.ui-mode-pc:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 {
++      min-width: 980px !important;
++    }
++    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 th,
++    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 td {
++      height: 38px !important;
++      padding: 4px 5px !important;
++      vertical-align: middle !important;
++    }
++    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 th,
++    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 th .table-sort-btn {
++      text-align: center !important;
++    }
++    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 .table-sort-btn,
++    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 .mini-input {
++      width: 100% !important;
++      min-width: 0 !important;
++      height: 30px !important;
++      min-height: 30px !important;
++    }
++    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 td[data-label="연락처"],
++    body:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 td[data-label="연락처"] input {
++      text-align: center !important;
++    }
++    body.ui-mode-mobile:not(.tv-mode) .header {
++      min-height: 80px !important;
++      padding: 14px 15px !important;
++    }
++    body.ui-mode-mobile:not(.tv-mode) .round-head {
++      padding: 14px !important;
++    }
++    body.ui-mode-mobile:not(.tv-mode) .group-size-control-v143 {
++      width: 100% !important;
++      max-width: 100% !important;
++    }
++    body.ui-mode-mobile:not(.tv-mode) .db-bulk-toolbar {
++      display: flex !important;
++      flex-wrap: nowrap !important;
++      align-items: center !important;
++      width: 100% !important;
++      gap: 8px !important;
++      overflow-x: auto !important;
++      scrollbar-width: none !important;
++    }
++    body.ui-mode-mobile:not(.tv-mode) .db-bulk-toolbar::-webkit-scrollbar { display: none !important; }
++    body.ui-mode-mobile:not(.tv-mode) .db-bulk-toolbar > div:first-child,
++    body.ui-mode-mobile:not(.tv-mode) .db-bulk-buttons {
++      display: inline-flex !important;
++      flex: 0 0 auto !important;
++      width: auto !important;
++      align-items: center !important;
++      gap: 5px !important;
++      white-space: nowrap !important;
++    }
++    body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 {
++      display: table !important;
++      min-width: 790px !important;
++      table-layout: fixed !important;
++    }
++    body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 thead {
++      display: table-header-group !important;
++    }
++    body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 tbody {
++      display: table-row-group !important;
++    }
++    body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 tr {
++      display: table-row !important;
++      border: 0 !important;
++      padding: 0 !important;
++    }
++    body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 th,
++    body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 td {
++      display: table-cell !important;
++      position: static !important;
++      grid-column: auto !important;
++      grid-row: auto !important;
++    }
++    body.ui-mode-mobile:not(.tv-mode) .db-page.player-db-light-v96 .roster-table-v121 td::before {
++      content: none !important;
++    }
++    body.ui-mode-mobile:not(.tv-mode) .account-strip {
++      display: grid !important;
++      grid-template-columns: minmax(0,1fr) auto !important;
++      align-items: center !important;
++      gap: 7px !important;
++      padding: 8px !important;
++    }
++    body.ui-mode-mobile:not(.tv-mode) .account-strip .account-left {
++      min-width: 0 !important;
++      display: flex !important;
++      flex-wrap: wrap !important;
++      align-items: center !important;
++      gap: 5px !important;
++    }
++    body.ui-mode-mobile:not(.tv-mode) .account-strip .account-actions {
++      display: inline-flex !important;
++      flex-wrap: nowrap !important;
++      gap: 4px !important;
++    }
++    body.tv-mode .tv90-result.is-point-v143 {
++      min-width: clamp(48px, 3.3vw, 72px) !important;
++      color: #be185d !important;
++      font-size: clamp(16px, 1.25vw, 26px) !important;
++      line-height: 1 !important;
++      font-weight: 1000 !important;
++      letter-spacing: -.055em !important;
++      overflow: visible !important;
++      text-overflow: clip !important;
++    }
++    body.tv-mode .tv90-h2h-row {
++      text-overflow: clip !important;
++    }
++
+   </style>
+ </head>
+ <body>
+@@ -14782,11 +15093,11 @@
+     function renderGroupSizeControl() {
+       const options = ["", ...Array.from({ length: Math.max(0, state.settings.laneCount - 1) }, (_, index) => index + 2)];
+       return `
+-        <div class="group-size-control group-size-control-v133 group-size-control-v136 group-size-control-v138" role="group" aria-label="다음 경기 조 인원">
+-          <span class="group-size-label-v138">다음 경기 조 인원</span>
+-          <div class="group-size-buttons-v138">
++        <div class="group-size-control group-size-control-v133 group-size-control-v136 group-size-control-v138 group-size-control-v143" role="group" aria-label="다음 경기 조 인원">
++          <span class="group-size-label-v138 group-size-label-v143">다음 경기 조 인원</span>
++          <div class="group-size-buttons-v138 group-size-buttons-v143">
+             ${options.map(option => `
+-              <button type="button" class="group-size-button-v138 ${String(state.settings.nextGroupSize || "") === String(option) ? "active" : ""}" onclick="setNextGroupSize('${option}')">${option === "" ? "자동" : `${option}명`}</button>
++              <button type="button" class="group-size-button-v138 group-size-button-v143 ${String(state.settings.nextGroupSize || "") === String(option) ? "active" : ""}" onclick="setNextGroupSize('${option}')">${option === "" ? "자동" : `${option}명`}</button>
+             `).join("")}
+           </div>
+         </div>
+@@ -17179,22 +17490,22 @@
+           : `<button class="primary prep-main-action-v116" onclick="prepareNewTournamentFromFinished()">새 대회 준비</button><button class="ghost prep-sub-action-v116" onclick="reopenTournament()">종료 취소</button>`;
+ 
+       return `
+-        <div class="prep-hero-v116">
++        <div class="prep-hero-v116 prep-hero-v143">
+           <div class="prep-topline-v116">
+             <span>대회 정보</span>
+             <span class="status-badge status-${status}">${statusText}</span>
+           </div>
+-          <div class="prep-preview-v116">
+-            <div class="prep-preview-main-v116">
++          <div class="prep-preview-v116 prep-summary-v143">
++            <div class="prep-preview-main-v116 prep-summary-copy-v143">
+               <strong class="prep-title-v116">${escapeHtml(tournamentName)}</strong>
+-              <span class="prep-sub-v116">참가자 ${participantCount}명</span>
++              <span class="prep-sub-v116">${escapeHtml(venueName)} · ${escapeHtml(raceClassName)} · 참가자 ${participantCount}명</span>
+             </div>
+             <div class="prep-action-v116">${actionButtons}</div>
+           </div>
+-          <div class="prep-time-row-v116">
++          <div class="prep-time-row-v116 prep-status-meta-v143">
+             <span>상태: ${escapeHtml(statusNote)}</span>
+-            <span>시작 ${state.tournament.startedAtDisplay || "-"}</span>
+-            <span>종료 ${state.tournament.endedAtDisplay || "-"}</span>
++            ${state.tournament.startedAtDisplay ? `<span>시작 ${escapeHtml(state.tournament.startedAtDisplay)}</span>` : ""}
++            ${state.tournament.endedAtDisplay ? `<span>종료 ${escapeHtml(state.tournament.endedAtDisplay)}</span>` : ""}
+           </div>
+         </div>
+       `;
+@@ -17444,8 +17755,8 @@
+       const pointValue = Number(pointTotalsMap?.[player.id] ?? (group?.points || {})[player.id] ?? 0);
+       const resultText = stageType === "points" ? `${pointValue}P` : "";
+       const stats = getGroupMatchStatsForPlayer(player, group || {});
+-      const rows = (stats.h2h || []).slice(0, 3).map(item => {
+-        const label = item.matches ? `${item.name} ${item.wins}승 ${item.losses}패` : `${item.name} 전적없음`;
++      const rows = (stats.h2h || []).slice(0, 2).map(item => {
++        const label = item.matches ? `${item.name} ${item.wins}-${item.losses}` : `${item.name} -`;
+         return `<div class="tv90-h2h-row" title="${escapeAttr(label)}">${escapeHtml(label)}</div>`;
+       }).join("") || `<div class="tv90-h2h-row">상대전적 없음</div>`;
+       const displayName = getTvDisplayNickname(player.name || "");
+@@ -17454,7 +17765,7 @@
+           <div class="tv90-lane-meta"><div class="tv90-lane-main"><span class="tv90-lane-no">${escapeHtml(lane)}</span><span class="tv90-lane-word">LANE</span></div><div class="tv90-rate">오늘 ${escapeHtml(getDisplayLaneWinRate(lane, player))}</div></div>
+           <div class="tv90-player"><div class="tv90-name ${getTv90NameClass(displayName)}" title="${escapeAttr(player.name || "")}">${escapeHtml(displayName || "-")}</div>${player.team ? `<div class="tv90-team" title="${escapeAttr(player.team)}">${escapeHtml(player.team)}</div>` : `<div class="tv90-team">팀명 없음</div>`}</div>
+           <div class="tv90-h2h"><div class="tv90-h2h-title">최근 3개월 전적</div>${rows}</div>
+-          <div class="tv90-result">${escapeHtml(resultText)}</div>
++          <div class="tv90-result ${stageType === "points" ? "is-point-v143" : ""}">${escapeHtml(resultText)}</div>
+         </div>`;
+     }
+ 
+@@ -19140,28 +19451,55 @@
+       return row.선수ID || playerIdentityKey(row.실명 || row.선수명, row.연락처 || "") || `${row.선수명}|${row.팀명 || ""}`;
+     }
+ 
++    function isDashboardAdvanceResult(result) {
++      return ["진출", "결승진출", "최종결승진출", "최종우승"].includes(String(result || ""));
++    }
++
++    function getDashboardPointWinnerKeys(record = {}) {
++      const winners = new Set();
++      const groups = new Map();
++      (record.rows || []).forEach(row => {
++        if (!row || row.결과 !== "포인트") return;
++        const key = `${row.차수 || ""}|${row.단계 || ""}|${row.조 || ""}`;
++        if (!groups.has(key)) groups.set(key, []);
++        groups.get(key).push(row);
++      });
++      groups.forEach(rows => {
++        const scored = rows.map(row => ({ row, score: Number(row.점수) })).filter(item => Number.isFinite(item.score));
++        if (!scored.length) return;
++        const maxScore = Math.max(...scored.map(item => item.score));
++        scored.filter(item => item.score === maxScore).forEach(item => winners.add(`${item.row.차수 || ""}|${item.row.단계 || ""}|${item.row.조 || ""}|${getPlayerKeyFromRow(item.row)}`));
++      });
++      return winners;
++    }
++
+     function analyzeRecords(records) {
+       const player = new Map();
+       const lane = new Map();
+-      records.forEach(record => (record.rows || []).forEach(row => {
++      records.forEach(record => {
++        const pointWinnerKeys = getDashboardPointWinnerKeys(record);
++        (record.rows || []).forEach(row => {
+         if (!row || row.결과 === "빈 레인") return;
+         const key = getPlayerKeyFromRow(row);
++        const pointWinnerKey = `${row.차수 || ""}|${row.단계 || ""}|${row.조 || ""}|${key}`;
++        const wonHeat = isDashboardAdvanceResult(row.결과) || pointWinnerKeys.has(pointWinnerKey);
+         const name = row.선수명 || row.실명 || key;
+         const item = player.get(key) || { key, name, team: row.팀명 || "", matches: 0, wins: 0, losses: 0, championships: 0, finals: 0, points: 0, lanes: {} };
+         item.matches += 1;
+         item.points += Number(row.점수 || 0);
+         const laneNo = String(row.레인 || "").replace(/[^0-9]/g, "") || "?";
+         item.lanes[laneNo] = (item.lanes[laneNo] || 0) + 1;
+-        if (["진출", "최종결승진출", "최종우승"].includes(row.결과)) item.wins += 1;
++        if (wonHeat) item.wins += 1;
+         if (row.결과 === "탈락") item.losses += 1;
+         if (row.결과 === "최종우승") item.championships += 1;
+         if (["최종결승진출", "결승참가", "최종우승"].includes(row.결과)) item.finals += 1;
+         player.set(key, item);
+         const laneStat = lane.get(laneNo) || { lane: laneNo, matches: 0, wins: 0 };
+         laneStat.matches += 1;
+-        if (["진출", "최종결승진출", "최종우승"].includes(row.결과)) laneStat.wins += 1;
++        if (wonHeat) laneStat.wins += 1;
+         lane.set(laneNo, laneStat);
+-      }));
++        });
++      });
+       const players = Array.from(player.values());
+       const oneLane = players.map(p => { const top = Object.entries(p.lanes).sort((a,b)=>b[1]-a[1])[0] || ["",0]; return { ...p, mainLane: top[0], mainLaneCount: top[1], laneRate: p.matches ? top[1] / p.matches : 0 }; }).filter(p => p.matches >= 3).sort((a,b)=>b.laneRate-a.laneRate || b.matches-a.matches);
+       return { players, laneStats: Array.from(lane.values()).sort((a,b)=>Number(a.lane)-Number(b.lane)), mostWins: [...players].sort((a,b)=>b.wins-a.wins), mostChampions: [...players].sort((a,b)=>b.championships-a.championships), mostLosses: [...players].sort((a,b)=>b.losses-a.losses), mostParticipants: [...players].sort((a,b)=>b.matches-a.matches), mostPoints: [...players].sort((a,b)=>b.points-a.points), oneLane };
+@@ -20037,7 +20375,7 @@
+           ? ["경기 시작 시 자동 표시", "LIVE 대기중", "LIVE 중인 대회를 선택해 확인"]
+           : live
+             ? [raceText, updated || "송출 시간 확인중", liveId]
+-            : [raceText, updated ? `최근 갱신 ${updated}` : "진행중인 LIVE 없음", item.venueId || "대기 상태"];
++            : [raceText, updated ? `최근 갱신 ${updated}` : "진행중인 LIVE 없음"];
+         const recentTime = formatTime(item.recentAt || item.updatedAt);
+         const resultTitle = item.recentRecord ? (item.recentResult || "결과 기록 없음") : empty ? "빈 슬롯" : "최근 결과 없음";
+         const resultSub = item.recentRecord
+@@ -21553,6 +21891,7 @@
+     try { window.__mini4wdV140RuleEngineSplitPatch = { build: "BUILD v140 RULE ENGINE SPLIT PATCH", rulesChanged: false, modes: ["basic", "points3", "points5Tree", "revival", "crow"] }; } catch (_) {}
+     try { window.__mini4wdV141ResetModePreservationPatch = { build: "BUILD v141 RESET MODE PRESERVATION PATCH", rulesChanged: false }; } catch (_) {}
+     try { window.__mini4wdV142FinalCompletionFlowPatch = { build: "BUILD v142 FINAL COMPLETION FLOW PATCH", rulesChanged: false }; } catch (_) {}
++    try { window.__mini4wdV143UiCoherenceMetricPatch = { build: "BUILD v143 UI COHERENCE + METRIC PATCH", rulesChanged: false, scopes: ["pc", "mobile", "tv"] }; } catch (_) {}
+ </script>
+ </body>
+ </html>
