@@ -1,0 +1,44 @@
+name: Apply v144 UI data ops patch
+on:
+  push:
+    branches: [codex/v144-ui-data-ops]
+    paths: [.github/workflows/codex-v144-apply.yml]
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/v144-ui-data-ops
+          fetch-depth: 0
+      - name: Apply patch
+        run: git apply --check .codex-v144.patch && git apply .codex-v144.patch
+      - name: Validate
+        shell: node {0}
+        run: |
+          const fs=require('fs'),vm=require('vm');
+          const h=fs.readFileSync('index.html','utf8');
+          const scripts=[...h.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)];
+          scripts.forEach((m,i)=>new vm.Script(m[1],{filename:`inline-${i+1}.js`}));
+          const names=[...h.matchAll(/\bfunction\s+([A-Za-z_$][\w$]*)\s*\(/g)].map(m=>m[1]);
+          const dup=[...new Set(names.filter((n,i)=>names.indexOf(n)!==i))];
+          const handlers=[...h.matchAll(/\bon(?:click|change|input|submit|keydown|keyup|blur|focus)\s*=\s*["']\s*([A-Za-z_$][\w$]*)\s*\(/gi)].map(m=>m[1]);
+          const missing=[...new Set(handlers.filter(n=>!new RegExp(`\\bfunction\\s+${n}\\s*\\(|\\b(?:const|let|var)\\s+${n}\\s*=|\\bwindow\\.${n}\\s*=`).test(h)))];
+          const ok=dup.length===0&&missing.length===0&&!/^\s*async\s*$/m.test(h)&&(h.match(/<script\b/gi)||[]).length===(h.match(/<\/script>/gi)||[]).length&&(h.match(/<style\b/gi)||[]).length===(h.match(/<\/style>/gi)||[]).length&&/<title>[^<]*v144 UI\/DATA OPS PATCH/i.test(h);
+          console.log({ok,duplicates:dup,missing}); if(!ok)process.exit(1);
+      - name: Package
+        shell: python
+        run: |
+          from zipfile import ZipFile, ZIP_DEFLATED
+          with ZipFile('mini4wd_v144_ui_data_ops_patch.zip','w',ZIP_DEFLATED) as z: z.write('index.html','index.html')
+          with ZipFile('mini4wd_v144_ui_data_ops_patch.zip') as z: assert z.namelist()==['index.html']
+      - name: Commit
+        run: |
+          rm .codex-v144.patch .github/workflows/codex-v144-apply.yml
+          git config user.name Codex
+          git config user.email codex@users.noreply.github.com
+          git add -A
+          git commit -m "feat: apply v144 UI and data operations patch"
+          git push origin codex/v144-ui-data-ops
