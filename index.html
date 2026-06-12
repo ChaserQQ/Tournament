@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MINI4WD TOURNAMENT MAKER · v137 ROSTER TABLE ALIGN HOTFIX</title>
-  <!-- BUILD v140 RULE ENGINE SPLIT PATCH · points3/points5Tree separated; tournament flow guarded; rules unchanged -->
+  <title>MINI4WD TOURNAMENT MAKER · v141 RESET MODE PRESERVATION PATCH</title>
+  <!-- BUILD v141 RESET MODE PRESERVATION PATCH · resetTournament keeps active matchMode; rules unchanged -->
   <!-- v58 COMMERCIAL STABILIZATION · KakaoTalk / Open Graph preview -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://chaserqq.github.io/Tournament/" />
@@ -15466,7 +15466,7 @@ function resetTournament() {
       if (!canModifyTournamentAction("라운드 초기화")) return;
       if (!confirm("현재 라운드/결승 기록을 초기화할까요?")) return;
       createAutoSnapshot("초기화 전 백업");
-      state.qualifierRounds = makeQualifierRounds(state.settings.laneCount);
+      state.qualifierRounds = makeQualifierRounds(state.settings.laneCount, state.settings.matchMode);
       state.finalRace = null;
       state.broadcast = { mode: "stage", roundIndex: 0, stageIndex: 0 };
       activeRoundIndex = 0;
@@ -21459,6 +21459,7 @@ function stopLiveLobbyRealtimeV50() {
 
     try { window.__mini4wdV139TvPointScalePatch = { build: "BUILD v139 TV POINT SCALE PATCH", rulesChanged: false }; } catch (_) {}
     try { window.__mini4wdV140RuleEngineSplitPatch = { build: "BUILD v140 RULE ENGINE SPLIT PATCH", rulesChanged: false, modes: ["basic", "points3", "points5Tree", "revival", "crow"] }; } catch (_) {}
+    try { window.__mini4wdV141ResetModePreservationPatch = { build: "BUILD v141 RESET MODE PRESERVATION PATCH", rulesChanged: false }; } catch (_) {}
 </script>
 </body>
 </html>
