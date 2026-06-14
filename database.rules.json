@@ -1,0 +1,123 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "publicLive": {
+      ".read": true,
+      ".indexOn": ["updatedAt", "status", "venueId"],
+      "$tournamentId": {
+        ".read": true,
+        ".write": "auth != null",
+        ".validate": "newData.hasChildren(['id','updatedAt']) || newData.hasChild('state')",
+        "state": {
+          ".read": true,
+          ".write": "auth != null"
+        },
+        "$other": {
+          ".read": true,
+          ".write": "auth != null"
+        }
+      }
+    },
+    "publicHistory": {
+      ".read": true,
+      ".indexOn": ["createdAt", "endedAtISO", "venueId"],
+      "$recordId": {
+        ".read": true,
+        ".write": "auth != null"
+      }
+    },
+    "publicVenues": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "publicVenueDirectory": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "tournaments": {
+      "$tournamentId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "state": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        },
+        "updatedAt": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
+      }
+    },
+    "venues": {
+      "$venueId": {
+        ".read": "auth != null && (root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('permission').val() == 'admin' || $venueId == root.child('userProfiles').child(auth.uid).child('venueId').val())",
+        ".write": "auth != null && (root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('permission').val() == 'admin' || $venueId == root.child('userProfiles').child(auth.uid).child('venueId').val())",
+        "players": {
+          ".read": "auth != null && (root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('permission').val() == 'admin' || $venueId == root.child('userProfiles').child(auth.uid).child('venueId').val())",
+          ".write": "auth != null && (root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('permission').val() == 'admin' || $venueId == root.child('userProfiles').child(auth.uid).child('venueId').val())"
+        }
+      },
+      ".read": "auth != null && (root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('permission').val() == 'admin')"
+    },
+    "userProfiles": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid == $uid || root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('permission').val() == 'admin')",
+        ".write": "auth != null && (auth.uid == $uid || root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('permission').val() == 'admin')",
+        "role": {
+          ".validate": "root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('permission').val() == 'admin' || newData.val() == 'pending' || newData.val() == data.val()"
+        },
+        "permission": {
+          ".validate": "root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('permission').val() == 'admin' || newData.val() == data.val()"
+        }
+      },
+      ".read": "auth != null && (root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('permission').val() == 'admin')"
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid == $uid || root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('permission').val() == 'admin')",
+        ".write": "auth != null && (auth.uid == $uid || root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('permission').val() == 'admin')",
+        "role": {
+          ".validate": "root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('permission').val() == 'admin' || newData.val() == 'pending' || newData.val() == data.val()"
+        },
+        "permission": {
+          ".validate": "root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('permission').val() == 'admin' || newData.val() == data.val()"
+        }
+      }
+    },
+    "privateResultLogs": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$venueId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        ".indexOn": ["createdAt", "endedAtISO"]
+      }
+    },
+    "resultLogs": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "operationLocks": {
+      "$lockId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    "actionLogs": {
+      "$logId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "$tournamentId": {
+          ".indexOn": ["createdAt"]
+        }
+      }
+    },
+    "activeTournaments": {
+      "$venueId": {
+        ".read": "auth != null && (root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('permission').val() == 'admin' || $venueId == root.child('userProfiles').child(auth.uid).child('venueId').val())",
+        ".write": "auth != null && (root.child('userProfiles').child(auth.uid).child('role').val() == 'admin' || root.child('userProfiles').child(auth.uid).child('permission').val() == 'admin' || $venueId == root.child('userProfiles').child(auth.uid).child('venueId').val())"
+      }
+    }
+  }
+}

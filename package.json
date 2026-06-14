@@ -1,0 +1,13 @@
+{
+  "name": "mini4wd-tournament-maker",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "verify": "node tools/verify-static.js",
+    "qa:audit": "node tools/audit-code-css.cjs",
+    "qa:result": "node tools/qa-result-matrix.cjs",
+    "qa:match": "node tools/qa-match-simulation.cjs",
+    "db:audit": "node tools/database-maintenance.cjs audit",
+    "db:plan": "node tools/database-maintenance.cjs plan"
+  }
+}
