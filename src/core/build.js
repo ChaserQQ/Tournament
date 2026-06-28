@@ -49,16 +49,16 @@
   ];
 
   const meta = Object.freeze({
-    version: 272,
-    label: "BUILD v272 LIVE FRESH WRITE GUARD",
-    title: "MINI4WD TOURNAMENT MAKER - v272 LIVE FRESH WRITE GUARD",
+    version: 273,
+    label: "BUILD v273 LIVE PUBLIC PAYLOAD SANITIZER",
+    title: "MINI4WD TOURNAMENT MAKER - v273 LIVE PUBLIC PAYLOAD SANITIZER",
     rulesChanged: false,
     assets: Object.freeze({
       config: 156,
-      build: 272,
-      app: 272,
-      css: 272,
-      operatorMobileCss: 272,
+      build: 273,
+      app: 273,
+      css: 273,
+      operatorMobileCss: 273,
       og: 51
     }),
     surfaces: Object.freeze(surfaces),

@@ -6237,7 +6237,7 @@ function normalizePlayerForFinal(player, extra = {}) {
         if (!player) return player;
         if (player.isEmptyLane) return { id: `empty-${player.lane || ++seq}`, lane: player.lane, name: "빈 레인", team: "", isEmptyLane: true };
         const displayName = player.nickname || player.name || player.realName || "참가자";
-        return { id: publicId(player.id || displayName), lane: player.lane, name: displayName, nickname: displayName, team: player.team || "", todayLaneWinRate: getTodayLaneWinRate(player.lane), crowRank: player.crowRank || null, sourceRoundIndex: player.sourceRoundIndex || null };
+        return { id: publicId(player.id || displayName), lane: player.lane || null, name: displayName, nickname: displayName, team: player.team || "", todayLaneWinRate: getTodayLaneWinRate(player.lane), crowRank: player.crowRank || null, sourceRoundIndex: player.sourceRoundIndex || null };
       };
       const cleanGroup = (group, includeMetrics = false) => {
         const originalSlots = group?.slots || [];
