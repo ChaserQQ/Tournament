@@ -1448,6 +1448,70 @@ function setBroadcastStage(roundIndex, stageIndex) {
         state: publicState
       };
     }
+
+    function liveFreshTimestampV272(payload) {
+      const value = payload?.state?.updatedAt ?? payload?.updatedAt ?? 0;
+      return Number(value || 0) || 0;
+    }
+
+    function liveFreshStatusV272(payload) {
+      const body = payload?.state || payload || {};
+      return String(body?.tournament?.status || payload?.status || "");
+    }
+
+    function liveProgressRankV272(payload) {
+      const body = payload?.state || payload || {};
+      const broadcast = body.broadcast || {};
+      const active = Number(body.activeRoundIndex ?? broadcast.roundIndex ?? 0) || 0;
+      const round = Number(broadcast.roundIndex ?? active) || 0;
+      const stage = Number(broadcast.stageIndex ?? 0) || 0;
+      const finalistCount = Array.isArray(body.qualifierRounds) ? body.qualifierRounds.filter(item => item && item.finalist).length : 0;
+      const finalRank = body.finalRace ? 1000000 : 0;
+      return finalRank + (active * 10000) + (round * 1000) + (stage * 10) + finalistCount;
+    }
+
+    function isLiveRegressionAllowedV272(reason = "") {
+      return /undo|restore|recover|recovery|load-active|manual-takeover/i.test(String(reason || ""));
+    }
+
+    function shouldAcceptFreshLiveValueV272(currentValue, nextValue, reason = "manual") {
+      if (nextValue === null) return true;
+      if (!currentValue || isLiveRegressionAllowedV272(reason)) return true;
+      const currentStatus = liveFreshStatusV272(currentValue);
+      const nextStatus = liveFreshStatusV272(nextValue);
+      if (currentStatus === "finished" && nextStatus === "running") return false;
+      const currentAt = liveFreshTimestampV272(currentValue);
+      const nextAt = liveFreshTimestampV272(nextValue);
+      if (currentAt && nextAt && nextAt < currentAt) return false;
+      if (currentAt && nextAt && nextAt === currentAt && liveProgressRankV272(nextValue) < liveProgressRankV272(currentValue)) return false;
+      return true;
+    }
+
+    function writeFreshLiveValueV272(db, path, nextValue, reason = "manual") {
+      const ref = db?.ref ? db.ref(path) : null;
+      if (!ref) return Promise.resolve(false);
+      if (typeof ref.transaction !== "function") {
+        return ref.set(nextValue).then(() => true);
+      }
+      return ref.transaction(currentValue => {
+        return shouldAcceptFreshLiveValueV272(currentValue, nextValue, reason) ? nextValue : currentValue;
+      }).then(result => {
+        if (!result || result.committed === false) return false;
+        return true;
+      }).catch(error => {
+        console.warn("v272 fresh live write failed", path, error);
+        return false;
+      });
+    }
+
+    function scheduleSettledLiveSyncV272(reason = "settled-live-sync-v272") {
+      [160, 720, 1600].forEach(delay => {
+        setTimeout(() => {
+          try { syncOperatorLiveStateV269(`${reason}-settle-v272-${delay}`); }
+          catch (error) { console.warn("v272 settled live sync failed", error); }
+        }, delay);
+      });
+    }
     function startAllFirstStages() {
       ensureStateDefaults();
       if (!validateTournamentMetaRequired()) return;
@@ -2863,9 +2927,9 @@ function setBroadcastStage(roundIndex, stageIndex) {
       publicLive.syncReason = reason;
       const serverTs = firebase.database.ServerValue.TIMESTAMP;
       const writes = [
-        db.ref(`tournaments/${id}/state`).set(privateState),
+        writeFreshLiveValueV272(db, `tournaments/${id}/state`, privateState, reason),
         db.ref(`tournaments/${id}/updatedAt`).set(serverTs),
-        db.ref(`${PUBLIC_LIVE_PATH}/${id}`).set(publicLive)
+        writeFreshLiveValueV272(db, `${PUBLIC_LIVE_PATH}/${id}`, publicLive, reason)
       ];
       return Promise.allSettled(writes).then(results => {
         const failed = results.filter(r => r.status === "rejected");
@@ -2903,11 +2967,11 @@ function setBroadcastStage(roundIndex, stageIndex) {
         const id = getCurrentTournamentId();
         const publicLive = makePublicLivePayload(privateState);
         publicLive.syncReason = reason;
-        const updates = {};
-        updates[`tournaments/${id}/state`] = privateState;
-        updates[`tournaments/${id}/updatedAt`] = firebase.database.ServerValue.TIMESTAMP;
-        updates[`${PUBLIC_LIVE_PATH}/${id}`] = publicLive;
-        return db.ref().update(updates).then(() => {
+        return Promise.all([
+          writeFreshLiveValueV272(db, `tournaments/${id}/state`, privateState, reason),
+          db.ref(`tournaments/${id}/updatedAt`).set(firebase.database.ServerValue.TIMESTAMP),
+          writeFreshLiveValueV272(db, `${PUBLIC_LIVE_PATH}/${id}`, publicLive, reason)
+        ]).then(() => {
           firebaseOnline = true;
           window.__mini4wdFirebaseLastSavedAt = Date.now();
           window.__mini4wdFirebaseLastError = "";
@@ -5899,6 +5963,7 @@ function normalizePlayerForFinal(player, extra = {}) {
       state.broadcast = { mode: "stage", roundIndex: nextIndex, stageIndex: nextRound.stages.length - 1 };
       logTournamentAction("다음 라운드 전환", `${currentRound.title} 확정 → ${nextRound.title}`);
       syncOperatorLiveStateV269("activateNextRoundAfterFinalist");
+      scheduleSettledLiveSyncV272("activateNextRoundAfterFinalist");
       return true;
     }
 
@@ -5915,6 +5980,7 @@ function normalizePlayerForFinal(player, extra = {}) {
       if (activateNextRoundAfterFinalist(roundIndex, false)) {
         renderOperator();
         syncOperatorLiveStateV269("goToNextRoundAfterFinalist");
+        scheduleSettledLiveSyncV272("goToNextRoundAfterFinalist");
         requestAnimationFrame(() => document.getElementById("currentStageTop")?.scrollIntoView({ behavior: "smooth", block: "start" }));
       } else {
         renderOperator();
@@ -5940,6 +6006,7 @@ function normalizePlayerForFinal(player, extra = {}) {
         if (options.activateNext) activateNextRoundAfterFinalist(roundIndex, true);
         renderOperator();
         syncOperatorLiveStateV269("confirmRoundFinalist-crow");
+        scheduleSettledLiveSyncV272("confirmRoundFinalist-crow");
         return;
       }
 
@@ -5952,6 +6019,7 @@ function normalizePlayerForFinal(player, extra = {}) {
       if (isPointFinalDecisionStage(lastStage) || options.activateNext) activateNextRoundAfterFinalist(roundIndex, true);
       renderOperator();
       syncOperatorLiveStateV269("confirmRoundFinalist");
+      scheduleSettledLiveSyncV272("confirmRoundFinalist");
     }
 
     function makeCrowSemiGroup(name, players) {
@@ -5997,6 +6065,7 @@ function normalizePlayerForFinal(player, extra = {}) {
       logTournamentAction("9강 준결 생성", "9명 준결 편성");
       renderOperator();
       syncOperatorLiveStateV269("createCrowSemiFinal");
+      scheduleSettledLiveSyncV272("createCrowSemiFinal");
     }
 
     function createCrowFinalFromSemi() {
@@ -6020,6 +6089,7 @@ function normalizePlayerForFinal(player, extra = {}) {
       logTournamentAction("결승 생성", winners.map(p => p.name).join(" / "));
       renderOperator();
       syncOperatorLiveStateV269("createCrowFinalFromSemi");
+      scheduleSettledLiveSyncV272("createCrowFinalFromSemi");
     }
 
     function createFinalRace() {
@@ -6038,6 +6108,7 @@ function normalizePlayerForFinal(player, extra = {}) {
       logTournamentAction("최종 결승 생성", "FINAL");
       renderOperator();
       syncOperatorLiveStateV269("createFinalRace");
+      scheduleSettledLiveSyncV272("createFinalRace");
     }
 
     function getFinalGroups(finalRace = state.finalRace) {
@@ -6059,6 +6130,7 @@ function normalizePlayerForFinal(player, extra = {}) {
       logTournamentAction("최종 진출/우승 선택", player.name || playerId);
       renderOperator();
       syncOperatorLiveStateV269("toggleFinalWinner");
+      scheduleSettledLiveSyncV272("toggleFinalWinner");
     }
 
     function forceFinalLane(groupId, playerId, lane) {
@@ -6544,7 +6616,8 @@ function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
         const privateState = exportState();
         privateState.updatedAt = Date.now();
         const publicLive = makePublicLivePayload(privateState);
-        db.ref(`${PUBLIC_LIVE_PATH}/${getCurrentTournamentId()}`).set(publicLive).catch(error => console.warn(`public live sync failed: ${reason}`, error));
+        publicLive.syncReason = reason;
+        writeFreshLiveValueV272(db, `${PUBLIC_LIVE_PATH}/${getCurrentTournamentId()}`, publicLive, reason).catch(error => console.warn(`public live sync failed: ${reason}`, error));
         db.ref(`tournaments/${getCurrentTournamentId()}/updatedAt`).set(firebase.database.ServerValue.TIMESTAMP).catch(() => {});
         return true;
       } catch (error) {
@@ -7345,11 +7418,11 @@ function stopLiveLobbyRealtimeV50() {
             syncReason: reason,
             state: publicLive.state
           };
-          const updates = {};
-          updates[`tournaments/${id}/state`] = privateState;
-          updates[`tournaments/${id}/updatedAt`] = serverTs;
-          updates[`${PUBLIC_LIVE_PATH}/${id}`] = publicMeta;
-          await db.ref().update(updates);
+          await Promise.all([
+            writeFreshLiveValueV272(db, `tournaments/${id}/state`, privateState, reason),
+            db.ref(`tournaments/${id}/updatedAt`).set(serverTs),
+            writeFreshLiveValueV272(db, `${PUBLIC_LIVE_PATH}/${id}`, publicMeta, reason)
+          ]);
           firebaseOnline = true;
           window.__mini4wdFirebaseLastSavedAt = Date.now();
           window.__mini4wdFirebaseLastError = "";
@@ -7800,7 +7873,7 @@ function stopLiveLobbyRealtimeV50() {
 
       function isBackgroundLiveSyncReasonV270(reason = "") {
         const text = String(reason || "");
-        return /operator-render|operator-fallback|createPointNextStage|setBroadcastStage|activateNextRoundAfterFinalist|goToNextRoundAfterFinalist|confirmRoundFinalist|createFinalRace|createCrowSemiFinal|createCrowFinalFromSemi|toggleFinalWinner|live-button-open-v267|viewer-open-v267|queued|v269|v270|v271/.test(text);
+        return /operator-render|operator-fallback|createPointNextStage|setBroadcastStage|activateNextRoundAfterFinalist|goToNextRoundAfterFinalist|confirmRoundFinalist|createFinalRace|createCrowSemiFinal|createCrowFinalFromSemi|toggleFinalWinner|live-button-open-v267|viewer-open-v267|queued|v269|v270|v271|v272/.test(text);
       }
 
       function canPublishLiveNowV270() {

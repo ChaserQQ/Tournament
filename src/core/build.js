@@ -49,16 +49,16 @@
   ];
 
   const meta = Object.freeze({
-    version: 271,
-    label: "BUILD v271 LIVE FINAL SYNC",
-    title: "MINI4WD TOURNAMENT MAKER - v271 LIVE FINAL SYNC",
+    version: 272,
+    label: "BUILD v272 LIVE FRESH WRITE GUARD",
+    title: "MINI4WD TOURNAMENT MAKER - v272 LIVE FRESH WRITE GUARD",
     rulesChanged: false,
     assets: Object.freeze({
       config: 156,
-      build: 271,
-      app: 271,
-      css: 271,
-      operatorMobileCss: 271,
+      build: 272,
+      app: 272,
+      css: 272,
+      operatorMobileCss: 272,
       og: 51
     }),
     surfaces: Object.freeze(surfaces),
