@@ -49,16 +49,16 @@
   ];
 
   const meta = Object.freeze({
-    version: 270,
-    label: "BUILD v270 LIVE LEASE RETRY",
-    title: "MINI4WD TOURNAMENT MAKER - v270 LIVE LEASE RETRY",
+    version: 271,
+    label: "BUILD v271 LIVE FINAL SYNC",
+    title: "MINI4WD TOURNAMENT MAKER - v271 LIVE FINAL SYNC",
     rulesChanged: false,
     assets: Object.freeze({
       config: 156,
-      build: 270,
-      app: 270,
-      css: 263,
-      operatorMobileCss: 266,
+      build: 271,
+      app: 271,
+      css: 271,
+      operatorMobileCss: 271,
       og: 51
     }),
     surfaces: Object.freeze(surfaces),

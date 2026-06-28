@@ -488,9 +488,9 @@ function shuffle(array) {
       const finalizedIds = new Set(
         state.qualifierRounds
           .filter(round => round.finalist)
-          .map(round => round.finalist.id)
+          .map(round => String(round.finalist.id))
       );
-      return participants.filter(player => !finalizedIds.has(player.id));
+      return participants.filter(player => !finalizedIds.has(String(player.id)));
     }
 
     function validateStart(players, stageName = "예선") {
@@ -2002,7 +2002,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
       if (state.finalRace && state.tournament.status === "running" && isTournamentFinalResultReady()) {
         return { label: "대회 종료", onClick: "finishTournament()", className: "primary operator-mobile-primary-v224" };
       }
-      if (!isRevivalMode() && !state.finalRace && state.qualifierRounds.every(item => item.finalist || (isCrowMode() && (item.crowRanks || []).length))) {
+      if (!isRevivalMode() && !state.finalRace && state.qualifierRounds.every(item => item.finalist || (isCrowMode() && (item.crowFinalists || []).length >= 3))) {
         return { label: isCrowMode() ? "9강 준결 생성" : "최종 결승 진행", onClick: "createFinalRace()", className: "primary operator-mobile-primary-v224" };
       }
       if (!currentStage) {
@@ -5281,8 +5281,9 @@ function parseBooleanCell(value, defaultValue = false) {
 
     function resolvePlayerIdentity(player) {
       if (!player || player.isEmptyLane) return { playerId: "", realName: "", contact: "" };
-      const match = loadRoster().find(item => item.id === player.id) || findRosterMatch(player.name, player.team);
-      return { playerId: match?.id || player.id || "", realName: match?.realName || player.realName || "", contact: match?.contact || player.contact || "" };
+      const sourcePlayerId = player.sourcePlayerId || player.originalPlayerId || player.basePlayerId || player.id;
+      const match = loadRoster().find(item => item.id === sourcePlayerId || item.id === player.id) || findRosterMatch(player.name, player.team);
+      return { playerId: match?.id || sourcePlayerId || player.id || "", realName: match?.realName || player.realName || "", contact: match?.contact || player.contact || "" };
     }
 function exportTournamentCsv() {
       ensureTournamentStarted();
@@ -5905,7 +5906,7 @@ function normalizePlayerForFinal(player, extra = {}) {
       const round = state.qualifierRounds?.[roundIndex];
       const lastStage = round?.stages?.[round.stages.length - 1];
       if (!round?.finalist && isConfirmableRoundFinalStageV228(lastStage)) {
-        confirmRoundFinalist(roundIndex, { activateNext: !isRevivalMode() && !isCrowMode() });
+        confirmRoundFinalist(roundIndex, { activateNext: !isRevivalMode() });
         requestAnimationFrame(() => document.getElementById("currentStageTop")?.scrollIntoView({ behavior: "smooth", block: "start" }));
         return;
       }
@@ -5936,6 +5937,7 @@ function normalizePlayerForFinal(player, extra = {}) {
         state.finalRace = null;
         state.broadcast = { mode: "stage", roundIndex, stageIndex: round.stages.length - 1 };
         logTournamentAction("9강 순위 확정", `${round.title}: ${round.crowFinalists.map(p => `${p.crowRank}위 ${p.name}`).join(" / ")}`);
+        if (options.activateNext) activateNextRoundAfterFinalist(roundIndex, true);
         renderOperator();
         syncOperatorLiveStateV269("confirmRoundFinalist-crow");
         return;
@@ -5956,8 +5958,20 @@ function normalizePlayerForFinal(player, extra = {}) {
       return {
         id: `crow-${slugId(name)}-${Math.random().toString(36).slice(2, 8)}`,
         name,
-        slots: players.map((player, index) => ({ ...player, lane: index + 1 })),
+        slots: players.filter(Boolean).map((player, index) => makeCrowSemiSlot(player, index)),
         advanceIds: []
+      };
+    }
+
+    function makeCrowSemiSlot(player, index) {
+      const sourcePlayerId = String(player?.sourcePlayerId || player?.id || `crow-player-${index + 1}`);
+      const sourceRoundIndex = Number.isFinite(Number(player?.sourceRoundIndex)) ? Number(player.sourceRoundIndex) : 0;
+      const sourceRank = Number.isFinite(Number(player?.crowRank)) ? Number(player.crowRank) : index + 1;
+      return {
+        ...player,
+        sourcePlayerId,
+        id: `${sourcePlayerId}::crow-r${sourceRoundIndex + 1}-${sourceRank}`,
+        lane: index + 1
       };
     }
 
@@ -5982,6 +5996,7 @@ function normalizePlayerForFinal(player, extra = {}) {
       state.broadcast = { mode: "final" };
       logTournamentAction("9강 준결 생성", "9명 준결 편성");
       renderOperator();
+      syncOperatorLiveStateV269("createCrowSemiFinal");
     }
 
     function createCrowFinalFromSemi() {
@@ -6004,6 +6019,7 @@ function normalizePlayerForFinal(player, extra = {}) {
       state.broadcast = { mode: "final" };
       logTournamentAction("결승 생성", winners.map(p => p.name).join(" / "));
       renderOperator();
+      syncOperatorLiveStateV269("createCrowFinalFromSemi");
     }
 
     function createFinalRace() {
@@ -6021,6 +6037,7 @@ function normalizePlayerForFinal(player, extra = {}) {
       state.broadcast = { mode: "final" };
       logTournamentAction("최종 결승 생성", "FINAL");
       renderOperator();
+      syncOperatorLiveStateV269("createFinalRace");
     }
 
     function getFinalGroups(finalRace = state.finalRace) {
@@ -6041,6 +6058,7 @@ function normalizePlayerForFinal(player, extra = {}) {
       group.advanceIds = ids.includes(playerId) ? ids.filter(id => id !== playerId) : [...ids, playerId];
       logTournamentAction("최종 진출/우승 선택", player.name || playerId);
       renderOperator();
+      syncOperatorLiveStateV269("toggleFinalWinner");
     }
 
     function forceFinalLane(groupId, playerId, lane) {
@@ -7782,7 +7800,7 @@ function stopLiveLobbyRealtimeV50() {
 
       function isBackgroundLiveSyncReasonV270(reason = "") {
         const text = String(reason || "");
-        return /operator-render|operator-fallback|createPointNextStage|setBroadcastStage|activateNextRoundAfterFinalist|goToNextRoundAfterFinalist|confirmRoundFinalist|live-button-open-v267|viewer-open-v267|queued|v269|v270/.test(text);
+        return /operator-render|operator-fallback|createPointNextStage|setBroadcastStage|activateNextRoundAfterFinalist|goToNextRoundAfterFinalist|confirmRoundFinalist|createFinalRace|createCrowSemiFinal|createCrowFinalFromSemi|toggleFinalWinner|live-button-open-v267|viewer-open-v267|queued|v269|v270|v271/.test(text);
       }
 
       function canPublishLiveNowV270() {

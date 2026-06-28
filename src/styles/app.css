@@ -23322,3 +23322,123 @@ html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operat
     font-size: 15px !important;
   }
 }
+
+/* v271: final mobile alignment contract for operator dock and DB roster cards. */
+html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-mobile-dock-v233 {
+  box-sizing: border-box !important;
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  grid-auto-rows: 40px !important;
+  align-items: stretch !important;
+  justify-items: stretch !important;
+  gap: 8px !important;
+  width: min(560px, calc(100% - 20px)) !important;
+  min-height: 58px !important;
+  padding: 8px !important;
+  border: 1px solid var(--v218-line) !important;
+  border-radius: var(--v218-radius-card) !important;
+  background: var(--v218-surface) !important;
+  background-image: none !important;
+  box-shadow: var(--v218-shadow-card) !important;
+}
+
+html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-mobile-dock-v233 > button,
+html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-mobile-dock-v233 > button:first-child,
+html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-mobile-dock-v233 > .operator-mobile-primary-v224,
+html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-mobile-dock-v233 > .operator-mobile-section-button-v233 {
+  box-sizing: border-box !important;
+  display: grid !important;
+  place-items: center !important;
+  align-self: stretch !important;
+  justify-self: stretch !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  margin: 0 !important;
+  padding: 0 6px !important;
+  border-width: 1px !important;
+  border-radius: var(--v218-radius-card) !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  overflow: hidden !important;
+  text-align: center !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  transform: none !important;
+}
+
+html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-mobile-dock-v233 > button:first-child,
+html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-mobile-dock-v233 > .operator-mobile-primary-v224 {
+  color: #ffffff !important;
+  border-color: var(--v218-accent) !important;
+  background: var(--v218-accent) !important;
+  font-size: 10.5px !important;
+}
+
+html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-mobile-dock-v233 > .operator-mobile-section-button-v233 {
+  color: var(--v218-text) !important;
+  border-color: var(--v218-line) !important;
+  background: var(--v218-surface-soft) !important;
+}
+
+@media (max-width: 360px) {
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-mobile-dock-v233 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    width: min(560px, calc(100% - 16px)) !important;
+    padding: 8px !important;
+  }
+
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-mobile-dock-v233 > button,
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-mobile-dock-v233 > button:first-child,
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-mobile-dock-v233 > .operator-mobile-primary-v224,
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-mobile-dock-v233 > .operator-mobile-section-button-v233 {
+    font-size: 11px !important;
+    padding-inline: 4px !important;
+  }
+
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-mobile-dock-v233 > button:first-child,
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-mobile-dock-v233 > .operator-mobile-primary-v224 {
+    font-size: 10px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  html body.surface-player-management.ui-mode-mobile.ui-page-db:not(.tv-mode) .db-page.player-db-light-v96 .db-player-layout-v121,
+  html body.surface-player-management.ui-mode-mobile.ui-page-db:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-list-card-v99 {
+    overflow: visible !important;
+  }
+
+  html body.surface-player-management.ui-mode-mobile.ui-page-db:not(.tv-mode) .db-page.player-db-light-v96 .db-player-layout-v121 {
+    gap: 10px !important;
+  }
+
+  html body.surface-player-management.ui-mode-mobile.ui-page-db:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-list-card-v99 {
+    gap: 8px !important;
+  }
+
+  html body.surface-player-management.ui-mode-mobile.ui-page-db:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-list-card-v99 > .db-bulk-toolbar {
+    margin-bottom: 4px !important;
+    z-index: 2 !important;
+  }
+
+  html body.surface-player-management.ui-mode-mobile.ui-page-db:not(.tv-mode) .db-page.player-db-light-v96 .db-roster-list-card-v99 > .roster-table-wrap {
+    margin-top: 0 !important;
+    clear: both !important;
+    position: relative !important;
+    z-index: 1 !important;
+  }
+
+  html body.surface-player-management.ui-mode-mobile.ui-page-db:not(.tv-mode) .db-page.player-db-light-v96 table.roster-table.roster-table-v121 tbody {
+    gap: 10px !important;
+  }
+
+  html body.surface-player-management.ui-mode-mobile.ui-page-db:not(.tv-mode) .db-page.player-db-light-v96 table.roster-table.roster-table-v121 tr {
+    overflow: hidden !important;
+  }
+}
