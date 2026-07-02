@@ -407,6 +407,32 @@ async function runViewport(browser, viewport) {
       historyBefore = historyCount();
       startQualifierRound(0);
       await ensureLease("qa-points3");
+      const points3RefreshLock = (() => {
+        const beforeText = state.inputText;
+        const beforeNames = parseParticipants().map(player => player.name).join("|");
+        state.tournament.status = "running";
+        state.tournament.lockedParticipants = beforeText;
+        const exported = exportState();
+        assert(exported.inputText === beforeText, "points3 export did not preserve inputText");
+        assert(exported.tournament.lockedParticipants === beforeText, "points3 export did not preserve locked participants");
+
+        const legacySavedState = JSON.parse(JSON.stringify(exported));
+        delete legacySavedState.inputText;
+        state = normalizeImportedState(legacySavedState);
+        activeRoundIndex = Math.max(0, Math.min(Number(state.activeRoundIndex || 0), Math.max(0, (state.qualifierRounds || []).length - 1)));
+        state.activeRoundIndex = activeRoundIndex;
+        assert(state.inputText === beforeText, "points3 legacy refresh changed participant input");
+        assert(parseParticipants().map(player => player.name).join("|") === beforeNames, "points3 legacy refresh changed participant names");
+
+        const pollutedSavedState = JSON.parse(JSON.stringify(exported));
+        pollutedSavedState.inputText = "WRONG1/QA\nWRONG2/QA";
+        state = normalizeImportedState(pollutedSavedState);
+        activeRoundIndex = Math.max(0, Math.min(Number(state.activeRoundIndex || 0), Math.max(0, (state.qualifierRounds || []).length - 1)));
+        state.activeRoundIndex = activeRoundIndex;
+        assert(state.inputText === beforeText, "points3 running refresh allowed unlocked participant input");
+        assert(parseParticipants().map(player => player.name).join("|") === beforeNames, "points3 running refresh changed participant names");
+        return { participantCount: parseParticipants().length, preservedNames: beforeNames };
+      })();
       for (let stageIndex = 0; stageIndex < 3; stageIndex += 1) {
         const stage = lastStage(0);
         assert(stage?.type === "points", `points3 expected points stage ${stageIndex}`);
@@ -441,7 +467,7 @@ async function runViewport(browser, viewport) {
       await runNormalRound(1);
       await runNormalRound(2);
       const points3Final = await finishStandardFinal(historyBefore);
-      await summarize("points3", points3Final);
+      await summarize("points3", { ...points3Final, refreshLock: points3RefreshLock });
 
       await reset("points5Tree", 3, 9);
       historyBefore = historyCount();

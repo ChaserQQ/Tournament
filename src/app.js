@@ -9,13 +9,13 @@
       "ui-page-print", "ui-page-restricted", "ui-page-error"
     ];
     const MINI4WD_BUILD = window.MINI4WD_BUILD_META || {
-      version: 185,
-      label: "BUILD v185 RUNTIME CLEANUP",
+      version: 274,
+      label: "BUILD v274 REFRESH LOCKED PARTICIPANTS",
       rulesChanged: false,
       surfaces: MINI4WD_FALLBACK_SURFACES,
       pageClasses: MINI4WD_FALLBACK_PAGE_CLASSES
     };
-    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v185 RUNTIME CLEANUP";
+    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v274 REFRESH LOCKED PARTICIPANTS";
     const MINI4WD_SURFACES = Array.isArray(MINI4WD_BUILD.surfaces) && MINI4WD_BUILD.surfaces.length
       ? Array.from(MINI4WD_BUILD.surfaces)
       : MINI4WD_FALLBACK_SURFACES;
@@ -1414,14 +1414,63 @@ function setBroadcastStage(roundIndex, stageIndex) {
       return id;
     }
 
+    function participantTextFromRoundsV274(sourceState = state) {
+      const seen = new Set();
+      const lines = [];
+      (sourceState?.qualifierRounds || []).forEach(round => {
+        (round?.stages || []).forEach(stage => {
+          (stage?.groups || []).forEach(group => {
+            (group?.slots || []).forEach(slot => {
+              if (!slot || slot.isEmptyLane || !slot.name) return;
+              const id = String(slot.id || `${slot.name}/${slot.team || ""}`);
+              if (seen.has(id)) return;
+              seen.add(id);
+              lines.push(`${slot.name}${slot.team ? "/" + slot.team : ""}`);
+            });
+          });
+        });
+      });
+      return lines.join("\n");
+    }
+
+    function participantInputTextV274(sourceState = state) {
+      const locked = String(sourceState?.tournament?.lockedParticipants || "");
+      const input = String(sourceState?.inputText || "");
+      if (sourceState?.tournament?.status === "running" && locked.trim()) return locked;
+      return input.trim() ? input : locked;
+    }
+
+    function stabilizeParticipantInputV274(next, imported = {}) {
+      const importedHasInput = Object.prototype.hasOwnProperty.call(imported || {}, "inputText");
+      const importedInput = importedHasInput ? String(imported?.inputText || "") : "";
+      const locked = String(next?.tournament?.lockedParticipants || "");
+      const reconstructed = participantTextFromRoundsV274(imported || {});
+      if (next?.tournament?.status === "running" && locked.trim()) {
+        next.inputText = locked;
+      } else if (importedInput.trim()) {
+        next.inputText = importedInput;
+      } else if (locked.trim()) {
+        next.inputText = locked;
+      } else if (reconstructed.trim()) {
+        next.inputText = reconstructed;
+      }
+      if (next?.tournament?.status === "running" && !String(next.tournament.lockedParticipants || "").trim() && String(next.inputText || "").trim()) {
+        next.tournament.lockedParticipants = next.inputText;
+      }
+      return next;
+    }
+
     function exportState() {
+      const inputText = participantInputTextV274();
       const tournament = {
         ...state.tournament,
+        lockedParticipants: state.tournament?.lockedParticipants || (state.tournament?.status === "running" ? inputText : state.tournament?.lockedParticipants),
         venueId: typeof currentVenueId === "function" ? currentVenueId() : (state.tournament?.venueId || ""),
         venue: state.tournament?.venue || (typeof currentVenueName === "function" ? currentVenueName() : ""),
         raceClass: typeof normalizeRaceClassName === "function" ? normalizeRaceClassName(state.tournament?.raceClass || "오픈") : (state.tournament?.raceClass || "오픈")
       };
       return {
+        inputText,
         settings: state.settings,
         tournament,
         activeRoundIndex,
@@ -1430,7 +1479,9 @@ function setBroadcastStage(roundIndex, stageIndex) {
         finalRace: state.finalRace,
         updatedAt: state.updatedAt || Date.now()
       };
-    }    function makePublicLivePayload(sourceState = exportState()) {
+    }
+
+    function makePublicLivePayload(sourceState = exportState()) {
       const publicState = makePublicStatePayload(sourceState);
       const id = getCurrentTournamentId();
       const isRunning = publicState.tournament.status === "running";
@@ -1676,6 +1727,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
       const line = `${player.name}${player.team ? "/" + player.team : ""}`;
       const lines = String(state.inputText || "").split(/\r?\n/).map(v => v.trim()).filter(Boolean);
       if (!lines.some(v => v === line || v.split(/[\/\t,]/)[0] === player.name)) state.inputText = [...lines, line].join("\n");
+      if (state.tournament?.status === "running") state.tournament.lockedParticipants = state.inputText;
       setWithdrawnPlayer(player.id, false);
       const target = getEmergencyTargetStage();
       if (state.tournament.status === "running" && target?.stage) {
@@ -3204,6 +3256,7 @@ function currentActorLabel() {
       };
       next.tournament.raceClass = normalizeRaceClassName(next.tournament.raceClass || "오픈");
       if (next.tournament.status === undefined) next.tournament.status = next.tournament.startedAtISO ? "running" : "draft";
+      stabilizeParticipantInputV274(next, imported || {});
       return next;
     }
 
@@ -4982,7 +5035,7 @@ function parseBooleanCell(value, defaultValue = false) {
         || loadRoster().find(player => player.active && (player.name === nameKey || player.nickname === nameKey || player.realName === nameKey));
     }
 
-    function parseParticipants(text = state.inputText) {
+    function parseParticipants(text = participantInputTextV274()) {
       return text
         .split(/\r?\n/)
         .map(line => line.trim())
@@ -5064,6 +5117,7 @@ function parseBooleanCell(value, defaultValue = false) {
       safeSetItem(PENDING_PARTICIPANTS_KEY, text);
       safeSetItem(RECENT_PARTICIPANTS_KEY, JSON.stringify(selected.map(rosterRecordKey)));
       state.inputText = text;
+      if (state.tournament?.status === "running") state.tournament.lockedParticipants = text;
       if (isVenueUser()) state.tournament.venue = currentVenueName();
       saveLiveState();
       location.hash = "";
@@ -7008,7 +7062,7 @@ function stopLiveLobbyRealtimeV50() {
         const status = sourceState?.tournament?.status || raw?.status || "draft";
         const lastAt = tournamentLastAtV135(raw);
         const participants = (() => {
-          try { return String(sourceState.inputText || "").split(/\n+/).map(v => v.trim()).filter(Boolean).length; }
+          try { return String(participantInputTextV274(sourceState) || "").split(/\n+/).map(v => v.trim()).filter(Boolean).length; }
           catch (error) { return 0; }
         })();
         return { id, state: sourceState, status, lastAt, participants };
