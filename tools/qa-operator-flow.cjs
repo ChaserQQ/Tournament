@@ -1913,11 +1913,183 @@ async function runViewport(browser, meta, viewport) {
       }
     };
   });
+  const pointFinalNoFinalistV275 = await page.evaluate(async () => {
+    state.inputText = ["NF A/QA", "NF B/QA", "NF C/QA", "NF D/QA", "NF E/QA", "NF F/QA"].join("\n");
+    const parsed = parseParticipants();
+    const pointFinalists = parsed.slice(0, 3).map((player, index) => ({ ...player, lane: index + 1 }));
+    state.settings.matchMode = "points3";
+    state.settings.laneCount = 3;
+    state.settings.excludeFinalists = true;
+    state.tournament.status = "running";
+    state.tournament.name = "QA Point Final No Finalist";
+    state.tournament.venue = "QA Venue";
+    state.tournament.withdrawnPlayerIds = pointFinalists.map(player => player.id);
+    state.finalRace = null;
+    state.qualifierRounds = [0, 1, 2].map(index => ({
+      id: `qa-point-no-finalist-${index + 1}`,
+      index: index + 1,
+      title: `${index + 1}차 라운드`,
+      finalist: null,
+      noFinalist: false,
+      finalistStatus: "",
+      stagePlan: [],
+      stages: []
+    }));
+    state.qualifierRounds[0].stages = [{
+      id: "qa-point-no-finalist-stage",
+      name: "포인트 상위 결정전",
+      type: "pointFinal",
+      pointFinalRule: "top-score",
+      groups: [{ id: "qa-point-no-finalist-group", name: "1조", slots: pointFinalists, advanceIds: [pointFinalists[0].id] }]
+    }];
+    activeRoundIndex = 0;
+    state.activeRoundIndex = 0;
+    state.broadcast = { mode: "stage", roundIndex: 0, stageIndex: 0 };
+    renderOperator();
+    const dockBefore = document.querySelector(".operator-mobile-dock-v233 > button");
+    const noFinalistButton = [...document.querySelectorAll("button")]
+      .find(button => String(button.getAttribute("onclick") || "").includes("confirmNoFinalistV275(0)") && button.getBoundingClientRect().width > 0);
+    const before = {
+      dockText: String(dockBefore?.innerText || dockBefore?.textContent || "").replace(/\s+/g, " ").trim(),
+      dockOnClick: String(dockBefore?.getAttribute("onclick") || ""),
+      noFinalistText: String(noFinalistButton?.innerText || noFinalistButton?.textContent || "").replace(/\s+/g, " ").trim(),
+      noFinalistOnClick: String(noFinalistButton?.getAttribute("onclick") || "")
+    };
+    if (dockBefore) dockBefore.click();
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const nextPlayers = (state.qualifierRounds[1].stages[0]?.groups || [])
+      .flatMap(group => group.slots || [])
+      .filter(player => !player.isEmptyLane)
+      .map(player => player.id);
+    return {
+      before,
+      after: {
+        roundNoFinalist: !!state.qualifierRounds[0].noFinalist,
+        finalist: state.qualifierRounds[0].finalist?.id || "",
+        activeRoundIndex,
+        stateActiveRoundIndex: state.activeRoundIndex,
+        broadcastRoundIndex: state.broadcast?.roundIndex,
+        nextStageCount: state.qualifierRounds[1].stages.length,
+        nextPlayers,
+        withdrawnIds: state.tournament.withdrawnPlayerIds.slice(),
+        roundStatus: getRoundStatus(state.qualifierRounds[0])
+      }
+    };
+  });
+  const finalRaceNoFinalistV275 = await page.evaluate(() => {
+    state.inputText = ["F A/QA", "F B/QA", "F C/QA", "F D/QA"].join("\n");
+    const parsed = parseParticipants();
+    state.settings.matchMode = "points3";
+    state.settings.laneCount = 5;
+    state.tournament.status = "running";
+    state.tournament.name = "QA Partial Final";
+    state.tournament.venue = "QA Venue";
+    state.finalRace = null;
+    state.qualifierRounds = [0, 1, 2].map(index => ({
+      id: `qa-partial-final-${index + 1}`,
+      index: index + 1,
+      title: `${index + 1}차 라운드`,
+      finalist: null,
+      noFinalist: false,
+      finalistStatus: "",
+      stagePlan: [],
+      stages: []
+    }));
+    state.qualifierRounds[0].finalist = parsed[0];
+    state.qualifierRounds[1].noFinalist = true;
+    state.qualifierRounds[1].finalistStatus = "none";
+    state.qualifierRounds[2].finalist = parsed[1];
+    activeRoundIndex = 2;
+    state.activeRoundIndex = 2;
+    renderOperator();
+    createFinalRace();
+    const groups = getFinalGroups();
+    const actualFinalists = groups.flatMap(group => group.slots || []).filter(player => !player.isEmptyLane);
+    const twoFinalists = {
+      finalExists: !!state.finalRace,
+      groupSize: state.finalRace?.groupSize || 0,
+      settingLaneCount: state.settings.laneCount,
+      actualFinalistCount: actualFinalists.length,
+      finalistIds: actualFinalists.map(player => player.id)
+    };
+    state.finalRace = null;
+    state.qualifierRounds.forEach(round => {
+      round.finalist = null;
+      round.noFinalist = true;
+      round.finalistStatus = "none";
+    });
+    renderOperator();
+    createFinalRace();
+    const unavailableError = String(document.getElementById("error")?.textContent || "");
+    return {
+      twoFinalists,
+      zeroFinalists: {
+        finalExists: !!state.finalRace,
+        error: unavailableError,
+        dockText: String(document.querySelector(".operator-mobile-dock-v233 > button")?.innerText || "").replace(/\s+/g, " ").trim()
+      }
+    };
+  });
+  const crowNoFinalistV275 = await page.evaluate(() => {
+    state.inputText = ["C A/QA", "C B/QA", "C C/QA", "C D/QA", "C E/QA", "C F/QA", "C G/QA", "C H/QA", "C I/QA"].join("\n");
+    const parsed = parseParticipants();
+    state.settings.matchMode = "crow";
+    state.settings.laneCount = 3;
+    state.tournament.status = "running";
+    state.tournament.name = "QA Crow No Finalist";
+    state.tournament.venue = "QA Venue";
+    state.finalRace = null;
+    state.qualifierRounds = [0, 1, 2].map(index => ({
+      id: `qa-crow-no-finalist-${index + 1}`,
+      index: index + 1,
+      title: `${index + 1}차 라운드`,
+      finalist: null,
+      crowFinalists: [],
+      noFinalist: false,
+      finalistStatus: "",
+      stagePlan: [],
+      stages: []
+    }));
+    [0, 1].forEach(roundIndex => {
+      const crowFinalists = parsed.slice(roundIndex * 3, roundIndex * 3 + 3).map((player, index) => ({
+        ...player,
+        crowRank: index + 1,
+        sourceRoundIndex: roundIndex + 1
+      }));
+      state.qualifierRounds[roundIndex].crowFinalists = crowFinalists;
+      state.qualifierRounds[roundIndex].finalist = crowFinalists[0];
+    });
+    state.qualifierRounds[2].noFinalist = true;
+    state.qualifierRounds[2].finalistStatus = "none";
+    state.qualifierRounds[2].noFinalistReason = "all-withdrawn";
+    activeRoundIndex = 2;
+    state.activeRoundIndex = 2;
+    renderOperator();
+    const dockBefore = document.querySelector(".operator-mobile-dock-v233 > button");
+    const before = {
+      dockText: String(dockBefore?.innerText || dockBefore?.textContent || "").replace(/\s+/g, " ").trim(),
+      dockOnClick: String(dockBefore?.getAttribute("onclick") || "")
+    };
+    createFinalRace();
+    const error = String(document.getElementById("error")?.textContent || "");
+    return {
+      before,
+      after: {
+        finalExists: !!state.finalRace,
+        error,
+        qualifiedCount: getCrowQualifiedCountV275(),
+        allComplete: areCrowRoundsCompleteV275()
+      }
+    };
+  });
   logs.push({ step: "point-final-next-round", info: { pointFinalNextRound } });
   logs.push({ step: "legacy-point-final-next-round", info: { legacyPointFinalNextRound } });
   logs.push({ step: "point-final-round-two-advance", info: { pointFinalRoundTwoAdvance } });
   logs.push({ step: "point-final-confirmed-dock", info: { pointFinalConfirmedDock } });
   logs.push({ step: "point-final-ready-dock-click", info: { pointFinalReadyDockClick } });
+  logs.push({ step: "point-final-no-finalist-v275", info: { pointFinalNoFinalistV275 } });
+  logs.push({ step: "final-race-no-finalist-v275", info: { finalRaceNoFinalistV275 } });
+  logs.push({ step: "crow-no-finalist-v275", info: { crowNoFinalistV275 } });
   if (!pointFinalNextRound.before.onClick.includes("goToNextRoundAfterFinalist(0)")) {
     failures.push(`point final next-round primary missing ${JSON.stringify(pointFinalNextRound)}`);
   }
@@ -1947,6 +2119,27 @@ async function runViewport(browser, meta, viewport) {
   }
   if (pointFinalReadyDockClick.after.activeRoundIndex !== 1 || pointFinalReadyDockClick.after.stateActiveRoundIndex !== 1 || pointFinalReadyDockClick.after.nextStageCount < 1 || pointFinalReadyDockClick.after.broadcastRoundIndex !== 1) {
     failures.push(`point final ready dock click did not advance ${JSON.stringify(pointFinalReadyDockClick)}`);
+  }
+  if (!pointFinalNoFinalistV275.before.dockOnClick.includes("confirmNoFinalistV275(0") || !pointFinalNoFinalistV275.before.noFinalistOnClick.includes("confirmNoFinalistV275(0")) {
+    failures.push(`point final no-finalist controls missing ${JSON.stringify(pointFinalNoFinalistV275)}`);
+  }
+  if (!pointFinalNoFinalistV275.after.roundNoFinalist || pointFinalNoFinalistV275.after.finalist || pointFinalNoFinalistV275.after.activeRoundIndex !== 1 || pointFinalNoFinalistV275.after.nextStageCount < 1) {
+    failures.push(`point final no-finalist did not complete and advance ${JSON.stringify(pointFinalNoFinalistV275)}`);
+  }
+  if (pointFinalNoFinalistV275.after.nextPlayers.some(id => pointFinalNoFinalistV275.after.withdrawnIds.includes(id))) {
+    failures.push(`point final no-finalist next round kept withdrawn players ${JSON.stringify(pointFinalNoFinalistV275)}`);
+  }
+  if (!finalRaceNoFinalistV275.twoFinalists.finalExists || finalRaceNoFinalistV275.twoFinalists.groupSize !== 2 || finalRaceNoFinalistV275.twoFinalists.settingLaneCount !== 5 || finalRaceNoFinalistV275.twoFinalists.actualFinalistCount !== 2) {
+    failures.push(`partial final race creation failed ${JSON.stringify(finalRaceNoFinalistV275)}`);
+  }
+  if (finalRaceNoFinalistV275.zeroFinalists.finalExists || !finalRaceNoFinalistV275.zeroFinalists.error.includes("최종 결승 진출자가 없습니다") || finalRaceNoFinalistV275.zeroFinalists.dockText !== "결승 미성립") {
+    failures.push(`zero-finalist unavailable state failed ${JSON.stringify(finalRaceNoFinalistV275)}`);
+  }
+  if (crowNoFinalistV275.before.dockText !== "9강 미성립" || !crowNoFinalistV275.before.dockOnClick.includes("showCrowSemiUnavailableV275")) {
+    failures.push(`crow no-finalist dock unavailable state failed ${JSON.stringify(crowNoFinalistV275)}`);
+  }
+  if (crowNoFinalistV275.after.finalExists || crowNoFinalistV275.after.qualifiedCount !== 6 || !crowNoFinalistV275.after.allComplete || !crowNoFinalistV275.after.error.includes("9강 준결 진출자가 6명")) {
+    failures.push(`crow no-finalist unavailable action failed ${JSON.stringify(crowNoFinalistV275)}`);
   }
   const pointFinalRoundTwoSelectedVisual = pointFinalRoundTwoAdvance.after.selectedBackground
     && pointFinalRoundTwoAdvance.after.selectedBackground !== "rgb(255, 255, 255)";
