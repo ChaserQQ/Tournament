@@ -49,16 +49,16 @@
   ];
 
   const meta = Object.freeze({
-    version: 275,
-    label: "BUILD v275 NO FINALIST ROUND FLOW",
-    title: "MINI4WD TOURNAMENT MAKER - v275 NO FINALIST ROUND FLOW",
+    version: 276,
+    label: "BUILD v276 FIRST STAGE FORCED GROUP COUNT",
+    title: "MINI4WD TOURNAMENT MAKER - v276 FIRST STAGE FORCED GROUP COUNT",
     rulesChanged: false,
     assets: Object.freeze({
       config: 156,
-      build: 275,
-      app: 275,
-      css: 275,
-      operatorMobileCss: 275,
+      build: 276,
+      app: 276,
+      css: 276,
+      operatorMobileCss: 276,
       og: 51
     }),
     surfaces: Object.freeze(surfaces),

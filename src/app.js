@@ -9,13 +9,13 @@
       "ui-page-print", "ui-page-restricted", "ui-page-error"
     ];
     const MINI4WD_BUILD = window.MINI4WD_BUILD_META || {
-      version: 275,
-      label: "BUILD v275 NO FINALIST ROUND FLOW",
+      version: 276,
+      label: "BUILD v276 FIRST STAGE FORCED GROUP COUNT",
       rulesChanged: false,
       surfaces: MINI4WD_FALLBACK_SURFACES,
       pageClasses: MINI4WD_FALLBACK_PAGE_CLASSES
     };
-    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v275 NO FINALIST ROUND FLOW";
+    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v276 FIRST STAGE FORCED GROUP COUNT";
     const MINI4WD_SURFACES = Array.isArray(MINI4WD_BUILD.surfaces) && MINI4WD_BUILD.surfaces.length
       ? Array.from(MINI4WD_BUILD.surfaces)
       : MINI4WD_FALLBACK_SURFACES;
@@ -306,6 +306,12 @@ function shuffle(array) {
       return value;
     }
 
+    function getForcedGroupCountForStageV276(stageIndex) {
+      const forced = getForcedGroupCount();
+      if (!forced) return null;
+      return Number(stageIndex) === 1 ? forced : null;
+    }
+
     function validateForcedGroupCountInput() {
       const raw = syncForcedGroupCountInputFromDom();
       if (!raw) return "";
@@ -390,10 +396,10 @@ function shuffle(array) {
       `;
     }
 
-    function buildCandidateGroups(players, stageName) {
+    function buildCandidateGroups(players, stageName, stageIndex = 1) {
       const laneCount = state.settings.laneCount;
       const targetGroupSize = getNextGroupSize();
-      const forced = stageName === "예선" || stageName.includes("예선") ? getForcedGroupCount() : null;
+      const forced = getForcedGroupCountForStageV276(stageIndex);
 
       let groupCount = forced || Math.ceil(players.length / targetGroupSize);
 
@@ -431,7 +437,7 @@ function shuffle(array) {
 
       const activeGroups = groups.filter(group => group.length > 0);
 
-      if (activeGroups.length > 1) {
+      if (!forced && activeGroups.length > 1) {
         const singleIndex = activeGroups.findIndex(group => group.length === 1);
         if (singleIndex >= 0) {
           const targetIndex = activeGroups.findIndex((group, index) => index !== singleIndex && group.length < laneCount);
@@ -452,7 +458,7 @@ function shuffle(array) {
       let bestScore = Infinity;
 
       for (let i = 0; i < tries; i += 1) {
-        const candidate = buildCandidateGroups(players, stageName);
+        const candidate = buildCandidateGroups(players, stageName, stageIndex);
         const score = scoreGroups(candidate);
         if (score < bestScore) {
           best = candidate;
@@ -504,7 +510,7 @@ function shuffle(array) {
       const forcedError = validateForcedGroupCountInput();
       if (forcedError) return forcedError;
       const forced = getForcedGroupCount();
-      if (forced && (stageName === "예선" || stageName.includes("예선"))) {
+      if (forced) {
         const minimum = Math.ceil(players.length / state.settings.laneCount);
         if (forced < minimum) return `${state.settings.laneCount}레인 기준 현재 참가자는 최소 ${minimum}조 이상 필요합니다.`;
         if (forced > players.length) return `조편성(수동)는 참가자 수 ${players.length}개를 초과할 수 없습니다.`;

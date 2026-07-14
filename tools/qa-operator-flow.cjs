@@ -2318,6 +2318,38 @@ async function runViewport(browser, meta, viewport) {
   const dashboardSurface = logs[logs.length - 1].info.surface;
   if (dashboardSurface !== "dashboard") failures.push(`dashboard surface ${dashboardSurface} !== dashboard`);
 
+  const forcedGroupFirstStageV276 = await page.evaluate(() => {
+    state.inputText = Array.from({ length: 15 }, (_, index) => `FG${index + 1}/QA`).join("\n");
+    state.settings.laneCount = 5;
+    state.settings.matchMode = "basic";
+    state.settings.forcedGroupCount = "5";
+    state.settings.nextGroupSize = "";
+    state.qualifierRounds = makeQualifierRounds(5, "basic");
+    const players = parseParticipants();
+    const plan = makeStagePlan(players.length, state.settings.laneCount);
+    const stage = generateStage(players, 1, 1, plan[0]);
+    const laterStage = generateStage(players, 1, 2, plan[1] || "다음 단계");
+    return {
+      playerCount: players.length,
+      laneCount: state.settings.laneCount,
+      forcedGroupCount: state.settings.forcedGroupCount,
+      firstStageName: plan[0],
+      firstStageGroupCount: stage.groups.length,
+      firstStageGroupSizes: stage.groups.map(group => group.slots.filter(slot => !slot.isEmptyLane).length),
+      laterStageGroupCount: laterStage.groups.length
+    };
+  });
+  logs.push({ step: "forced-group-first-stage-v276", info: { forcedGroupFirstStageV276 } });
+  if (forcedGroupFirstStageV276.playerCount !== 15 || forcedGroupFirstStageV276.laneCount !== 5 || forcedGroupFirstStageV276.forcedGroupCount !== "5") {
+    failures.push(`forced group first-stage setup failed ${JSON.stringify(forcedGroupFirstStageV276)}`);
+  }
+  if (forcedGroupFirstStageV276.firstStageGroupCount !== 5 || forcedGroupFirstStageV276.firstStageGroupSizes.some(size => size !== 3)) {
+    failures.push(`forced group first-stage did not produce 5 balanced groups ${JSON.stringify(forcedGroupFirstStageV276)}`);
+  }
+  if (forcedGroupFirstStageV276.laterStageGroupCount === 5) {
+    failures.push(`forced group leaked into non-first stage ${JSON.stringify(forcedGroupFirstStageV276)}`);
+  }
+
   if (String(logs[0].info.build) !== String(meta.version) || String(logs[0].info.release) !== String(meta.version)) {
     failures.push(`build/release mismatch ${logs[0].info.build}/${logs[0].info.release} expected ${meta.version}`);
   }
