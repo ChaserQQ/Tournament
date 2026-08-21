@@ -24,11 +24,11 @@ before acting.
 - When a surface needs substantial UI repair, consolidate its DOM/base CSS and remove superseded rules. Do not keep appending late override layers.
 
 ## Current verified state
-- Verified 2026-08-22 KST: local `main`, `origin/main`, and HEAD match at `8c7b5089954c2924a3ccef67df5e68231d41b4f7` (`Build v276 apply forced group count to first stage`).
-- Verified 2026-08-22 KST: current Git history has 7 commits. The older snapshot-only/force-push policy is stale; do not rewrite history without a fresh explicit request.
+- Verified 2026-08-22 KST: latest app-source commit is `8c7b5089954c2924a3ccef67df5e68231d41b4f7` (`Build v276 apply forced group count to first stage`). Documentation-only context refresh commit `0f352e8` follows it on `main`; always resolve the exact current HEAD from Git.
+- Verified 2026-08-22 KST before the context refresh: Git history had 7 commits. The older snapshot-only/force-push policy is stale; do not rewrite history without a fresh explicit request.
 - Verified 2026-08-22 KST: build is `276`, label `BUILD v276 FIRST STAGE FORCED GROUP COUNT`.
 - Verified assets: `config: 156`, `build/app/css/operatorMobileCss: 276`, `og: 51`.
-- Verified 2026-08-22 KST: Pages run `29318678193` completed successfully for app commit `8c7b508`; public index and build asset both return HTTP 200 and identify v276.
+- Verified 2026-08-22 KST: app Pages run `29318678193` and documentation-only Pages run `32496497174` completed successfully; public index and build asset both return HTTP 200 and identify v276.
 - Verified 2026-08-22 KST: tracked app state is clean. Untracked items are `.codex-remote-attachments/`, `DESIGN_OUTPUT.md`, `FIREBASE_REPORT.md`, and `QA_REPORT.md`; leave them untouched unless requested.
 - Active source-of-truth files: `src/app.js`, `src/core/build.js`, `src/styles/app.css`, `src/styles/operator-mobile.css`, `tools/verify-static.js`, and the QA scripts under `tools/`.
 - `TASK_QUEUE.md` no longer defines split-chat roles. `IMPLEMENTATION_REPORT.md` is a compact deployed-app summary. `UI_REDESIGN_BRIEF.md` contains current UI invariants.
