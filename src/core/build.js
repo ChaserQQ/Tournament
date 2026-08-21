@@ -49,16 +49,16 @@
   ];
 
   const meta = Object.freeze({
-    version: 276,
-    label: "BUILD v276 FIRST STAGE FORCED GROUP COUNT",
-    title: "MINI4WD TOURNAMENT MAKER - v276 FIRST STAGE FORCED GROUP COUNT",
+    version: 278,
+    label: "BUILD v278 REMOTE AUTO-CLOSE SAFETY",
+    title: "MINI4WD TOURNAMENT MAKER - v278 REMOTE AUTO-CLOSE SAFETY",
     rulesChanged: false,
     assets: Object.freeze({
       config: 156,
-      build: 276,
-      app: 276,
-      css: 276,
-      operatorMobileCss: 276,
+      build: 278,
+      app: 278,
+      css: 278,
+      operatorMobileCss: 278,
       og: 51
     }),
     surfaces: Object.freeze(surfaces),

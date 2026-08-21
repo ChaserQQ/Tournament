@@ -119,6 +119,13 @@ const firebaseStub = `
     privateResultLogs: {},
     actionLogs: {}
   };
+  try {
+    const reloadStore = JSON.parse(sessionStorage.getItem("__qaFirebaseStoreReloadV278") || "null");
+    if (reloadStore && typeof reloadStore === "object") {
+      Object.keys(store).forEach(key => delete store[key]);
+      Object.assign(store, reloadStore);
+    }
+  } catch (error) {}
   const listeners = [];
   function split(path) { return String(path || "").split("/").filter(Boolean); }
   function clone(value) { return value == null ? value : JSON.parse(JSON.stringify(value)); }
@@ -201,8 +208,19 @@ const firebaseStub = `
         return { key, set: next.set.bind(next), update: next.update.bind(next), remove: next.remove.bind(next) };
       },
       transaction(updateFn) {
+        window.__qaFirebaseTransactionCounts[this.path] = Number(window.__qaFirebaseTransactionCounts[this.path] || 0) + 1;
+        window.__qaFirebaseTransactionLog.push(this.path);
+        if (typeof window.__qaBeforeFirebaseTransaction === "function") {
+          window.__qaBeforeFirebaseTransaction(this.path, store);
+        }
+        if (Array.isArray(window.__qaRejectFirebaseTransactionPaths) && window.__qaRejectFirebaseTransactionPaths.includes(this.path)) {
+          return Promise.reject(new Error("QA rejected Firebase transaction: " + this.path));
+        }
         const current = getAt(this.path);
         const next = updateFn(clone(current));
+        if (next === undefined) {
+          return Promise.resolve({ committed: false, snapshot: snapshot(current) });
+        }
         setAt(this.path, next);
         notifyFirebaseListeners(this.path);
         return Promise.resolve({ committed: true, snapshot: snapshot(next) });
@@ -212,6 +230,8 @@ const firebaseStub = `
   }
   const fakeUser = { uid: "qa-uid", email: "qa-venue@example.com" };
   window.__qaFirebaseStore = store;
+  window.__qaFirebaseTransactionCounts = {};
+  window.__qaFirebaseTransactionLog = [];
   window.firebase = {
     initializeApp: () => ({ name: "qa-app" }),
     apps: [],
@@ -1152,6 +1172,9 @@ async function showOperatorPage(page) {
     window.scrollTo(0, 0);
   });
   await page.waitForFunction(() => document.documentElement.getAttribute("data-ui-surface") === "operator", null, { timeout: 10000 });
+  // Let the hashchange boot and its lease/background-sync callbacks settle
+  // before the next page.evaluate mutates the same operator state.
+  await page.waitForTimeout(180);
 }
 
 async function clickOperatorMobileRoute(page, label, failures) {
@@ -1191,11 +1214,2275 @@ async function runViewport(browser, meta, viewport) {
     setForcedGroupCountDraft: typeof window.setForcedGroupCountDraft,
     commitForcedGroupCountInput: typeof window.commitForcedGroupCountInput,
     restoreOperatorUndoV266: typeof window.restoreOperatorUndoV266,
-    scrollOperatorSectionV147: typeof window.scrollOperatorSectionV147
+    scrollOperatorSectionV147: typeof window.scrollOperatorSectionV147,
+    requestActiveTournamentListV135: typeof window.requestActiveTournamentListV135,
+    retryFinishSyncV278: typeof window.retryFinishSyncV278
   }));
   Object.entries(functionTypes).forEach(([name, type]) => {
     if (type !== "function") failures.push(`global function missing: ${name} (${type})`);
   });
+
+  const publicPayloadPrivacy = await page.evaluate(() => {
+    const rawIdA = "player-phone-01012345678";
+    const rawIdB = "player-phone-01087654321";
+    const playerA = {
+      id: rawIdA,
+      name: "REAL_NAME_SECRET_A",
+      nickname: "Alpha",
+      team: "QA",
+      lane: 1,
+      realName: "REAL_NAME_SECRET_A",
+      contact: "CONTACT_SECRET_A",
+      privatePlayerField: "PRIVATE_PLAYER_SECRET_A"
+    };
+    const playerB = {
+      id: rawIdB,
+      name: "REAL_NAME_SECRET_B",
+      nickname: "Beta",
+      team: "QB",
+      lane: 2,
+      realName: "REAL_NAME_SECRET_B",
+      contact: "CONTACT_SECRET_B",
+      privatePlayerField: "PRIVATE_PLAYER_SECRET_B"
+    };
+    const makeSensitiveGroup = (id, name) => ({
+      id,
+      name,
+      slots: [playerA, playerB],
+      advanceIds: [rawIdA],
+      points: { [rawIdA]: 3, [rawIdB]: 0 },
+      tiedScore: 3,
+      realName: "GROUP_REAL_NAME_SECRET",
+      contact: "GROUP_CONTACT_SECRET",
+      privateGroupField: "PRIVATE_GROUP_SECRET"
+    });
+    const source = {
+      inputText: "PRIVATE_INPUT_TEXT",
+      privateTopLevelField: "PRIVATE_TOP_LEVEL_SECRET",
+      settings: { laneCount: 3, matchMode: "points3", contact: "SETTINGS_CONTACT_SECRET" },
+      tournament: {
+        name: "Public DTO QA",
+        venue: "QA Venue",
+        venueId: "qa-venue",
+        raceClass: "오픈",
+        status: "running",
+        realName: "TOURNAMENT_REAL_NAME_SECRET",
+        contact: "TOURNAMENT_CONTACT_SECRET"
+      },
+      activeRoundIndex: 0,
+      broadcast: { mode: "stage", roundIndex: 0, stageIndex: 0, privateBroadcastField: "PRIVATE_BROADCAST_SECRET" },
+      qualifierRounds: [{
+        id: "privacy-round",
+        index: 1,
+        title: "1차 라운드",
+        stagePlan: ["포인트 결정전"],
+        privateRoundField: "PRIVATE_ROUND_SECRET",
+        finalist: { ...playerA },
+        crowFinalists: [{ ...playerA, crowRank: 1 }],
+        stages: [{
+          id: "privacy-stage",
+          qualifierIndex: 1,
+          stageIndex: 1,
+          name: "포인트 결정전",
+          type: "pointFinal",
+          pointOptions: [3, 2, 1, 0],
+          pointFinalRule: "top-score",
+          pointTreeStep: 2,
+          pointTreeRanking: [
+            { ...playerA, total: 3 },
+            { ...playerB, total: 0 }
+          ],
+          pointFinalSource: [
+            { ...playerA, total: 3 },
+            { ...playerB, total: 0 }
+          ],
+          meta: { attempts: 4, score: 8, sameTeam: 1, groupSize: 2, privateMetaField: "PRIVATE_META_SECRET" },
+          groups: [makeSensitiveGroup("privacy-stage-group", "예선 1조")],
+          realName: "STAGE_REAL_NAME_SECRET",
+          contact: "STAGE_CONTACT_SECRET",
+          privateStageField: "PRIVATE_STAGE_SECRET"
+        }]
+      }],
+      finalRace: {
+        id: "privacy-final",
+        name: "최종 결승",
+        type: "pointFinal",
+        groupSize: 2,
+        group: makeSensitiveGroup("privacy-final-group", "FINAL"),
+        realName: "FINAL_REAL_NAME_SECRET",
+        contact: "FINAL_CONTACT_SECRET",
+        privateFinalField: "PRIVATE_FINAL_SECRET"
+      },
+      updatedAt: 123456789
+    };
+    const payload = makePublicStatePayload(source);
+    // makePublicStatePayload persists aliases on the private source. Clone that
+    // persisted state, add a lexicographically earlier late racer, and verify
+    // existing public IDs do not shift when the participant set grows.
+    const rawIdC = "000-private-added-participant";
+    const expandedSource = JSON.parse(JSON.stringify(source));
+    const expandedGroup = expandedSource.qualifierRounds[0].stages[0].groups[0];
+    expandedGroup.slots.push({
+      id: rawIdC,
+      name: "REAL_NAME_SECRET_C",
+      nickname: "Gamma",
+      team: "QC",
+      lane: 3,
+      contact: "CONTACT_SECRET_C"
+    });
+    expandedGroup.points[rawIdC] = 1;
+    const expandedPayload = makePublicStatePayload(expandedSource);
+    const json = JSON.stringify([payload, expandedPayload]);
+    const stage = payload.qualifierRounds?.[0]?.stages?.[0];
+    const stageGroup = stage?.groups?.[0];
+    const finalGroup = payload.finalRace?.group;
+    const alphaId = stageGroup?.slots?.find(player => player.name === "Alpha")?.id || "";
+    const betaId = stageGroup?.slots?.find(player => player.name === "Beta")?.id || "";
+    const expandedStageGroup = expandedPayload.qualifierRounds?.[0]?.stages?.[0]?.groups?.[0];
+    const expandedAlphaId = expandedStageGroup?.slots?.find(player => player.name === "Alpha")?.id || "";
+    const expandedBetaId = expandedStageGroup?.slots?.find(player => player.name === "Beta")?.id || "";
+    const expandedGammaId = expandedStageGroup?.slots?.find(player => player.name === "Gamma")?.id || "";
+    const rankingIds = Object.fromEntries((stage?.pointTreeRanking || []).map(player => [player.name, player.id]));
+    const sourceIds = Object.fromEntries((stage?.pointFinalSource || []).map(player => [player.name, player.id]));
+    const h2hNames = Object.fromEntries((stageGroup?.slots || [])
+      .filter(player => !player.isEmptyLane)
+      .map(player => [player.name, (player.h2hMetrics || []).map(item => item.name)]));
+    const forbiddenKeys = new Set([
+      "contact", "realName", "privateTopLevelField", "privateBroadcastField", "privateRoundField",
+      "privatePlayerField", "privateGroupField", "privateStageField", "privateMetaField", "privateFinalField",
+      "publicParticipantAliases"
+    ]);
+    const forbiddenKeyPaths = [];
+    const visit = (value, path = "payload") => {
+      if (!value || typeof value !== "object") return;
+      Object.entries(value).forEach(([key, child]) => {
+        const childPath = `${path}.${key}`;
+        if (forbiddenKeys.has(key)) forbiddenKeyPaths.push(childPath);
+        visit(child, childPath);
+      });
+    };
+    visit(payload);
+    visit(expandedPayload, "expandedPayload");
+    const forbiddenTokens = [
+      rawIdA, rawIdB, rawIdC, "01012345678", "01087654321",
+      "REAL_NAME_SECRET", "CONTACT_SECRET", "PRIVATE_", "PRIVATE_INPUT_TEXT"
+    ];
+    const leakedTokens = forbiddenTokens.filter(token => json.includes(token));
+    const stagePointIdsConsistent = Boolean(
+      alphaId && betaId && alphaId.startsWith("pub-") && betaId.startsWith("pub-") && alphaId !== betaId
+      && stageGroup.advanceIds.length === 1 && stageGroup.advanceIds[0] === alphaId
+      && stageGroup.points[alphaId] === 3 && stageGroup.points[betaId] === 0
+      && rankingIds.Alpha === alphaId && rankingIds.Beta === betaId
+      && sourceIds.Alpha === alphaId && sourceIds.Beta === betaId
+    );
+    const finalIdsConsistent = Boolean(
+      finalGroup?.slots?.find(player => player.name === "Alpha")?.id === alphaId
+      && finalGroup?.slots?.find(player => player.name === "Beta")?.id === betaId
+      && finalGroup?.advanceIds?.[0] === alphaId
+      && finalGroup?.points?.[alphaId] === 3
+      && finalGroup?.points?.[betaId] === 0
+    );
+    const h2hNamesSanitized = h2hNames.Alpha?.join("|") === "Beta" && h2hNames.Beta?.join("|") === "Alpha";
+    const participantSetChangeIdsStable = Boolean(
+      expandedAlphaId === alphaId
+      && expandedBetaId === betaId
+      && expandedGammaId.startsWith("pub-")
+      && expandedGammaId !== alphaId
+      && expandedGammaId !== betaId
+    );
+    const allowlistPreserved = Boolean(
+      stage?.id === "privacy-stage"
+      && stage?.qualifierIndex === 1
+      && stage?.stageIndex === 1
+      && stage?.type === "pointFinal"
+      && stage?.pointFinalRule === "top-score"
+      && stage?.pointTreeStep === 2
+      && stage?.meta?.attempts === 4
+      && stageGroup?.tiedScore === 3
+      && payload.finalRace?.id === "privacy-final"
+      && payload.finalRace?.groupSize === 2
+    );
+    return {
+      forbiddenKeyPaths,
+      leakedTokens,
+      stagePointIdsConsistent,
+      finalIdsConsistent,
+      h2hNamesSanitized,
+      participantSetChangeIdsStable,
+      allowlistPreserved,
+      alphaId,
+      betaId,
+      h2hNames,
+      stageKeys: Object.keys(stage || {}),
+      groupKeys: Object.keys(stageGroup || {}),
+      finalRaceKeys: Object.keys(payload.finalRace || {})
+    };
+  });
+  logs.push({ step: "public-payload-privacy", info: { publicPayloadPrivacy } });
+  if (publicPayloadPrivacy.forbiddenKeyPaths.length || publicPayloadPrivacy.leakedTokens.length) {
+    failures.push(`public payload leaked private fields ${JSON.stringify(publicPayloadPrivacy)}`);
+  }
+  if (!publicPayloadPrivacy.stagePointIdsConsistent || !publicPayloadPrivacy.finalIdsConsistent || !publicPayloadPrivacy.h2hNamesSanitized || !publicPayloadPrivacy.participantSetChangeIdsStable || !publicPayloadPrivacy.allowlistPreserved) {
+    failures.push(`public payload id mapping or allowlist regression ${JSON.stringify(publicPayloadPrivacy)}`);
+  }
+
+  const remoteAutoClosePrivacyV278 = await page.evaluate(async () => {
+    const staleId = "qa-stale-private-v278";
+    const refreshedId = "qa-refreshed-before-close-v278";
+    const legacyId = "qa-legacy-flat-close-v278";
+    const rollbackId = "qa-public-close-reject-v278";
+    const freshnessId = "qa-public-freshness-reject-v278";
+    const doubleFailureId = "qa-public-and-rollback-reject-v278";
+    const parentFreshId = "qa-parent-timestamp-fresh-v278";
+    const concurrentId = "qa-concurrent-publisher-lease-v278";
+    const finalizeFailureId = "qa-finalize-marker-reject-v278";
+    const divergentFinishId = "qa-divergent-terminal-finish-v278";
+    const divergentAutoId = "qa-divergent-terminal-auto-v278";
+    const finishConflictId = "qa-finish-pending-newer-running-v278";
+    const competingActiveId = "qa-competing-active-v278";
+    const supersededFinishId = "qa-superseded-finish-v278";
+    const supersededAutoId = "qa-superseded-auto-close-v278";
+    const generationConflictId = "qa-generation-conflict-v278";
+    const registryReleaseRaceId = "qa-registry-release-race-v278";
+    const cleanupRaceOldId = "qa-cleanup-race-old-v278";
+    const cleanupRaceNewId = "qa-cleanup-race-new-v278";
+    const twoPhaseId = "qa-private-public-compensation-v278";
+    const twoPhaseRaceId = "qa-private-public-cas-race-v278";
+    const staleAt = Date.now() - (61 * 60 * 1000);
+    const makePrivateState = (id, updatedAt) => {
+      const next = makeInitialState(3);
+      const rawPlayerId = `${id}-phone-01012345678`;
+      const secondRawPlayerId = `${id}-phone-01087654321`;
+      next.inputText = `PRIVATE_STALE_INPUT_${id}`;
+      next.settings = { ...next.settings, laneCount: 3, matchMode: "basic" };
+      next.tournament = {
+        ...next.tournament,
+        name: `Auto close ${id}`,
+        venue: "QA Venue",
+        venueId: "qa-venue",
+        raceClass: "오픈",
+        status: "running",
+        liveId: id,
+        liveSignature: `${id}-signature`,
+        lockedParticipants: `PRIVATE_LOCKED_PARTICIPANTS_${id}`,
+        privateTournamentField: `PRIVATE_TOURNAMENT_${id}`
+      };
+      next.broadcast = { mode: "stage", roundIndex: 0, stageIndex: 0 };
+      next.qualifierRounds = [{
+        id: `${id}-round`,
+        index: 1,
+        title: "1차 라운드",
+        stagePlan: ["예선"],
+        stages: [{
+          id: `${id}-stage`,
+          qualifierIndex: 1,
+          stageIndex: 1,
+          name: "예선",
+          groups: [{
+            id: `${id}-group`,
+            name: "예선 1조",
+            slots: [{
+              id: rawPlayerId,
+              name: `REAL_NAME_SECRET_${id}`,
+              nickname: `Public ${id}`,
+              team: "QA",
+              lane: 1,
+              realName: `REAL_NAME_FIELD_${id}`,
+              contact: `CONTACT_SECRET_${id}`,
+              privatePlayerField: `PRIVATE_PLAYER_${id}`
+            }, {
+              id: secondRawPlayerId,
+              name: `SECOND_REAL_SECRET_${id}`,
+              nickname: `Second ${id}`,
+              team: "QB",
+              lane: 2,
+              realName: `SECOND_REAL_FIELD_${id}`,
+              contact: `SECOND_CONTACT_SECRET_${id}`,
+              privatePlayerField: `SECOND_PRIVATE_PLAYER_${id}`
+            }],
+            advanceIds: [rawPlayerId],
+            points: {}
+          }]
+        }],
+        finalist: null,
+        crowFinalists: []
+      }];
+      next.updatedAt = updatedAt;
+      return next;
+    };
+
+    const store = window.__qaFirebaseStore;
+    const activeRegistryBackup = store.activeTournaments?.["qa-venue"]
+      ? JSON.parse(JSON.stringify(store.activeTournaments["qa-venue"]))
+      : undefined;
+    const privateHistoryBackup = store.privateResultLogs?.["qa-venue"]
+      ? JSON.parse(JSON.stringify(store.privateResultLogs["qa-venue"]))
+      : undefined;
+    const publicHistoryBackup = JSON.parse(JSON.stringify(store.publicHistory || {}));
+    store.tournaments[staleId] = { state: makePrivateState(staleId, staleAt), updatedAt: staleAt };
+    store.tournaments[refreshedId] = { state: makePrivateState(refreshedId, staleAt + 1000), updatedAt: staleAt + 1000 };
+    store.tournaments[legacyId] = makePrivateState(legacyId, staleAt + 500);
+    store.tournaments[legacyId].tournament.venue = "";
+    store.tournaments[legacyId].tournament.venueName = "Legacy QA Venue";
+    store.tournaments[parentFreshId] = { state: makePrivateState(parentFreshId, staleAt + 600), updatedAt: Date.now() };
+    window.__qaBeforeFirebaseTransaction = path => {
+      if (path !== `tournaments/${refreshedId}`) return;
+      const freshAt = Date.now();
+      store.tournaments[refreshedId].state.updatedAt = freshAt;
+      store.tournaments[refreshedId].updatedAt = freshAt;
+    };
+
+    try {
+      await window.requestActiveTournamentListV135();
+      const privateClosed = store.tournaments?.[staleId]?.state;
+      const publicClosed = store.publicLive?.[staleId];
+      const legacyClosed = store.tournaments?.[legacyId]?.state;
+      const publicLegacy = store.publicLive?.[legacyId];
+      const parentFreshState = store.tournaments?.[parentFreshId]?.state;
+      const publicJson = JSON.stringify([publicClosed || {}, publicLegacy || {}]);
+      const forbiddenKeys = new Set(["inputText", "lockedParticipants", "realName", "contact", "privateTournamentField", "privatePlayerField"]);
+      const forbiddenKeyPaths = [];
+      const visit = (value, path = "publicLive") => {
+        if (!value || typeof value !== "object") return;
+        Object.entries(value).forEach(([key, child]) => {
+          const childPath = `${path}.${key}`;
+          if (forbiddenKeys.has(key)) forbiddenKeyPaths.push(childPath);
+          visit(child, childPath);
+        });
+      };
+      visit(publicClosed);
+      visit(publicLegacy, "publicLiveLegacy");
+      const leakedTokens = [
+        "PRIVATE_STALE_INPUT_", "PRIVATE_LOCKED_PARTICIPANTS_", "REAL_NAME_SECRET_",
+        "REAL_NAME_FIELD_", "CONTACT_SECRET_", "PRIVATE_TOURNAMENT_", "PRIVATE_PLAYER_", "01012345678", "01087654321"
+      ].filter(token => publicJson.includes(token));
+      const requiredEnvelopePreserved = Boolean(
+        publicClosed?.id === staleId
+        && publicClosed?.status === "finished"
+        && publicClosed?.live === false
+        && publicClosed?.venueId === "qa-venue"
+        && publicClosed?.venueName === "QA Venue"
+        && publicClosed?.tournamentName === `Auto close ${staleId}`
+        && publicClosed?.raceClass === "오픈"
+        && publicClosed?.state?.tournament?.status === "finished"
+        && Number(publicClosed?.updatedAt) > staleAt
+      );
+      const privateStatePreserved = Boolean(
+        privateClosed?.tournament?.status === "finished"
+        && privateClosed?.tournament?.autoClosePublishPending === false
+        && privateClosed?.inputText === `PRIVATE_LOCKED_PARTICIPANTS_${staleId}`
+        && privateClosed?.qualifierRounds?.[0]?.stages?.[0]?.groups?.[0]?.slots?.[0]?.contact === `CONTACT_SECRET_${staleId}`
+      );
+      const autoCloseRecordId = privateClosed?.tournament?.recordId || "";
+      const autoCloseHistoryPublished = Boolean(
+        autoCloseRecordId
+        && store.privateResultLogs?.["qa-venue"]?.[autoCloseRecordId]
+        && store.publicHistory?.[autoCloseRecordId]
+      );
+      const refreshed = store.tournaments?.[refreshedId]?.state;
+      const freshTournamentNotClosed = Boolean(
+        refreshed?.tournament?.status === "running"
+        && Number(refreshed?.updatedAt) > staleAt
+        && !store.publicLive?.[refreshedId]
+      );
+      const legacyFlatRecordClosed = Boolean(
+        legacyClosed?.tournament?.status === "finished"
+        && publicLegacy?.id === legacyId
+        && publicLegacy?.venueName === "Legacy QA Venue"
+        && publicLegacy?.liveKeyLabel?.startsWith("Legacy QA Venue ·")
+        && publicLegacy?.state?.tournament?.status === "finished"
+        && !publicJson.includes(`CONTACT_SECRET_${legacyId}`)
+      );
+      const parentTimestampNotClosed = Boolean(
+        parentFreshState?.tournament?.status === "running"
+        && !store.publicLive?.[parentFreshId]
+      );
+
+      window.__qaBeforeFirebaseTransaction = null;
+      store.tournaments[rollbackId] = { state: makePrivateState(rollbackId, staleAt + 750), updatedAt: staleAt + 750 };
+      store.activeTournaments["qa-venue"] = { venueId: "qa-venue", tournamentId: rollbackId, status: "running", updatedAt: staleAt + 750 };
+      window.__qaRejectFirebaseTransactionPaths = [`publicLive/${rollbackId}`];
+      await window.requestActiveTournamentListV135();
+      window.__qaRejectFirebaseTransactionPaths = [];
+      const pendingAfterPublicFailure = Boolean(
+        store.tournaments?.[rollbackId]?.state?.tournament?.status === "finished"
+        && store.tournaments?.[rollbackId]?.state?.tournament?.autoClosePublishPending === true
+        && !store.publicLive?.[rollbackId]
+      );
+      const pendingRegistryPreservedBeforeRepair = store.activeTournaments?.["qa-venue"]?.tournamentId === rollbackId;
+      store.tournaments[rollbackId].state.tournament.autoClosePublisherAt = 0;
+      await window.requestActiveTournamentListV135();
+      const rollbackState = store.tournaments?.[rollbackId]?.state;
+      const publicFailureStayedRetryable = Boolean(
+        pendingAfterPublicFailure
+        && rollbackState?.tournament?.status === "finished"
+        && rollbackState?.tournament?.autoClosePublishPending === false
+        && store.publicLive?.[rollbackId]?.status === "finished"
+      );
+      if (store.activeTournaments?.["qa-venue"]?.tournamentId === rollbackId) delete store.activeTournaments["qa-venue"];
+
+      const newerPublicAt = Date.now() + 60000;
+      const staleFreshnessState = makePrivateState(freshnessId, staleAt + 800);
+      // Both clients started from the same durable private aliases. The newer
+      // writer carries them forward while changing public slot order/progress.
+      makePublicStatePayload(staleFreshnessState);
+      staleFreshnessState.tournament.activeRegistryGeneration = "freshness-generation";
+      const newerPublicSource = normalizeImportedState(JSON.parse(JSON.stringify(staleFreshnessState)));
+      newerPublicSource.tournament.status = "running";
+      newerPublicSource.updatedAt = newerPublicAt;
+      const freshnessRawPlayerId = `${freshnessId}-phone-01012345678`;
+      const freshnessSecondRawPlayerId = `${freshnessId}-phone-01087654321`;
+      const newerFreshnessGroup = newerPublicSource.qualifierRounds[0].stages[0].groups[0];
+      newerFreshnessGroup.points[freshnessRawPlayerId] = 7;
+      newerFreshnessGroup.points[freshnessSecondRawPlayerId] = 2;
+      newerFreshnessGroup.advanceIds = [freshnessSecondRawPlayerId];
+      newerFreshnessGroup.slots.reverse();
+      newerFreshnessGroup.slots[0].lane = 1;
+      newerFreshnessGroup.slots[1].lane = 2;
+      newerPublicSource.tournament.activeRegistryGeneration = "freshness-generation";
+      store.tournaments[freshnessId] = { state: staleFreshnessState, updatedAt: staleAt + 800 };
+      store.activeTournaments["qa-venue"] = { venueId: "qa-venue", tournamentId: freshnessId, registryGeneration: "freshness-generation", status: "running", updatedAt: staleAt + 800 };
+      store.publicLive[freshnessId] = {
+        id: freshnessId,
+        registryGeneration: "freshness-generation",
+        status: "running",
+        live: true,
+        updatedAt: newerPublicAt,
+        state: makePublicStatePayload(newerPublicSource)
+      };
+      await window.requestActiveTournamentListV135();
+      await window.requestActiveTournamentListV135();
+      const freshnessState = store.tournaments?.[freshnessId]?.state;
+      const freshnessRejectedAndRolledBack = Boolean(
+        freshnessState?.tournament?.status === "running"
+        && Number(freshnessState?.updatedAt) === newerPublicAt
+        && store.publicLive?.[freshnessId]?.status === "running"
+        && Number(store.publicLive?.[freshnessId]?.updatedAt) === newerPublicAt
+      );
+      const autoCloseRollbackRegistryRestored = store.activeTournaments?.["qa-venue"]?.tournamentId === freshnessId;
+      const freshnessGroup = freshnessState?.qualifierRounds?.[0]?.stages?.[0]?.groups?.[0];
+      const freshnessPlayer = freshnessGroup?.slots?.find(player => player?.id === freshnessRawPlayerId);
+      const freshnessSecondPlayer = freshnessGroup?.slots?.find(player => player?.id === freshnessSecondRawPlayerId);
+      const autoCloseRollbackMergedNewerProgress = Boolean(
+        freshnessGroup?.points?.[freshnessRawPlayerId] === 7
+        && freshnessGroup?.points?.[freshnessSecondRawPlayerId] === 2
+        && freshnessGroup?.advanceIds?.[0] === freshnessSecondRawPlayerId
+        && freshnessGroup?.slots?.[0]?.id === freshnessSecondRawPlayerId
+        && freshnessPlayer?.id === freshnessRawPlayerId
+        && freshnessPlayer?.lane === 2
+        && freshnessPlayer?.contact === `CONTACT_SECRET_${freshnessId}`
+        && freshnessSecondPlayer?.lane === 1
+        && freshnessSecondPlayer?.contact === `SECOND_CONTACT_SECRET_${freshnessId}`
+        && freshnessState?.tournament?.activeRegistryGeneration === "freshness-generation"
+        && !Object.keys(freshnessGroup?.points || {}).some(id => id.startsWith("pub-"))
+      );
+
+      delete store.tournaments[rollbackId];
+      delete store.publicLive[rollbackId];
+      delete store.tournaments[freshnessId];
+      delete store.publicLive[freshnessId];
+      if (store.activeTournaments?.["qa-venue"]?.tournamentId === freshnessId) delete store.activeTournaments["qa-venue"];
+      store.tournaments[doubleFailureId] = { state: makePrivateState(doubleFailureId, staleAt + 900), updatedAt: staleAt + 900 };
+      window.__qaBeforeFirebaseTransaction = path => {
+        if (path === `publicLive/${doubleFailureId}`) {
+          window.__qaRejectFirebaseTransactionPaths = [`publicLive/${doubleFailureId}`, `tournaments/${doubleFailureId}`];
+        }
+      };
+      await window.requestActiveTournamentListV135();
+      const pendingAfterDoubleFailure = Boolean(
+        store.tournaments?.[doubleFailureId]?.state?.tournament?.status === "finished"
+        && store.tournaments?.[doubleFailureId]?.state?.tournament?.autoClosePublishPending === true
+        && !store.publicLive?.[doubleFailureId]
+      );
+      window.__qaBeforeFirebaseTransaction = null;
+      window.__qaRejectFirebaseTransactionPaths = [];
+      store.tournaments[doubleFailureId].state.tournament.autoClosePublisherAt = 0;
+      await window.requestActiveTournamentListV135();
+      const repairedState = store.tournaments?.[doubleFailureId]?.state;
+      const doubleFailureSelfHealed = Boolean(
+        pendingAfterDoubleFailure
+        && repairedState?.tournament?.status === "finished"
+        && repairedState?.tournament?.autoClosePublishPending === false
+        && store.publicLive?.[doubleFailureId]?.status === "finished"
+        && store.publicLive?.[doubleFailureId]?.state?.tournament?.status === "finished"
+      );
+
+      delete store.tournaments[doubleFailureId];
+      delete store.publicLive[doubleFailureId];
+      store.tournaments[finalizeFailureId] = { state: makePrivateState(finalizeFailureId, staleAt + 925), updatedAt: staleAt + 925 };
+      window.__qaBeforeFirebaseTransaction = path => {
+        if (path === `publicLive/${finalizeFailureId}`) {
+          window.__qaRejectFirebaseTransactionPaths = [`tournaments/${finalizeFailureId}`];
+        }
+      };
+      await window.requestActiveTournamentListV135();
+      const pendingAfterFinalizeFailure = Boolean(
+        store.tournaments?.[finalizeFailureId]?.state?.tournament?.status === "finished"
+        && store.tournaments?.[finalizeFailureId]?.state?.tournament?.autoClosePublishPending === true
+        && store.publicLive?.[finalizeFailureId]?.status === "finished"
+      );
+      window.__qaBeforeFirebaseTransaction = null;
+      window.__qaRejectFirebaseTransactionPaths = [];
+      store.tournaments[finalizeFailureId].state.tournament.autoClosePublisherAt = 0;
+      await window.requestActiveTournamentListV135();
+      const finalizeFailureState = store.tournaments?.[finalizeFailureId]?.state;
+      const finalizeFailureSelfHealed = Boolean(
+        pendingAfterFinalizeFailure
+        && finalizeFailureState?.tournament?.status === "finished"
+        && finalizeFailureState?.tournament?.autoClosePublishPending === false
+        && store.publicLive?.[finalizeFailureId]?.status === "finished"
+      );
+
+      delete store.tournaments[finalizeFailureId];
+      delete store.publicLive[finalizeFailureId];
+      store.tournaments[concurrentId] = { state: makePrivateState(concurrentId, staleAt + 950), updatedAt: staleAt + 950 };
+      window.__qaFirebaseTransactionCounts[`publicLive/${concurrentId}`] = 0;
+      await Promise.all([
+        window.requestActiveTournamentListV135(),
+        window.requestActiveTournamentListV135()
+      ]);
+      const concurrentState = store.tournaments?.[concurrentId]?.state;
+      const concurrentPublisherLeaseHeld = Boolean(
+        concurrentState?.tournament?.status === "finished"
+        && concurrentState?.tournament?.autoClosePublishPending === false
+        && store.publicLive?.[concurrentId]?.status === "finished"
+        && Number(window.__qaFirebaseTransactionCounts[`publicLive/${concurrentId}`] || 0) === 1
+      );
+
+      const divergentFinishRecordId = `record-${divergentFinishId}`;
+      const divergentFinishState = makePrivateState(divergentFinishId, staleAt + 960);
+      divergentFinishState.tournament.status = "finished";
+      divergentFinishState.tournament.activeRegistryGeneration = "divergent-finish-generation";
+      divergentFinishState.tournament.endedAtISO = "2026-08-22T01:00:00.000Z";
+      divergentFinishState.tournament.finishSyncPending = true;
+      divergentFinishState.tournament.finishSyncTerminalUpdatedAt = staleAt + 960;
+      divergentFinishState.tournament.finishSyncRecord = {
+        id: divergentFinishRecordId,
+        venueId: "qa-venue",
+        tournamentName: "Divergent private finish"
+      };
+      store.tournaments[divergentFinishId] = { state: divergentFinishState, updatedAt: divergentFinishState.updatedAt };
+      store.activeTournaments["qa-venue"] = {
+        venueId: "qa-venue",
+        tournamentId: divergentFinishId,
+        registryGeneration: "divergent-finish-generation",
+        status: "running",
+        updatedAt: staleAt + 960
+      };
+      const divergentFinishPublicSource = normalizeImportedState(JSON.parse(JSON.stringify(divergentFinishState)));
+      divergentFinishPublicSource.tournament.endedAtISO = "2026-08-22T01:00:01.000Z";
+      divergentFinishPublicSource.tournament.finishSyncPending = false;
+      divergentFinishPublicSource.updatedAt = staleAt + 961;
+      store.publicLive[divergentFinishId] = makePublicLivePayload(divergentFinishPublicSource);
+      await window.requestActiveTournamentListV135();
+      await new Promise(resolve => setTimeout(resolve, 30));
+      const divergentFinishRetired = store.tournaments?.[divergentFinishId]?.state;
+      const divergentFinishStoppedRetrying = Boolean(
+        divergentFinishRetired?.tournament?.status === "finished"
+        && divergentFinishRetired?.tournament?.finishSyncPending === false
+        && divergentFinishRetired?.tournament?.terminalSyncConflictV278?.reason === "divergent-terminal-public"
+        && divergentFinishRetired?.tournament?.terminalSyncConflictV278?.publicAttemptId === "ended:2026-08-22T01:00:01.000Z"
+        && store.publicLive?.[divergentFinishId]?.state?.tournament?.endedAtISO === "2026-08-22T01:00:01.000Z"
+        && !store.privateResultLogs?.["qa-venue"]?.[divergentFinishRecordId]
+        && !store.publicHistory?.[divergentFinishRecordId]
+      );
+
+      const divergentAutoRecordId = `record-${divergentAutoId}`;
+      const divergentAutoState = makePrivateState(divergentAutoId, staleAt + 970);
+      divergentAutoState.tournament.status = "finished";
+      divergentAutoState.tournament.activeRegistryGeneration = "divergent-auto-generation";
+      divergentAutoState.tournament.endedAtISO = "2026-08-22T02:00:00.000Z";
+      divergentAutoState.tournament.autoClosed = true;
+      divergentAutoState.tournament.autoCloseAttemptId = "divergent-auto-private-attempt";
+      divergentAutoState.tournament.autoClosePublishPending = true;
+      divergentAutoState.tournament.autoClosePreviousUpdatedAt = staleAt + 970;
+      divergentAutoState.tournament.recordId = divergentAutoRecordId;
+      store.tournaments[divergentAutoId] = { state: divergentAutoState, updatedAt: divergentAutoState.updatedAt };
+      store.activeTournaments["qa-venue"] = {
+        venueId: "qa-venue",
+        tournamentId: divergentAutoId,
+        registryGeneration: "divergent-auto-generation",
+        status: "running",
+        updatedAt: staleAt + 970
+      };
+      const divergentAutoPublicSource = normalizeImportedState(JSON.parse(JSON.stringify(divergentAutoState)));
+      divergentAutoPublicSource.tournament.endedAtISO = "2026-08-22T02:00:01.000Z";
+      divergentAutoPublicSource.tournament.autoClosePublishPending = false;
+      divergentAutoPublicSource.updatedAt = staleAt + 971;
+      store.publicLive[divergentAutoId] = makePublicLivePayload(divergentAutoPublicSource);
+      await window.requestActiveTournamentListV135();
+      await new Promise(resolve => setTimeout(resolve, 30));
+      const divergentAutoRetired = store.tournaments?.[divergentAutoId]?.state;
+      const divergentAutoStoppedRetrying = Boolean(
+        divergentAutoRetired?.tournament?.status === "finished"
+        && divergentAutoRetired?.tournament?.autoClosePublishPending === false
+        && divergentAutoRetired?.tournament?.terminalSyncConflictV278?.reason === "divergent-terminal-public"
+        && divergentAutoRetired?.tournament?.terminalSyncConflictV278?.publicAttemptId === "ended:2026-08-22T02:00:01.000Z"
+        && store.publicLive?.[divergentAutoId]?.state?.tournament?.endedAtISO === "2026-08-22T02:00:01.000Z"
+        && !store.privateResultLogs?.["qa-venue"]?.[divergentAutoRecordId]
+        && !store.publicHistory?.[divergentAutoRecordId]
+      );
+      const divergentTerminalConflictsRetired = divergentFinishStoppedRetrying && divergentAutoStoppedRetrying;
+
+      const finishConflictBaseState = makePrivateState(finishConflictId, staleAt + 975);
+      makePublicStatePayload(finishConflictBaseState);
+      const finishConflictState = normalizeImportedState(JSON.parse(JSON.stringify(finishConflictBaseState)));
+      finishConflictState.tournament.status = "finished";
+      finishConflictState.tournament.endedAtISO = new Date(staleAt + 975).toISOString();
+      finishConflictState.tournament.finishSyncPending = true;
+      finishConflictState.tournament.finishSyncPreviousUpdatedAt = staleAt + 975;
+      finishConflictState.tournament.finishSyncPreviousEndedAtISO = "";
+      finishConflictState.tournament.finishSyncPreviousEndedAtDisplay = "";
+      finishConflictState.tournament.finishSyncPreviousLiveStopped = false;
+      finishConflictState.tournament.finishSyncPreviousFirebaseAutoSave = true;
+      finishConflictState.tournament.activeRegistryGeneration = "finish-generation";
+      store.tournaments[finishConflictId] = { state: finishConflictState, updatedAt: staleAt + 975 };
+      const newerRunningAt = Date.now() + 60000;
+      const newerFinishPublicSource = normalizeImportedState(JSON.parse(JSON.stringify(finishConflictBaseState)));
+      newerFinishPublicSource.tournament.status = "running";
+      newerFinishPublicSource.updatedAt = newerRunningAt;
+      const finishRawPlayerId = `${finishConflictId}-phone-01012345678`;
+      const finishSecondRawPlayerId = `${finishConflictId}-phone-01087654321`;
+      const newerFinishGroup = newerFinishPublicSource.qualifierRounds[0].stages[0].groups[0];
+      newerFinishGroup.points[finishRawPlayerId] = 9;
+      newerFinishGroup.points[finishSecondRawPlayerId] = 4;
+      newerFinishGroup.advanceIds = [finishSecondRawPlayerId];
+      newerFinishGroup.slots.reverse();
+      newerFinishGroup.slots[0].lane = 1;
+      newerFinishGroup.slots[1].lane = 3;
+      newerFinishPublicSource.tournament.activeRegistryGeneration = "finish-generation";
+      store.publicLive[finishConflictId] = {
+        id: finishConflictId,
+        registryGeneration: "finish-generation",
+        status: "running",
+        live: true,
+        updatedAt: newerRunningAt,
+        state: makePublicStatePayload(newerFinishPublicSource)
+      };
+      store.activeTournaments["qa-venue"] = {
+        venueId: "qa-venue",
+        tournamentId: finishConflictId,
+        registryGeneration: "finish-generation",
+        status: "running",
+        updatedAt: staleAt + 975
+      };
+      const pendingCleanupResult = await window.cleanupActiveTournamentForVenueV151("qa-venue");
+      const finishPendingRegistryPreserved = Boolean(
+        pendingCleanupResult?.removed === false
+        && pendingCleanupResult?.reason === "terminal-sync-pending"
+        && store.activeTournaments?.["qa-venue"]?.tournamentId === finishConflictId
+      );
+      await window.requestActiveTournamentListV135();
+      await window.requestActiveTournamentListV135();
+      const finishConflictPrivate = store.tournaments?.[finishConflictId]?.state;
+      const finishPendingHonorsNewerRunning = Boolean(
+        finishConflictPrivate?.tournament?.status === "running"
+        && finishConflictPrivate?.tournament?.finishSyncPending !== true
+        && Number(finishConflictPrivate?.updatedAt) === newerRunningAt
+        && store.publicLive?.[finishConflictId]?.status === "running"
+        && Number(store.publicLive?.[finishConflictId]?.updatedAt) === newerRunningAt
+        && store.activeTournaments?.["qa-venue"]?.tournamentId === finishConflictId
+      );
+      const finishConflictGroup = finishConflictPrivate?.qualifierRounds?.[0]?.stages?.[0]?.groups?.[0];
+      const finishConflictPlayer = finishConflictGroup?.slots?.find(player => player?.id === finishRawPlayerId);
+      const finishConflictSecondPlayer = finishConflictGroup?.slots?.find(player => player?.id === finishSecondRawPlayerId);
+      const finishRollbackMergedNewerProgress = Boolean(
+        finishConflictGroup?.points?.[finishRawPlayerId] === 9
+        && finishConflictGroup?.points?.[finishSecondRawPlayerId] === 4
+        && finishConflictGroup?.advanceIds?.[0] === finishSecondRawPlayerId
+        && finishConflictGroup?.slots?.[0]?.id === finishSecondRawPlayerId
+        && finishConflictPlayer?.id === finishRawPlayerId
+        && finishConflictPlayer?.lane === 3
+        && finishConflictPlayer?.contact === `CONTACT_SECRET_${finishConflictId}`
+        && finishConflictSecondPlayer?.lane === 1
+        && finishConflictSecondPlayer?.contact === `SECOND_CONTACT_SECRET_${finishConflictId}`
+        && finishConflictPrivate?.tournament?.activeRegistryGeneration === "finish-generation"
+        && !Object.keys(finishConflictGroup?.points || {}).some(id => id.startsWith("pub-"))
+      );
+
+      const generationPendingState = makePrivateState(generationConflictId, staleAt + 978);
+      generationPendingState.tournament.status = "finished";
+      generationPendingState.tournament.finishSyncPending = true;
+      generationPendingState.tournament.finishSyncPreviousUpdatedAt = staleAt + 978;
+      generationPendingState.tournament.finishSyncPreviousEndedAtISO = "";
+      generationPendingState.tournament.finishSyncPreviousEndedAtDisplay = "";
+      generationPendingState.tournament.finishSyncPreviousLiveStopped = false;
+      generationPendingState.tournament.finishSyncPreviousFirebaseAutoSave = true;
+      generationPendingState.tournament.activeRegistryGeneration = "generation-a";
+      store.tournaments[generationConflictId] = { state: generationPendingState, updatedAt: staleAt + 978 };
+      const generationPublicAt = Date.now() + 70000;
+      const generationPublicSource = makePrivateState(generationConflictId, generationPublicAt);
+      generationPublicSource.tournament.activeRegistryGeneration = "generation-a";
+      store.publicLive[generationConflictId] = {
+        id: generationConflictId,
+        registryGeneration: "generation-a",
+        status: "running",
+        live: true,
+        updatedAt: generationPublicAt,
+        state: makePublicStatePayload(generationPublicSource)
+      };
+      store.activeTournaments["qa-venue"] = {
+        venueId: "qa-venue",
+        tournamentId: generationConflictId,
+        registryGeneration: "generation-b",
+        status: "running",
+        updatedAt: generationPublicAt
+      };
+      await window.requestActiveTournamentListV135();
+      const generationConflictProtected = Boolean(
+        store.tournaments?.[generationConflictId]?.state?.tournament?.status === "finished"
+        && store.tournaments?.[generationConflictId]?.state?.tournament?.finishSyncPending === true
+        && store.publicLive?.[generationConflictId]?.status === "running"
+        && store.publicLive?.[generationConflictId]?.registryGeneration === "generation-a"
+        && store.activeTournaments?.["qa-venue"]?.registryGeneration === "generation-b"
+      );
+
+      store.activeTournaments["qa-venue"] = {
+        venueId: "qa-venue",
+        tournamentId: registryReleaseRaceId,
+        registryGeneration: "release-a",
+        status: "running",
+        updatedAt: Date.now()
+      };
+      window.__qaBeforeFirebaseTransaction = path => {
+        if (path !== "activeTournaments/qa-venue") return;
+        window.__qaBeforeFirebaseTransaction = null;
+        store.activeTournaments["qa-venue"] = {
+          venueId: "qa-venue",
+          tournamentId: registryReleaseRaceId,
+          registryGeneration: "release-b",
+          status: "running",
+          updatedAt: Date.now() + 1
+        };
+      };
+      releaseActiveTournamentForVenue("finished-clear", registryReleaseRaceId, "release-a", "qa-venue");
+      await new Promise(resolve => setTimeout(resolve, 0));
+      const oldGenerationReleasePreservedNewClaim = store.activeTournaments?.["qa-venue"]?.registryGeneration === "release-b";
+      releaseActiveTournamentForVenue("finished-clear", registryReleaseRaceId, "", "qa-venue");
+      await new Promise(resolve => setTimeout(resolve, 0));
+      const legacyReleasePreservedTokenizedClaim = store.activeTournaments?.["qa-venue"]?.registryGeneration === "release-b";
+      releaseActiveTournamentForVenue("finished-clear", registryReleaseRaceId, "release-b", "qa-venue");
+      await new Promise(resolve => setTimeout(resolve, 0));
+      const matchingGenerationReleaseSucceeded = !store.activeTournaments?.["qa-venue"];
+
+      const cleanupOldState = makePrivateState(cleanupRaceOldId, Date.now());
+      cleanupOldState.tournament.status = "finished";
+      cleanupOldState.tournament.activeRegistryGeneration = "cleanup-old";
+      store.tournaments[cleanupRaceOldId] = { state: cleanupOldState, updatedAt: cleanupOldState.updatedAt };
+      const cleanupNewState = makePrivateState(cleanupRaceNewId, Date.now() + 1);
+      cleanupNewState.tournament.activeRegistryGeneration = "cleanup-new";
+      store.tournaments[cleanupRaceNewId] = { state: cleanupNewState, updatedAt: cleanupNewState.updatedAt };
+      store.publicLive[cleanupRaceNewId] = {
+        id: cleanupRaceNewId,
+        registryGeneration: "cleanup-new",
+        status: "running",
+        live: true,
+        updatedAt: cleanupNewState.updatedAt,
+        state: makePublicStatePayload(cleanupNewState)
+      };
+      store.activeTournaments["qa-venue"] = {
+        venueId: "qa-venue",
+        tournamentId: cleanupRaceOldId,
+        registryGeneration: "cleanup-old",
+        status: "running",
+        updatedAt: cleanupOldState.updatedAt
+      };
+      window.__qaBeforeFirebaseTransaction = path => {
+        if (path !== "activeTournaments/qa-venue") return;
+        window.__qaBeforeFirebaseTransaction = null;
+        store.activeTournaments["qa-venue"] = {
+          venueId: "qa-venue",
+          tournamentId: cleanupRaceNewId,
+          registryGeneration: "cleanup-new",
+          status: "running",
+          updatedAt: cleanupNewState.updatedAt
+        };
+      };
+      const cleanupRaceResult = await window.cleanupActiveTournamentForVenueV151("qa-venue");
+      const activeCleanupRacePreservedNewClaim = Boolean(
+        cleanupRaceResult?.removed === false
+        && cleanupRaceResult?.reason === "active-registry-changed"
+        && store.activeTournaments?.["qa-venue"]?.tournamentId === cleanupRaceNewId
+        && store.activeTournaments?.["qa-venue"]?.registryGeneration === "cleanup-new"
+      );
+
+      const competingAt = Date.now();
+      const competingState = makePrivateState(competingActiveId, competingAt);
+      store.tournaments[competingActiveId] = { state: competingState, updatedAt: competingAt };
+      store.publicLive[competingActiveId] = {
+        id: competingActiveId,
+        status: "running",
+        live: true,
+        updatedAt: competingAt,
+        state: { tournament: { status: "running" }, updatedAt: competingAt }
+      };
+      store.activeTournaments["qa-venue"] = {
+        venueId: "qa-venue",
+        tournamentId: competingActiveId,
+        status: "running",
+        updatedAt: competingAt
+      };
+
+      const supersededFinishState = makePrivateState(supersededFinishId, staleAt + 980);
+      supersededFinishState.tournament.status = "finished";
+      supersededFinishState.tournament.finishSyncPending = true;
+      supersededFinishState.tournament.finishSyncPreviousUpdatedAt = staleAt + 980;
+      supersededFinishState.tournament.finishSyncPreviousEndedAtISO = "";
+      supersededFinishState.tournament.finishSyncPreviousEndedAtDisplay = "";
+      supersededFinishState.tournament.finishSyncPreviousLiveStopped = false;
+      supersededFinishState.tournament.finishSyncPreviousFirebaseAutoSave = true;
+      store.tournaments[supersededFinishId] = { state: supersededFinishState, updatedAt: staleAt + 980 };
+      const supersededFinishPublicAt = competingAt + 60000;
+      store.publicLive[supersededFinishId] = {
+        id: supersededFinishId,
+        status: "running",
+        live: true,
+        updatedAt: supersededFinishPublicAt,
+        state: { tournament: { status: "running" }, updatedAt: supersededFinishPublicAt }
+      };
+      await window.requestActiveTournamentListV135();
+      const supersededFinishPrivate = store.tournaments?.[supersededFinishId]?.state;
+      const registryConflictConverged = Boolean(
+        supersededFinishPrivate?.tournament?.status === "finished"
+        && supersededFinishPrivate?.tournament?.finishSyncPending !== true
+        && !store.publicLive?.[supersededFinishId]
+        && store.tournaments?.[competingActiveId]?.state?.tournament?.status === "running"
+        && store.publicLive?.[competingActiveId]?.status === "running"
+        && store.activeTournaments?.["qa-venue"]?.tournamentId === competingActiveId
+      );
+
+      store.tournaments[supersededAutoId] = {
+        state: makePrivateState(supersededAutoId, staleAt + 990),
+        updatedAt: staleAt + 990
+      };
+      const supersededAutoPublicAt = competingAt + 120000;
+      store.publicLive[supersededAutoId] = {
+        id: supersededAutoId,
+        status: "running",
+        live: true,
+        updatedAt: supersededAutoPublicAt,
+        state: { tournament: { status: "running" }, updatedAt: supersededAutoPublicAt }
+      };
+      await window.requestActiveTournamentListV135();
+      const supersededAutoPrivate = store.tournaments?.[supersededAutoId]?.state;
+      const autoCloseRegistryConflictConverged = Boolean(
+        supersededAutoPrivate?.tournament?.status === "finished"
+        && supersededAutoPrivate?.tournament?.autoClosePublishPending === false
+        && !store.publicLive?.[supersededAutoId]
+        && store.tournaments?.[competingActiveId]?.state?.tournament?.status === "running"
+        && store.publicLive?.[competingActiveId]?.status === "running"
+        && store.activeTournaments?.["qa-venue"]?.tournamentId === competingActiveId
+      );
+
+      const localStateBeforeTwoPhase = exportState();
+      const localRoundBeforeTwoPhase = activeRoundIndex;
+      const localFirebaseIdBeforeTwoPhase = firebaseTournamentId;
+      const twoPhaseStorageKeys = ["mini4wdTournamentId", "mini4wdActiveLiveId", "mini4wdActiveLiveSignature", "mini4wdActiveLiveDate"];
+      const twoPhaseStorageBefore = Object.fromEntries(twoPhaseStorageKeys.map(key => [key, localStorage.getItem(key)]));
+      const makeTwoPhaseFixture = (id, generation, at) => {
+        const fixture = makePrivateState(id, at);
+        fixture.tournament.activeRegistryGeneration = generation;
+        makePublicStatePayload(fixture);
+        return fixture;
+      };
+      const db = initFirebase();
+      const twoPhaseGeneration = "two-phase-generation";
+      const twoPhaseAttempted = makeTwoPhaseFixture(twoPhaseId, twoPhaseGeneration, Date.now() + 1000);
+      const twoPhaseOlder = normalizeImportedState(JSON.parse(JSON.stringify(twoPhaseAttempted)));
+      twoPhaseOlder.updatedAt = twoPhaseAttempted.updatedAt - 1000;
+      const twoPhaseNewer = normalizeImportedState(JSON.parse(JSON.stringify(twoPhaseAttempted)));
+      twoPhaseNewer.tournament.name = "QA newer public progression";
+      twoPhaseNewer.updatedAt = twoPhaseAttempted.updatedAt + 1000;
+      const twoPhaseRawA = `${twoPhaseId}-phone-01012345678`;
+      const twoPhaseGroup = twoPhaseNewer.qualifierRounds[0].stages[0].groups[0];
+      twoPhaseGroup.points[twoPhaseRawA] = 11;
+      twoPhaseGroup.advanceIds = [twoPhaseRawA];
+      store.tournaments[twoPhaseId] = { state: JSON.parse(JSON.stringify(twoPhaseOlder)), updatedAt: twoPhaseOlder.updatedAt };
+      store.publicLive[twoPhaseId] = makePublicLivePayload(twoPhaseNewer);
+      state = normalizeImportedState(JSON.parse(JSON.stringify(twoPhaseAttempted)));
+      activeRoundIndex = 0;
+      state.activeRoundIndex = 0;
+      firebaseTournamentId = twoPhaseId;
+      localStorage.setItem("mini4wdTournamentId", twoPhaseId);
+      localStorage.setItem("mini4wdActiveLiveId", twoPhaseId);
+      try {
+        await writePrivateThenPublicLiveV278(db, twoPhaseId, twoPhaseAttempted, makePublicLivePayload(twoPhaseAttempted), "qa-two-phase-reconcile-v278");
+      } catch (error) {}
+      const twoPhasePrivateAfter = store.tournaments?.[twoPhaseId]?.state;
+      const twoPhasePrivateGroup = twoPhasePrivateAfter?.qualifierRounds?.[0]?.stages?.[0]?.groups?.[0];
+      const privatePublicFreshnessRejectReconciled = Boolean(
+        twoPhasePrivateAfter?.tournament?.name === "QA newer public progression"
+        && Number(twoPhasePrivateAfter?.updatedAt) === Number(twoPhaseNewer.updatedAt)
+        && twoPhasePrivateGroup?.points?.[twoPhaseRawA] === 11
+        && twoPhasePrivateGroup?.slots?.find(player => player?.id === twoPhaseRawA)?.contact === `CONTACT_SECRET_${twoPhaseId}`
+        && state.tournament?.name === "QA newer public progression"
+        && Number(state.updatedAt) === Number(twoPhaseNewer.updatedAt)
+      );
+
+      const raceGeneration = "two-phase-race-generation";
+      const raceAttempted = makeTwoPhaseFixture(twoPhaseRaceId, raceGeneration, Date.now() + 4000);
+      const raceOlder = normalizeImportedState(JSON.parse(JSON.stringify(raceAttempted)));
+      raceOlder.updatedAt = raceAttempted.updatedAt - 1000;
+      const raceRejectedPublic = normalizeImportedState(JSON.parse(JSON.stringify(raceAttempted)));
+      raceRejectedPublic.tournament.name = "QA rejected public T2";
+      raceRejectedPublic.updatedAt = raceAttempted.updatedAt + 1000;
+      const raceConcurrent = normalizeImportedState(JSON.parse(JSON.stringify(raceAttempted)));
+      raceConcurrent.tournament.name = "QA concurrent private T3";
+      raceConcurrent.updatedAt = raceAttempted.updatedAt + 2000;
+      raceConcurrent.liveSyncAttemptIdV278 = "qa-other-writer-token";
+      const raceRawA = `${twoPhaseRaceId}-phone-01012345678`;
+      raceConcurrent.qualifierRounds[0].stages[0].groups[0].points[raceRawA] = 23;
+      store.tournaments[twoPhaseRaceId] = { state: JSON.parse(JSON.stringify(raceOlder)), updatedAt: raceOlder.updatedAt };
+      store.publicLive[twoPhaseRaceId] = makePublicLivePayload(raceRejectedPublic);
+      state = normalizeImportedState(JSON.parse(JSON.stringify(raceAttempted)));
+      activeRoundIndex = 0;
+      state.activeRoundIndex = 0;
+      firebaseTournamentId = twoPhaseRaceId;
+      localStorage.setItem("mini4wdTournamentId", twoPhaseRaceId);
+      localStorage.setItem("mini4wdActiveLiveId", twoPhaseRaceId);
+      window.__qaFirebaseTransactionCounts[`tournaments/${twoPhaseRaceId}`] = 0;
+      window.__qaBeforeFirebaseTransaction = path => {
+        if (path !== `tournaments/${twoPhaseRaceId}`) return;
+        if (Number(window.__qaFirebaseTransactionCounts[path] || 0) !== 2) return;
+        store.tournaments[twoPhaseRaceId] = {
+          state: JSON.parse(JSON.stringify(raceConcurrent)),
+          updatedAt: raceConcurrent.updatedAt
+        };
+        store.publicLive[twoPhaseRaceId] = makePublicLivePayload(raceConcurrent);
+      };
+      try {
+        await writePrivateThenPublicLiveV278(db, twoPhaseRaceId, raceAttempted, makePublicLivePayload(raceAttempted), "qa-two-phase-cas-v278");
+      } catch (error) {}
+      window.__qaBeforeFirebaseTransaction = null;
+      const racePrivateAfter = store.tournaments?.[twoPhaseRaceId]?.state;
+      const racePublicAfter = store.publicLive?.[twoPhaseRaceId];
+      const privatePublicCompensationCasPreservedConcurrentWrite = Boolean(
+        racePrivateAfter?.tournament?.name === "QA concurrent private T3"
+        && Number(racePrivateAfter?.updatedAt) === Number(raceConcurrent.updatedAt)
+        && racePrivateAfter?.qualifierRounds?.[0]?.stages?.[0]?.groups?.[0]?.points?.[raceRawA] === 23
+        && racePublicAfter?.tournamentName === "QA concurrent private T3"
+        && Number(racePublicAfter?.updatedAt) === Number(raceConcurrent.updatedAt)
+        && state.tournament?.name === "QA concurrent private T3"
+      );
+      state = normalizeImportedState(localStateBeforeTwoPhase);
+      activeRoundIndex = localRoundBeforeTwoPhase;
+      state.activeRoundIndex = activeRoundIndex;
+      firebaseTournamentId = localFirebaseIdBeforeTwoPhase;
+      twoPhaseStorageKeys.forEach(key => {
+        const value = twoPhaseStorageBefore[key];
+        if (value == null) localStorage.removeItem(key);
+        else localStorage.setItem(key, value);
+      });
+
+      const legacyMapId = "qa-legacy-pub-reorder-v278";
+      const legacyPrivate = makePrivateState(legacyMapId, staleAt + 995);
+      delete legacyPrivate.tournament.publicParticipantAliases;
+      const legacyRawA = `${legacyMapId}-phone-01012345678`;
+      const legacyRawB = `${legacyMapId}-phone-01087654321`;
+      const legacyPublicState = makePublicStatePayload(legacyPrivate);
+      const legacyPublicGroup = legacyPublicState.qualifierRounds[0].stages[0].groups[0];
+      legacyPublicGroup.slots = [
+        { id: "pub-1", name: `Second ${legacyMapId}`, nickname: `Second ${legacyMapId}`, team: "QB", lane: 1 },
+        { id: "pub-2", name: `Public ${legacyMapId}`, nickname: `Public ${legacyMapId}`, team: "QA", lane: 2 }
+      ];
+      legacyPublicGroup.points = { "pub-1": 5, "pub-2": 9 };
+      legacyPublicGroup.advanceIds = ["pub-2"];
+      legacyPublicState.updatedAt = Date.now() + 180000;
+      const legacyMerged = window.__mini4wdMergeNewerPublicRunningStateV278(legacyPrivate, {
+        id: legacyMapId,
+        status: "running",
+        live: true,
+        updatedAt: legacyPublicState.updatedAt,
+        state: legacyPublicState
+      });
+      const legacyMergedGroup = legacyMerged.qualifierRounds[0].stages[0].groups[0];
+      const legacyPubReorderMappedByIdentity = Boolean(
+        legacyMergedGroup.slots[0]?.id === legacyRawB
+        && legacyMergedGroup.slots[0]?.contact === `SECOND_CONTACT_SECRET_${legacyMapId}`
+        && legacyMergedGroup.slots[1]?.id === legacyRawA
+        && legacyMergedGroup.slots[1]?.contact === `CONTACT_SECRET_${legacyMapId}`
+        && legacyMergedGroup.points?.[legacyRawB] === 5
+        && legacyMergedGroup.points?.[legacyRawA] === 9
+        && legacyMergedGroup.advanceIds?.[0] === legacyRawA
+      );
+
+      const ambiguousPrivate = makePrivateState("qa-legacy-pub-ambiguous-v278", staleAt + 996);
+      delete ambiguousPrivate.tournament.publicParticipantAliases;
+      ambiguousPrivate.qualifierRounds[0].stages[0].groups[0].slots.forEach(player => {
+        player.nickname = "Twin";
+        player.team = "Same";
+      });
+      const ambiguousPublicState = makePublicStatePayload(ambiguousPrivate);
+      const ambiguousPublicGroup = ambiguousPublicState.qualifierRounds[0].stages[0].groups[0];
+      ambiguousPublicGroup.slots = [
+        { id: "pub-2", name: "Twin", nickname: "Twin", team: "Same", lane: 1 },
+        { id: "pub-1", name: "Twin", nickname: "Twin", team: "Same", lane: 2 }
+      ];
+      ambiguousPublicGroup.points = { "pub-1": 3, "pub-2": 7 };
+      ambiguousPublicGroup.advanceIds = ["pub-2"];
+      ambiguousPublicState.updatedAt = Date.now() + 180001;
+      const ambiguousMerged = window.__mini4wdMergeNewerPublicRunningStateV278(ambiguousPrivate, {
+        id: "qa-legacy-pub-ambiguous-v278",
+        status: "running",
+        live: true,
+        updatedAt: ambiguousPublicState.updatedAt,
+        state: ambiguousPublicState
+      });
+      const ambiguousMergedGroup = ambiguousMerged.qualifierRounds[0].stages[0].groups[0];
+      const legacyPubAmbiguousStayedOpaque = Boolean(
+        ambiguousMergedGroup.slots.map(player => player?.id).join(",") === "pub-2,pub-1"
+        && ambiguousMergedGroup.slots.every(player => !player?.contact && !player?.realName)
+        && Object.keys(ambiguousMergedGroup.points || {}).sort().join(",") === "pub-1,pub-2"
+        && ambiguousMergedGroup.advanceIds?.[0] === "pub-2"
+      );
+      return {
+        forbiddenKeyPaths,
+        leakedTokens,
+        requiredEnvelopePreserved,
+        privateStatePreserved,
+        autoCloseHistoryPublished,
+        freshTournamentNotClosed,
+        legacyFlatRecordClosed,
+        parentTimestampNotClosed,
+        pendingRegistryPreservedBeforeRepair,
+        publicFailureStayedRetryable,
+        freshnessRejectedAndRolledBack,
+        autoCloseRollbackRegistryRestored,
+        autoCloseRollbackMergedNewerProgress,
+        doubleFailureSelfHealed,
+        finalizeFailureSelfHealed,
+        concurrentPublisherLeaseHeld,
+        divergentTerminalConflictsRetired,
+        finishPendingRegistryPreserved,
+        finishPendingHonorsNewerRunning,
+        finishRollbackMergedNewerProgress,
+        generationConflictProtected,
+        oldGenerationReleasePreservedNewClaim,
+        legacyReleasePreservedTokenizedClaim,
+        matchingGenerationReleaseSucceeded,
+        activeCleanupRacePreservedNewClaim,
+        registryConflictConverged,
+        autoCloseRegistryConflictConverged,
+        legacyPubReorderMappedByIdentity,
+        legacyPubAmbiguousStayedOpaque,
+        privatePublicFreshnessRejectReconciled,
+        privatePublicCompensationCasPreservedConcurrentWrite,
+        privateStatus: privateClosed?.tournament?.status || "",
+        publicStatus: publicClosed?.state?.tournament?.status || "",
+        refreshedStatus: refreshed?.tournament?.status || "",
+        legacyStatus: legacyClosed?.tournament?.status || "",
+        rollbackStatus: rollbackState?.tournament?.status || "",
+        repairedStatus: repairedState?.tournament?.status || ""
+      };
+    } finally {
+      window.__qaBeforeFirebaseTransaction = null;
+      window.__qaRejectFirebaseTransactionPaths = [];
+      delete store.tournaments[staleId];
+      delete store.tournaments[refreshedId];
+      delete store.tournaments[legacyId];
+      delete store.tournaments[rollbackId];
+      delete store.tournaments[freshnessId];
+      delete store.tournaments[doubleFailureId];
+      delete store.tournaments[parentFreshId];
+      delete store.tournaments[concurrentId];
+      delete store.tournaments[finalizeFailureId];
+      delete store.tournaments[divergentFinishId];
+      delete store.tournaments[divergentAutoId];
+      delete store.tournaments[finishConflictId];
+      delete store.tournaments[competingActiveId];
+      delete store.tournaments[supersededFinishId];
+      delete store.tournaments[supersededAutoId];
+      delete store.tournaments[generationConflictId];
+      delete store.tournaments[cleanupRaceOldId];
+      delete store.tournaments[cleanupRaceNewId];
+      delete store.tournaments[twoPhaseId];
+      delete store.tournaments[twoPhaseRaceId];
+      delete store.publicLive[staleId];
+      delete store.publicLive[refreshedId];
+      delete store.publicLive[legacyId];
+      delete store.publicLive[rollbackId];
+      delete store.publicLive[freshnessId];
+      delete store.publicLive[doubleFailureId];
+      delete store.publicLive[parentFreshId];
+      delete store.publicLive[concurrentId];
+      delete store.publicLive[finalizeFailureId];
+      delete store.publicLive[divergentFinishId];
+      delete store.publicLive[divergentAutoId];
+      delete store.publicLive[finishConflictId];
+      delete store.publicLive[competingActiveId];
+      delete store.publicLive[supersededFinishId];
+      delete store.publicLive[supersededAutoId];
+      delete store.publicLive[generationConflictId];
+      delete store.publicLive[cleanupRaceOldId];
+      delete store.publicLive[cleanupRaceNewId];
+      delete store.publicLive[twoPhaseId];
+      delete store.publicLive[twoPhaseRaceId];
+      if (activeRegistryBackup === undefined) delete store.activeTournaments["qa-venue"];
+      else store.activeTournaments["qa-venue"] = activeRegistryBackup;
+      store.privateResultLogs = store.privateResultLogs || {};
+      if (privateHistoryBackup === undefined) delete store.privateResultLogs["qa-venue"];
+      else store.privateResultLogs["qa-venue"] = privateHistoryBackup;
+      store.publicHistory = publicHistoryBackup;
+      renderOperator();
+    }
+  });
+  logs.push({ step: "remote-auto-close-privacy-v278", info: { remoteAutoClosePrivacyV278 } });
+  if (remoteAutoClosePrivacyV278.forbiddenKeyPaths.length || remoteAutoClosePrivacyV278.leakedTokens.length) {
+    failures.push(`remote auto-close leaked private state ${JSON.stringify(remoteAutoClosePrivacyV278)}`);
+  }
+  if (!remoteAutoClosePrivacyV278.requiredEnvelopePreserved || !remoteAutoClosePrivacyV278.privateStatePreserved || !remoteAutoClosePrivacyV278.autoCloseHistoryPublished || !remoteAutoClosePrivacyV278.freshTournamentNotClosed || !remoteAutoClosePrivacyV278.legacyFlatRecordClosed || !remoteAutoClosePrivacyV278.parentTimestampNotClosed || !remoteAutoClosePrivacyV278.pendingRegistryPreservedBeforeRepair || !remoteAutoClosePrivacyV278.publicFailureStayedRetryable || !remoteAutoClosePrivacyV278.freshnessRejectedAndRolledBack || !remoteAutoClosePrivacyV278.autoCloseRollbackRegistryRestored || !remoteAutoClosePrivacyV278.autoCloseRollbackMergedNewerProgress || !remoteAutoClosePrivacyV278.doubleFailureSelfHealed || !remoteAutoClosePrivacyV278.finalizeFailureSelfHealed || !remoteAutoClosePrivacyV278.concurrentPublisherLeaseHeld || !remoteAutoClosePrivacyV278.divergentTerminalConflictsRetired || !remoteAutoClosePrivacyV278.finishPendingRegistryPreserved || !remoteAutoClosePrivacyV278.finishPendingHonorsNewerRunning || !remoteAutoClosePrivacyV278.finishRollbackMergedNewerProgress || !remoteAutoClosePrivacyV278.generationConflictProtected || !remoteAutoClosePrivacyV278.oldGenerationReleasePreservedNewClaim || !remoteAutoClosePrivacyV278.legacyReleasePreservedTokenizedClaim || !remoteAutoClosePrivacyV278.matchingGenerationReleaseSucceeded || !remoteAutoClosePrivacyV278.activeCleanupRacePreservedNewClaim || !remoteAutoClosePrivacyV278.registryConflictConverged || !remoteAutoClosePrivacyV278.autoCloseRegistryConflictConverged || !remoteAutoClosePrivacyV278.legacyPubReorderMappedByIdentity || !remoteAutoClosePrivacyV278.legacyPubAmbiguousStayedOpaque || !remoteAutoClosePrivacyV278.privatePublicFreshnessRejectReconciled || !remoteAutoClosePrivacyV278.privatePublicCompensationCasPreservedConcurrentWrite) {
+    failures.push(`remote auto-close safety regression ${JSON.stringify(remoteAutoClosePrivacyV278)}`);
+  }
+
+  const finishSyncFailureV278 = await page.evaluate(async () => {
+    const backupState = exportState();
+    const backupActiveRoundIndex = activeRoundIndex;
+    const backupFirebaseTournamentId = firebaseTournamentId;
+    const backupDbVenueIdDraft = dbVenueIdDraft;
+    const storageKeys = [STORAGE_KEY, LOCAL_SNAPSHOT_KEY, OPERATOR_UNDO_STORAGE_KEY_V266, "mini4wdTournamentId", "mini4wdActiveLiveId", "mini4wdActiveLiveSignature", "mini4wdActiveLiveDate"];
+    const storageBackup = Object.fromEntries(storageKeys.map(key => [key, localStorage.getItem(key)]));
+    const activeRegistryBackup = window.__qaFirebaseStore?.activeTournaments?.["qa-venue"]
+      ? JSON.parse(JSON.stringify(window.__qaFirebaseStore.activeTournaments["qa-venue"]))
+      : undefined;
+    let tournamentId = "";
+    let canonicalTournamentId = "";
+    let staleConflictId = "";
+    let finishRecordId = "";
+    let staleFalseHistoryId = "";
+    let completedTerminalId = "";
+    let snapshotRestoreId = "";
+    let mixedGenerationSnapshotId = "";
+    let exactVenueSnapshotId = "";
+    let exactVenueCompetitorId = "";
+    const exactSnapshotVenueId = "qa-snapshot-exact-venue";
+    const currentDraftVenueId = "qa-current-venue";
+    try {
+      state = makeInitialState(3);
+      state.inputText = "Finish A/QA\nFinish B/QB";
+      state.tournament = {
+        ...state.tournament,
+        name: "QA Finish Sync Failure",
+        venue: "QA Venue",
+        venueId: "qa-venue",
+        raceClass: "오픈",
+        status: "finished",
+        startedAtISO: new Date().toISOString(),
+        endedAtISO: new Date().toISOString(),
+        endedAtDisplay: formatDateTimeLocal(new Date())
+      };
+      state.updatedAt = Date.now();
+      activeRoundIndex = 0;
+      state.activeRoundIndex = 0;
+      canonicalTournamentId = buildAutoTournamentId();
+      tournamentId = "qa-recovered-noncanonical-live-v278";
+      state.tournament.liveId = tournamentId;
+      state.tournament.liveSignature = canonicalTournamentId;
+      state.tournament.finishSyncRecord = makeTournamentRecord();
+      finishRecordId = state.tournament.finishSyncRecord.id;
+      firebaseTournamentId = tournamentId;
+      localStorage.setItem("mini4wdTournamentId", tournamentId);
+      localStorage.setItem("mini4wdActiveLiveId", tournamentId);
+      localStorage.setItem("mini4wdActiveLiveSignature", canonicalTournamentId);
+      window.__qaRejectFirebaseTransactionPaths = [`publicLive/${tournamentId}`];
+      window.__qaFirebaseTransactionLog = [];
+
+      const firstResult = await syncFinishedTournamentAndAdvanceV278("qa-finish-sync-failure-v278");
+      const firstSyncTransactionLog = [...window.__qaFirebaseTransactionLog];
+      const privatePendingWrittenBeforePublic = firstSyncTransactionLog.indexOf(`tournaments/${tournamentId}`) >= 0
+        && firstSyncTransactionLog.indexOf(`tournaments/${tournamentId}`) < firstSyncTransactionLog.indexOf(`publicLive/${tournamentId}`);
+      const pendingAfterFailure = Boolean(state.tournament.finishSyncPending);
+      const statusAfterFailure = state.tournament.status;
+      const syncErrorAfterFailure = state.tournament.finishSyncError || "";
+      const remotePrivatePendingAfterFailure = Boolean(window.__qaFirebaseStore?.tournaments?.[tournamentId]?.state?.tournament?.finishSyncPending);
+      const noHistoryBeforeTerminalPublic = Boolean(
+        !window.__qaFirebaseStore?.privateResultLogs?.["qa-venue"]?.[finishRecordId]
+        && !window.__qaFirebaseStore?.publicHistory?.[finishRecordId]
+      );
+      prepareNewTournamentFromFinished();
+      const statusAfterBlockedPrepare = state.tournament.status;
+
+      window.__qaRejectFirebaseTransactionPaths = [];
+      await window.requestActiveTournamentListV135();
+      const remoteScanRecoveredPendingFinish = Boolean(
+        window.__qaFirebaseStore?.tournaments?.[tournamentId]?.state?.tournament?.status === "finished"
+        && window.__qaFirebaseStore?.tournaments?.[tournamentId]?.state?.tournament?.finishSyncPending === false
+        && window.__qaFirebaseStore?.publicLive?.[tournamentId]?.status === "finished"
+      );
+      const historyPublishedAfterTerminalAcceptance = Boolean(
+        window.__qaFirebaseStore?.privateResultLogs?.["qa-venue"]?.[finishRecordId]
+        && window.__qaFirebaseStore?.publicHistory?.[finishRecordId]
+      );
+      const retryResult = await window.retryFinishSyncV278();
+      const statusAfterRetry = state.tournament.status;
+      const remotePrivate = window.__qaFirebaseStore?.tournaments?.[tournamentId]?.state;
+      const remotePublic = window.__qaFirebaseStore?.publicLive?.[tournamentId];
+      const canonicalRemote = window.__qaFirebaseStore?.tournaments?.[canonicalTournamentId] || window.__qaFirebaseStore?.publicLive?.[canonicalTournamentId];
+
+      // Simulate the original failed tab retrying after another session has
+      // resumed the tournament. The semantic finish timestamp must stay old;
+      // retry time itself must not make the stale finish look newer.
+      staleConflictId = "qa-stale-local-finish-retry-v278";
+      const staleTerminalAt = Date.now() - 120000;
+      const newerRunningAt = Date.now() - 60000;
+      const remoteRunningState = makeInitialState(3);
+      remoteRunningState.inputText = "Resume A/QA\nResume B/QB";
+      remoteRunningState.tournament = {
+        ...remoteRunningState.tournament,
+        name: "QA Newer Remote Resume",
+        venue: "QA Venue",
+        venueId: "qa-venue",
+        raceClass: "오픈",
+        status: "running",
+        startedAtISO: new Date(staleTerminalAt - 60000).toISOString(),
+        liveId: staleConflictId,
+        liveSignature: ""
+      };
+      const staleCanonicalSignature = (() => {
+        const previousState = state;
+        state = remoteRunningState;
+        try { return buildAutoTournamentId(); }
+        finally { state = previousState; }
+      })();
+      remoteRunningState.tournament.liveSignature = staleCanonicalSignature;
+      remoteRunningState.updatedAt = newerRunningAt;
+      remoteRunningState.activeRoundIndex = 0;
+      // Keep this as a legacy flat record: a child /state transaction would
+      // blindly create stale terminal state and mask the newer flat runner.
+      window.__qaFirebaseStore.tournaments[staleConflictId] = JSON.parse(JSON.stringify(remoteRunningState));
+      window.__qaFirebaseStore.publicLive[staleConflictId] = {
+        id: staleConflictId,
+        status: "running",
+        live: true,
+        updatedAt: newerRunningAt,
+        state: makePublicStatePayload(remoteRunningState)
+      };
+      window.__qaFirebaseStore.activeTournaments["qa-venue"] = {
+        venueId: "qa-venue",
+        tournamentId: staleConflictId,
+        status: "running",
+        updatedAt: newerRunningAt
+      };
+      state = normalizeImportedState(remoteRunningState);
+      // Queue the installed v104 batcher while still running, then transition
+      // locally to pending before its 220ms timer fires.
+      queueFirebaseSave();
+      state.tournament.status = "finished";
+      state.tournament.finishSyncPending = true;
+      state.tournament.finishSyncTerminalUpdatedAt = staleTerminalAt;
+      state.tournament.finishSyncPreviousUpdatedAt = staleTerminalAt - 1000;
+      state.tournament.finishSyncPreviousEndedAtISO = "";
+      state.tournament.finishSyncPreviousEndedAtDisplay = "";
+      state.tournament.finishSyncPreviousLiveStopped = false;
+      state.tournament.finishSyncPreviousFirebaseAutoSave = true;
+      staleFalseHistoryId = "qa-stale-finish-history-v278";
+      state.tournament.finishSyncRecord = {
+        id: staleFalseHistoryId,
+        venueId: "qa-venue",
+        venueName: "QA Venue",
+        tournamentName: "Stale false terminal",
+        rows: []
+      };
+      state.tournament.endedAtISO = new Date(staleTerminalAt).toISOString();
+      state.tournament.endedAtDisplay = formatDateTimeLocal(new Date(staleTerminalAt));
+      // A pagehide/save may have refreshed this local field after the finish.
+      // finishSyncTerminalUpdatedAt remains the authoritative comparison time.
+      state.updatedAt = Date.now();
+      firebaseTournamentId = staleConflictId;
+      localStorage.setItem("mini4wdTournamentId", staleConflictId);
+      localStorage.setItem("mini4wdActiveLiveId", staleConflictId);
+      localStorage.setItem("mini4wdActiveLiveSignature", staleCanonicalSignature);
+      renderOperator();
+      const pendingCancelHidden = !Array.from(document.querySelectorAll("button"))
+        .some(button => button.textContent?.trim() === "종료 취소");
+      const pendingPublicFallbackBlocked = await forcePublishPublicLiveV50("qa-pending-public-fallback-v278") === false;
+      await new Promise(resolve => setTimeout(resolve, 950));
+      const renderAutosaveHonorsNewerRunning = Boolean(
+        pendingPublicFallbackBlocked
+        &&
+        state.tournament.status === "finished"
+        && state.tournament.finishSyncPending === true
+        && (window.__qaFirebaseStore?.tournaments?.[staleConflictId]?.state || window.__qaFirebaseStore?.tournaments?.[staleConflictId])?.tournament?.status === "running"
+        && Number((window.__qaFirebaseStore?.tournaments?.[staleConflictId]?.state || window.__qaFirebaseStore?.tournaments?.[staleConflictId])?.updatedAt) === newerRunningAt
+        && window.__qaFirebaseStore?.publicLive?.[staleConflictId]?.status === "running"
+        && Number(window.__qaFirebaseStore?.publicLive?.[staleConflictId]?.updatedAt) === newerRunningAt
+      );
+      const staleLocalRetryResult = await window.retryFinishSyncV278();
+      const staleConflictPrivate = window.__qaFirebaseStore?.tournaments?.[staleConflictId]?.state || window.__qaFirebaseStore?.tournaments?.[staleConflictId];
+      const staleConflictPublic = window.__qaFirebaseStore?.publicLive?.[staleConflictId];
+      const staleLocalRetryDebug = {
+        result: staleLocalRetryResult,
+        localStatus: state.tournament.status,
+        localPending: Boolean(state.tournament.finishSyncPending),
+        localUpdatedAt: Number(state.updatedAt),
+        privateStatus: staleConflictPrivate?.tournament?.status || "",
+        privateUpdatedAt: Number(staleConflictPrivate?.updatedAt),
+        publicStatus: staleConflictPublic?.status || "",
+        publicUpdatedAt: Number(staleConflictPublic?.updatedAt),
+        registryTournamentId: window.__qaFirebaseStore?.activeTournaments?.["qa-venue"]?.tournamentId || "",
+        expectedTournamentId: staleConflictId,
+        expectedUpdatedAt: newerRunningAt
+      };
+      const staleLocalRetryHonorsNewerRunning = Boolean(
+        staleLocalRetryDebug.result === false
+        && staleLocalRetryDebug.localStatus === "running"
+        && staleLocalRetryDebug.localPending === false
+        && staleLocalRetryDebug.localUpdatedAt >= newerRunningAt
+        && staleLocalRetryDebug.privateStatus === "running"
+        && staleLocalRetryDebug.privateUpdatedAt === newerRunningAt
+        && staleLocalRetryDebug.publicStatus === "running"
+        && staleLocalRetryDebug.publicUpdatedAt === newerRunningAt
+        && staleLocalRetryDebug.registryTournamentId === staleConflictId
+      );
+      const staleTerminalCreatedNoFalseHistory = Boolean(
+        !window.__qaFirebaseStore?.privateResultLogs?.["qa-venue"]?.[staleFalseHistoryId]
+        && !window.__qaFirebaseStore?.publicHistory?.[staleFalseHistoryId]
+      );
+
+      completedTerminalId = "qa-completed-terminal-generic-block-v278";
+      const completedRemoteAt = Date.now() + 90000;
+      const completedRemoteRunning = normalizeImportedState(remoteRunningState);
+      completedRemoteRunning.tournament.liveId = completedTerminalId;
+      completedRemoteRunning.tournament.liveSignature = staleCanonicalSignature;
+      completedRemoteRunning.tournament.status = "running";
+      completedRemoteRunning.tournament.activeRegistryGeneration = "completed-new-generation";
+      completedRemoteRunning.updatedAt = completedRemoteAt;
+      window.__qaFirebaseStore.tournaments[completedTerminalId] = {
+        state: JSON.parse(JSON.stringify(completedRemoteRunning)),
+        updatedAt: completedRemoteAt
+      };
+      window.__qaFirebaseStore.publicLive[completedTerminalId] = {
+        id: completedTerminalId,
+        registryGeneration: "completed-new-generation",
+        status: "running",
+        live: true,
+        updatedAt: completedRemoteAt,
+        state: makePublicStatePayload(completedRemoteRunning)
+      };
+      window.__qaFirebaseStore.activeTournaments["qa-venue"] = {
+        venueId: "qa-venue",
+        tournamentId: completedTerminalId,
+        registryGeneration: "completed-new-generation",
+        status: "running",
+        updatedAt: completedRemoteAt
+      };
+      state = normalizeImportedState(completedRemoteRunning);
+      state.tournament.status = "finished";
+      state.tournament.finishSyncPending = false;
+      state.tournament.finishSyncTerminalUpdatedAt = completedRemoteAt - 120000;
+      state.tournament.activeRegistryGeneration = "completed-old-generation";
+      state.updatedAt = Date.now();
+      firebaseTournamentId = completedTerminalId;
+      localStorage.setItem("mini4wdTournamentId", completedTerminalId);
+      localStorage.setItem("mini4wdActiveLiveId", completedTerminalId);
+      localStorage.setItem("mini4wdActiveLiveSignature", staleCanonicalSignature);
+      renderOperator();
+      queueFirebaseSave();
+      const completedForceBlocked = await forceLiveBroadcastSync("qa-completed-terminal-v278") === false;
+      const completedPublicBlocked = await forcePublishPublicLiveV50("qa-completed-terminal-public-v278") === false;
+      await new Promise(resolve => setTimeout(resolve, 950));
+      const completedPrivateAfter = window.__qaFirebaseStore?.tournaments?.[completedTerminalId]?.state;
+      const completedPublicAfter = window.__qaFirebaseStore?.publicLive?.[completedTerminalId];
+      const completedTerminalGenericSyncBlocked = Boolean(
+        completedForceBlocked
+        && completedPublicBlocked
+        && completedPrivateAfter?.tournament?.status === "running"
+        && Number(completedPrivateAfter?.updatedAt) === completedRemoteAt
+        && completedPublicAfter?.status === "running"
+        && Number(completedPublicAfter?.updatedAt) === completedRemoteAt
+      );
+
+      snapshotRestoreId = "qa-snapshot-terminal-resurrection-v278";
+      const snapshotRunningState = normalizeImportedState(remoteRunningState);
+      snapshotRunningState.tournament.liveId = snapshotRestoreId;
+      snapshotRunningState.tournament.liveSignature = staleCanonicalSignature;
+      snapshotRunningState.tournament.status = "running";
+      snapshotRunningState.tournament.activeRegistryGeneration = "snapshot-generation";
+      snapshotRunningState.updatedAt = Date.now() - 120000;
+      const snapshotTerminalState = normalizeImportedState(snapshotRunningState);
+      snapshotTerminalState.tournament.status = "finished";
+      snapshotTerminalState.tournament.endedAtISO = new Date().toISOString();
+      snapshotTerminalState.tournament.endedAtDisplay = formatDateTimeLocal(new Date());
+      snapshotTerminalState.updatedAt = Date.now() + 120000;
+      window.__qaFirebaseStore.tournaments[snapshotRestoreId] = {
+        state: JSON.parse(JSON.stringify(snapshotTerminalState)),
+        updatedAt: snapshotTerminalState.updatedAt
+      };
+      window.__qaFirebaseStore.publicLive[snapshotRestoreId] = {
+        id: snapshotRestoreId,
+        registryGeneration: "snapshot-generation",
+        status: "finished",
+        live: false,
+        updatedAt: snapshotTerminalState.updatedAt,
+        state: makePublicStatePayload(snapshotTerminalState)
+      };
+      delete window.__qaFirebaseStore.activeTournaments["qa-venue"];
+      const snapshotKey = "qa-snapshot-terminal-resurrection-key-v278";
+      const snapshotId = "qa-snapshot-terminal-resurrection-entry-v278";
+      saveSnapshotMapV278({
+        [snapshotKey]: {
+          id: snapshotId,
+          key: snapshotKey,
+          tournamentId: snapshotRestoreId,
+          label: "QA stale running snapshot",
+          createdAt: new Date().toISOString(),
+          state: JSON.parse(JSON.stringify(snapshotRunningState))
+        }
+      }, snapshotKey);
+      state = normalizeImportedState(snapshotRunningState);
+      firebaseTournamentId = snapshotRestoreId;
+      localStorage.setItem("mini4wdTournamentId", snapshotRestoreId);
+      localStorage.setItem("mini4wdActiveLiveId", snapshotRestoreId);
+      localStorage.setItem("mini4wdActiveLiveSignature", staleCanonicalSignature);
+      await restoreSnapshot(snapshotId);
+      const snapshotRemoteAfter = window.__qaFirebaseStore?.tournaments?.[snapshotRestoreId]?.state;
+      const snapshotPublicAfter = window.__qaFirebaseStore?.publicLive?.[snapshotRestoreId];
+      const snapshotRestoreCannotReviveTerminal = Boolean(
+        state.tournament?.status === "finished"
+        && snapshotRemoteAfter?.tournament?.status === "finished"
+        && Number(snapshotRemoteAfter?.updatedAt) === Number(snapshotTerminalState.updatedAt)
+        && snapshotPublicAfter?.status === "finished"
+        && snapshotPublicAfter?.live === false
+        && !window.__qaFirebaseStore?.activeTournaments?.["qa-venue"]
+      );
+
+      state = normalizeImportedState(snapshotRunningState);
+      firebaseTournamentId = snapshotRestoreId;
+      localStorage.setItem("mini4wdTournamentId", snapshotRestoreId);
+      localStorage.setItem("mini4wdActiveLiveId", snapshotRestoreId);
+      localStorage.setItem("mini4wdActiveLiveSignature", staleCanonicalSignature);
+      safeSetItem(OPERATOR_UNDO_STORAGE_KEY_V266, JSON.stringify({
+        id: "qa-operator-undo-terminal-entry-v278",
+        key: currentSnapshotKey(),
+        tournamentId: snapshotRestoreId,
+        label: "QA stale running undo",
+        createdAt: new Date().toISOString(),
+        activeRoundIndex: snapshotRunningState.activeRoundIndex || 0,
+        state: JSON.parse(JSON.stringify(snapshotRunningState))
+      }));
+      await restoreOperatorUndoV266();
+      const undoRemoteAfter = window.__qaFirebaseStore?.tournaments?.[snapshotRestoreId]?.state;
+      const undoPublicAfter = window.__qaFirebaseStore?.publicLive?.[snapshotRestoreId];
+      const operatorUndoCannotReviveTerminal = Boolean(
+        state.tournament?.status === "finished"
+        && undoRemoteAfter?.tournament?.status === "finished"
+        && Number(undoRemoteAfter?.updatedAt) === Number(snapshotTerminalState.updatedAt)
+        && undoPublicAfter?.status === "finished"
+        && undoPublicAfter?.live === false
+        && !window.__qaFirebaseStore?.activeTournaments?.["qa-venue"]
+      );
+
+      mixedGenerationSnapshotId = "qa-snapshot-mixed-generation-v278";
+      const tokenizedCurrentState = normalizeImportedState(remoteRunningState);
+      tokenizedCurrentState.tournament.name = "QA tokenized current instance";
+      tokenizedCurrentState.tournament.liveId = mixedGenerationSnapshotId;
+      tokenizedCurrentState.tournament.liveSignature = staleCanonicalSignature;
+      tokenizedCurrentState.tournament.status = "running";
+      tokenizedCurrentState.tournament.activeRegistryGeneration = "snapshot-current-generation";
+      tokenizedCurrentState.updatedAt = Date.now() + 180000;
+      window.__qaFirebaseStore.tournaments[mixedGenerationSnapshotId] = {
+        state: JSON.parse(JSON.stringify(tokenizedCurrentState)),
+        updatedAt: tokenizedCurrentState.updatedAt
+      };
+      window.__qaFirebaseStore.publicLive[mixedGenerationSnapshotId] = {
+        id: mixedGenerationSnapshotId,
+        registryGeneration: "snapshot-current-generation",
+        status: "running",
+        live: true,
+        updatedAt: tokenizedCurrentState.updatedAt,
+        state: makePublicStatePayload(tokenizedCurrentState)
+      };
+      window.__qaFirebaseStore.activeTournaments["qa-venue"] = {
+        venueId: "qa-venue",
+        tournamentId: mixedGenerationSnapshotId,
+        registryGeneration: "snapshot-current-generation",
+        status: "running",
+        updatedAt: tokenizedCurrentState.updatedAt
+      };
+      const legacySnapshotState = normalizeImportedState(tokenizedCurrentState);
+      legacySnapshotState.tournament.name = "QA legacy stale snapshot";
+      delete legacySnapshotState.tournament.activeRegistryGeneration;
+      legacySnapshotState.updatedAt = Date.now() - 180000;
+      const mixedSnapshotKey = "qa-snapshot-mixed-generation-key-v278";
+      const mixedSnapshotEntryId = "qa-snapshot-mixed-generation-entry-v278";
+      saveSnapshotMapV278({
+        [mixedSnapshotKey]: {
+          id: mixedSnapshotEntryId,
+          key: mixedSnapshotKey,
+          tournamentId: mixedGenerationSnapshotId,
+          label: "QA legacy generation snapshot",
+          createdAt: new Date().toISOString(),
+          state: JSON.parse(JSON.stringify(legacySnapshotState))
+        }
+      }, mixedSnapshotKey);
+      state = normalizeImportedState(tokenizedCurrentState);
+      firebaseTournamentId = mixedGenerationSnapshotId;
+      localStorage.setItem("mini4wdTournamentId", mixedGenerationSnapshotId);
+      localStorage.setItem("mini4wdActiveLiveId", mixedGenerationSnapshotId);
+      localStorage.setItem("mini4wdActiveLiveSignature", staleCanonicalSignature);
+      await restoreSnapshot(mixedSnapshotEntryId);
+      const mixedRemoteAfter = window.__qaFirebaseStore?.tournaments?.[mixedGenerationSnapshotId]?.state;
+      const mixedPublicAfter = window.__qaFirebaseStore?.publicLive?.[mixedGenerationSnapshotId];
+      const snapshotRestoreRejectsLegacyGenerationMix = Boolean(
+        state.tournament?.name === "QA tokenized current instance"
+        && state.tournament?.activeRegistryGeneration === "snapshot-current-generation"
+        && mixedRemoteAfter?.tournament?.name === "QA tokenized current instance"
+        && Number(mixedRemoteAfter?.updatedAt) === Number(tokenizedCurrentState.updatedAt)
+        && mixedPublicAfter?.registryGeneration === "snapshot-current-generation"
+        && window.__qaFirebaseStore?.activeTournaments?.["qa-venue"]?.registryGeneration === "snapshot-current-generation"
+      );
+      safeSetItem(OPERATOR_UNDO_STORAGE_KEY_V266, JSON.stringify({
+        id: "qa-undo-mixed-generation-entry-v278",
+        key: currentSnapshotKey(),
+        tournamentId: mixedGenerationSnapshotId,
+        label: "QA legacy generation undo",
+        createdAt: new Date().toISOString(),
+        activeRoundIndex: legacySnapshotState.activeRoundIndex || 0,
+        state: JSON.parse(JSON.stringify(legacySnapshotState))
+      }));
+      await restoreOperatorUndoV266();
+      const mixedUndoRemoteAfter = window.__qaFirebaseStore?.tournaments?.[mixedGenerationSnapshotId]?.state;
+      const mixedUndoPublicAfter = window.__qaFirebaseStore?.publicLive?.[mixedGenerationSnapshotId];
+      const operatorUndoRejectsLegacyGenerationMix = Boolean(
+        state.tournament?.name === "QA tokenized current instance"
+        && state.tournament?.activeRegistryGeneration === "snapshot-current-generation"
+        && mixedUndoRemoteAfter?.tournament?.name === "QA tokenized current instance"
+        && Number(mixedUndoRemoteAfter?.updatedAt) === Number(tokenizedCurrentState.updatedAt)
+        && mixedUndoPublicAfter?.registryGeneration === "snapshot-current-generation"
+        && window.__qaFirebaseStore?.activeTournaments?.["qa-venue"]?.registryGeneration === "snapshot-current-generation"
+      );
+
+      exactVenueSnapshotId = "qa-snapshot-exact-claim-v278";
+      exactVenueCompetitorId = "qa-snapshot-other-venue-competitor-v278";
+      const exactGeneration = "snapshot-exact-generation";
+      const exactRunningState = normalizeImportedState(remoteRunningState);
+      exactRunningState.tournament.name = "QA exact venue snapshot";
+      exactRunningState.tournament.venue = "QA Snapshot Exact Venue";
+      exactRunningState.tournament.venueId = exactSnapshotVenueId;
+      exactRunningState.tournament.liveId = exactVenueSnapshotId;
+      exactRunningState.tournament.liveSignature = staleCanonicalSignature;
+      exactRunningState.tournament.status = "running";
+      exactRunningState.tournament.activeRegistryGeneration = exactGeneration;
+      exactRunningState.updatedAt = Date.now() - 5000;
+      const exactPublicState = makePublicStatePayload(exactRunningState);
+      window.__qaFirebaseStore.tournaments[exactVenueSnapshotId] = {
+        state: JSON.parse(JSON.stringify(exactRunningState)),
+        updatedAt: exactRunningState.updatedAt
+      };
+      window.__qaFirebaseStore.publicLive[exactVenueSnapshotId] = {
+        id: exactVenueSnapshotId,
+        registryGeneration: exactGeneration,
+        status: "running",
+        live: true,
+        updatedAt: exactRunningState.updatedAt,
+        state: exactPublicState
+      };
+      window.__qaFirebaseStore.activeTournaments[exactSnapshotVenueId] = {
+        venueId: exactSnapshotVenueId,
+        tournamentId: exactVenueSnapshotId,
+        registryGeneration: exactGeneration,
+        status: "running",
+        updatedAt: exactRunningState.updatedAt
+      };
+
+      const competitorState = normalizeImportedState(remoteRunningState);
+      competitorState.tournament.name = "QA current venue competitor";
+      competitorState.tournament.venue = "QA Current Venue";
+      competitorState.tournament.venueId = currentDraftVenueId;
+      competitorState.tournament.liveId = exactVenueCompetitorId;
+      competitorState.tournament.status = "running";
+      competitorState.tournament.activeRegistryGeneration = "snapshot-competitor-generation";
+      competitorState.updatedAt = Date.now() - 4000;
+      const competitorPublicState = makePublicStatePayload(competitorState);
+      window.__qaFirebaseStore.tournaments[exactVenueCompetitorId] = {
+        state: JSON.parse(JSON.stringify(competitorState)),
+        updatedAt: competitorState.updatedAt
+      };
+      window.__qaFirebaseStore.publicLive[exactVenueCompetitorId] = {
+        id: exactVenueCompetitorId,
+        registryGeneration: "snapshot-competitor-generation",
+        status: "running",
+        live: true,
+        updatedAt: competitorState.updatedAt,
+        state: competitorPublicState
+      };
+      window.__qaFirebaseStore.activeTournaments[currentDraftVenueId] = {
+        venueId: currentDraftVenueId,
+        tournamentId: exactVenueCompetitorId,
+        registryGeneration: "snapshot-competitor-generation",
+        status: "running",
+        updatedAt: competitorState.updatedAt
+      };
+      const exactSnapshotKey = "qa-snapshot-exact-venue-key-v278";
+      const exactSnapshotEntryId = "qa-snapshot-exact-venue-entry-v278";
+      saveSnapshotMapV278({
+        [exactSnapshotKey]: {
+          id: exactSnapshotEntryId,
+          key: exactSnapshotKey,
+          tournamentId: exactVenueSnapshotId,
+          label: "QA exact venue running snapshot",
+          createdAt: new Date().toISOString(),
+          state: JSON.parse(JSON.stringify(exactRunningState))
+        }
+      }, exactSnapshotKey);
+      dbVenueIdDraft = currentDraftVenueId;
+      state = normalizeImportedState(competitorState);
+      firebaseTournamentId = exactVenueCompetitorId;
+      localStorage.setItem("mini4wdTournamentId", exactVenueCompetitorId);
+      localStorage.setItem("mini4wdActiveLiveId", exactVenueCompetitorId);
+      localStorage.setItem("mini4wdActiveLiveSignature", competitorState.tournament.liveSignature || exactVenueCompetitorId);
+      window.__qaFirebaseTransactionLog = [];
+      await restoreSnapshot(exactSnapshotEntryId);
+      const exactClaimLog = [...window.__qaFirebaseTransactionLog];
+      const exactRegistryAfter = window.__qaFirebaseStore?.activeTournaments?.[exactSnapshotVenueId];
+      const competitorRegistryAfter = window.__qaFirebaseStore?.activeTournaments?.[currentDraftVenueId];
+      const snapshotRestoreClaimsExactVenue = Boolean(
+        state.tournament?.status === "running"
+        && state.tournament?.name === "QA exact venue snapshot"
+        && state.tournament?.liveId === exactVenueSnapshotId
+        && state.tournament?.venueId === exactSnapshotVenueId
+        && exactRegistryAfter?.tournamentId === exactVenueSnapshotId
+        && exactRegistryAfter?.registryGeneration === exactGeneration
+        && competitorRegistryAfter?.tournamentId === exactVenueCompetitorId
+        && competitorRegistryAfter?.registryGeneration === "snapshot-competitor-generation"
+        && !exactClaimLog.includes(`activeTournaments/${exactSnapshotVenueId}`)
+        && !exactClaimLog.includes(`activeTournaments/${currentDraftVenueId}`)
+      );
+      const snapshotRestoreClaimsExactVenueDebug = {
+        stateStatus: state.tournament?.status,
+        stateName: state.tournament?.name,
+        stateLiveId: state.tournament?.liveId,
+        stateVenueId: state.tournament?.venueId,
+        exactRegistryAfter,
+        competitorRegistryAfter,
+        exactClaimLog
+      };
+      const forceEndCanonicalId = buildAutoTournamentId();
+      window.__qaFirebaseTransactionLog = [];
+      await forceEndTournament();
+      await new Promise(resolve => setTimeout(resolve, 25));
+      const forceEndedPrivate = window.__qaFirebaseStore?.tournaments?.[exactVenueSnapshotId]?.state;
+      const forceEndedPublic = window.__qaFirebaseStore?.publicLive?.[exactVenueSnapshotId];
+      const forceEndUniqueIdClosedExactRemote = Boolean(
+        exactVenueSnapshotId !== forceEndCanonicalId
+        && forceEndedPrivate?.tournament?.status === "finished"
+        && forceEndedPrivate?.tournament?.finishSyncPending !== true
+        && forceEndedPublic?.status === "finished"
+        && forceEndedPublic?.live === false
+        && !window.__qaFirebaseStore?.activeTournaments?.[exactSnapshotVenueId]
+        && state.tournament?.status === "draft"
+        && firebaseTournamentId !== exactVenueSnapshotId
+        && !window.__qaFirebaseStore?.tournaments?.[forceEndCanonicalId]
+      );
+      const forceEndUniqueIdDebug = {
+        forceEndCanonicalId,
+        exactVenueSnapshotId,
+        privateStatus: forceEndedPrivate?.tournament?.status,
+        privatePending: forceEndedPrivate?.tournament?.finishSyncPending,
+        publicStatus: forceEndedPublic?.status,
+        publicLive: forceEndedPublic?.live,
+        active: window.__qaFirebaseStore?.activeTournaments?.[exactSnapshotVenueId] || null,
+        localStatus: state.tournament?.status,
+        localFirebaseId: firebaseTournamentId,
+        transactionLog: [...window.__qaFirebaseTransactionLog]
+      };
+      return {
+        firstResult,
+        privatePendingWrittenBeforePublic,
+        pendingAfterFailure,
+        statusAfterFailure,
+        statusAfterBlockedPrepare,
+        syncErrorAfterFailure,
+        remotePrivatePendingAfterFailure,
+        remoteScanRecoveredPendingFinish,
+        noHistoryBeforeTerminalPublic,
+        historyPublishedAfterTerminalAcceptance,
+        retryResult,
+        statusAfterRetry,
+        remotePrivateStatus: remotePrivate?.tournament?.status || "",
+        remotePrivatePending: Boolean(remotePrivate?.tournament?.finishSyncPending),
+        remotePublicStatus: remotePublic?.state?.tournament?.status || "",
+        remotePublicLive: remotePublic?.live,
+        recoveredLiveIdPreserved: remotePublic?.id === tournamentId && !canonicalRemote,
+        renderAutosaveHonorsNewerRunning,
+        pendingCancelHidden,
+        pendingPublicFallbackBlocked,
+        staleLocalRetryHonorsNewerRunning,
+        staleTerminalCreatedNoFalseHistory,
+        completedTerminalGenericSyncBlocked,
+        snapshotRestoreCannotReviveTerminal,
+        operatorUndoCannotReviveTerminal,
+        snapshotRestoreRejectsLegacyGenerationMix,
+        operatorUndoRejectsLegacyGenerationMix,
+        snapshotRestoreClaimsExactVenue,
+        snapshotRestoreClaimsExactVenueDebug,
+        forceEndUniqueIdClosedExactRemote,
+        forceEndUniqueIdDebug,
+        staleLocalRetryDebug,
+        canonicalTournamentId
+      };
+    } finally {
+      window.__qaRejectFirebaseTransactionPaths = [];
+      if (tournamentId) {
+        delete window.__qaFirebaseStore?.tournaments?.[tournamentId];
+        delete window.__qaFirebaseStore?.publicLive?.[tournamentId];
+      }
+      if (canonicalTournamentId) {
+        delete window.__qaFirebaseStore?.tournaments?.[canonicalTournamentId];
+        delete window.__qaFirebaseStore?.publicLive?.[canonicalTournamentId];
+      }
+      if (staleConflictId) {
+        delete window.__qaFirebaseStore?.tournaments?.[staleConflictId];
+        delete window.__qaFirebaseStore?.publicLive?.[staleConflictId];
+      }
+      if (completedTerminalId) {
+        delete window.__qaFirebaseStore?.tournaments?.[completedTerminalId];
+        delete window.__qaFirebaseStore?.publicLive?.[completedTerminalId];
+      }
+      if (snapshotRestoreId) {
+        delete window.__qaFirebaseStore?.tournaments?.[snapshotRestoreId];
+        delete window.__qaFirebaseStore?.publicLive?.[snapshotRestoreId];
+      }
+      if (mixedGenerationSnapshotId) {
+        delete window.__qaFirebaseStore?.tournaments?.[mixedGenerationSnapshotId];
+        delete window.__qaFirebaseStore?.publicLive?.[mixedGenerationSnapshotId];
+      }
+      if (exactVenueSnapshotId) {
+        delete window.__qaFirebaseStore?.tournaments?.[exactVenueSnapshotId];
+        delete window.__qaFirebaseStore?.publicLive?.[exactVenueSnapshotId];
+      }
+      if (exactVenueCompetitorId) {
+        delete window.__qaFirebaseStore?.tournaments?.[exactVenueCompetitorId];
+        delete window.__qaFirebaseStore?.publicLive?.[exactVenueCompetitorId];
+      }
+      delete window.__qaFirebaseStore?.activeTournaments?.[exactSnapshotVenueId];
+      delete window.__qaFirebaseStore?.activeTournaments?.[currentDraftVenueId];
+      if (finishRecordId) {
+        delete window.__qaFirebaseStore?.privateResultLogs?.["qa-venue"]?.[finishRecordId];
+        delete window.__qaFirebaseStore?.publicHistory?.[finishRecordId];
+      }
+      if (staleFalseHistoryId) {
+        delete window.__qaFirebaseStore?.privateResultLogs?.["qa-venue"]?.[staleFalseHistoryId];
+        delete window.__qaFirebaseStore?.publicHistory?.[staleFalseHistoryId];
+      }
+      if (activeRegistryBackup === undefined) delete window.__qaFirebaseStore?.activeTournaments?.["qa-venue"];
+      else window.__qaFirebaseStore.activeTournaments["qa-venue"] = activeRegistryBackup;
+      state = normalizeImportedState(backupState);
+      activeRoundIndex = backupActiveRoundIndex;
+      state.activeRoundIndex = backupActiveRoundIndex;
+      firebaseTournamentId = backupFirebaseTournamentId;
+      dbVenueIdDraft = backupDbVenueIdDraft;
+      storageKeys.forEach(key => {
+        const value = storageBackup[key];
+        if (value == null) localStorage.removeItem(key);
+        else localStorage.setItem(key, value);
+      });
+      renderOperator();
+    }
+  });
+  logs.push({ step: "finish-sync-failure-v278", info: { finishSyncFailureV278 } });
+  if (finishSyncFailureV278.firstResult !== false || !finishSyncFailureV278.privatePendingWrittenBeforePublic || !finishSyncFailureV278.pendingAfterFailure || !finishSyncFailureV278.remotePrivatePendingAfterFailure || !finishSyncFailureV278.remoteScanRecoveredPendingFinish || !finishSyncFailureV278.noHistoryBeforeTerminalPublic || !finishSyncFailureV278.historyPublishedAfterTerminalAcceptance || finishSyncFailureV278.statusAfterFailure !== "finished" || finishSyncFailureV278.statusAfterBlockedPrepare !== "finished") {
+    failures.push(`finish sync failure advanced or lost retry state ${JSON.stringify(finishSyncFailureV278)}`);
+  }
+  if (!finishSyncFailureV278.syncErrorAfterFailure || finishSyncFailureV278.retryResult !== true || finishSyncFailureV278.statusAfterRetry !== "draft" || finishSyncFailureV278.remotePrivateStatus !== "finished" || finishSyncFailureV278.remotePrivatePending || finishSyncFailureV278.remotePublicStatus !== "finished" || finishSyncFailureV278.remotePublicLive !== false || !finishSyncFailureV278.recoveredLiveIdPreserved || !finishSyncFailureV278.renderAutosaveHonorsNewerRunning || !finishSyncFailureV278.pendingCancelHidden || !finishSyncFailureV278.staleLocalRetryHonorsNewerRunning || !finishSyncFailureV278.staleTerminalCreatedNoFalseHistory || !finishSyncFailureV278.completedTerminalGenericSyncBlocked || !finishSyncFailureV278.snapshotRestoreCannotReviveTerminal || !finishSyncFailureV278.operatorUndoCannotReviveTerminal || !finishSyncFailureV278.snapshotRestoreRejectsLegacyGenerationMix || !finishSyncFailureV278.operatorUndoRejectsLegacyGenerationMix || !finishSyncFailureV278.snapshotRestoreClaimsExactVenue || !finishSyncFailureV278.forceEndUniqueIdClosedExactRemote) {
+    failures.push(`finish sync retry did not converge ${JSON.stringify(finishSyncFailureV278)}`);
+  }
+
+  const localTerminalConflictConvergenceV278 = await page.evaluate(async () => {
+    const clone = value => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+    const store = window.__qaFirebaseStore;
+    const backup = {
+      state: exportState(),
+      activeRoundIndex,
+      firebaseTournamentId,
+      dbVenueIdDraft,
+      tournaments: clone(store.tournaments),
+      publicLive: clone(store.publicLive),
+      activeTournaments: clone(store.activeTournaments),
+      operationLocks: clone(store.operationLocks),
+      privateResultLogs: clone(store.privateResultLogs),
+      publicHistory: clone(store.publicHistory)
+    };
+    const storageKeys = [STORAGE_KEY, LOCAL_RESULT_LOGS_KEY, "mini4wdTournamentId", "mini4wdActiveLiveId", "mini4wdActiveLiveSignature"];
+    const storageBackup = Object.fromEntries(storageKeys.map(key => [key, localStorage.getItem(key)]));
+    const venueId = "qa-venue";
+    const makeFinished = (id, generation, terminalAt, recordId, pending = false) => {
+      const next = makeInitialState(3);
+      next.inputText = "Conflict A/QA\nConflict B/QA";
+      next.tournament = {
+        ...next.tournament,
+        name: `QA terminal ${id}`,
+        venue: "QA Venue",
+        venueId,
+        status: "finished",
+        liveId: id,
+        liveSignature: `${id}-signature`,
+        activeRegistryGeneration: generation,
+        startedAtISO: new Date(terminalAt - 60000).toISOString(),
+        endedAtISO: new Date(terminalAt).toISOString(),
+        endedAtDisplay: formatDateTimeLocal(new Date(terminalAt)),
+        finishSyncPending: pending,
+        finishSyncTerminalUpdatedAt: terminalAt,
+        finishSyncPreviousUpdatedAt: terminalAt - 1000,
+        finishSyncRecord: {
+          id: recordId,
+          venueId,
+          venueName: "QA Venue",
+          tournamentName: `QA false history ${recordId}`,
+          rows: []
+        }
+      };
+      next.updatedAt = terminalAt;
+      return next;
+    };
+    const makeDivergentPublic = (id, generation, terminalAt) => ({
+      id,
+      registryGeneration: generation,
+      status: "finished",
+      live: false,
+      updatedAt: terminalAt,
+      state: {
+        tournament: {
+          status: "finished",
+          activeRegistryGeneration: generation,
+          endedAtISO: new Date(terminalAt).toISOString()
+        },
+        updatedAt: terminalAt
+      }
+    });
+    const installExactOwnership = async (id, generation, sequence) => {
+      store.activeTournaments[venueId] = {
+        venueId,
+        tournamentId: id,
+        registryGeneration: generation,
+        status: "running",
+        updatedAt: Date.now()
+      };
+      store.operationLocks = store.operationLocks || {};
+      store.operationLocks.leases = store.operationLocks.leases || {};
+      store.operationLocks.leases[venueId] = {
+        scope: "venue",
+        venueId,
+        tournamentId: id,
+        registryGeneration: generation,
+        sessionId: window.__mini4wdOperatorSession?.sessionId || "",
+        claimSequence: sequence,
+        fenceSequenceHighWater: sequence,
+        fenceToken: `qa-terminal-conflict-fence-${sequence}`,
+        status: "running",
+        leaseUntil: Date.now() + 60000,
+        updatedAt: Date.now()
+      };
+      if (typeof refreshOperationLeaseV178 === "function") await refreshOperationLeaseV178();
+    };
+    const installLocal = next => {
+      state = normalizeImportedState(next);
+      activeRoundIndex = 0;
+      state.activeRoundIndex = 0;
+      firebaseTournamentId = next.tournament.liveId;
+      dbVenueIdDraft = "";
+      localStorage.setItem("mini4wdTournamentId", next.tournament.liveId);
+      localStorage.setItem("mini4wdActiveLiveId", next.tournament.liveId);
+      localStorage.setItem("mini4wdActiveLiveSignature", next.tournament.liveSignature);
+      localStorage.removeItem(LOCAL_RESULT_LOGS_KEY);
+    };
+    try {
+      const directId = "qa-local-divergent-terminal-v278";
+      const directGeneration = "qa-local-divergent-generation-v278";
+      const directRecordId = "qa-local-divergent-history-v278";
+      const directAt = Date.now() - 30000;
+      const directLocal = makeFinished(directId, directGeneration, directAt, directRecordId, false);
+      installLocal(directLocal);
+      delete store.tournaments[directId];
+      store.publicLive[directId] = makeDivergentPublic(directId, directGeneration, directAt + 5000);
+      await installExactOwnership(directId, directGeneration, 701);
+      window.__qaFirebaseTransactionLog = [];
+      const directResult = await syncFinishedTournamentAndAdvanceV278("qa-local-divergent-terminal-v278");
+      await new Promise(resolve => setTimeout(resolve, 0));
+      const directPrivate = store.tournaments?.[directId]?.state || store.tournaments?.[directId];
+      const directPublic = store.publicLive?.[directId];
+      const directLease = store.operationLocks?.leases?.[venueId];
+      const directConvergedWithoutFalseHistory = Boolean(
+        directResult === true
+        && state.tournament?.status === "draft"
+        && directPrivate?.tournament?.finishSyncPending === false
+        && directPrivate?.tournament?.terminalSyncConflictV278?.reason === "divergent-terminal-public"
+        && terminalAttemptIdentityV278(directPublic) !== terminalAttemptIdentityV278(directPrivate)
+        && !store.privateResultLogs?.[venueId]?.[directRecordId]
+        && !store.publicHistory?.[directRecordId]
+        && !store.activeTournaments?.[venueId]
+        && directLease?.status === "released"
+      );
+
+      const retryId = "qa-local-retired-retry-v278";
+      const retryGeneration = "qa-local-retired-generation-v278";
+      const retryRecordId = "qa-local-retired-history-v278";
+      const retryAt = directAt + 1000;
+      const retryLocal = makeFinished(retryId, retryGeneration, retryAt, retryRecordId, true);
+      const retryRemote = clone(retryLocal);
+      retryRemote.tournament.finishSyncPending = false;
+      retryRemote.tournament.finishSyncError = "conflict retired";
+      retryRemote.tournament.terminalSyncConflictV278 = {
+        kind: "finish",
+        reason: "divergent-terminal-public",
+        privateAttemptId: terminalAttemptIdentityV278(retryRemote),
+        publicAttemptId: new Date(retryAt + 5000).toISOString(),
+        detectedAt: new Date().toISOString()
+      };
+      installLocal(retryLocal);
+      store.tournaments[retryId] = { state: clone(retryRemote), updatedAt: retryRemote.updatedAt };
+      store.publicLive[retryId] = makeDivergentPublic(retryId, retryGeneration, retryAt + 5000);
+      await installExactOwnership(retryId, retryGeneration, 702);
+      window.__qaFirebaseTransactionLog = [];
+      const retryResult = await syncFinishedTournamentAndAdvanceV278("qa-local-retired-retry-v278");
+      await new Promise(resolve => setTimeout(resolve, 0));
+      const retryTransactionLog = [...window.__qaFirebaseTransactionLog];
+      const retiredRetryConvergedWithoutRepending = Boolean(
+        retryResult === true
+        && state.tournament?.status === "draft"
+        && store.tournaments?.[retryId]?.state?.tournament?.finishSyncPending === false
+        && !retryTransactionLog.includes(`tournaments/${retryId}`)
+        && !retryTransactionLog.includes(`publicLive/${retryId}`)
+        && !store.privateResultLogs?.[venueId]?.[retryRecordId]
+        && !store.publicHistory?.[retryRecordId]
+        && !store.activeTournaments?.[venueId]
+        && store.operationLocks?.leases?.[venueId]?.status === "released"
+      );
+
+      const manualId = "qa-manual-retired-terminal-v278";
+      const manualGeneration = "qa-manual-retired-generation-v278";
+      const manualRecordId = "qa-manual-retired-history-v278";
+      const manualAt = retryAt + 1000;
+      const manualState = makeFinished(manualId, manualGeneration, manualAt, manualRecordId, false);
+      manualState.tournament.terminalSyncConflictV278 = {
+        kind: "finish",
+        reason: "divergent-terminal-public",
+        privateAttemptId: terminalAttemptIdentityV278(manualState),
+        publicAttemptId: new Date(manualAt + 5000).toISOString(),
+        detectedAt: new Date().toISOString()
+      };
+      installLocal(manualState);
+      store.tournaments[manualId] = { state: clone(manualState), updatedAt: manualState.updatedAt };
+      await installExactOwnership(manualId, manualGeneration, 703);
+      await prepareNewTournamentFromFinished();
+      await new Promise(resolve => setTimeout(resolve, 0));
+      const manualRolloverSkippedConflictHistory = Boolean(
+        state.tournament?.status === "draft"
+        && !store.privateResultLogs?.[venueId]?.[manualRecordId]
+        && !store.publicHistory?.[manualRecordId]
+        && !store.activeTournaments?.[venueId]
+        && store.operationLocks?.leases?.[venueId]?.status === "released"
+      );
+      return {
+        directConvergedWithoutFalseHistory,
+        retiredRetryConvergedWithoutRepending,
+        manualRolloverSkippedConflictHistory,
+        directResult,
+        retryResult,
+        directConflict: directPrivate?.tournament?.terminalSyncConflictV278 || null,
+        directLease,
+        retryTransactionLog
+      };
+    } finally {
+      window.__qaBeforeFirebaseTransaction = null;
+      window.__qaRejectFirebaseTransactionPaths = [];
+      store.tournaments = backup.tournaments;
+      store.publicLive = backup.publicLive;
+      store.activeTournaments = backup.activeTournaments;
+      store.operationLocks = backup.operationLocks;
+      store.privateResultLogs = backup.privateResultLogs;
+      store.publicHistory = backup.publicHistory;
+      state = normalizeImportedState(backup.state);
+      activeRoundIndex = backup.activeRoundIndex;
+      state.activeRoundIndex = backup.activeRoundIndex;
+      firebaseTournamentId = backup.firebaseTournamentId;
+      dbVenueIdDraft = backup.dbVenueIdDraft;
+      storageKeys.forEach(key => {
+        const value = storageBackup[key];
+        if (value == null) localStorage.removeItem(key);
+        else localStorage.setItem(key, value);
+      });
+      if (typeof refreshOperationLeaseV178 === "function") await refreshOperationLeaseV178();
+      renderOperator();
+    }
+  });
+  logs.push({ step: "local-terminal-conflict-convergence-v278", info: { localTerminalConflictConvergenceV278 } });
+  if (!localTerminalConflictConvergenceV278.directConvergedWithoutFalseHistory || !localTerminalConflictConvergenceV278.retiredRetryConvergedWithoutRepending || !localTerminalConflictConvergenceV278.manualRolloverSkippedConflictHistory) {
+    failures.push(`local terminal conflict did not converge safely ${JSON.stringify(localTerminalConflictConvergenceV278)}`);
+  }
+
+  const optionalKeyFallbackV278 = await page.evaluate(async () => {
+    const clone = value => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+    const store = window.__qaFirebaseStore;
+    const backup = {
+      state: exportState(),
+      activeRoundIndex,
+      firebaseTournamentId,
+      dbVenueIdDraft,
+      malformedTournament: clone(store.tournaments?.["qa-missing-venue-v278"]),
+      malformedPublic: clone(store.publicLive?.["qa-missing-venue-v278"]),
+      defaultActive: clone(store.activeTournaments?.default),
+      exactLease: clone(store.operationLocks?.leases?.["qa-venue"])
+    };
+    const storageKeys = ["mini4wdTournamentId", "mini4wdActiveLiveId", "mini4wdActiveLiveSignature"];
+    const storageBackup = Object.fromEntries(storageKeys.map(key => [key, localStorage.getItem(key)]));
+    try {
+      state = makeInitialState(3);
+      state.tournament.name = "QA Optional Key Fallback";
+      state.tournament.venue = "QA Venue";
+      state.tournament.venueId = "";
+      state.tournament.liveId = "";
+      state.tournament.status = "draft";
+      dbVenueIdDraft = "";
+      firebaseTournamentId = "";
+      storageKeys.forEach(key => localStorage.removeItem(key));
+      const freshAdminDraftUsesVenueName = currentVenueId() === "qa-venue";
+
+      state.tournament.status = "running";
+      state.tournament.startedAtISO = new Date().toISOString();
+      const legacyRunningId = getWritableTournamentIdV278(state);
+      const legacyRunningPublicId = makePublicLivePayload(exportState()).id;
+      const legacyRunningBlankIdAvoidsDefault = Boolean(
+        legacyRunningId
+        && legacyRunningId !== "default"
+        && legacyRunningPublicId === legacyRunningId
+        && state.tournament.liveId === legacyRunningId
+      );
+
+      state.tournament.status = "finished";
+      state.tournament.liveId = "";
+      state.tournament.endedAtISO = new Date().toISOString();
+      firebaseTournamentId = "";
+      storageKeys.forEach(key => localStorage.removeItem(key));
+      const legacyTerminalId = getWritableTournamentIdV278(state);
+      const legacyTerminalPublicId = makePublicLivePayload(exportState()).id;
+      const legacyTerminalBlankIdAvoidsDefault = Boolean(
+        legacyTerminalId
+        && legacyTerminalId !== "default"
+        && legacyTerminalPublicId === legacyTerminalId
+      );
+
+      const malformedId = "qa-missing-venue-v278";
+      const malformed = makeInitialState(3);
+      malformed.tournament = {
+        ...malformed.tournament,
+        name: "QA malformed venue",
+        venue: "",
+        venueId: "",
+        venueName: "",
+        status: "running",
+        liveId: malformedId,
+        activeRegistryGeneration: "qa-missing-venue-generation-v278"
+      };
+      malformed.updatedAt = Date.now();
+      store.tournaments[malformedId] = { state: clone(malformed), updatedAt: malformed.updatedAt };
+      store.publicLive[malformedId] = {
+        id: malformedId,
+        registryGeneration: malformed.tournament.activeRegistryGeneration,
+        status: "running",
+        live: true,
+        updatedAt: malformed.updatedAt,
+        state: makePublicStatePayload(malformed)
+      };
+      store.activeTournaments.default = {
+        venueId: "default",
+        tournamentId: malformedId,
+        registryGeneration: malformed.tournament.activeRegistryGeneration,
+        status: "running",
+        updatedAt: malformed.updatedAt
+      };
+      const malformedVerification = await readVerifiedRunningTournamentV278(initFirebase(), malformedId);
+      const malformedVenueRejectedBeforeDefaultRegistry = Boolean(
+        malformedVerification.valid === false
+        && malformedVerification.reason === "missing-venue"
+      );
+      store.operationLocks = store.operationLocks || {};
+      store.operationLocks.leases = store.operationLocks.leases || {};
+      store.operationLocks.leases["qa-venue"] = {
+        scope: "venue",
+        venueId: "qa-venue",
+        tournamentId: "qa-new-overlap-target-v278",
+        registryGeneration: "qa-new-overlap-generation-v278",
+        sessionId: window.__mini4wdOperatorSession?.sessionId || "",
+        claimSequence: 880,
+        fenceSequenceHighWater: 880,
+        fenceToken: "qa-new-overlap-fence-v278",
+        status: "running",
+        leaseUntil: Date.now() + 60000,
+        updatedAt: Date.now()
+      };
+      await releaseClaimedOperationLeaseExactV278(
+        "qa-venue",
+        "qa-old-overlap-target-v278",
+        "qa-old-overlap-generation-v278"
+      );
+      const overlapLease = store.operationLocks?.leases?.["qa-venue"];
+      const staleCleanupPreservedNewExactLease = Boolean(
+        overlapLease?.tournamentId === "qa-new-overlap-target-v278"
+        && overlapLease?.registryGeneration === "qa-new-overlap-generation-v278"
+        && overlapLease?.sessionId === (window.__mini4wdOperatorSession?.sessionId || "")
+        && overlapLease?.status === "running"
+      );
+      return {
+        freshAdminDraftUsesVenueName,
+        legacyRunningBlankIdAvoidsDefault,
+        legacyTerminalBlankIdAvoidsDefault,
+        malformedVenueRejectedBeforeDefaultRegistry,
+        staleCleanupPreservedNewExactLease,
+        legacyRunningId,
+        legacyRunningPublicId,
+        legacyTerminalId,
+        legacyTerminalPublicId,
+        malformedReason: malformedVerification.reason
+      };
+    } finally {
+      const restore = (collection, key, value) => value === undefined ? delete collection[key] : (collection[key] = value);
+      restore(store.tournaments, "qa-missing-venue-v278", backup.malformedTournament);
+      restore(store.publicLive, "qa-missing-venue-v278", backup.malformedPublic);
+      restore(store.activeTournaments, "default", backup.defaultActive);
+      store.operationLocks = store.operationLocks || {};
+      store.operationLocks.leases = store.operationLocks.leases || {};
+      restore(store.operationLocks.leases, "qa-venue", backup.exactLease);
+      state = normalizeImportedState(backup.state);
+      activeRoundIndex = backup.activeRoundIndex;
+      state.activeRoundIndex = backup.activeRoundIndex;
+      firebaseTournamentId = backup.firebaseTournamentId;
+      dbVenueIdDraft = backup.dbVenueIdDraft;
+      storageKeys.forEach(key => {
+        const value = storageBackup[key];
+        if (value == null) localStorage.removeItem(key);
+        else localStorage.setItem(key, value);
+      });
+      if (typeof refreshOperationLeaseV178 === "function") await refreshOperationLeaseV178();
+      persistCurrentState();
+      renderOperator();
+    }
+  });
+  logs.push({ step: "optional-key-fallback-v278", info: { optionalKeyFallbackV278 } });
+  if (!optionalKeyFallbackV278.freshAdminDraftUsesVenueName || !optionalKeyFallbackV278.legacyRunningBlankIdAvoidsDefault || !optionalKeyFallbackV278.legacyTerminalBlankIdAvoidsDefault || !optionalKeyFallbackV278.malformedVenueRejectedBeforeDefaultRegistry || !optionalKeyFallbackV278.staleCleanupPreservedNewExactLease) {
+    failures.push(`optional venue/live key fell through to default sentinel ${JSON.stringify(optionalKeyFallbackV278)}`);
+  }
+
+  const currentAutoCloseExactLeaseReleaseV278 = await page.evaluate(async () => {
+    const clone = value => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+    const store = window.__qaFirebaseStore;
+    const backup = {
+      state: exportState(),
+      activeRoundIndex,
+      firebaseTournamentId,
+      dbVenueIdDraft,
+      tournaments: clone(store.tournaments),
+      publicLive: clone(store.publicLive),
+      activeTournaments: clone(store.activeTournaments),
+      operationLocks: clone(store.operationLocks),
+      privateResultLogs: clone(store.privateResultLogs),
+      publicHistory: clone(store.publicHistory)
+    };
+    const storageKeys = [STORAGE_KEY, LOCAL_SNAPSHOT_KEY, LOCAL_RESULT_LOGS_KEY, "mini4wdTournamentId", "mini4wdActiveLiveId", "mini4wdActiveLiveSignature"];
+    const storageBackup = Object.fromEntries(storageKeys.map(key => [key, localStorage.getItem(key)]));
+    const id = "qa-current-auto-close-lease-v278";
+    const venueId = "qa-venue";
+    const generation = "qa-current-auto-close-generation-v278";
+    const fenceToken = "qa-current-auto-close-fence-v278";
+    const fenceSequence = 991;
+    try {
+      const staleAt = Date.now() - (61 * 60 * 1000);
+      const running = makeInitialState(3);
+      running.inputText = "Auto Close A/QA\nAuto Close B/QA";
+      running.settings = { ...running.settings, firebaseAutoSave: true };
+      running.tournament = {
+        ...running.tournament,
+        name: "QA Current Auto Close Lease",
+        venue: "QA Venue",
+        venueId,
+        status: "running",
+        liveId: id,
+        liveSignature: `${id}-signature`,
+        activeRegistryGeneration: generation,
+        liveWriteFenceV278: fenceToken,
+        liveWriteFenceSequenceV278: fenceSequence,
+        startedAtISO: new Date(staleAt - 60000).toISOString()
+      };
+      running.updatedAt = staleAt;
+      state = normalizeImportedState(running);
+      activeRoundIndex = 0;
+      state.activeRoundIndex = 0;
+      firebaseTournamentId = id;
+      dbVenueIdDraft = "";
+      localStorage.setItem("mini4wdTournamentId", id);
+      localStorage.setItem("mini4wdActiveLiveId", id);
+      localStorage.setItem("mini4wdActiveLiveSignature", running.tournament.liveSignature);
+      store.tournaments[id] = { state: clone(running), updatedAt: staleAt };
+      store.publicLive[id] = makePublicLivePayload(running);
+      store.activeTournaments[venueId] = {
+        venueId,
+        venueName: "QA Venue",
+        tournamentId: id,
+        registryGeneration: generation,
+        tournamentName: running.tournament.name,
+        status: "running",
+        updatedAt: staleAt
+      };
+      store.operationLocks = store.operationLocks || {};
+      store.operationLocks.leases = store.operationLocks.leases || {};
+      store.operationLocks.leases[venueId] = {
+        scope: "venue",
+        venueId,
+        tournamentId: id,
+        registryGeneration: generation,
+        sessionId: window.__mini4wdOperatorSession?.sessionId || "",
+        claimSequence: fenceSequence,
+        fenceSequenceHighWater: fenceSequence,
+        fenceToken,
+        status: "running",
+        leaseUntil: Date.now() + 60000,
+        updatedAt: Date.now()
+      };
+      if (typeof refreshOperationLeaseV178 === "function") await refreshOperationLeaseV178();
+      const result = await window.closeCurrentTournamentV135("qa-current-auto-close-exact-lease-v278");
+      await new Promise(resolve => setTimeout(resolve, 0));
+      const privateState = store.tournaments?.[id]?.state || store.tournaments?.[id];
+      const publicState = store.publicLive?.[id];
+      const lease = store.operationLocks?.leases?.[venueId];
+      return {
+        result,
+        privateStatus: privateState?.tournament?.status || "",
+        privatePending: Boolean(privateState?.tournament?.finishSyncPending),
+        publicStatus: publicState?.status || publicState?.state?.tournament?.status || "",
+        activeRemoved: !store.activeTournaments?.[venueId],
+        leaseReleased: Boolean(
+          lease?.tournamentId === id
+          && lease?.registryGeneration === generation
+          && lease?.status === "released"
+          && !lease?.sessionId
+          && Number(lease?.leaseUntil || 0) === 0
+        )
+      };
+    } finally {
+      store.tournaments = backup.tournaments;
+      store.publicLive = backup.publicLive;
+      store.activeTournaments = backup.activeTournaments;
+      store.operationLocks = backup.operationLocks;
+      store.privateResultLogs = backup.privateResultLogs;
+      store.publicHistory = backup.publicHistory;
+      state = normalizeImportedState(backup.state);
+      activeRoundIndex = backup.activeRoundIndex;
+      state.activeRoundIndex = backup.activeRoundIndex;
+      firebaseTournamentId = backup.firebaseTournamentId;
+      dbVenueIdDraft = backup.dbVenueIdDraft;
+      storageKeys.forEach(key => {
+        const value = storageBackup[key];
+        if (value == null) localStorage.removeItem(key);
+        else localStorage.setItem(key, value);
+      });
+      if (typeof refreshOperationLeaseV178 === "function") await refreshOperationLeaseV178();
+      persistCurrentState();
+      renderOperator();
+    }
+  });
+  logs.push({ step: "current-auto-close-exact-lease-release-v278", info: { currentAutoCloseExactLeaseReleaseV278 } });
+  if (currentAutoCloseExactLeaseReleaseV278.result !== true || currentAutoCloseExactLeaseReleaseV278.privateStatus !== "finished" || currentAutoCloseExactLeaseReleaseV278.privatePending || currentAutoCloseExactLeaseReleaseV278.publicStatus !== "finished" || !currentAutoCloseExactLeaseReleaseV278.activeRemoved || !currentAutoCloseExactLeaseReleaseV278.leaseReleased) {
+    failures.push(`current auto-close left stale ownership ${JSON.stringify(currentAutoCloseExactLeaseReleaseV278)}`);
+  }
 
   await page.evaluate(() => {
     window.setTournamentField("name", "QA Operator Rehearsal");
@@ -1283,6 +3570,9 @@ async function runViewport(browser, meta, viewport) {
   const liveConnectV267 = await page.evaluate(async () => {
     const id = getCurrentTournamentId();
     if (window.__qaFirebaseStore?.publicLive) delete window.__qaFirebaseStore.publicLive[id];
+    const published = typeof forcePublishPublicLiveV50 === "function"
+      ? await forcePublishPublicLiveV50("qa-live-connect-v267")
+      : false;
     location.hash = `view=mobile-live&t=${encodeURIComponent(id)}`;
     if (typeof bootV33 === "function") await bootV33();
     await new Promise(resolve => setTimeout(resolve, 120));
@@ -1291,7 +3581,6 @@ async function runViewport(browser, meta, viewport) {
       publicLiveExists: !!window.__qaFirebaseStore?.publicLive?.[id],
       hasMobileView: !!document.querySelector(".mobile-view")
     };
-    const published = typeof forcePublishPublicLiveV50 === "function" ? forcePublishPublicLiveV50("qa-live-connect-v267") : false;
     await new Promise(resolve => setTimeout(resolve, 450));
     const text = String(document.body.innerText || document.body.textContent || "").replace(/\s+/g, " ").trim();
     const pollTitle = "QA Live Poll Updated";
@@ -1329,6 +3618,17 @@ async function runViewport(browser, meta, viewport) {
     const backupState = exportState();
     const backupActiveRoundIndex = activeRoundIndex;
     const backupBroadcast = state.broadcast ? { ...state.broadcast } : null;
+    const clone = value => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+    const store = window.__qaFirebaseStore;
+    const venueId = "qa-venue";
+    const id = `qa-live-round-fallback-v269-${Date.now()}`;
+    const fixtureBackup = {
+      tournament: clone(store.tournaments?.[id]),
+      publicLive: clone(store.publicLive?.[id]),
+      active: clone(store.activeTournaments?.[venueId]),
+      lease: clone(store.operationLocks?.leases?.[venueId])
+    };
+    const originalSync = forceLiveBroadcastSync;
     state.inputText = ["Alpha/QA", "Beta/QA", "Gamma/QA", "Delta/QA", "Echo/QA", "Foxtrot/QA"].join("\n");
     const parsed = parseParticipants();
     const winner = { ...parsed[0], lane: 1 };
@@ -1338,6 +3638,10 @@ async function runViewport(browser, meta, viewport) {
     state.tournament.status = "running";
     state.tournament.name = "QA Live Round Fallback";
     state.tournament.venue = "QA Venue";
+    state.tournament.venueId = venueId;
+    state.tournament.liveId = id;
+    state.tournament.liveSignature = `${id}-signature`;
+    state.tournament.activeRegistryGeneration = "qa-live-round-fallback-generation-v269";
     state.qualifierRounds = [0, 1, 2].map(index => ({
       id: `qa-live-round-${index + 1}`,
       index: index + 1,
@@ -1352,39 +3656,78 @@ async function runViewport(browser, meta, viewport) {
     activeRoundIndex = 0;
     state.activeRoundIndex = 0;
     state.broadcast = { mode: "stage", roundIndex: 0, stageIndex: 0 };
-    const id = getCurrentTournamentId();
-    if (window.__qaFirebaseStore?.publicLive) delete window.__qaFirebaseStore.publicLive[id];
-    const originalSync = forceLiveBroadcastSync;
-    forceLiveBroadcastSync = () => Promise.resolve(false);
-    const activated = activateNextRoundAfterFinalist(0, true);
-    renderOperator();
-    await new Promise(resolve => setTimeout(resolve, 1300));
-    forceLiveBroadcastSync = originalSync;
-    const live = window.__qaFirebaseStore?.publicLive?.[id];
-    const result = {
-      activated,
-      id,
-      localActiveRoundIndex: activeRoundIndex,
-      localBroadcast: state.broadcast,
-      publicExists: !!live,
-      publicActiveRoundIndex: live?.state?.activeRoundIndex,
-      publicBroadcast: live?.state?.broadcast,
-      publicStageName: live?.state?.qualifierRounds?.[live?.state?.broadcast?.roundIndex || 0]?.stages?.[live?.state?.broadcast?.stageIndex || 0]?.name || "",
-      syncReason: live?.syncReason || ""
+    state.updatedAt = Date.now();
+    firebaseTournamentId = id;
+    localStorage.setItem("mini4wdTournamentId", id);
+    localStorage.setItem("mini4wdActiveLiveId", id);
+    localStorage.setItem("mini4wdActiveLiveSignature", state.tournament.liveSignature);
+    const privateSeed = exportState();
+    store.tournaments[id] = { state: clone(privateSeed), updatedAt: privateSeed.updatedAt };
+    store.activeTournaments[venueId] = {
+      venueId,
+      venueName: "QA Venue",
+      tournamentId: id,
+      registryGeneration: state.tournament.activeRegistryGeneration,
+      tournamentName: state.tournament.name,
+      status: "running",
+      updatedAt: state.updatedAt
     };
-    state = normalizeImportedState(backupState);
-    activeRoundIndex = backupActiveRoundIndex;
-    state.activeRoundIndex = backupActiveRoundIndex;
-    if (backupBroadcast) state.broadcast = backupBroadcast;
-    persistCurrentState();
-    renderOperator();
+    delete store.publicLive[id];
+    let result = null;
+    try {
+      await window.releaseOperationLeaseV178(true, venueId);
+      const leaseClaimed = await window.claimOperationLeaseV178("qa-live-round-fallback-v269", true, {
+        venueId,
+        venueName: "QA Venue",
+        tournamentId: id,
+        tournamentName: state.tournament.name,
+        registryGeneration: state.tournament.activeRegistryGeneration,
+        status: "running"
+      });
+      forceLiveBroadcastSync = () => Promise.resolve(false);
+      const activated = activateNextRoundAfterFinalist(0, true);
+      renderOperator();
+      await new Promise(resolve => setTimeout(resolve, 1300));
+      const live = store.publicLive?.[id];
+      result = {
+        activated,
+        leaseClaimed,
+        id,
+        localActiveRoundIndex: activeRoundIndex,
+        localBroadcast: state.broadcast,
+        publicExists: !!live,
+        publicActiveRoundIndex: live?.state?.activeRoundIndex,
+        publicBroadcast: live?.state?.broadcast,
+        publicStageName: live?.state?.qualifierRounds?.[live?.state?.broadcast?.roundIndex || 0]?.stages?.[live?.state?.broadcast?.stageIndex || 0]?.name || "",
+        syncReason: live?.syncReason || ""
+      };
+    } finally {
+      forceLiveBroadcastSync = originalSync;
+      const restore = (collection, key, value) => value === undefined ? delete collection[key] : (collection[key] = value);
+      restore(store.tournaments, id, fixtureBackup.tournament);
+      restore(store.publicLive, id, fixtureBackup.publicLive);
+      restore(store.activeTournaments, venueId, fixtureBackup.active);
+      store.operationLocks = store.operationLocks || {};
+      store.operationLocks.leases = store.operationLocks.leases || {};
+      restore(store.operationLocks.leases, venueId, fixtureBackup.lease);
+      state = normalizeImportedState(backupState);
+      activeRoundIndex = backupActiveRoundIndex;
+      state.activeRoundIndex = backupActiveRoundIndex;
+      if (backupBroadcast) state.broadcast = backupBroadcast;
+      persistCurrentState();
+      if (typeof refreshOperationLeaseV178 === "function") await refreshOperationLeaseV178();
+      renderOperator();
+    }
     return result;
   });
   logs.push({ step: "live-round-fallback-v269", info: { liveRoundFallbackV269 } });
-  if (!liveRoundFallbackV269.activated || !liveRoundFallbackV269.publicExists || liveRoundFallbackV269.publicActiveRoundIndex !== 1 || liveRoundFallbackV269.publicBroadcast?.roundIndex !== 1) {
+  if (!liveRoundFallbackV269.activated || !liveRoundFallbackV269.leaseClaimed || !liveRoundFallbackV269.publicExists || liveRoundFallbackV269.publicActiveRoundIndex !== 1 || liveRoundFallbackV269.publicBroadcast?.roundIndex !== 1) {
     failures.push(`live round fallback v269 failed ${JSON.stringify(liveRoundFallbackV269)}`);
   }
   await showOperatorPage(page);
+  // The preceding fallback schedules settled LIVE retries through 1600ms.
+  // Keep this fixture from racing those claims on the same exact venue.
+  await page.waitForTimeout(1800);
 
   const liveLeaseRetryV270 = await page.evaluate(async () => {
     const backupState = exportState();
@@ -1392,6 +3735,7 @@ async function runViewport(browser, meta, viewport) {
     const backupBroadcast = state.broadcast ? { ...state.broadcast } : null;
     const alerts = [];
     const originalAlert = window.alert;
+    let firebaseFixtureBackup = null;
     window.alert = message => alerts.push(String(message || ""));
     try {
       state.inputText = ["LeaseA/QA", "LeaseB/QA", "LeaseC/QA", "LeaseD/QA", "LeaseE/QA", "LeaseF/QA"].join("\n");
@@ -1414,20 +3758,54 @@ async function runViewport(browser, meta, viewport) {
       state.broadcast = { mode: "stage", roundIndex: 1, stageIndex: 0 };
       state.updatedAt = Date.now();
       const id = getCurrentTournamentId();
+      const venueId = normalizeKey(currentVenueId() || currentVenueName() || "default");
+      const clone = value => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+      firebaseFixtureBackup = {
+        id,
+        venueId,
+        tournament: clone(window.__qaFirebaseStore?.tournaments?.[id]),
+        publicLive: clone(window.__qaFirebaseStore?.publicLive?.[id]),
+        active: clone(window.__qaFirebaseStore?.activeTournaments?.[venueId]),
+        lease: clone(window.__qaFirebaseStore?.operationLocks?.leases?.[venueId])
+      };
+      state.tournament.liveId = id;
+      state.tournament.venueId = venueId;
+      state.tournament.activeRegistryGeneration = state.tournament.activeRegistryGeneration || "qa-live-lease-generation-v278";
+      const currentLease = window.__qaFirebaseStore?.operationLocks?.leases?.[venueId];
+      if (currentLease?.fenceToken) {
+        state.tournament.liveWriteFenceV278 = currentLease.fenceToken;
+        state.tournament.liveWriteFenceSequenceV278 = Number(currentLease.claimSequence || 0);
+      }
+      const seededPrivateState = exportState();
+      window.__qaFirebaseStore.tournaments[id] = { state: JSON.parse(JSON.stringify(seededPrivateState)), updatedAt: seededPrivateState.updatedAt };
+      window.__qaFirebaseStore.activeTournaments[venueId] = {
+        venueId,
+        venueName: currentVenueName(),
+        tournamentId: id,
+        registryGeneration: state.tournament.activeRegistryGeneration,
+        tournamentName: state.tournament.name,
+        status: "running",
+        updatedAt: state.updatedAt
+      };
       if (window.__qaFirebaseStore?.publicLive) delete window.__qaFirebaseStore.publicLive[id];
-      if (typeof releaseOperationLock === "function") releaseOperationLock(true);
+      if (typeof window.releaseOperationLeaseV178 === "function") {
+        await window.releaseOperationLeaseV178(true, venueId);
+      }
       await new Promise(resolve => setTimeout(resolve, 120));
       if (typeof refreshOperationLeaseV178 === "function") await refreshOperationLeaseV178();
       const beforeCanPublish = typeof window.__mini4wdCanPublishLiveNowV270 === "function" ? window.__mini4wdCanPublishLiveNowV270("qa-before") : null;
-      const syncResult = await syncOperatorLiveStateV269("operator-render-v270-qa");
+      const syncResult = await Promise.race([
+        Promise.resolve(syncOperatorLiveStateV269("operator-render-v270-qa")),
+        new Promise(resolve => setTimeout(() => resolve("qa-sync-timeout-v278"), 6000))
+      ]);
       await new Promise(resolve => setTimeout(resolve, 1100));
-      const venueId = normalizeKey(currentVenueId() || currentVenueName() || "default");
       const live = window.__qaFirebaseStore?.publicLive?.[id];
       const lease = window.__qaFirebaseStore?.operationLocks?.leases?.[venueId];
       return {
         id,
         beforeCanPublish,
         syncResult,
+        syncTimedOut: syncResult === "qa-sync-timeout-v278",
         alertCount: alerts.length,
         alerts,
         leaseExists: !!lease,
@@ -1444,14 +3822,265 @@ async function runViewport(browser, meta, viewport) {
       activeRoundIndex = backupActiveRoundIndex;
       state.activeRoundIndex = backupActiveRoundIndex;
       if (backupBroadcast) state.broadcast = backupBroadcast;
+      if (firebaseFixtureBackup) {
+        const store = window.__qaFirebaseStore;
+        const restore = (collection, key, value) => {
+          if (value === undefined) delete collection[key];
+          else collection[key] = value;
+        };
+        restore(store.tournaments, firebaseFixtureBackup.id, firebaseFixtureBackup.tournament);
+        restore(store.publicLive, firebaseFixtureBackup.id, firebaseFixtureBackup.publicLive);
+        restore(store.activeTournaments, firebaseFixtureBackup.venueId, firebaseFixtureBackup.active);
+        store.operationLocks = store.operationLocks || {};
+        store.operationLocks.leases = store.operationLocks.leases || {};
+        restore(store.operationLocks.leases, firebaseFixtureBackup.venueId, firebaseFixtureBackup.lease);
+        if (typeof refreshOperationLeaseV178 === "function") await refreshOperationLeaseV178();
+      }
       persistCurrentState();
       renderOperator();
     }
   });
   logs.push({ step: "live-lease-retry-v270", info: { liveLeaseRetryV270 } });
-  if (liveLeaseRetryV270.alertCount !== 0 || !liveLeaseRetryV270.leaseExists || !liveLeaseRetryV270.publicExists || liveLeaseRetryV270.publicActiveRoundIndex !== 1 || liveLeaseRetryV270.publicBroadcast?.roundIndex !== 1 || liveLeaseRetryV270.canPublishAfter !== true) {
+  if (liveLeaseRetryV270.syncTimedOut || liveLeaseRetryV270.alertCount !== 0 || !liveLeaseRetryV270.leaseExists || !liveLeaseRetryV270.publicExists || liveLeaseRetryV270.publicActiveRoundIndex !== 1 || liveLeaseRetryV270.publicBroadcast?.roundIndex !== 1 || liveLeaseRetryV270.canPublishAfter !== true) {
     failures.push(`live lease retry v270 failed ${JSON.stringify(liveLeaseRetryV270)}`);
   }
+  await showOperatorPage(page);
+
+  const reloadMutationSetupV278 = await page.evaluate(async () => {
+    const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
+    const pendingRuntime = window.__mini4wdPendingMutationRuntimeV278;
+    if (!pendingRuntime) return { supported: false };
+    const sessionValue = key => {
+      try { return sessionStorage.getItem(key); } catch (error) { return null; }
+    };
+    const original = {
+      state: exportState(),
+      activeRoundIndex,
+      firebaseTournamentId,
+      store: clone(window.__qaFirebaseStore),
+      localIds: {
+        tournamentId: localStorage.getItem("mini4wdTournamentId"),
+        activeId: localStorage.getItem("mini4wdActiveLiveId"),
+        signature: localStorage.getItem("mini4wdActiveLiveSignature")
+      },
+      session: {
+        pending: sessionValue(pendingRuntime.pendingKey),
+        ack: sessionValue(pendingRuntime.ackKey),
+        revision: sessionValue("mini4wdLiveMutationRevisionV278")
+      }
+    };
+    sessionStorage.setItem("__qaReloadRestoreV278", JSON.stringify(original));
+    sessionStorage.removeItem(pendingRuntime.pendingKey);
+    sessionStorage.removeItem(pendingRuntime.ackKey);
+    sessionStorage.removeItem("mini4wdLiveMutationRevisionV278");
+
+    const id = `qa-reload-mutation-v278-${Date.now()}`;
+    const venueId = "qa-venue";
+    const generation = `qa-reload-generation-${Date.now()}`;
+    const playerId = "qa-reload-player-1";
+    const next = makeInitialState(3);
+    next.inputText = "Reload Racer A/QA\nReload Racer B/QA";
+    next.settings = { ...next.settings, laneCount: 3, matchMode: "points3", firebaseAutoSave: true };
+    next.tournament = {
+      ...next.tournament,
+      name: "QA Reload Mutation",
+      venue: "QA Venue",
+      venueId,
+      status: "running",
+      liveId: id,
+      liveSignature: `${id}-signature`,
+      activeRegistryGeneration: generation,
+      lockedParticipants: next.inputText,
+      startedAtISO: new Date().toISOString()
+    };
+    next.qualifierRounds = [{
+      id: "qa-reload-round",
+      index: 1,
+      title: "1차 라운드",
+      stagePlan: ["포인트 1차전"],
+      finalist: null,
+      stages: [{
+        id: "qa-reload-stage",
+        name: "포인트 1차전",
+        type: "points",
+        pointOptions: [0, 3, 5, 9],
+        groups: [{
+          id: "qa-reload-group",
+          name: "1조",
+          slots: [
+            { id: playerId, name: "Reload Racer A", nickname: "Reload A", team: "QA", lane: 1 },
+            { id: "qa-reload-player-2", name: "Reload Racer B", nickname: "Reload B", team: "QA", lane: 2 }
+          ],
+          advanceIds: [],
+          points: {}
+        }]
+      }]
+    }];
+    next.broadcast = { mode: "stage", roundIndex: 0, stageIndex: 0 };
+    next.activeRoundIndex = 0;
+    next.updatedAt = Date.now();
+    state = normalizeImportedState(next);
+    activeRoundIndex = 0;
+    firebaseTournamentId = id;
+    localStorage.setItem("mini4wdTournamentId", id);
+    localStorage.setItem("mini4wdActiveLiveId", id);
+    localStorage.setItem("mini4wdActiveLiveSignature", state.tournament.liveSignature);
+    persistCurrentState();
+
+    const store = window.__qaFirebaseStore;
+    store.tournaments[id] = { state: clone(exportState()), updatedAt: state.updatedAt };
+    store.activeTournaments[venueId] = {
+      venueId,
+      venueName: "QA Venue",
+      tournamentId: id,
+      registryGeneration: generation,
+      tournamentName: state.tournament.name,
+      status: "running",
+      updatedAt: state.updatedAt
+    };
+    delete store.publicLive[id];
+    await window.releaseOperationLeaseV178(true, venueId);
+    const claimed = await window.claimOperationLeaseV178("qa-reload-base-v278", true, {
+      venueId,
+      venueName: "QA Venue",
+      tournamentId: id,
+      tournamentName: state.tournament.name,
+      registryGeneration: generation,
+      status: "running"
+    });
+    const baseSynced = claimed && await forceLiveBroadcastSync("qa-reload-base-v278");
+    const basePrivate = store.tournaments[id]?.state || store.tournaments[id];
+    const baseUpdatedAt = Number(basePrivate?.updatedAt || 0);
+    const oldLeaseSessionId = store.operationLocks?.leases?.[venueId]?.sessionId || "";
+    const group = state.qualifierRounds[0].stages[0].groups[0];
+    group.points[playerId] = 9;
+    window.__qaRejectFirebaseTransactionPaths = [`tournaments/${id}`];
+    saveLiveState();
+    const pending = JSON.parse(sessionStorage.getItem(pendingRuntime.pendingKey) || "null");
+    sessionStorage.setItem("__qaFirebaseStoreReloadV278", JSON.stringify(store));
+    return {
+      supported: true,
+      id,
+      venueId,
+      generation,
+      playerId,
+      claimed,
+      baseSynced,
+      baseUpdatedAt,
+      oldLeaseSessionId,
+      pendingCreated: Boolean(pending?.eligible && pending?.state?.qualifierRounds?.[0]?.stages?.[0]?.groups?.[0]?.points?.[playerId] === 9)
+    };
+  });
+
+  let reloadMutationReplayV278 = { ...reloadMutationSetupV278, replayed: false };
+  if (reloadMutationSetupV278.supported && reloadMutationSetupV278.claimed && reloadMutationSetupV278.baseSynced) {
+    await page.reload({ waitUntil: "load" });
+    await page.waitForFunction(({ id, playerId }) => {
+      const privateState = window.__qaFirebaseStore?.tournaments?.[id]?.state || window.__qaFirebaseStore?.tournaments?.[id];
+      const publicState = window.__qaFirebaseStore?.publicLive?.[id]?.state;
+      const privatePoints = privateState?.qualifierRounds?.[0]?.stages?.[0]?.groups?.[0]?.points || {};
+      const publicPoints = publicState?.qualifierRounds?.[0]?.stages?.[0]?.groups?.[0]?.points || {};
+      const pendingKey = window.__mini4wdPendingMutationRuntimeV278?.pendingKey || "";
+      return privatePoints[playerId] === 9
+        && Object.values(publicPoints).includes(9)
+        && pendingKey
+        && !sessionStorage.getItem(pendingKey);
+    }, { id: reloadMutationSetupV278.id, playerId: reloadMutationSetupV278.playerId }, { timeout: 12000 });
+    reloadMutationReplayV278 = await page.evaluate(setup => {
+      const privateState = window.__qaFirebaseStore?.tournaments?.[setup.id]?.state || window.__qaFirebaseStore?.tournaments?.[setup.id];
+      const publicState = window.__qaFirebaseStore?.publicLive?.[setup.id]?.state;
+      const lease = window.__qaFirebaseStore?.operationLocks?.leases?.[setup.venueId];
+      const pendingKey = window.__mini4wdPendingMutationRuntimeV278?.pendingKey || "";
+      return {
+        ...setup,
+        privateScore: privateState?.qualifierRounds?.[0]?.stages?.[0]?.groups?.[0]?.points?.[setup.playerId],
+        publicScores: Object.values(publicState?.qualifierRounds?.[0]?.stages?.[0]?.groups?.[0]?.points || {}),
+        localScore: state?.qualifierRounds?.[0]?.stages?.[0]?.groups?.[0]?.points?.[setup.playerId],
+        remoteUpdatedAt: Number(privateState?.updatedAt || 0),
+        newLeaseSessionId: lease?.sessionId || "",
+        pendingCleared: Boolean(pendingKey && !sessionStorage.getItem(pendingKey)),
+        conflictBackupAbsent: !localStorage.getItem(`mini4wdUnsyncedLiveConflictV278:${normalizeKey(setup.id)}`),
+        replayed: true
+      };
+    }, reloadMutationSetupV278);
+  }
+  logs.push({ step: "reload-pending-mutation-v278", info: { reloadMutationReplayV278 } });
+  if (
+    !reloadMutationReplayV278.supported
+    || !reloadMutationReplayV278.claimed
+    || !reloadMutationReplayV278.baseSynced
+    || !reloadMutationReplayV278.pendingCreated
+    || !reloadMutationReplayV278.replayed
+    || reloadMutationReplayV278.privateScore !== 9
+    || !reloadMutationReplayV278.publicScores?.includes(9)
+    || reloadMutationReplayV278.localScore !== 9
+    || reloadMutationReplayV278.remoteUpdatedAt <= reloadMutationReplayV278.baseUpdatedAt
+    || !reloadMutationReplayV278.newLeaseSessionId
+    || reloadMutationReplayV278.newLeaseSessionId === reloadMutationReplayV278.oldLeaseSessionId
+    || !reloadMutationReplayV278.pendingCleared
+    || !reloadMutationReplayV278.conflictBackupAbsent
+  ) {
+    failures.push(`reload pending mutation replay failed ${JSON.stringify(reloadMutationReplayV278)}`);
+  }
+
+  await page.evaluate(async () => {
+    const original = JSON.parse(sessionStorage.getItem("__qaReloadRestoreV278") || "null");
+    if (!original) return;
+    const store = window.__qaFirebaseStore;
+    Object.keys(store).forEach(key => delete store[key]);
+    Object.assign(store, original.store || {});
+    state = normalizeImportedState(original.state);
+    activeRoundIndex = Number(original.activeRoundIndex || 0);
+    state.activeRoundIndex = activeRoundIndex;
+    firebaseTournamentId = original.firebaseTournamentId || "";
+    const restoreLocal = (key, value) => value == null ? localStorage.removeItem(key) : localStorage.setItem(key, value);
+    restoreLocal("mini4wdTournamentId", original.localIds?.tournamentId);
+    restoreLocal("mini4wdActiveLiveId", original.localIds?.activeId);
+    restoreLocal("mini4wdActiveLiveSignature", original.localIds?.signature);
+    const runtime = window.__mini4wdPendingMutationRuntimeV278;
+    const restoreSession = (key, value) => value == null ? sessionStorage.removeItem(key) : sessionStorage.setItem(key, value);
+    if (runtime) {
+      restoreSession(runtime.pendingKey, original.session?.pending);
+      restoreSession(runtime.ackKey, original.session?.ack);
+    }
+    restoreSession("mini4wdLiveMutationRevisionV278", original.session?.revision);
+    sessionStorage.removeItem("__qaFirebaseStoreReloadV278");
+    sessionStorage.removeItem("__qaReloadRestoreV278");
+    window.__qaRejectFirebaseTransactionPaths = [];
+    const venueId = normalizeKey(currentVenueId() || currentVenueName() || "default");
+    if (state.tournament?.status === "running") {
+      const id = getWritableTournamentIdV278(state);
+      state.tournament.venueId = venueId;
+      state.tournament.activeRegistryGeneration = state.tournament.activeRegistryGeneration || `qa-post-reload-generation-${Date.now()}`;
+      delete state.tournament.liveWriteFenceV278;
+      delete state.tournament.liveWriteFenceSequenceV278;
+      state.updatedAt = Date.now();
+      const privateState = exportState();
+      store.tournaments[id] = { state: JSON.parse(JSON.stringify(privateState)), updatedAt: privateState.updatedAt };
+      store.activeTournaments[venueId] = {
+        venueId,
+        venueName: state.tournament.venue || currentVenueName(),
+        tournamentId: id,
+        registryGeneration: state.tournament.activeRegistryGeneration,
+        tournamentName: state.tournament.name,
+        status: "running",
+        updatedAt: state.updatedAt
+      };
+      store.publicLive[id] = makePublicLivePayload(privateState);
+      await window.releaseOperationLeaseV178(true, venueId);
+      await window.claimOperationLeaseV178("qa-post-reload-restore-v278", true, {
+        venueId,
+        venueName: state.tournament.venue || currentVenueName(),
+        tournamentId: id,
+        tournamentName: state.tournament.name,
+        registryGeneration: state.tournament.activeRegistryGeneration,
+        status: "running"
+      });
+    }
+    persistCurrentState();
+    if (typeof refreshOperationLeaseV178 === "function") await refreshOperationLeaseV178();
+    renderOperator();
+  });
   await showOperatorPage(page);
 
   let operatorMobileUndoV266 = { skipped: true, viewport };
@@ -1521,7 +4150,8 @@ async function runViewport(browser, meta, viewport) {
   const selectedPointButtons = await page.locator(".point-buttons button.primary").count();
   if (selectedPointButtons < 1) failures.push("point score clicks did not leave a selected score");
 
-  await page.evaluate(() => {
+  const operatorMutationLeaseClaimedV278 = await page.evaluate(async () => {
+    const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
     const players = [
       { id: "qa-advance-a", name: "Advance A", team: "QA", lane: 1 },
       { id: "qa-advance-b", name: "Advance B", team: "QA", lane: 2 },
@@ -1549,8 +4179,45 @@ async function runViewport(browser, meta, viewport) {
     activeRoundIndex = 0;
     state.activeRoundIndex = 0;
     state.broadcast = { mode: "stage", roundIndex: 0, stageIndex: 0 };
+    const venueId = "qa-venue";
+    const id = `qa-operator-mutations-v278-${Date.now()}`;
+    const generation = `qa-operator-mutations-generation-v278-${Date.now()}`;
+    state.tournament.venueId = venueId;
+    state.tournament.liveId = id;
+    state.tournament.liveSignature = `${id}-signature`;
+    state.tournament.activeRegistryGeneration = generation;
+    state.updatedAt = Date.now();
+    firebaseTournamentId = id;
+    localStorage.setItem("mini4wdTournamentId", id);
+    localStorage.setItem("mini4wdActiveLiveId", id);
+    localStorage.setItem("mini4wdActiveLiveSignature", state.tournament.liveSignature);
+    const store = window.__qaFirebaseStore;
+    const privateState = exportState();
+    store.tournaments[id] = { state: clone(privateState), updatedAt: privateState.updatedAt };
+    store.activeTournaments[venueId] = {
+      venueId,
+      venueName: "QA Venue",
+      tournamentId: id,
+      registryGeneration: generation,
+      tournamentName: state.tournament.name,
+      status: "running",
+      updatedAt: state.updatedAt
+    };
+    store.publicLive[id] = makePublicLivePayload(privateState);
+    await window.releaseOperationLeaseV178(true, venueId);
+    const claimed = await window.claimOperationLeaseV178("qa-operator-mutations-v278", true, {
+      venueId,
+      venueName: "QA Venue",
+      tournamentId: id,
+      tournamentName: state.tournament.name,
+      registryGeneration: generation,
+      status: "running"
+    });
+    persistCurrentState();
     renderOperator();
+    return claimed;
   });
+  if (!operatorMutationLeaseClaimedV278) failures.push("operator mutation fixture could not claim exact v278 lease");
   await page.waitForTimeout(300);
   const advanceBefore = await page.evaluate(() => {
     const group = state.qualifierRounds?.[0]?.stages?.[0]?.groups?.[0];
@@ -1573,7 +4240,7 @@ async function runViewport(browser, meta, viewport) {
       storedSelected
     };
   });
-  logs.push({ step: "advance-selection", info: { before: advanceBefore, after: advanceAfter } });
+  logs.push({ step: "advance-selection", info: { leaseClaimed: operatorMutationLeaseClaimedV278, before: advanceBefore, after: advanceAfter } });
   if (advanceBefore.advanceIds.includes("qa-advance-a")) failures.push("advance selection started preselected");
   if (!advanceAfter.advanceIds.includes("qa-advance-a")) failures.push(`advance click did not update advanceIds ${JSON.stringify(advanceAfter)}`);
   if (!advanceAfter.slotSelected) failures.push(`advance click did not leave selected UI ${JSON.stringify(advanceAfter)}`);

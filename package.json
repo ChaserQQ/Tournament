@@ -7,7 +7,14 @@
     "qa:audit": "node tools/audit-code-css.cjs",
     "qa:result": "node tools/qa-result-matrix.cjs",
     "qa:match": "node tools/qa-match-simulation.cjs",
+    "qa:admin": "node tools/qa-admin-flow.cjs",
+    "qa:operator": "node tools/qa-operator-flow.cjs",
+    "qa:surface": "node tools/qa-surface-check.cjs",
+    "qa:all": "npm run verify && npm run qa:audit && npm run qa:result && npm run qa:match && npm run qa:admin && npm run qa:operator && npm run qa:surface",
     "db:audit": "node tools/database-maintenance.cjs audit",
     "db:plan": "node tools/database-maintenance.cjs plan"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
   }
 }

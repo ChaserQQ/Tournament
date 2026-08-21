@@ -24,16 +24,19 @@ before acting.
 - When a surface needs substantial UI repair, consolidate its DOM/base CSS and remove superseded rules. Do not keep appending late override layers.
 
 ## Current verified state
-- Verified 2026-08-22 KST: latest app-source commit is `8c7b5089954c2924a3ccef67df5e68231d41b4f7` (`Build v276 apply forced group count to first stage`). Documentation-only context refresh commit `0f352e8` follows it on `main`; always resolve the exact current HEAD from Git.
-- Verified 2026-08-22 KST before the context refresh: Git history had 7 commits. The older snapshot-only/force-push policy is stale; do not rewrite history without a fresh explicit request.
-- Verified 2026-08-22 KST: build is `276`, label `BUILD v276 FIRST STAGE FORCED GROUP COUNT`.
-- Verified assets: `config: 156`, `build/app/css/operatorMobileCss: 276`, `og: 51`.
+- Verified 2026-08-22 KST: `main` baseline/remote HEAD before the current release is `a5249174d19246d478827803d98f9fd3bd8aa009` (`Clarify app and context commit state`). Always resolve the exact current HEAD from Git.
+- Verified 2026-08-22 KST: v278 work is on local branch `codex/codebase-refactor-v277`; resolve commit/push/Pages state live before relying on this note.
+- Local reviewed build is `278`, label `BUILD v278 REMOTE AUTO-CLOSE SAFETY`.
+- Local reviewed assets: `config: 156`, `build/app/css/operatorMobileCss: 278`, `og: 51`.
 - Verified 2026-08-22 KST: app Pages run `29318678193` and documentation-only Pages run `32496497174` completed successfully; public index and build asset both return HTTP 200 and identify v276.
-- Verified 2026-08-22 KST: tracked app state is clean. Untracked items are `.codex-remote-attachments/`, `DESIGN_OUTPUT.md`, `FIREBASE_REPORT.md`, and `QA_REPORT.md`; leave them untouched unless requested.
+- Verified 2026-08-22 KST: pre-existing untracked items are `.codex-remote-attachments/`, `DESIGN_OUTPUT.md`, `FIREBASE_REPORT.md`, and `QA_REPORT.md`; leave them untouched unless requested. `package-lock.json` is an intentional project artifact. `node_modules/` is generated QA output and must not be committed.
+- Verified 2026-08-22 KST: local v278 `npm.cmd run qa:all`, `git diff --check`, and changed JS/CJS syntax checks pass.
+- Verified 2026-08-22 KST: v278 production rollout is gated. The unchanged broad RTDB rules allow an already-open v276 tab to remove v278 generation/fence fields during a mixed-version rollout. Do not push v278 to `main`/Pages without explicit approval for either a staged rules migration or a maintenance cutover (zero active/pending tournaments, all operator tabs closed, lease expiry wait, deploy, hard reload/build verification).
 - Active source-of-truth files: `src/app.js`, `src/core/build.js`, `src/styles/app.css`, `src/styles/operator-mobile.css`, `tools/verify-static.js`, and the QA scripts under `tools/`.
 - `TASK_QUEUE.md` no longer defines split-chat roles. `IMPLEMENTATION_REPORT.md` is a compact deployed-app summary. `UI_REDESIGN_BRIEF.md` contains current UI invariants.
 
 ## Validation checklist
+- `npm.cmd run qa:all` is the stable aggregate for static verification, structure audit, result/match/admin/operator/surface browser QA.
 - Always run `npm.cmd run verify` and `git diff --check` after meaningful implementation changes.
 - Run `npm.cmd run qa:audit` after JS/CSS structure changes.
 - Run `npm.cmd run qa:match` for tournament progression, scoring, finalist, final, refresh recovery, or LIVE-state changes. It covers `basic`, `points3`, `points5Tree`, `revival`, and `crow` with Firebase stubs.
@@ -42,7 +45,7 @@ before acting.
 - Run `node tools/qa-surface-check.cjs` for login/auth routes, LIVE lobby, mobile/TV viewers, missing-state fallbacks, and overflow.
 - Run `node tools/qa-admin-flow.cjs` for admin/player DB list or account layout changes.
 - Browser QA should cover desktop 1365x900 and mobile 390x844 plus 320px narrow width when layout is affected.
-- If Playwright cannot be resolved, use `%TEMP%\mini4wd-playwright-cache\node_modules` as task-specific `NODE_PATH`; do not assume it exists without checking.
+- Playwright is pinned at `1.62.1` in `package.json` and `package-lock.json`; use `npm ci` in a clean environment.
 - Run `node --check` for each changed JS/CJS file.
 - After push, verify the Pages workflow and fetch the public index plus versioned assets with a cache-busting query.
 - Use Firebase stubs for routine QA. Touch live Firebase only when the task truly requires live-state validation.
@@ -55,6 +58,12 @@ before acting.
 - Public LIVE payloads must remain sanitized and must never embed the full private tournament state.
 
 ## Recent durable changes
+- 2026-08-22 local v278: tournament start is single-flight and exact-owner guarded from draft fingerprint through lease reservation, fence allocation, registry activation, and first private/public publication. Running semantic mutations use a reload WAL with exact tournament/generation/venue/fence bases; viewer routes never restore or publish operator state.
+- 2026-08-22 local v278: finish, 60-minute auto-close, undo, snapshot load, remote recovery, takeover, and current-tournament rollover now use exact tournament/generation/venue cleanup. Divergent terminal attempts converge to the authoritative remote terminal without false history, and successful current-tab auto-close releases both the active registry and matching operation lease.
+- 2026-08-22 local v278: optional blank keys remain blank instead of normalizing to `default`, preventing non-default admin venues and legacy blank LIVE IDs from targeting the default venue. Regression QA covers blank-key fallback, stale cleanup races, local terminal conflict retirement/retry, and exact current auto-close lease release.
+- 2026-08-22 local v278: remote/current tournament finish now stops draft rollover on failed Firebase sync and preserves recovered noncanonical LIVE IDs. Remote 60-minute auto-close rechecks the record transactionally, supports legacy flat records and legacy venue names, uses a short single-publisher lease, retains retryable pending state on ambiguous write failures, and never publishes private state. Freshness rejection is a real transaction abort rather than a false committed success.
+- 2026-08-22 local v278: public H2H names follow nickname policy; final/older snapshots remain recoverable across new drafts with a 12-entry/2 MB bound and honest save failures; admin record deletion surfaces Firebase failures instead of reporting success. QA covers privacy, stale timestamps, concurrent publishers, double failure recovery, recovered LIVE IDs, snapshot access/capping, and delete rejection.
+- 2026-08-22 local v277 (not pushed/deployed): public LIVE data now uses explicit allowlist DTOs and consistent `pub-*` participant IDs; inline record/LIVE ID handlers use delegated data actions; Firebase write rejection is propagated; per-tournament/final snapshots are retained; mobile operator focus is visible; browser QA is local/stubbed and reproducible.
 - 2026-08-22 verified context cleanup: compressed project memory and retired stale v222/v255 split-chat instructions. No app asset or Firebase change.
 - 2026-07-14 v276: manual `조 편성` applies to the actual first generated stage even when its name is `준결승`. Regression case: 15 players, 5 lanes, 5 groups creates five balanced groups of three; later stages return to automatic grouping.
 - 2026-07-10 v275: a round may end with zero finalists. Point, regular final, and crow flows can confirm no finalist, advance/finish safely, and exclude withdrawn racers.
@@ -75,10 +84,13 @@ before acting.
 - No-finalist is a valid terminal outcome for a round; never require at least one finalist unconditionally.
 - LIVE writes must go through the sanitized payload and freshness guard so a delayed write cannot move viewers back a round.
 - Public viewer routes must not be overwritten by authentication callbacks.
+- Verified 2026-08-22: checked-in RTDB rules grant authenticated users broad tournament/private/log/lock access and allow self-writable profile authorization fields. Treat this as a P0 security migration; change rules only with explicit authorization and emulator/migration coverage to avoid locking out valid operators.
 - Historical reports under untracked `DESIGN_OUTPUT.md`, `QA_REPORT.md`, and `FIREBASE_REPORT.md` are not current source of truth.
 - GitHub Pages currently emits a non-blocking Node 20 deprecation annotation.
 
 ## Next cleanup targets
+- Harden Firebase RTDB rules and profile authorization with an explicitly approved migration and emulator tests.
+- Continue enforcing the operator lease on every remaining write path and dispose route/auth listeners cleanly.
 - Split `src/app.js` only along stable responsibilities when touched; avoid a broad rewrite without dedicated regression coverage.
 - Consolidate versioned CSS layers into component-owned rules one surface at a time, with measured browser QA before removal.
 - Gradually replace inline `onclick`/`onchange` handlers with centralized event binding.

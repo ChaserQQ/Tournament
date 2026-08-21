@@ -50,7 +50,8 @@ function startServer() {
       }
       if (pathname === "/") pathname = "/index.html";
       const filePath = path.resolve(root, `.${pathname}`);
-      if (!filePath.startsWith(root)) {
+      const relativePath = path.relative(root, filePath);
+      if (relativePath === ".." || relativePath.startsWith(`..${path.sep}`) || path.isAbsolute(relativePath)) {
         res.writeHead(403);
         res.end("forbidden");
         return;
@@ -91,15 +92,155 @@ function browserPath() {
   ]);
 }
 
+const xlsxStub = `
+window.XLSX = {
+  utils: {
+    book_new: () => ({}),
+    aoa_to_sheet: rows => ({ rows }),
+    book_append_sheet: () => {}
+  },
+  writeFile: () => {}
+};
+`;
+
+const firebaseStub = `
+(function(){
+  if (window.__qaSurfaceFirebaseInstalled) return;
+  window.__qaSurfaceFirebaseInstalled = true;
+  const store = {
+    publicLive: {},
+    publicHistory: {},
+    publicVenues: {},
+    publicVenueDirectory: {},
+    userProfiles: {},
+    users: {},
+    privateResultLogs: {},
+    activeTournaments: {},
+    operationLocks: {},
+    tournaments: {},
+    actionLogs: {},
+    venues: {}
+  };
+  const listeners = [];
+  function split(value) { return String(value || "").split("/").filter(Boolean); }
+  function clone(value) { return value == null ? value : JSON.parse(JSON.stringify(value)); }
+  function getAt(refPath) {
+    return split(refPath).reduce((node, key) => node && Object.prototype.hasOwnProperty.call(node, key) ? node[key] : undefined, store);
+  }
+  function setAt(refPath, value) {
+    const parts = split(refPath);
+    if (!parts.length) return;
+    let node = store;
+    while (parts.length > 1) {
+      const key = parts.shift();
+      node[key] = node[key] && typeof node[key] === "object" ? node[key] : {};
+      node = node[key];
+    }
+    if (value === null) delete node[parts[0]];
+    else node[parts[0]] = clone(value);
+  }
+  function snapshot(value) {
+    const clean = clone(value);
+    return {
+      val: () => clone(clean),
+      exists: () => clean !== undefined && clean !== null,
+      forEach(callback) {
+        Object.entries(clean || {}).forEach(([key, child]) => callback({ key, val: () => clone(child) }));
+      }
+    };
+  }
+  function ref(refPath) {
+    const api = {
+      path: String(refPath || ""),
+      child(childPath) { return ref([this.path, childPath].filter(Boolean).join("/")); },
+      get() { return Promise.resolve(snapshot(getAt(this.path))); },
+      once(_event, callback) {
+        const value = snapshot(getAt(this.path));
+        if (callback) setTimeout(() => callback(value), 0);
+        return Promise.resolve(value);
+      },
+      on(_event, callback) {
+        listeners.push({ path: this.path, callback });
+        setTimeout(() => callback(snapshot(getAt(this.path))), 0);
+        return callback;
+      },
+      off(_event, callback) {
+        for (let index = listeners.length - 1; index >= 0; index -= 1) {
+          if (listeners[index].path === this.path && (!callback || listeners[index].callback === callback)) listeners.splice(index, 1);
+        }
+      },
+      set(value) { setAt(this.path, value); return Promise.resolve(); },
+      update(value) {
+        const current = getAt(this.path);
+        setAt(this.path, current && typeof current === "object" ? { ...current, ...clone(value) } : value);
+        return Promise.resolve();
+      },
+      remove() { setAt(this.path, null); return Promise.resolve(); },
+      orderByChild() { return this; },
+      limitToLast() { return this; },
+      limitToFirst() { return this; },
+      equalTo() { return this; },
+      transaction(updateFn) {
+        const next = updateFn(clone(getAt(this.path)));
+        if (next === undefined) return Promise.resolve({ committed: false, snapshot: snapshot(getAt(this.path)) });
+        setAt(this.path, next);
+        return Promise.resolve({ committed: true, snapshot: snapshot(next) });
+      },
+      onDisconnect() { return { remove: () => Promise.resolve() }; }
+    };
+    return api;
+  }
+  const apps = [];
+  const database = () => ({ ref });
+  database.ServerValue = { TIMESTAMP: Date.now() };
+  const auth = () => ({
+    currentUser: null,
+    onAuthStateChanged(callback) { setTimeout(() => callback(null), 0); return function(){}; },
+    signInWithEmailAndPassword: () => Promise.reject(new Error("QA surface auth is disabled")),
+    createUserWithEmailAndPassword: () => Promise.reject(new Error("QA surface auth is disabled")),
+    signOut: () => Promise.resolve()
+  });
+  window.__qaSurfaceFirebaseStore = store;
+  window.firebase = {
+    apps,
+    initializeApp() { const app = { name: "qa-surface" }; apps.push(app); return app; },
+    app() { return apps[0]; },
+    database,
+    auth
+  };
+})();
+`;
+
+async function installLocalRouteStubs(page) {
+  await page.route("**/*", route => {
+    const url = route.request().url();
+    if (/cdn\.jsdelivr\.net\/npm\/xlsx/.test(url)) {
+      route.fulfill({ status: 200, contentType: "application/javascript; charset=utf-8", body: xlsxStub });
+      return;
+    }
+    if (/gstatic\.com\/firebasejs/.test(url)) {
+      route.fulfill({ status: 200, contentType: "application/javascript; charset=utf-8", body: firebaseStub });
+      return;
+    }
+    if (url.startsWith(`http://127.0.0.1:${port}/`)) {
+      route.continue();
+      return;
+    }
+    route.abort("blockedbyclient");
+  });
+}
+
 function expectedFor(routeName) {
-  if (routeName === "tv-live-missing-record") return { surface: "tv-live", tvWrap: true };
-  if (routeName.includes("live") || routeName.includes("lobby")) return { surface: "live-lobby" };
+  if (routeName === "mobile-live-missing-id") return { surface: "live-lobby", liveCards: 20 };
+  if (routeName === "tv-live-missing-id" || routeName === "tv-live-missing-record") return { surface: "tv-live", tvWrap: true, textIncludes: "LIVE 대기중" };
+  if (routeName.includes("live") || routeName.includes("lobby")) return { surface: "live-lobby", liveCards: 20 };
   if (routeName === "print-route") return { surface: "login", loginInputs: true };
   return { surface: "login", loginInputs: true };
 }
 
 async function inspectRoute(browser, meta, route, viewport) {
   const page = await browser.newPage({ viewport });
+  await installLocalRouteStubs(page);
   const errors = [];
   const warnings = [];
   const failedRequests = [];
@@ -110,16 +251,23 @@ async function inspectRoute(browser, meta, route, viewport) {
   page.on("pageerror", error => errors.push(`pageerror: ${error.message}`));
   page.on("requestfailed", request => {
     const url = request.url();
-    if (/favicon|gstatic|firebase|cdn\.jsdelivr|googleapis/.test(url)) return;
+    if (/favicon/.test(url)) return;
     failedRequests.push(`${url} ${request.failure()?.errorText || ""}`.trim());
   });
 
   const url = `http://127.0.0.1:${port}/index.html${route.hash}`;
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 25000 });
-  await page.waitForTimeout(route.hash.includes("tv-live&t=") ? 5200 : 1300);
-  if (route.name === "live-lobby") {
-    await page.waitForFunction(() => document.querySelectorAll(".live-card-v89").length === 20, null, { timeout: 6500 }).catch(() => {});
-  }
+  const expected = expectedFor(route.name);
+  await page.waitForFunction(target => {
+    const surface = document.documentElement.getAttribute("data-ui-surface") || "";
+    const text = String(document.getElementById("app")?.innerText || "");
+    if (target.surface && surface !== target.surface) return false;
+    if (target.loginInputs && document.querySelectorAll("input[type='email'],input[type='password']").length < 2) return false;
+    if (target.liveCards && document.querySelectorAll(".live-card-v89").length !== target.liveCards) return false;
+    if (target.tvWrap && !document.querySelector(".tv-wrap")) return false;
+    if (target.textIncludes && !text.includes(target.textIncludes)) return false;
+    return Boolean(document.getElementById("app")?.children.length);
+  }, expected, { timeout: route.name === "tv-live-missing-record" ? 7000 : 4000 });
 
   const info = await page.evaluate(() => {
     const doc = document.documentElement;
@@ -170,7 +318,6 @@ async function inspectRoute(browser, meta, route, viewport) {
 
   await page.close();
 
-  const expected = expectedFor(route.name);
   const failures = [];
   if (errors.length) failures.push(`console errors: ${errors.join(" | ")}`);
   if (failedRequests.length) failures.push(`failed requests: ${failedRequests.join(" | ")}`);
@@ -183,8 +330,9 @@ async function inspectRoute(browser, meta, route, viewport) {
   if (info.hasReplacementChar || info.suspiciousQuestionCount > 8) failures.push(`text encoding suspect: ${info.textSample}`);
   if (expected.surface && info.surface !== expected.surface) failures.push(`surface ${info.surface} !== ${expected.surface}`);
   if (expected.loginInputs && info.loginInputs < 2) failures.push("missing login inputs");
-  if (route.name === "live-lobby" && info.liveCards !== 20) failures.push(`live cards ${info.liveCards} !== 20`);
+  if (expected.liveCards && info.liveCards !== expected.liveCards) failures.push(`live cards ${info.liveCards} !== ${expected.liveCards}`);
   if (expected.tvWrap && !info.tvWrap) failures.push("missing tv fallback wrap");
+  if (expected.textIncludes && !info.textSample.includes(expected.textIncludes)) failures.push(`missing expected text: ${expected.textIncludes}`);
 
   return {
     route: route.name,
@@ -198,6 +346,7 @@ async function inspectRoute(browser, meta, route, viewport) {
 
 async function inspectStaleFallback(browser) {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await installLocalRouteStubs(page);
   const errors = [];
   page.on("console", msg => { if (msg.type() === "error") errors.push(msg.text()); });
   page.on("pageerror", error => errors.push(`pageerror: ${error.message}`));

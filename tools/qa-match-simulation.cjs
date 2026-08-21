@@ -203,6 +203,7 @@ const firebaseStub = `
       transaction(updateFn) {
         const current = getAt(this.path);
         const next = updateFn(clone(current));
+        if (next === undefined) return Promise.resolve({ committed: false, snapshot: snapshot(current) });
         setAt(this.path, next);
         notifyFirebaseListeners(this.path);
         return Promise.resolve({ committed: true, snapshot: snapshot(next) });
@@ -299,10 +300,21 @@ async function runViewport(browser, viewport) {
       state.tournament.status = "draft";
       firebaseTournamentId = buildAutoTournamentId();
       safeSetItem("mini4wdTournamentId", firebaseTournamentId);
-      safeSetItem("mini4wdActiveLiveId", firebaseTournamentId);
-      safeSetItem("mini4wdActiveLiveSignature", firebaseTournamentId);
+      localStorage.removeItem("mini4wdActiveLiveId");
+      localStorage.removeItem("mini4wdActiveLiveSignature");
       renderOperator();
-      if (typeof claimOperationLeaseV178 === "function") await claimOperationLeaseV178(`qa-${mode}-reset`, true);
+      const started = await startTournamentAsync();
+      assert(
+        started !== false && state.tournament.status === "running",
+        `${mode} tournament did not start through the guarded v278 flow ${JSON.stringify({
+          started,
+          status: state.tournament.status,
+          liveId: state.tournament.liveId || "",
+          active: window.__qaFirebaseStore?.activeTournaments || {},
+          leases: window.__qaFirebaseStore?.operationLocks?.leases || {},
+          recentAlerts: alerts.slice(-4)
+        })}`
+      );
       await wait(80);
     };
     const ensureLease = async reason => {
@@ -456,13 +468,25 @@ async function runViewport(browser, viewport) {
       staleLive.state.updatedAt = staleLive.updatedAt;
       staleLive.state.activeRoundIndex = 0;
       staleLive.state.broadcast = { mode: "stage", roundIndex: 0, stageIndex: state.qualifierRounds[0].stages.length - 1 };
-      await writeFreshLiveValueV272(initFirebase(), `publicLive/${tournamentId()}`, staleLive, "qa-stale-v272");
+      let stalePublicRejected = false;
+      try {
+        await writeFreshLiveValueV272(initFirebase(), `publicLive/${tournamentId()}`, staleLive, "qa-stale-v272");
+      } catch (error) {
+        stalePublicRejected = error?.code === "FRESH_LIVE_REJECTED_V278";
+      }
+      assert(stalePublicRejected, "points3 stale publicLive write was not reported as rejected");
       assert(liveRecord()?.state?.broadcast?.roundIndex === 1, "points3 stale publicLive write regressed to round 1");
       const staleRemoteState = JSON.parse(JSON.stringify(window.__qaFirebaseStore.tournaments[tournamentId()].state));
       staleRemoteState.updatedAt = Math.max(1, Number(staleRemoteState.updatedAt || 0) - 1000);
       staleRemoteState.activeRoundIndex = 0;
       staleRemoteState.broadcast = { mode: "stage", roundIndex: 0, stageIndex: state.qualifierRounds[0].stages.length - 1 };
-      await writeFreshLiveValueV272(initFirebase(), `tournaments/${tournamentId()}/state`, staleRemoteState, "qa-stale-v272");
+      let staleRemoteRejected = false;
+      try {
+        await writeFreshLiveValueV272(initFirebase(), `tournaments/${tournamentId()}/state`, staleRemoteState, "qa-stale-v272");
+      } catch (error) {
+        staleRemoteRejected = error?.code === "FRESH_LIVE_REJECTED_V278";
+      }
+      assert(staleRemoteRejected, "points3 stale remote state write was not reported as rejected");
       assert(window.__qaFirebaseStore.tournaments[tournamentId()].state.activeRoundIndex === 1, "points3 stale remote state write regressed to round 1");
       await runNormalRound(1);
       await runNormalRound(2);

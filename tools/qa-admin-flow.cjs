@@ -98,6 +98,8 @@ const firebaseStub = `
     { "선수명": "박태진", "팀명": "Brilliant", "결과": "최종우승", "차수": "최종 결승", "단계": "FINAL", "조": "FINAL", "레인": "1LANE" },
     { "선수명": "김민수", "팀명": "GEEKS", "결과": "탈락", "차수": "최종 결승", "단계": "FINAL", "조": "FINAL", "레인": "2LANE" }
   ];
+  const maliciousRecordId = "qa-record-');__qaXssMarker='record';('";
+  const maliciousLiveId = "qa-live-');__qaXssMarker='live';('";
   const store = {
     userProfiles: {
       "qa-admin": { uid: "qa-admin", email: "chaser.escane@gmail.com", role: "admin", venueId: "all", venueName: "전체", approved: true, permissions: { operate: true, dashboard: true } },
@@ -109,7 +111,8 @@ const firebaseStub = `
     publicVenueDirectory: {},
     publicLive: {},
     publicHistory: {
-      "qa-public-1": { id: "qa-public-1", venueId: "athens-world", venueName: "아테네월드", raceClass: "오픈", tournamentName: "QA 공개 기록", createdAt: new Date(now - 3600000).toISOString(), endedAtISO: new Date(now - 3500000).toISOString(), rows: sampleRows }
+      "qa-public-1": { id: "qa-public-1", venueId: "athens-world", venueName: "아테네월드", raceClass: "오픈", tournamentName: "QA 공개 기록", createdAt: new Date(now - 3600000).toISOString(), endedAtISO: new Date(now - 3500000).toISOString(), rows: sampleRows },
+      [maliciousRecordId]: { id: maliciousRecordId, venueId: "qa-xss-venue", venueName: "QA XSS Venue", raceClass: "오픈", tournamentName: "QA XSS 기록", createdAt: new Date(now - 1800000).toISOString(), endedAtISO: new Date(now - 1700000).toISOString(), rows: sampleRows }
     },
     privateResultLogs: {
       "athens-world": {
@@ -154,7 +157,14 @@ const firebaseStub = `
       get() { return Promise.resolve(snapshot(getAt(this.path))); },
       set(value) { setAt(this.path, value); return Promise.resolve(); },
       update(value) { mergeAt(this.path, value); return Promise.resolve(); },
-      remove() { setAt(this.path, null); return Promise.resolve(); },
+      remove() {
+        window.__qaFirebaseRemovePaths.push(this.path);
+        if (Array.isArray(window.__qaRejectFirebaseRemovePaths) && window.__qaRejectFirebaseRemovePaths.includes(this.path)) {
+          return Promise.reject(new Error("QA rejected Firebase remove: " + this.path));
+        }
+        setAt(this.path, null);
+        return Promise.resolve();
+      },
       once(_event, cb) { const snap = snapshot(getAt(this.path)); if (cb) setTimeout(() => cb(snap), 0); return Promise.resolve(snap); },
       on(_event, cb) { setTimeout(() => cb(snapshot(getAt(this.path))), 0); return cb; },
       off() {},
@@ -171,6 +181,7 @@ const firebaseStub = `
       transaction(updateFn) {
         const current = getAt(this.path);
         const next = updateFn(clone(current));
+        if (next === undefined) return Promise.resolve({ committed: false, snapshot: snapshot(current) });
         setAt(this.path, next);
         return Promise.resolve({ committed: true, snapshot: snapshot(next) });
       }
@@ -179,6 +190,10 @@ const firebaseStub = `
   }
   const fakeUser = { uid: "qa-admin", email: "chaser.escane@gmail.com" };
   window.__qaFirebaseStore = store;
+  window.__qaFirebaseRemovePaths = [];
+  window.__qaRejectFirebaseRemovePaths = [];
+  window.__qaMaliciousRecordId = maliciousRecordId;
+  window.__qaMaliciousLiveId = maliciousLiveId;
   window.firebase = {
     initializeApp: () => ({ name: "qa-app" }),
     apps: [],
@@ -334,6 +349,125 @@ async function inspectAdminRoute(page, meta, hash, expectedSurface, failures) {
   return info;
 }
 
+async function inspectDelegatedXssActions(page, failures) {
+  const recordSetup = await page.evaluate(() => {
+    window.__qaXssMarker = "";
+    const id = window.__qaMaliciousRecordId;
+    const button = [...document.querySelectorAll('[data-app-action="delete-admin-tournament-record"]')]
+      .find(item => item.dataset.recordId === id);
+    return {
+      id,
+      exists: Boolean(button),
+      hasInlineOnclick: Boolean(button?.hasAttribute("onclick")),
+      datasetId: button?.dataset.recordId || "",
+      datasetVenueId: button?.dataset.venueId || ""
+    };
+  });
+  if (!recordSetup.exists) failures.push(`delegated XSS record button missing ${JSON.stringify(recordSetup)}`);
+  if (recordSetup.hasInlineOnclick) failures.push("delegated XSS record button still has inline onclick");
+  if (recordSetup.datasetId !== recordSetup.id || recordSetup.datasetVenueId !== "qa-xss-venue") {
+    failures.push(`delegated XSS record dataset mismatch ${JSON.stringify(recordSetup)}`);
+  }
+
+  if (recordSetup.exists) {
+    await page.evaluate(id => {
+      const button = [...document.querySelectorAll('[data-app-action="delete-admin-tournament-record"]')]
+        .find(item => item.dataset.recordId === id);
+      button?.click();
+    }, recordSetup.id);
+    await page.waitForFunction(id => !Object.prototype.hasOwnProperty.call(window.__qaFirebaseStore?.publicHistory || {}, id), recordSetup.id);
+  }
+  const recordResult = await page.evaluate(id => ({
+    marker: window.__qaXssMarker,
+    removedPaths: [...(window.__qaFirebaseRemovePaths || [])],
+    stillPresent: Object.prototype.hasOwnProperty.call(window.__qaFirebaseStore?.publicHistory || {}, id)
+  }), recordSetup.id);
+  const expectedPublicPath = `publicHistory/${recordSetup.id}`;
+  if (recordResult.marker) failures.push(`delegated XSS record marker executed: ${recordResult.marker}`);
+  if (!recordResult.removedPaths.includes(expectedPublicPath) || recordResult.stillPresent) {
+    failures.push(`delegated XSS record id was not deleted exactly ${JSON.stringify({ expectedPublicPath, recordResult })}`);
+  }
+
+  const removeFailureResult = await page.evaluate(async () => {
+    const id = "qa-remove-failure-v278";
+    const venueId = "qa-remove-failure-venue";
+    const priorLocal = localStorage.getItem(LOCAL_RESULT_LOGS_KEY);
+    window.__qaFirebaseStore.publicHistory[id] = { id, venueId, tournamentName: "QA remove failure" };
+    window.__qaFirebaseStore.privateResultLogs[venueId] = {
+      [id]: { id, venueId, tournamentName: "QA remove failure" }
+    };
+    localStorage.setItem(LOCAL_RESULT_LOGS_KEY, JSON.stringify([{ id, venueId, tournamentName: "QA remove failure" }]));
+    window.__qaRejectFirebaseRemovePaths = [`publicHistory/${id}`];
+    try {
+      const result = await deleteAdminTournamentRecord(id, venueId);
+      return {
+        marker: "remove-failure-not-success-v278",
+        result,
+        publicStillPresent: Object.prototype.hasOwnProperty.call(window.__qaFirebaseStore.publicHistory || {}, id),
+        localStillPresent: (loadLocalResultLogs() || []).some(item => item?.id === id)
+      };
+    } finally {
+      window.__qaRejectFirebaseRemovePaths = [];
+      delete window.__qaFirebaseStore.publicHistory[id];
+      delete window.__qaFirebaseStore.privateResultLogs[venueId];
+      if (priorLocal == null) localStorage.removeItem(LOCAL_RESULT_LOGS_KEY);
+      else localStorage.setItem(LOCAL_RESULT_LOGS_KEY, priorLocal);
+    }
+  });
+  if (removeFailureResult.result !== false || !removeFailureResult.publicStillPresent || !removeFailureResult.localStillPresent) {
+    failures.push(`admin remove failure was reported as success ${JSON.stringify(removeFailureResult)}`);
+  }
+
+  const liveResult = await page.evaluate(() => {
+    const id = window.__qaMaliciousLiveId;
+    const originalOpen = window.open;
+    window.__qaOpenedLiveUrl = "";
+    window.open = url => {
+      window.__qaOpenedLiveUrl = String(url || "");
+      return { opener: null };
+    };
+    try {
+      renderLiveLobbyWithData([{
+        id,
+        venueId: "qa-xss-venue",
+        venueName: "QA XSS Venue",
+        tournamentName: "QA XSS LIVE",
+        raceClass: "오픈",
+        status: "running",
+        live: true,
+        updatedAt: Date.now(),
+        state: { tournament: { status: "running" } }
+      }], [], [{ venueId: "qa-xss-venue", venueName: "QA XSS Venue" }]);
+      const buttons = [...document.querySelectorAll('[data-app-action="open-live-viewer"]')];
+      const tvButton = buttons.find(button => button.dataset.liveView === "tv-live" && button.dataset.liveId === id);
+      tvButton?.click();
+      return {
+        id,
+        buttonCount: buttons.length,
+        hasInlineOnclick: buttons.some(button => button.hasAttribute("onclick")),
+        datasetIds: buttons.map(button => button.dataset.liveId || ""),
+        views: buttons.map(button => button.dataset.liveView || ""),
+        marker: window.__qaXssMarker,
+        openedUrl: window.__qaOpenedLiveUrl,
+        expectedUrl: `${location.origin}${location.pathname}#view=tv-live&t=${encodeURIComponent(id)}`
+      };
+    } finally {
+      window.open = originalOpen;
+    }
+  });
+  if (liveResult.buttonCount !== 2) failures.push(`delegated XSS live buttons missing ${JSON.stringify(liveResult)}`);
+  if (liveResult.hasInlineOnclick) failures.push("delegated XSS live button still has inline onclick");
+  if (liveResult.datasetIds.some(id => id !== liveResult.id) || liveResult.views.join("|") !== "tv-live|mobile-live") {
+    failures.push(`delegated XSS live dataset mismatch ${JSON.stringify(liveResult)}`);
+  }
+  if (liveResult.marker) failures.push(`delegated XSS live marker executed: ${liveResult.marker}`);
+  if (liveResult.openedUrl !== liveResult.expectedUrl || !liveResult.openedUrl.includes("%3B")) {
+    failures.push(`delegated XSS live id was not URL encoded exactly ${JSON.stringify(liveResult)}`);
+  }
+
+  return { record: { ...recordSetup, ...recordResult }, removeFailureResult, live: liveResult };
+}
+
 async function runViewport(browser, meta, viewport) {
   const failures = [];
   const logs = [];
@@ -344,6 +478,7 @@ async function runViewport(browser, meta, viewport) {
   page.on("dialog", dialog => dialog.accept());
   logs.push({ step: "admin-accounts", info: await inspectAdminRoute(page, meta, "#view=admin", "admin-accounts", failures) });
   logs.push({ step: "admin-matches", info: await inspectAdminRoute(page, meta, "#view=admin-matches", "admin-matches", failures) });
+  logs.push({ step: "delegated-xss-actions", info: await inspectDelegatedXssActions(page, failures) });
   await page.close();
   return { viewport, ok: failures.length === 0, failures, logs };
 }

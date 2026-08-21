@@ -715,6 +715,15 @@
     white-space: nowrap !important;
     text-align: center !important;
   }
+
+  /* v277: mobile operator focus remains visible above owned button geometry. */
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) button:focus-visible {
+    outline: 3px solid var(--op-mobile-accent-v255) !important;
+    outline-offset: 2px !important;
+    box-shadow:
+      inset 0 0 0 2px #ffffff,
+      inset 0 0 0 4px var(--op-mobile-accent-v255) !important;
+  }
 }
 
 /* v271: final dock geometry is applied in the mobile source loaded last. */
@@ -789,5 +798,14 @@
   html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-mobile-dock-v233 > button:first-child,
   html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-mobile-dock-v233 > .operator-mobile-primary-v224 {
     font-size: 10px !important;
+  }
+}
+
+@media (max-width: 760px) and (forced-colors: active) {
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) button:focus-visible {
+    outline: 3px solid Highlight !important;
+    outline-offset: 2px !important;
+    box-shadow: none !important;
+    forced-color-adjust: auto;
   }
 }

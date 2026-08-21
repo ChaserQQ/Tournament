@@ -166,6 +166,7 @@ const firebaseStub = `
       transaction(updateFn) {
         const current = getAt(this.path);
         const next = updateFn(clone(current));
+        if (next === undefined) return Promise.resolve({ committed: false, snapshot: snapshot(current) });
         setAt(this.path, next);
         return Promise.resolve({ committed: true, snapshot: snapshot(next) });
       }
@@ -208,7 +209,7 @@ async function installNetworkStubs(page) {
 }
 
 async function runMatrix(page, expectedVersion) {
-  return page.evaluate(version => {
+  return page.evaluate(async version => {
     const failures = [];
     const summaries = [];
     const assert = (condition, message) => { if (!condition) failures.push(message); };
@@ -528,6 +529,118 @@ async function runMatrix(page, expectedVersion) {
       addSummary("legacy-unmarked-points5", rows, stats);
     }
 
+    function runSnapshotRetentionCase() {
+      const backupState = exportState();
+      const backupActiveRoundIndex = activeRoundIndex;
+      const backupFirebaseTournamentId = firebaseTournamentId;
+      const storageKeys = [LOCAL_SNAPSHOT_KEY, STORAGE_KEY, "mini4wdActiveLiveId", "mini4wdActiveLiveSignature", "mini4wdActiveLiveDate", "mini4wdTournamentId"];
+      const storageBackup = Object.fromEntries(storageKeys.map(key => [key, localStorage.getItem(key)]));
+      const restoreStorage = () => storageKeys.forEach(key => {
+        const value = storageBackup[key];
+        if (value == null) localStorage.removeItem(key);
+        else localStorage.setItem(key, value);
+      });
+
+      try {
+        storageKeys.forEach(key => localStorage.removeItem(key));
+        state.tournament = {
+          ...state.tournament,
+          name: "QA Snapshot A",
+          venue: "QA Venue",
+          status: "running",
+          liveId: "qa-snapshot-a-v278",
+          liveSignature: "qa-snapshot-a-v278-signature",
+          startedAtISO: "2026-08-22T00:00:00.000Z"
+        };
+        createAutoSnapshot("QA snapshot A");
+        const keyA = currentSnapshotKey();
+
+        state.tournament.name = "QA Snapshot B";
+        state.tournament.liveId = "qa-snapshot-b-v278";
+        state.tournament.liveSignature = "qa-snapshot-b-v278-signature";
+        localStorage.removeItem("mini4wdActiveLiveId");
+        localStorage.removeItem("mini4wdActiveLiveSignature");
+        createAutoSnapshot("QA snapshot B");
+        const keyB = currentSnapshotKey();
+        state.tournament.status = "finished";
+        createAutoSnapshot("대회 종료");
+
+        const snapshots = loadSnapshotMap();
+        assert(keyA !== keyB, `snapshot test did not create distinct tournament keys: ${keyA}`);
+        assert(Object.keys(snapshots).length === 2, `snapshot map did not retain both tournaments: ${JSON.stringify(Object.keys(snapshots))}`);
+        assert(snapshots[keyA]?.label === "QA snapshot A", `first tournament snapshot was overwritten: ${JSON.stringify(snapshots[keyA])}`);
+        assert(snapshots[keyB]?.label === "대회 종료", `finished tournament snapshot was not captured: ${JSON.stringify(snapshots[keyB])}`);
+        assert(snapshots[keyB]?.state?.tournament?.status === "finished", "finished snapshot does not contain finished state");
+
+        prepareNextTournamentDraftV116("qa-snapshot-access-v278");
+        const afterDraft = loadSnapshots();
+        assert(afterDraft.some(item => item.key === keyB && item.label === "대회 종료"), "finished snapshot disappeared after preparing the next tournament draft");
+
+        const seeded = {};
+        for (let index = 0; index < LOCAL_SNAPSHOT_MAX_ENTRIES_V278 + 4; index += 1) {
+          const key = `qa-cap-${String(index).padStart(2, "0")}`;
+          seeded[key] = {
+            id: `snap-${key}`,
+            key,
+            tournamentId: key,
+            label: `QA capped snapshot ${index}`,
+            createdAt: new Date(Date.UTC(2026, 7, 22, 0, index, 0)).toISOString(),
+            state: {
+              ...backupState,
+              tournament: { ...(backupState.tournament || {}), name: `QA Cap ${index}`, status: "running" }
+            }
+          };
+        }
+        const priorityKey = `qa-cap-${String(LOCAL_SNAPSHOT_MAX_ENTRIES_V278 + 3).padStart(2, "0")}`;
+        assert(saveSnapshotMapV278({ ...loadSnapshotMap(), ...seeded }, priorityKey), "capped snapshot map could not be saved");
+        const capped = loadSnapshotMap();
+        assert(Object.keys(capped).length <= LOCAL_SNAPSHOT_MAX_ENTRIES_V278, `snapshot cap exceeded: ${Object.keys(capped).length}`);
+        assert(!!capped[priorityKey], "priority/current snapshot was pruned by the cap");
+        assert(!capped["qa-cap-00"], "oldest snapshot was not pruned by the cap");
+        summaries.push({
+          name: "snapshot-access-and-cap-v278",
+          retainedAfterDraft: afterDraft.some(item => item.key === keyB),
+          keyCount: Object.keys(capped).length,
+          finalLabel: snapshots[keyB]?.label || ""
+        });
+      } finally {
+        state = normalizeImportedState(backupState);
+        activeRoundIndex = backupActiveRoundIndex;
+        state.activeRoundIndex = backupActiveRoundIndex;
+        firebaseTournamentId = backupFirebaseTournamentId;
+        restoreStorage();
+      }
+    }
+
+    async function runFreshWriteFailureCase() {
+      const denied = new Error("qa transaction denied");
+      const rejectingDb = {
+        ref() {
+          return {
+            transaction() {
+              return Promise.reject(denied);
+            }
+          };
+        }
+      };
+      let rejectedMessage = "";
+      try {
+        await writeFreshLiveValueV272(rejectingDb, "publicLive/qa-denied", { updatedAt: Date.now() }, "qa-denied");
+      } catch (error) {
+        rejectedMessage = error?.message || String(error || "");
+      }
+      assert(rejectedMessage === denied.message, `fresh write rejection was swallowed: ${rejectedMessage || "no rejection"}`);
+
+      let missingRefRejected = false;
+      try {
+        await writeFreshLiveValueV272(null, "publicLive/qa-missing-ref", {}, "qa-missing-ref");
+      } catch (error) {
+        missingRefRejected = /reference is unavailable/.test(String(error?.message || error));
+      }
+      assert(missingRefRejected, "missing Firebase reference did not reject");
+      summaries.push({ name: "fresh-write-failure", rejected: !!rejectedMessage, missingRefRejected });
+    }
+
     assert(String(document.documentElement.getAttribute("data-build-version") || "") === String(version), "build version mismatch in browser");
     assert(typeof getStageResultRows === "function", "getStageResultRows is not available");
     assert(typeof analyzeRecords === "function", "analyzeRecords is not available");
@@ -540,7 +653,8 @@ async function runMatrix(page, expectedVersion) {
       runCrowSemiCase,
       runLegacyLowScoreInferenceCase,
       runPlainAdvanceDoesNotCountCase,
-      runLegacyUnmarkedPoints5Case
+      runLegacyUnmarkedPoints5Case,
+      runSnapshotRetentionCase
     ].forEach(fn => {
       try {
         fn();
@@ -548,6 +662,11 @@ async function runMatrix(page, expectedVersion) {
         failures.push(`${fn.name}: ${error && error.stack || error}`);
       }
     });
+    try {
+      await runFreshWriteFailureCase();
+    } catch (error) {
+      failures.push(`runFreshWriteFailureCase: ${error && error.stack || error}`);
+    }
     try {
       state.tournament.status = "draft";
       state.finalRace = null;
