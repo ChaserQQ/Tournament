@@ -1,90 +1,64 @@
 # UI Redesign Brief
 
-This document is the shared source for the MINI4WD Tournament Maker UI redesign.
-All chats should read this before making design, implementation, verification, or Firebase decisions.
+This is the current UI direction for MINI4WD Tournament Maker. Use live code and
+`AGENT_MEMORY.md` for implementation facts.
 
-## Current Baseline
-- Project: MINI4WD Tournament Maker
-- Workspace: `C:\Users\rlaal\Desktop\mtm`
-- Public URL: `https://chaserqq.github.io/Tournament/`
-- Current accepted build: v222, `BUILD v222 AUX SURFACE DESIGN`
-- Rejected build: v223 luxury-minimal CSS-only attempt. Do not continue that direction.
+## Current baseline
+- Verified baseline: v276, `BUILD v276 FIRST STAGE FORCED GROUP COUNT`.
+- The old v222 starting point and split-chat v224 instructions are retired.
+- The rejected v223 CSS-only luxury redesign must not be revived.
 
-## Redesign Scope
-This is a full app UI and information-architecture redesign, not a player DB-only fix.
+## Product direction
+- Build a quiet, fast tournament operations tool, not a landing page.
+- Put the current decision and next action first.
+- Remove repeated explanations, duplicate controls, and duplicate status panels.
+- Use white/gray surfaces, one accent color, and a distinct danger treatment.
+- Use cards only for repeated match/player units or genuinely framed tools. Do not nest cards.
+- Preserve tournament logic and Firebase behavior unless the task explicitly targets them.
 
-Target screens:
-- Operator screen
-- Player DB
-- Admin screen
-- LIVE/viewer screen
-- Login, permission, waiting, error states
-- Print, result, and auxiliary screens
+## Alignment contract
+- Every frame in the same stack shares the same left and right edges.
+- Same-type sections use the same vertical gap.
+- Buttons in one group share height, vertical alignment, padding rhythm, and inter-button gap.
+- Border shape and radius are consistent across adjacent frames; default radius is 8px or less.
+- Text must stay inside its control at desktop, 390px mobile, and 320px narrow mobile.
+- Fixed-format controls use stable grid tracks so labels and state changes do not shift layout.
 
-## Core Direction
-- Prioritize an operations tool: fast judgment, fast input, and mistake prevention.
-- Keep every screen structurally consistent: top context, central task, side or bottom actions.
-- Remove repetitive explanation copy. Prefer labels, status, and clear button names.
-- Use restrained color: white/gray base, one accent color, one danger color.
-- Do not wrap everything in cards. Use layout, spacing, and alignment first.
-- Do not create a landing-page style. This must remain a practical tournament tool.
-- Do not solve the redesign by adding another late CSS override layer.
+## Operator screen
+- Header: tournament identity and operation status, visually substantial but compact.
+- Top routes: `선수`, `기록`, `라이브`, `관리`.
+- Main flow: tournament overview, round controls, current stage/group, score or advance selection, then secondary settings.
+- `현재 경기`, participant list, settings, queue, point-stage header, and LIVE-send status must not be repeated in separate panels.
+- Setup and `기타` are static sections, not accordion/tool drawers.
+- `최종 결승 진행` belongs directly below the round buttons when relevant.
+- No-finalist rounds show a deliberate unavailable/complete state and allow the tournament to continue safely.
 
-## Common Layout
-- Top: tournament name, current state, user authority, primary navigation.
-- Main: the single most important task for the current screen.
-- Secondary panel: settings, details, logs, or risk actions.
-- Fixed action area: only the action the user is likely to need now.
-- Empty, error, waiting, and permission screens use the same quiet status layout.
+## Mobile operator dock
+- Exactly four equal columns: current primary action, `경기`, `설정`, `기타`.
+- All four button backgrounds share the same outer height, top/bottom position, radius, and padding contract.
+- The primary action may use the accent color but not a different geometry.
+- Primary copy stays on one line; shorten the label when necessary.
+- Dock container top and bottom padding must be optically equal.
+- Reserve page bottom space so content is never hidden behind the dock.
 
-## Desktop Layout
-- Default app layout: two columns.
-- Left/main column: primary work.
-- Right/side column: detail, action, status, or logs.
-- Operator screen: current match, queue, result input.
-- Player DB: searchable list plus selected-player detail panel.
-- Admin: vertical setting groups; dangerous work separated at the bottom.
-- LIVE: viewer information only, with management controls removed.
+## Player DB and admin
+- Mobile player/admin lists remain compact horizontal data surfaces with controlled scrolling where needed.
+- Sticky or top controls must not overlap the first list row.
+- Checkboxes, favorite controls, names, venue/team, and record columns keep stable tracks.
+- Bulk actions use equal-width buttons and do not resize the list.
+- Desktop tables and mobile data surfaces must show the same underlying state without rendering duplicate copies.
 
-## Mobile Layout
-- Use one column: current task, next action, list, then secondary information.
-- Bottom navigation for operator mode should have three items or fewer.
-- LIVE must not share the operator bottom navigation.
-- Long tables become compact lists.
-- Each mobile list item should stay within three visible information lines where possible.
-- Only one fixed primary action is allowed on a mobile screen.
+## LIVE and TV
+- Viewer surfaces are read-only and never inherit operator controls or dock navigation.
+- Mobile LIVE prioritizes current match, score/advance state, and recent results.
+- TV LIVE gives finals a dedicated final-state presentation rather than treating them as an ordinary three-group round.
+- Viewer state must follow the operator round/final state without requiring a manual viewer refresh.
+- Missing or stale data shows a clear fallback rather than an old round as if it were current.
 
-## Component Rules
-- Buttons: primary, secondary, danger only. One primary button per area.
-- Cards: use only for repeated items, selected-player detail, or match units.
-- Nested cards are not allowed.
-- Tables: mainly desktop. Use fixed header, clickable rows, and status chips.
-- Tabs: four or fewer, only for switching views inside one task.
-- Bottom bar: icon plus short label. LIVE is not the center of the operator flow.
-- Toolbar: search, filter, sort, add. Remove duplicate navigation and explanation controls.
-- Inputs: label, value, error. Long help text goes into collapsed help.
-- Status: progress, waiting, complete, warning, error.
-
-## Screen Reconstruction
-- Operator: current round and next action first, then waiting racers, result input, and progress log.
-- Player DB: search/filter, player list, detail panel, registration/edit flow.
-- Admin: tournament settings, match format, data management, authority, dangerous actions.
-- LIVE: current match, ranking, next match, tournament status.
-- Login/permission/waiting/error: centered status, one-line reason, one available action.
-- Print/result/auxiliary: output content first; remove unnecessary app navigation.
-
-## Removal Targets
-- Repeated explanation text with the same meaning.
-- Obvious instructions such as "select below".
-- Card-wrapped sections for every block.
-- Duplicate save, move, refresh, or navigation buttons.
-- LIVE and operator controls mixed in one bottom bar.
-- Table and card versions showing the same information at the same time.
-- State that relies only on color without text or icon support.
-
-## Implementation Policy
-- Start from v224 after the accepted v222 baseline.
-- Replace old structure deliberately. Do not stack another patch layer over it.
-- Work screen by screen, but keep the common system consistent from the start.
-- Preserve tournament logic and Firebase behavior unless a task explicitly targets them.
-- Verify PC and mobile separately.
+## Implementation policy
+- Change the owning DOM/component and base CSS rule. Remove superseded rules in the same pass.
+- Do not add a broad late override layer as the default repair method.
+- Reuse current helpers and established classes before creating abstractions.
+- Verify affected screens at 1365px, 390px, and 320px.
+- Tournament progression changes require full match simulation plus operator-flow QA.
+- LIVE/TV changes require operator publication, mobile viewer, TV viewer, stale-write, and refresh checks.
