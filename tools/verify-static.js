@@ -15,6 +15,7 @@ const requiredFiles = [
   "database.rules.json",
   "tools/qa-admin-flow.cjs",
   "tools/qa-operator-flow.cjs",
+  "tools/qa-database-rules.mjs",
   "tools/qa-result-matrix.cjs",
   "tools/qa-match-simulation.cjs"
 ];
@@ -88,6 +89,25 @@ const appCss = readText("src/styles/app.css");
 const appCssLf = appCss.replace(/\r\n/g, "\n");
 const operatorMobileCss = readText("src/styles/operator-mobile.css");
 const databaseRules = readText("database.rules.json");
+const databaseRulesQa = readText("tools/qa-database-rules.mjs");
+let databaseRuleTree = {};
+try {
+  databaseRuleTree = JSON.parse(databaseRules).rules || {};
+} catch (_) {
+  // assertJson above reports the parse error; keep the remaining checks safe.
+}
+
+function hasExactIndex(node, expected) {
+  return Array.isArray(node?.[".indexOn"])
+    && node[".indexOn"].length === expected.length
+    && expected.every((value, index) => node[".indexOn"][index] === value);
+}
+
+function hasNestedExactIndex(node, expected) {
+  if (!node || typeof node !== "object") return false;
+  if (hasExactIndex(node, expected)) return true;
+  return Object.entries(node).some(([key, value]) => !key.startsWith(".") && hasNestedExactIndex(value, expected));
+}
 const resultMatrixQa = readText("tools/qa-result-matrix.cjs");
 const matchSimulationQa = readText("tools/qa-match-simulation.cjs");
 const operatorQa = readText("tools/qa-operator-flow.cjs");
@@ -325,6 +345,22 @@ if (!adminQa.includes("remove-failure-not-success-v278") || !appJs.includes("asy
 if (!resultMatrixQa.includes("fresh-write-failure") || !appJs.includes("Firebase transaction was not committed")) fail("v277 Firebase write failures must reject and remain covered by QA.");
 if (!resultMatrixQa.includes("snapshot-access-and-cap-v278") || !appJs.includes("snapshots[key] = snapshot") || !appJs.includes("Object.values(loadSnapshotMap())") || !appJs.includes("LOCAL_SNAPSHOT_MAX_ENTRIES_V278") || !appJs.includes("snapshotDisplayTextV278")) fail("v278 cross-tournament snapshot access and bounded retention guard is missing.");
 if (!operatorMobileCss.includes("v277: mobile operator focus remains visible") || !operatorMobileCss.includes("button:focus-visible") || !operatorMobileCss.includes("forced-colors: active")) fail("v277 mobile operator focus visibility guard is missing.");
+if (!buildJs.includes("version: 279") || !appJs.includes("RTDB_WRITE_PROTOCOL_V279 = 279") || !indexHtml.includes("app.js?v=279")) fail("v279 build and server-enforced write protocol markers must stay aligned.");
+if (!appJs.includes("stampRemoteStateProtocolV279") || !appJs.includes("stampPublicLiveProtocolV279") || !appJs.includes("scopedTournamentQueryV279") || !appJs.includes("legacyReadOnly") || !appJs.includes("entry.protocolVersion >= RTDB_WRITE_PROTOCOL_V279") || !appJs.includes("firebaseServerNowV279() - entry.updatedAt <= LIVE_STALE_MS")) fail("v279 private/public protocol stamping, venue-scoped reads, legacy read-only guard, or fresh strict LIVE selection is missing.");
+if (!databaseRules.includes("newData.child('protocolVersion').val() == 279") || !databaseRules.includes("query.orderByChild == 'venueId'") || !databaseRules.includes("pendingFenceToken") || !databaseRules.includes("liveWriteFenceSequenceV278")) fail("v279 RTDB rules must enforce protocol, venue query, pending fence, and sequence invariants.");
+if (!appJs.includes("window.__mini4wdEnsureActiveRegistryForRunningV278 = ensureActiveRegistryForRunningV278") || !appJs.includes("const ensureActiveRegistry = window.__mini4wdEnsureActiveRegistryForRunningV278") || !appJs.includes("publicRunningPayload == null")) fail("v279 lease takeover must call the shared active-registry fence convergence helper with optional public state support.");
+if (!appJs.includes('.info/serverTimeOffset') || !appJs.includes("firebaseServerNowV279") || !appJs.includes("await refreshFirebaseServerTimeOffsetV279(db)") || !appJs.includes("function nowV135(){ return firebaseServerNowV279(); }")) fail("v279 operation leases and remote semantic timestamps must derive freshness from Firebase server time.");
+if (!appJs.includes("clientNow >= firebaseServerTimeOffsetFetchedAtV279") || !operatorQa.includes("rollbackClockRefetched")) fail("v279 Firebase server-clock caching must refetch after a client-clock rollback and stay covered by operator QA.");
+if (/state\.updatedAt\s*=\s*Date\.now\(\)/.test(appJs) || appJs.includes("const mutationAt = Math.max(Date.now(), baseRemoteUpdatedAt + 1)")) fail("v279 remote state timestamps must not use an uncorrected client clock.");
+if (!appJs.includes("return tournamentRecordWithStateV278(currentRecord, nextState);")) fail("v279 reload mutation replay must rebuild the strict private envelope and protocol markers from its replayed state.");
+if (!operatorQa.includes("envelopeProtocolVersion") || !operatorQa.includes("stateProtocolVersion") || !operatorQa.includes("tournamentProtocolVersion")) fail("v279 reload mutation replay must verify every strict protocol marker in browser QA.");
+const preStartCleanupIndexV279 = appJs.indexOf("cleanupActiveTournamentForVenueV151(startVenueId)");
+const startLeaseClaimIndexV279 = appJs.indexOf('claimOperationLeaseV178("tournament-start"');
+if (preStartCleanupIndexV279 < 0 || startLeaseClaimIndexV279 < 0 || preStartCleanupIndexV279 > startLeaseClaimIndexV279 || !operatorQa.includes("start-crash-recovery-v279")) fail("v279 tournament start must clean an eligible rootless crash before claiming its new exact lease.");
+if (!appJs.includes("renewExactRunningLeaseV279") || !appJs.includes('renewExactRunningLeaseV279("force-end-preflight-v279")') || !appJs.includes('renewExactRunningLeaseV279("auto-close-current-preflight-v279")') || !appJs.includes('claimLease("finish-retry-preflight-v279"') || !operatorQa.includes("forceEndExpiredLeaseReclaimedBeforeTerminal") || !operatorQa.includes("pendingFirstRetryLeaseClaimedBeforeTerminal")) fail("v279 terminal paths must renew and verify the exact running lease immediately before mutation, including first-write outage recovery.");
+if (!appJs.includes("claimNow >= claimedAt") || !appJs.includes("function tournamentLastAtV135(record)") || !operatorQa.includes("finishFuturePublisherClaimReplaced") || !operatorQa.includes("futureAutoPublisherClaimReplaced") || !operatorQa.includes("strictNumericUpdatedAtWonOverFutureStartedAt")) fail("v279 finish and auto-close publishers must recover from future client timestamps and strict records must use numeric authoritative freshness.");
+if (!appJs.includes("const strictSourceId = Number(record.protocolVersion || 0) >= RTDB_WRITE_PROTOCOL_V279") || !appJs.includes("const sourceTournamentId = normalizeOptionalKeyV278(tournament.liveId) || fallbackId || \"\"") || !operatorQa.includes("result-record-key-collision-v279")) fail("v279 result history must normalize strict records to each exact source LIVE ID and guard same-minute cross-venue collisions.");
+if (!databaseRulesQa.includes("public-read-private-deny") || !databaseRulesQa.includes("takeover-new-fence-allow-old-fence-deny") || !databaseRulesQa.includes("legacy-root-child-and-multipath-bypass-deny") || !databaseRulesQa.includes("stale-auto-close-allow-fresh-auto-close-deny")) fail("v279 RTDB emulator security matrix is incomplete.");
 if (!appCss.includes("v271: final mobile alignment contract")) fail("src/styles/app.css is missing the v271 mobile alignment contract.");
 if (!operatorMobileCss.includes("v271: final dock geometry")) fail("src/styles/operator-mobile.css is missing the v271 final dock geometry layer.");
 if (!operatorQa.includes("liveConnectV267") || !operatorQa.includes("notifyFirebaseListeners") || !operatorQa.includes("pollUpdated") || !operatorQa.includes("liveRoundFallbackV269") || !operatorQa.includes("liveLeaseRetryV270")) fail("tools/qa-operator-flow.cjs must verify public LIVE realtime, polling, operator fallback, and lease retry refresh.");
@@ -381,9 +417,9 @@ if (!appJs.includes('view === "live-list" || view === "live-lobby" || view === "
 if (appJs.includes("publicLive.state = privateState")) fail("src/app.js must not publish private state through publicLive.");
 if (appJs.includes("state: privateState")) fail("src/app.js must not embed private state in publicLive metadata.");
 if (!appJs.includes("makePublicLivePayload(privateState)")) fail("src/app.js must build public live payloads through the sanitizer.");
-if (!databaseRules.includes("\".indexOn\": [\"updatedAt\", \"status\", \"venueId\"]")) fail("database.rules.json is missing publicLive indexes.");
-if (!databaseRules.includes("\".indexOn\": [\"createdAt\", \"endedAtISO\", \"venueId\"]")) fail("database.rules.json is missing publicHistory indexes.");
-if (!databaseRules.includes("\".indexOn\": [\"createdAt\"]")) fail("database.rules.json is missing createdAt indexes for bounded queries.");
+if (!hasExactIndex(databaseRuleTree.publicLive, ["updatedAt", "status", "venueId"])) fail("database.rules.json is missing publicLive indexes.");
+if (!hasExactIndex(databaseRuleTree.publicHistory, ["createdAt", "endedAtISO", "venueId"])) fail("database.rules.json is missing publicHistory indexes.");
+if (!hasNestedExactIndex(databaseRuleTree, ["createdAt"])) fail("database.rules.json is missing createdAt indexes for bounded queries.");
 if (appJs.includes("function boot()")) fail("src/app.js must not reintroduce the legacy boot() router.");
 if (appJs.includes("installV123DeviceSplitPatch")) fail("src/app.js must not reintroduce the obsolete v123 render wrapper.");
 [

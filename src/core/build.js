@@ -49,14 +49,14 @@
   ];
 
   const meta = Object.freeze({
-    version: 278,
-    label: "BUILD v278 REMOTE AUTO-CLOSE SAFETY",
-    title: "MINI4WD TOURNAMENT MAKER - v278 REMOTE AUTO-CLOSE SAFETY",
-    rulesChanged: false,
+    version: 279,
+    label: "BUILD v279 SERVER-ENFORCED LIVE LEASE",
+    title: "MINI4WD TOURNAMENT MAKER - v279 SERVER-ENFORCED LIVE LEASE",
+    rulesChanged: true,
     assets: Object.freeze({
       config: 156,
-      build: 278,
-      app: 278,
+      build: 279,
+      app: 279,
       css: 278,
       operatorMobileCss: 278,
       og: 51

@@ -1200,7 +1200,11 @@ async function runViewport(browser, meta, viewport) {
   page.on("pageerror", error => failures.push(`pageerror: ${error.message}`));
   page.on("dialog", dialog => dialog.accept());
   await page.goto(`http://127.0.0.1:${port}/index.html`, { waitUntil: "domcontentloaded", timeout: 25000 });
-  await page.waitForFunction(() => document.documentElement.getAttribute("data-ui-surface") === "operator", null, { timeout: 10000 });
+  try {
+    await page.waitForFunction(() => document.documentElement.getAttribute("data-ui-surface") === "operator", null, { timeout: 10000 });
+  } catch (error) {
+    throw new Error(`${error.message}; startup failures: ${failures.join(" | ")}`);
+  }
 
   logs.push({ step: "operator-load", info: await assertNoUiBreakage(page, "operator-load", failures) });
 
@@ -1221,6 +1225,96 @@ async function runViewport(browser, meta, viewport) {
   Object.entries(functionTypes).forEach(([name, type]) => {
     if (type !== "function") failures.push(`global function missing: ${name} (${type})`);
   });
+
+  const firebaseServerClockLeaseV279 = await page.evaluate(async () => {
+    const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
+    const clock = window.__mini4wdFirebaseServerClockV279;
+    const store = window.__qaFirebaseStore;
+    const venueId = "qa-clock-offset-v279";
+    if (!clock || typeof clock.now !== "function" || typeof clock.refresh !== "function") {
+      return { supported: false };
+    }
+    const backupInfo = clone(store[".info"]);
+    const backupLease = clone(store.operationLocks?.leases?.[venueId]);
+    const backupState = exportState();
+    const backupActiveRoundIndex = activeRoundIndex;
+    const backupFirebaseTournamentId = firebaseTournamentId;
+    const originalDateNow = Date.now;
+    let result = { supported: true };
+    try {
+      store[".info"] = { ...(store[".info"] || {}), serverTimeOffset: 30_000 };
+      const offsetLoaded = await clock.refresh(true);
+      store[".info"].serverTimeOffset = 31_000;
+      Date.now = () => originalDateNow() - 120_000;
+      const rollbackRefresh = await clock.refresh(false);
+      const rollbackOffset = clock.offset();
+      Date.now = originalDateNow;
+      store[".info"].serverTimeOffset = 30_000;
+      await clock.refresh(true);
+      state.tournament.status = "draft";
+      firebaseTournamentId = "";
+      const claimed = await window.claimOperationLeaseV178("qa-server-clock-v279", true, {
+        venueId,
+        venueName: "QA Clock Venue",
+        tournamentId: "",
+        tournamentName: "",
+        registryGeneration: "",
+        status: "draft"
+      });
+      const lease = clone(store.operationLocks?.leases?.[venueId]);
+      const serverRemainingMs = Number(lease?.leaseUntil || 0) - clock.now();
+      const clientRemainingMs = Number(lease?.leaseUntil || 0) - Date.now();
+      result = {
+        supported: true,
+        offsetLoaded,
+        loadedOffset: clock.offset(),
+        rollbackRefresh,
+        rollbackOffset,
+        rollbackClockRefetched: rollbackRefresh && rollbackOffset === 31_000,
+        claimed,
+        lease,
+        serverRemainingMs,
+        clientRemainingMs,
+        leaseUsesServerClock: Boolean(
+          claimed
+          && Number(lease?.leaseUntil || 0) > 0
+          && serverRemainingMs >= 43_000
+          && serverRemainingMs <= 45_500
+          && clientRemainingMs >= 73_000
+          && clientRemainingMs <= 75_500
+        )
+      };
+    } finally {
+      Date.now = originalDateNow;
+      store[".info"] = { ...(store[".info"] || {}), serverTimeOffset: 0 };
+      await clock.refresh(true);
+      result.offsetRestored = clock.offset() === 0;
+      if (backupInfo == null) delete store[".info"];
+      else store[".info"] = backupInfo;
+      store.operationLocks = store.operationLocks || {};
+      store.operationLocks.leases = store.operationLocks.leases || {};
+      if (backupLease == null) delete store.operationLocks.leases[venueId];
+      else store.operationLocks.leases[venueId] = backupLease;
+      state = normalizeImportedState(backupState);
+      activeRoundIndex = backupActiveRoundIndex;
+      state.activeRoundIndex = backupActiveRoundIndex;
+      firebaseTournamentId = backupFirebaseTournamentId;
+      persistCurrentState();
+    }
+    return result;
+  });
+  logs.push({ step: "firebase-server-clock-lease-v279", info: { firebaseServerClockLeaseV279 } });
+  if (
+    !firebaseServerClockLeaseV279.supported
+    || !firebaseServerClockLeaseV279.offsetLoaded
+    || firebaseServerClockLeaseV279.loadedOffset !== 30_000
+    || !firebaseServerClockLeaseV279.rollbackClockRefetched
+    || !firebaseServerClockLeaseV279.claimed
+    || !firebaseServerClockLeaseV279.leaseUsesServerClock
+    || !firebaseServerClockLeaseV279.offsetRestored
+  ) {
+    failures.push(`firebase server clock lease v279 failed ${JSON.stringify(firebaseServerClockLeaseV279)}`);
+  }
 
   const publicPayloadPrivacy = await page.evaluate(() => {
     const rawIdA = "player-phone-01012345678";
@@ -1448,15 +1542,19 @@ async function runViewport(browser, meta, viewport) {
     const cleanupRaceNewId = "qa-cleanup-race-new-v278";
     const twoPhaseId = "qa-private-public-compensation-v278";
     const twoPhaseRaceId = "qa-private-public-cas-race-v278";
+    const futurePublisherAutoId = "qa-future-publisher-auto-close-v279";
+    const strictNumericAutoId = "qa-strict-numeric-auto-close-v279";
     const staleAt = Date.now() - (61 * 60 * 1000);
     const makePrivateState = (id, updatedAt) => {
       const next = makeInitialState(3);
+      next.remoteWriteProtocolV279 = 279;
       const rawPlayerId = `${id}-phone-01012345678`;
       const secondRawPlayerId = `${id}-phone-01087654321`;
       next.inputText = `PRIVATE_STALE_INPUT_${id}`;
       next.settings = { ...next.settings, laneCount: 3, matchMode: "basic" };
       next.tournament = {
         ...next.tournament,
+        remoteWriteProtocolV279: 279,
         name: `Auto close ${id}`,
         venue: "QA Venue",
         venueId: "qa-venue",
@@ -1519,6 +1617,10 @@ async function runViewport(browser, meta, viewport) {
       ? JSON.parse(JSON.stringify(store.privateResultLogs["qa-venue"]))
       : undefined;
     const publicHistoryBackup = JSON.parse(JSON.stringify(store.publicHistory || {}));
+    const serverInfoBackup = store[".info"] === undefined ? undefined : JSON.parse(JSON.stringify(store[".info"]));
+    const serverClock = window.__mini4wdFirebaseServerClockV279;
+    const serverClockOffsetBackup = Number(serverClock?.offset?.() || 0);
+    const publisherOriginalDateNow = Date.now;
     store.tournaments[staleId] = { state: makePrivateState(staleId, staleAt), updatedAt: staleAt };
     store.tournaments[refreshedId] = { state: makePrivateState(refreshedId, staleAt + 1000), updatedAt: staleAt + 1000 };
     store.tournaments[legacyId] = makePrivateState(legacyId, staleAt + 500);
@@ -1573,11 +1675,11 @@ async function runViewport(browser, meta, viewport) {
         && privateClosed?.inputText === `PRIVATE_LOCKED_PARTICIPANTS_${staleId}`
         && privateClosed?.qualifierRounds?.[0]?.stages?.[0]?.groups?.[0]?.slots?.[0]?.contact === `CONTACT_SECRET_${staleId}`
       );
-      const autoCloseRecordId = privateClosed?.tournament?.recordId || "";
       const autoCloseHistoryPublished = Boolean(
-        autoCloseRecordId
-        && store.privateResultLogs?.["qa-venue"]?.[autoCloseRecordId]
-        && store.publicHistory?.[autoCloseRecordId]
+        store.privateResultLogs?.["qa-venue"]?.[staleId]?.id === staleId
+        && store.privateResultLogs?.["qa-venue"]?.[staleId]?.sourceTournamentId === staleId
+        && store.publicHistory?.[staleId]?.id === staleId
+        && store.publicHistory?.[staleId]?.sourceTournamentId === staleId
       );
       const refreshed = store.tournaments?.[refreshedId]?.state;
       const freshTournamentNotClosed = Boolean(
@@ -2235,6 +2337,152 @@ async function runViewport(browser, meta, viewport) {
         && Object.keys(ambiguousMergedGroup.points || {}).sort().join(",") === "pub-1,pub-2"
         && ambiguousMergedGroup.advanceIds?.[0] === "pub-2"
       );
+
+      let autoClosePublisherClockRefetched = false;
+      let futureAutoPublisherClaimReplaced = false;
+      let strictNumericUpdatedAtWonOverFutureStartedAt = false;
+      let publisherClockDebug = {};
+      try {
+        const publisherClientBase = publisherOriginalDateNow();
+        const rollbackClientNow = publisherClientBase - 120000;
+        const publisherServerOffset = 240000;
+        const foreignPublisherAt = publisherClientBase + 60000;
+        const foreignPublisherToken = "qa-foreign-future-auto-publisher-v279";
+        const futureGeneration = "qa-future-auto-publisher-generation-v279";
+        const futurePending = makePrivateState(futurePublisherAutoId, publisherClientBase - (61 * 60 * 1000));
+        futurePending.tournament = {
+          ...futurePending.tournament,
+          status: "finished",
+          activeRegistryGeneration: futureGeneration,
+          endedAtISO: new Date(publisherClientBase - 1000).toISOString(),
+          endedAtDisplay: formatDateTimeLocal(new Date(publisherClientBase - 1000)),
+          liveStopped: true,
+          autoClosed: true,
+          autoCloseReason: "qa future publisher retry v279",
+          autoClosedAt: new Date(publisherClientBase - 1000).toISOString(),
+          autoCloseAttemptId: "qa-future-auto-attempt-v279",
+          recordId: "record-qa-future-auto-attempt-v279",
+          autoClosePublishPending: true,
+          autoClosePreviousUpdatedAt: publisherClientBase - (61 * 60 * 1000),
+          autoClosePreviousEndedAtISO: "",
+          autoClosePreviousEndedAtDisplay: "",
+          autoClosePreviousLiveStopped: false,
+          autoClosePublisherToken: foreignPublisherToken,
+          autoClosePublisherAt: foreignPublisherAt
+        };
+        futurePending.updatedAt = publisherClientBase - 1000;
+        store.tournaments[futurePublisherAutoId] = {
+          protocolVersion: 279,
+          venueId: "qa-venue",
+          registryGeneration: futureGeneration,
+          status: "finished",
+          state: futurePending,
+          updatedAt: futurePending.updatedAt
+        };
+        delete store.publicLive[futurePublisherAutoId];
+        store.activeTournaments["qa-venue"] = {
+          protocolVersion: 279,
+          venueId: "qa-venue",
+          venueName: "QA Venue",
+          uid: "qa-uid",
+          tournamentId: futurePublisherAutoId,
+          registryGeneration: futureGeneration,
+          tournamentName: futurePending.tournament.name,
+          status: "running",
+          fenceToken: "qa-future-auto-fence-v279",
+          fenceSequence: 1501,
+          updatedAt: publisherClientBase - 1000
+        };
+
+        const numericGeneration = "qa-strict-numeric-generation-v279";
+        const authoritativeNumericAt = publisherClientBase - (61 * 60 * 1000);
+        const futureStartedAt = new Date(publisherClientBase + (24 * 60 * 60 * 1000)).toISOString();
+        const strictNumeric = makePrivateState(strictNumericAutoId, authoritativeNumericAt);
+        strictNumeric.tournament = {
+          ...strictNumeric.tournament,
+          activeRegistryGeneration: numericGeneration,
+          startedAtISO: futureStartedAt
+        };
+        strictNumeric.updatedAt = authoritativeNumericAt;
+        store.tournaments[strictNumericAutoId] = {
+          protocolVersion: 279,
+          venueId: "qa-venue",
+          registryGeneration: numericGeneration,
+          status: "running",
+          state: strictNumeric,
+          updatedAt: authoritativeNumericAt
+        };
+        delete store.publicLive[strictNumericAutoId];
+
+        let futureClaimAtPublic = null;
+        let numericPreviousAtPublic = 0;
+        window.__qaBeforeFirebaseTransaction = path => {
+          if (path === `publicLive/${futurePublisherAutoId}`) {
+            const pending = store.tournaments?.[futurePublisherAutoId]?.state || store.tournaments?.[futurePublisherAutoId];
+            futureClaimAtPublic = {
+              token: String(pending?.tournament?.autoClosePublisherToken || ""),
+              at: Number(pending?.tournament?.autoClosePublisherAt || 0)
+            };
+          }
+          if (path === `publicLive/${strictNumericAutoId}`) {
+            const pending = store.tournaments?.[strictNumericAutoId]?.state || store.tournaments?.[strictNumericAutoId];
+            numericPreviousAtPublic = Number(pending?.tournament?.autoClosePreviousUpdatedAt || 0);
+          }
+        };
+        store[".info"] = { ...(store[".info"] || {}), serverTimeOffset: publisherServerOffset };
+        Date.now = () => rollbackClientNow;
+        await window.requestActiveTournamentListV135();
+        window.__qaBeforeFirebaseTransaction = null;
+        autoClosePublisherClockRefetched = Boolean(
+          serverClock
+          && Number(serverClock.offset()) === publisherServerOffset
+        );
+        const futureFinal = store.tournaments?.[futurePublisherAutoId]?.state || store.tournaments?.[futurePublisherAutoId];
+        const futurePublic = store.publicLive?.[futurePublisherAutoId];
+        futureAutoPublisherClaimReplaced = Boolean(
+          futureClaimAtPublic?.token
+          && futureClaimAtPublic.token !== foreignPublisherToken
+          && futureClaimAtPublic.at >= foreignPublisherAt
+          && futureFinal?.tournament?.status === "finished"
+          && futureFinal?.tournament?.autoClosePublishPending === false
+          && !futureFinal?.tournament?.autoClosePublisherToken
+          && !futureFinal?.tournament?.autoClosePublisherAt
+          && futurePublic?.status === "finished"
+          && futurePublic?.live === false
+        );
+        const numericFinal = store.tournaments?.[strictNumericAutoId]?.state || store.tournaments?.[strictNumericAutoId];
+        const numericPublic = store.publicLive?.[strictNumericAutoId];
+        strictNumericUpdatedAtWonOverFutureStartedAt = Boolean(
+          Date.parse(futureStartedAt) > publisherClientBase
+          && numericPreviousAtPublic === authoritativeNumericAt
+          && numericFinal?.tournament?.status === "finished"
+          && numericFinal?.tournament?.autoClosePublishPending === false
+          && numericFinal?.tournament?.startedAtISO === futureStartedAt
+          && numericPublic?.status === "finished"
+          && numericPublic?.live === false
+        );
+        publisherClockDebug = {
+          publisherServerOffset,
+          loadedOffset: Number(serverClock?.offset?.() || 0),
+          foreignPublisherAt,
+          futureClaimAtPublic,
+          futurePending: Boolean(futureFinal?.tournament?.autoClosePublishPending),
+          futurePublicStatus: futurePublic?.status || "",
+          authoritativeNumericAt,
+          numericPreviousAtPublic,
+          numericStatus: numericFinal?.tournament?.status || "",
+          numericPublicStatus: numericPublic?.status || ""
+        };
+      } finally {
+        Date.now = publisherOriginalDateNow;
+        window.__qaBeforeFirebaseTransaction = null;
+        if (serverClock) {
+          store[".info"] = { ...(store[".info"] || {}), serverTimeOffset: serverClockOffsetBackup };
+          await serverClock.refresh(true);
+        }
+        if (serverInfoBackup === undefined) delete store[".info"];
+        else store[".info"] = JSON.parse(JSON.stringify(serverInfoBackup));
+      }
       return {
         forbiddenKeyPaths,
         leakedTokens,
@@ -2265,6 +2513,10 @@ async function runViewport(browser, meta, viewport) {
         autoCloseRegistryConflictConverged,
         legacyPubReorderMappedByIdentity,
         legacyPubAmbiguousStayedOpaque,
+        autoClosePublisherClockRefetched,
+        futureAutoPublisherClaimReplaced,
+        strictNumericUpdatedAtWonOverFutureStartedAt,
+        publisherClockDebug,
         privatePublicFreshnessRejectReconciled,
         privatePublicCompensationCasPreservedConcurrentWrite,
         privateStatus: privateClosed?.tournament?.status || "",
@@ -2275,6 +2527,7 @@ async function runViewport(browser, meta, viewport) {
         repairedStatus: repairedState?.tournament?.status || ""
       };
     } finally {
+      Date.now = publisherOriginalDateNow;
       window.__qaBeforeFirebaseTransaction = null;
       window.__qaRejectFirebaseTransactionPaths = [];
       delete store.tournaments[staleId];
@@ -2297,6 +2550,8 @@ async function runViewport(browser, meta, viewport) {
       delete store.tournaments[cleanupRaceNewId];
       delete store.tournaments[twoPhaseId];
       delete store.tournaments[twoPhaseRaceId];
+      delete store.tournaments[futurePublisherAutoId];
+      delete store.tournaments[strictNumericAutoId];
       delete store.publicLive[staleId];
       delete store.publicLive[refreshedId];
       delete store.publicLive[legacyId];
@@ -2317,12 +2572,20 @@ async function runViewport(browser, meta, viewport) {
       delete store.publicLive[cleanupRaceNewId];
       delete store.publicLive[twoPhaseId];
       delete store.publicLive[twoPhaseRaceId];
+      delete store.publicLive[futurePublisherAutoId];
+      delete store.publicLive[strictNumericAutoId];
       if (activeRegistryBackup === undefined) delete store.activeTournaments["qa-venue"];
       else store.activeTournaments["qa-venue"] = activeRegistryBackup;
       store.privateResultLogs = store.privateResultLogs || {};
       if (privateHistoryBackup === undefined) delete store.privateResultLogs["qa-venue"];
       else store.privateResultLogs["qa-venue"] = privateHistoryBackup;
       store.publicHistory = publicHistoryBackup;
+      if (serverClock) {
+        store[".info"] = { ...(store[".info"] || {}), serverTimeOffset: serverClockOffsetBackup };
+        await serverClock.refresh(true);
+      }
+      if (serverInfoBackup === undefined) delete store[".info"];
+      else store[".info"] = JSON.parse(JSON.stringify(serverInfoBackup));
       renderOperator();
     }
   });
@@ -2330,7 +2593,7 @@ async function runViewport(browser, meta, viewport) {
   if (remoteAutoClosePrivacyV278.forbiddenKeyPaths.length || remoteAutoClosePrivacyV278.leakedTokens.length) {
     failures.push(`remote auto-close leaked private state ${JSON.stringify(remoteAutoClosePrivacyV278)}`);
   }
-  if (!remoteAutoClosePrivacyV278.requiredEnvelopePreserved || !remoteAutoClosePrivacyV278.privateStatePreserved || !remoteAutoClosePrivacyV278.autoCloseHistoryPublished || !remoteAutoClosePrivacyV278.freshTournamentNotClosed || !remoteAutoClosePrivacyV278.legacyFlatRecordClosed || !remoteAutoClosePrivacyV278.parentTimestampNotClosed || !remoteAutoClosePrivacyV278.pendingRegistryPreservedBeforeRepair || !remoteAutoClosePrivacyV278.publicFailureStayedRetryable || !remoteAutoClosePrivacyV278.freshnessRejectedAndRolledBack || !remoteAutoClosePrivacyV278.autoCloseRollbackRegistryRestored || !remoteAutoClosePrivacyV278.autoCloseRollbackMergedNewerProgress || !remoteAutoClosePrivacyV278.doubleFailureSelfHealed || !remoteAutoClosePrivacyV278.finalizeFailureSelfHealed || !remoteAutoClosePrivacyV278.concurrentPublisherLeaseHeld || !remoteAutoClosePrivacyV278.divergentTerminalConflictsRetired || !remoteAutoClosePrivacyV278.finishPendingRegistryPreserved || !remoteAutoClosePrivacyV278.finishPendingHonorsNewerRunning || !remoteAutoClosePrivacyV278.finishRollbackMergedNewerProgress || !remoteAutoClosePrivacyV278.generationConflictProtected || !remoteAutoClosePrivacyV278.oldGenerationReleasePreservedNewClaim || !remoteAutoClosePrivacyV278.legacyReleasePreservedTokenizedClaim || !remoteAutoClosePrivacyV278.matchingGenerationReleaseSucceeded || !remoteAutoClosePrivacyV278.activeCleanupRacePreservedNewClaim || !remoteAutoClosePrivacyV278.registryConflictConverged || !remoteAutoClosePrivacyV278.autoCloseRegistryConflictConverged || !remoteAutoClosePrivacyV278.legacyPubReorderMappedByIdentity || !remoteAutoClosePrivacyV278.legacyPubAmbiguousStayedOpaque || !remoteAutoClosePrivacyV278.privatePublicFreshnessRejectReconciled || !remoteAutoClosePrivacyV278.privatePublicCompensationCasPreservedConcurrentWrite) {
+  if (!remoteAutoClosePrivacyV278.requiredEnvelopePreserved || !remoteAutoClosePrivacyV278.privateStatePreserved || !remoteAutoClosePrivacyV278.autoCloseHistoryPublished || !remoteAutoClosePrivacyV278.freshTournamentNotClosed || !remoteAutoClosePrivacyV278.legacyFlatRecordClosed || !remoteAutoClosePrivacyV278.parentTimestampNotClosed || !remoteAutoClosePrivacyV278.pendingRegistryPreservedBeforeRepair || !remoteAutoClosePrivacyV278.publicFailureStayedRetryable || !remoteAutoClosePrivacyV278.freshnessRejectedAndRolledBack || !remoteAutoClosePrivacyV278.autoCloseRollbackRegistryRestored || !remoteAutoClosePrivacyV278.autoCloseRollbackMergedNewerProgress || !remoteAutoClosePrivacyV278.doubleFailureSelfHealed || !remoteAutoClosePrivacyV278.finalizeFailureSelfHealed || !remoteAutoClosePrivacyV278.concurrentPublisherLeaseHeld || !remoteAutoClosePrivacyV278.divergentTerminalConflictsRetired || !remoteAutoClosePrivacyV278.finishPendingRegistryPreserved || !remoteAutoClosePrivacyV278.finishPendingHonorsNewerRunning || !remoteAutoClosePrivacyV278.finishRollbackMergedNewerProgress || !remoteAutoClosePrivacyV278.generationConflictProtected || !remoteAutoClosePrivacyV278.oldGenerationReleasePreservedNewClaim || !remoteAutoClosePrivacyV278.legacyReleasePreservedTokenizedClaim || !remoteAutoClosePrivacyV278.matchingGenerationReleaseSucceeded || !remoteAutoClosePrivacyV278.activeCleanupRacePreservedNewClaim || !remoteAutoClosePrivacyV278.registryConflictConverged || !remoteAutoClosePrivacyV278.autoCloseRegistryConflictConverged || !remoteAutoClosePrivacyV278.legacyPubReorderMappedByIdentity || !remoteAutoClosePrivacyV278.legacyPubAmbiguousStayedOpaque || !remoteAutoClosePrivacyV278.privatePublicFreshnessRejectReconciled || !remoteAutoClosePrivacyV278.privatePublicCompensationCasPreservedConcurrentWrite || !remoteAutoClosePrivacyV278.autoClosePublisherClockRefetched || !remoteAutoClosePrivacyV278.futureAutoPublisherClaimReplaced || !remoteAutoClosePrivacyV278.strictNumericUpdatedAtWonOverFutureStartedAt) {
     failures.push(`remote auto-close safety regression ${JSON.stringify(remoteAutoClosePrivacyV278)}`);
   }
 
@@ -2344,6 +2607,15 @@ async function runViewport(browser, meta, viewport) {
     const activeRegistryBackup = window.__qaFirebaseStore?.activeTournaments?.["qa-venue"]
       ? JSON.parse(JSON.stringify(window.__qaFirebaseStore.activeTournaments["qa-venue"]))
       : undefined;
+    const operationLeaseBackup = window.__qaFirebaseStore?.operationLocks?.leases?.["qa-venue"]
+      ? JSON.parse(JSON.stringify(window.__qaFirebaseStore.operationLocks.leases["qa-venue"]))
+      : undefined;
+    const finishServerInfoBackup = window.__qaFirebaseStore?.[".info"] === undefined
+      ? undefined
+      : JSON.parse(JSON.stringify(window.__qaFirebaseStore[".info"]));
+    const finishServerClock = window.__mini4wdFirebaseServerClockV279;
+    const finishServerClockOffsetBackup = Number(finishServerClock?.offset?.() || 0);
+    const finishOriginalDateNow = Date.now;
     let tournamentId = "";
     let canonicalTournamentId = "";
     let staleConflictId = "";
@@ -2402,7 +2674,102 @@ async function runViewport(browser, meta, viewport) {
       const statusAfterBlockedPrepare = state.tournament.status;
 
       window.__qaRejectFirebaseTransactionPaths = [];
-      await window.requestActiveTournamentListV135();
+      const repairBridgeLeaseExpiredAt = firebaseServerNowV279() - 1000;
+      window.__qaFirebaseStore.operationLocks = window.__qaFirebaseStore.operationLocks || {};
+      window.__qaFirebaseStore.operationLocks.leases = window.__qaFirebaseStore.operationLocks.leases || {};
+      window.__qaFirebaseStore.operationLocks.leases["qa-venue"] = {
+        protocolVersion: 279,
+        scope: "venue",
+        venueId: "qa-venue",
+        venueName: "QA Venue",
+        uid: "qa-uid",
+        email: "qa-venue@example.com",
+        sessionId: window.__mini4wdOperatorSession?.sessionId || "",
+        sessionLineageId: window.__mini4wdOperatorSession?.lineageId || "qa-finish-retry-lineage-v279",
+        claimSequence: 640,
+        fenceSequenceHighWater: 640,
+        fenceToken: "qa-finish-retry-fence-v279",
+        tournamentId,
+        registryGeneration: String(state.tournament?.activeRegistryGeneration || ""),
+        tournamentName: state.tournament?.name || "QA Finish Sync Failure",
+        status: "running",
+        reason: "qa-expired-finish-retry-v279",
+        leaseUntil: repairBridgeLeaseExpiredAt,
+        clientUpdatedAt: repairBridgeLeaseExpiredAt,
+        updatedAt: repairBridgeLeaseExpiredAt,
+        build: "qa-v279"
+      };
+      if (typeof refreshOperationLeaseV178 === "function") await refreshOperationLeaseV178();
+      const repairBridgeLeaseExpiredBeforeRetry = Number(window.__qaFirebaseStore.operationLocks.leases["qa-venue"].leaseUntil || 0) < firebaseServerNowV279();
+      const finishPublisherClientBase = finishOriginalDateNow();
+      const finishPublisherRollbackNow = finishPublisherClientBase - 120000;
+      const finishPublisherServerOffset = 240000;
+      const finishForeignPublisherAt = finishPublisherClientBase + 60000;
+      const finishForeignPublisherToken = "qa-foreign-future-finish-publisher-v279";
+      const pendingRemoteFinish = window.__qaFirebaseStore?.tournaments?.[tournamentId]?.state
+        || window.__qaFirebaseStore?.tournaments?.[tournamentId];
+      pendingRemoteFinish.tournament.finishSyncPublisherToken = finishForeignPublisherToken;
+      pendingRemoteFinish.tournament.finishSyncPublisherAt = finishForeignPublisherAt;
+      window.__qaFirebaseStore[".info"] = {
+        ...(window.__qaFirebaseStore[".info"] || {}),
+        serverTimeOffset: finishPublisherServerOffset
+      };
+      Date.now = () => finishPublisherRollbackNow;
+      const repairBridgeEvents = [];
+      window.__qaFirebaseTransactionLog = [];
+      window.__qaBeforeFirebaseTransaction = path => {
+        if (![ `tournaments/${tournamentId}`, `publicLive/${tournamentId}` ].includes(path)) return;
+        const pendingPrivate = window.__qaFirebaseStore?.tournaments?.[tournamentId]?.state || window.__qaFirebaseStore?.tournaments?.[tournamentId];
+        repairBridgeEvents.push({
+          path,
+          status: pendingPrivate?.tournament?.status || "",
+          pending: Boolean(pendingPrivate?.tournament?.finishSyncPending),
+          publisherToken: String(pendingPrivate?.tournament?.finishSyncPublisherToken || ""),
+          publisherAt: Number(pendingPrivate?.tournament?.finishSyncPublisherAt || 0)
+        });
+      };
+      const retryResult = await window.retryFinishSyncV278();
+      window.__qaBeforeFirebaseTransaction = null;
+      const finishPublisherClockRefetched = Boolean(
+        finishServerClock
+        && Number(finishServerClock.offset()) === finishPublisherServerOffset
+      );
+      Date.now = finishOriginalDateNow;
+      if (finishServerClock) {
+        window.__qaFirebaseStore[".info"] = {
+          ...(window.__qaFirebaseStore[".info"] || {}),
+          serverTimeOffset: finishServerClockOffsetBackup
+        };
+        await finishServerClock.refresh(true);
+      }
+      if (finishServerInfoBackup === undefined) delete window.__qaFirebaseStore[".info"];
+      else window.__qaFirebaseStore[".info"] = JSON.parse(JSON.stringify(finishServerInfoBackup));
+      const repairBridgeTransactionLog = [...window.__qaFirebaseTransactionLog];
+      const repairClaimIndex = repairBridgeTransactionLog.indexOf(`tournaments/${tournamentId}`);
+      const repairPublicIndex = repairBridgeTransactionLog.indexOf(`publicLive/${tournamentId}`);
+      const repairFinalizeIndex = repairBridgeTransactionLog.lastIndexOf(`tournaments/${tournamentId}`);
+      const repairPublicEntry = repairBridgeEvents.find(event => event.path === `publicLive/${tournamentId}`) || null;
+      const repairClaimEntry = repairBridgeEvents.filter(event => event.path === `tournaments/${tournamentId}`)[0] || null;
+      const repairFinalizeEntry = repairBridgeEvents.filter(event => event.path === `tournaments/${tournamentId}`)[1] || null;
+      const repairBridgePublisherClaimBeforeTerminalAndFinalize = Boolean(
+        repairClaimIndex >= 0
+        && repairPublicIndex > repairClaimIndex
+        && repairFinalizeIndex > repairPublicIndex
+        && repairPublicEntry?.status === "finished"
+        && repairPublicEntry?.pending === true
+        && repairPublicEntry?.publisherToken
+        && repairFinalizeEntry?.publisherToken === repairPublicEntry.publisherToken
+      );
+      const finishFuturePublisherClaimReplaced = Boolean(
+        finishPublisherClockRefetched
+        && repairClaimEntry?.publisherToken === finishForeignPublisherToken
+        && repairClaimEntry?.publisherAt === finishForeignPublisherAt
+        && repairPublicEntry?.publisherToken
+        && repairPublicEntry.publisherToken !== finishForeignPublisherToken
+        && repairPublicEntry.publisherAt >= finishForeignPublisherAt
+        && repairFinalizeEntry?.publisherToken === repairPublicEntry.publisherToken
+        && repairFinalizeEntry?.publisherAt === repairPublicEntry.publisherAt
+      );
       const remoteScanRecoveredPendingFinish = Boolean(
         window.__qaFirebaseStore?.tournaments?.[tournamentId]?.state?.tournament?.status === "finished"
         && window.__qaFirebaseStore?.tournaments?.[tournamentId]?.state?.tournament?.finishSyncPending === false
@@ -2412,10 +2779,14 @@ async function runViewport(browser, meta, viewport) {
         window.__qaFirebaseStore?.privateResultLogs?.["qa-venue"]?.[finishRecordId]
         && window.__qaFirebaseStore?.publicHistory?.[finishRecordId]
       );
-      const retryResult = await window.retryFinishSyncV278();
       const statusAfterRetry = state.tournament.status;
       const remotePrivate = window.__qaFirebaseStore?.tournaments?.[tournamentId]?.state;
       const remotePublic = window.__qaFirebaseStore?.publicLive?.[tournamentId];
+      const repairBridgePublisherTokenCleared = Boolean(
+        remotePrivate?.tournament?.finishSyncPending === false
+        && !remotePrivate?.tournament?.finishSyncPublisherToken
+        && !remotePrivate?.tournament?.finishSyncPublisherAt
+      );
       const canonicalRemote = window.__qaFirebaseStore?.tournaments?.[canonicalTournamentId] || window.__qaFirebaseStore?.publicLive?.[canonicalTournamentId];
 
       // Simulate the original failed tab retrying after another session has
@@ -2506,7 +2877,9 @@ async function runViewport(browser, meta, viewport) {
         && window.__qaFirebaseStore?.publicLive?.[staleConflictId]?.status === "running"
         && Number(window.__qaFirebaseStore?.publicLive?.[staleConflictId]?.updatedAt) === newerRunningAt
       );
+      window.__qaFirebaseTransactionLog = [];
       const staleLocalRetryResult = await window.retryFinishSyncV278();
+      const staleLocalRetryTransactionLog = [...window.__qaFirebaseTransactionLog];
       const staleConflictPrivate = window.__qaFirebaseStore?.tournaments?.[staleConflictId]?.state || window.__qaFirebaseStore?.tournaments?.[staleConflictId];
       const staleConflictPublic = window.__qaFirebaseStore?.publicLive?.[staleConflictId];
       const staleLocalRetryDebug = {
@@ -2520,7 +2893,8 @@ async function runViewport(browser, meta, viewport) {
         publicUpdatedAt: Number(staleConflictPublic?.updatedAt),
         registryTournamentId: window.__qaFirebaseStore?.activeTournaments?.["qa-venue"]?.tournamentId || "",
         expectedTournamentId: staleConflictId,
-        expectedUpdatedAt: newerRunningAt
+        expectedUpdatedAt: newerRunningAt,
+        transactionLog: staleLocalRetryTransactionLog
       };
       const staleLocalRetryHonorsNewerRunning = Boolean(
         staleLocalRetryDebug.result === false
@@ -2536,6 +2910,10 @@ async function runViewport(browser, meta, viewport) {
       const staleTerminalCreatedNoFalseHistory = Boolean(
         !window.__qaFirebaseStore?.privateResultLogs?.["qa-venue"]?.[staleFalseHistoryId]
         && !window.__qaFirebaseStore?.publicHistory?.[staleFalseHistoryId]
+      );
+      const staleLocalRetryMadeNoTerminalWrites = Boolean(
+        !staleLocalRetryTransactionLog.includes(`tournaments/${staleConflictId}`)
+        && !staleLocalRetryTransactionLog.includes(`publicLive/${staleConflictId}`)
       );
 
       completedTerminalId = "qa-completed-terminal-generic-block-v278";
@@ -2830,29 +3208,45 @@ async function runViewport(browser, meta, viewport) {
       localStorage.setItem("mini4wdTournamentId", exactVenueCompetitorId);
       localStorage.setItem("mini4wdActiveLiveId", exactVenueCompetitorId);
       localStorage.setItem("mini4wdActiveLiveSignature", competitorState.tournament.liveSignature || exactVenueCompetitorId);
+      const exactRegistryBefore = JSON.parse(JSON.stringify(window.__qaFirebaseStore.activeTournaments[exactSnapshotVenueId]));
+      const exactRegistryStartedLegacy = Boolean(
+        !exactRegistryBefore.protocolVersion
+        && !exactRegistryBefore.uid
+        && !exactRegistryBefore.fenceToken
+        && !exactRegistryBefore.fenceSequence
+      );
       window.__qaFirebaseTransactionLog = [];
       await restoreSnapshot(exactSnapshotEntryId);
       const exactClaimLog = [...window.__qaFirebaseTransactionLog];
       const exactRegistryAfter = window.__qaFirebaseStore?.activeTournaments?.[exactSnapshotVenueId];
+      const exactLeaseAfter = window.__qaFirebaseStore?.operationLocks?.leases?.[exactSnapshotVenueId];
       const competitorRegistryAfter = window.__qaFirebaseStore?.activeTournaments?.[currentDraftVenueId];
       const snapshotRestoreClaimsExactVenue = Boolean(
-        state.tournament?.status === "running"
+        exactRegistryStartedLegacy
+        && state.tournament?.status === "running"
         && state.tournament?.name === "QA exact venue snapshot"
         && state.tournament?.liveId === exactVenueSnapshotId
         && state.tournament?.venueId === exactSnapshotVenueId
+        && exactRegistryAfter?.protocolVersion === 279
         && exactRegistryAfter?.tournamentId === exactVenueSnapshotId
         && exactRegistryAfter?.registryGeneration === exactGeneration
+        && exactRegistryAfter?.uid === "qa-uid"
+        && exactRegistryAfter?.fenceToken === exactLeaseAfter?.fenceToken
+        && Number(exactRegistryAfter?.fenceSequence || 0) === Number(exactLeaseAfter?.claimSequence || 0)
+        && Number(exactRegistryAfter?.fenceSequence || 0) > 0
         && competitorRegistryAfter?.tournamentId === exactVenueCompetitorId
         && competitorRegistryAfter?.registryGeneration === "snapshot-competitor-generation"
-        && !exactClaimLog.includes(`activeTournaments/${exactSnapshotVenueId}`)
-        && !exactClaimLog.includes(`activeTournaments/${currentDraftVenueId}`)
+        && exactClaimLog.includes(`activeTournaments/${exactSnapshotVenueId}`)
       );
       const snapshotRestoreClaimsExactVenueDebug = {
         stateStatus: state.tournament?.status,
         stateName: state.tournament?.name,
         stateLiveId: state.tournament?.liveId,
         stateVenueId: state.tournament?.venueId,
+        exactRegistryStartedLegacy,
+        exactRegistryBefore,
         exactRegistryAfter,
+        exactLeaseAfter,
         competitorRegistryAfter,
         exactClaimLog
       };
@@ -2896,6 +3290,13 @@ async function runViewport(browser, meta, viewport) {
         remoteScanRecoveredPendingFinish,
         noHistoryBeforeTerminalPublic,
         historyPublishedAfterTerminalAcceptance,
+        repairBridgeLeaseExpiredBeforeRetry,
+        repairBridgePublisherClaimBeforeTerminalAndFinalize,
+        finishPublisherClockRefetched,
+        finishFuturePublisherClaimReplaced,
+        repairBridgePublisherTokenCleared,
+        repairBridgeTransactionLog,
+        repairBridgeEvents,
         retryResult,
         statusAfterRetry,
         remotePrivateStatus: remotePrivate?.tournament?.status || "",
@@ -2908,6 +3309,7 @@ async function runViewport(browser, meta, viewport) {
         pendingPublicFallbackBlocked,
         staleLocalRetryHonorsNewerRunning,
         staleTerminalCreatedNoFalseHistory,
+        staleLocalRetryMadeNoTerminalWrites,
         completedTerminalGenericSyncBlocked,
         snapshotRestoreCannotReviveTerminal,
         operatorUndoCannotReviveTerminal,
@@ -2921,6 +3323,8 @@ async function runViewport(browser, meta, viewport) {
         canonicalTournamentId
       };
     } finally {
+      Date.now = finishOriginalDateNow;
+      window.__qaBeforeFirebaseTransaction = null;
       window.__qaRejectFirebaseTransactionPaths = [];
       if (tournamentId) {
         delete window.__qaFirebaseStore?.tournaments?.[tournamentId];
@@ -2966,6 +3370,19 @@ async function runViewport(browser, meta, viewport) {
       }
       if (activeRegistryBackup === undefined) delete window.__qaFirebaseStore?.activeTournaments?.["qa-venue"];
       else window.__qaFirebaseStore.activeTournaments["qa-venue"] = activeRegistryBackup;
+      window.__qaFirebaseStore.operationLocks = window.__qaFirebaseStore.operationLocks || {};
+      window.__qaFirebaseStore.operationLocks.leases = window.__qaFirebaseStore.operationLocks.leases || {};
+      if (operationLeaseBackup === undefined) delete window.__qaFirebaseStore.operationLocks.leases["qa-venue"];
+      else window.__qaFirebaseStore.operationLocks.leases["qa-venue"] = operationLeaseBackup;
+      if (finishServerClock) {
+        window.__qaFirebaseStore[".info"] = {
+          ...(window.__qaFirebaseStore[".info"] || {}),
+          serverTimeOffset: finishServerClockOffsetBackup
+        };
+        await finishServerClock.refresh(true);
+      }
+      if (finishServerInfoBackup === undefined) delete window.__qaFirebaseStore[".info"];
+      else window.__qaFirebaseStore[".info"] = JSON.parse(JSON.stringify(finishServerInfoBackup));
       state = normalizeImportedState(backupState);
       activeRoundIndex = backupActiveRoundIndex;
       state.activeRoundIndex = backupActiveRoundIndex;
@@ -2980,10 +3397,10 @@ async function runViewport(browser, meta, viewport) {
     }
   });
   logs.push({ step: "finish-sync-failure-v278", info: { finishSyncFailureV278 } });
-  if (finishSyncFailureV278.firstResult !== false || !finishSyncFailureV278.privatePendingWrittenBeforePublic || !finishSyncFailureV278.pendingAfterFailure || !finishSyncFailureV278.remotePrivatePendingAfterFailure || !finishSyncFailureV278.remoteScanRecoveredPendingFinish || !finishSyncFailureV278.noHistoryBeforeTerminalPublic || !finishSyncFailureV278.historyPublishedAfterTerminalAcceptance || finishSyncFailureV278.statusAfterFailure !== "finished" || finishSyncFailureV278.statusAfterBlockedPrepare !== "finished") {
+  if (finishSyncFailureV278.firstResult !== false || !finishSyncFailureV278.privatePendingWrittenBeforePublic || !finishSyncFailureV278.pendingAfterFailure || !finishSyncFailureV278.remotePrivatePendingAfterFailure || !finishSyncFailureV278.remoteScanRecoveredPendingFinish || !finishSyncFailureV278.noHistoryBeforeTerminalPublic || !finishSyncFailureV278.historyPublishedAfterTerminalAcceptance || !finishSyncFailureV278.repairBridgeLeaseExpiredBeforeRetry || !finishSyncFailureV278.repairBridgePublisherClaimBeforeTerminalAndFinalize || !finishSyncFailureV278.finishPublisherClockRefetched || !finishSyncFailureV278.finishFuturePublisherClaimReplaced || !finishSyncFailureV278.repairBridgePublisherTokenCleared || finishSyncFailureV278.statusAfterFailure !== "finished" || finishSyncFailureV278.statusAfterBlockedPrepare !== "finished") {
     failures.push(`finish sync failure advanced or lost retry state ${JSON.stringify(finishSyncFailureV278)}`);
   }
-  if (!finishSyncFailureV278.syncErrorAfterFailure || finishSyncFailureV278.retryResult !== true || finishSyncFailureV278.statusAfterRetry !== "draft" || finishSyncFailureV278.remotePrivateStatus !== "finished" || finishSyncFailureV278.remotePrivatePending || finishSyncFailureV278.remotePublicStatus !== "finished" || finishSyncFailureV278.remotePublicLive !== false || !finishSyncFailureV278.recoveredLiveIdPreserved || !finishSyncFailureV278.renderAutosaveHonorsNewerRunning || !finishSyncFailureV278.pendingCancelHidden || !finishSyncFailureV278.staleLocalRetryHonorsNewerRunning || !finishSyncFailureV278.staleTerminalCreatedNoFalseHistory || !finishSyncFailureV278.completedTerminalGenericSyncBlocked || !finishSyncFailureV278.snapshotRestoreCannotReviveTerminal || !finishSyncFailureV278.operatorUndoCannotReviveTerminal || !finishSyncFailureV278.snapshotRestoreRejectsLegacyGenerationMix || !finishSyncFailureV278.operatorUndoRejectsLegacyGenerationMix || !finishSyncFailureV278.snapshotRestoreClaimsExactVenue || !finishSyncFailureV278.forceEndUniqueIdClosedExactRemote) {
+  if (!finishSyncFailureV278.syncErrorAfterFailure || finishSyncFailureV278.retryResult !== true || finishSyncFailureV278.statusAfterRetry !== "draft" || finishSyncFailureV278.remotePrivateStatus !== "finished" || finishSyncFailureV278.remotePrivatePending || finishSyncFailureV278.remotePublicStatus !== "finished" || finishSyncFailureV278.remotePublicLive !== false || !finishSyncFailureV278.recoveredLiveIdPreserved || !finishSyncFailureV278.renderAutosaveHonorsNewerRunning || !finishSyncFailureV278.pendingCancelHidden || !finishSyncFailureV278.staleLocalRetryHonorsNewerRunning || !finishSyncFailureV278.staleTerminalCreatedNoFalseHistory || !finishSyncFailureV278.staleLocalRetryMadeNoTerminalWrites || !finishSyncFailureV278.completedTerminalGenericSyncBlocked || !finishSyncFailureV278.snapshotRestoreCannotReviveTerminal || !finishSyncFailureV278.operatorUndoCannotReviveTerminal || !finishSyncFailureV278.snapshotRestoreRejectsLegacyGenerationMix || !finishSyncFailureV278.operatorUndoRejectsLegacyGenerationMix || !finishSyncFailureV278.snapshotRestoreClaimsExactVenue || !finishSyncFailureV278.forceEndUniqueIdClosedExactRemote) {
     failures.push(`finish sync retry did not converge ${JSON.stringify(finishSyncFailureV278)}`);
   }
 
@@ -3484,6 +3901,1037 @@ async function runViewport(browser, meta, viewport) {
     failures.push(`current auto-close left stale ownership ${JSON.stringify(currentAutoCloseExactLeaseReleaseV278)}`);
   }
 
+  const manualFinishLeasePreflightV279 = await page.evaluate(async () => {
+    const clone = value => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+    const store = window.__qaFirebaseStore;
+    const backup = {
+      state: exportState(),
+      activeRoundIndex,
+      firebaseTournamentId,
+      dbVenueIdDraft,
+      tournaments: clone(store.tournaments),
+      publicLive: clone(store.publicLive),
+      activeTournaments: clone(store.activeTournaments),
+      operationLocks: clone(store.operationLocks),
+      privateResultLogs: clone(store.privateResultLogs),
+      publicHistory: clone(store.publicHistory)
+    };
+    const storageKeys = [STORAGE_KEY, LOCAL_SNAPSHOT_KEY, LOCAL_RESULT_LOGS_KEY, "mini4wdTournamentId", "mini4wdActiveLiveId", "mini4wdActiveLiveSignature"];
+    const storageBackup = Object.fromEntries(storageKeys.map(key => [key, localStorage.getItem(key)]));
+    const sessionId = window.__mini4wdOperatorSession?.sessionId || "";
+    const sessionLineageId = window.__mini4wdOperatorSession?.lineageId || "qa-lineage-v279";
+    const now = () => window.__mini4wdFirebaseServerClockV279?.now?.() || Date.now();
+    const originalConfirm = window.confirm;
+
+    const makeRunning = ({ id, venueId, generation, fenceToken, fenceSequence, ready, updatedAt }) => {
+      const next = makeInitialState(3);
+      const winner = { id: `${id}-winner`, name: "Finish Winner", nickname: "Winner", team: "QA", lane: 1 };
+      const runnerUp = { id: `${id}-runner-up`, name: "Finish Runner Up", nickname: "Runner Up", team: "QA", lane: 2 };
+      next.inputText = "Finish Winner/QA\nFinish Runner Up/QA";
+      next.settings = { ...next.settings, laneCount: 3, matchMode: "basic", firebaseAutoSave: true };
+      next.tournament = {
+        ...next.tournament,
+        name: `QA Manual Finish ${id}`,
+        venue: `QA Venue ${venueId}`,
+        venueId,
+        raceClass: "오픈",
+        status: "running",
+        liveId: id,
+        liveSignature: `${id}-signature`,
+        recordId: `${id}-history`,
+        activeRegistryGeneration: generation,
+        liveWriteFenceV278: fenceToken,
+        liveWriteFenceSequenceV278: fenceSequence,
+        startedAtISO: new Date(updatedAt - 60000).toISOString()
+      };
+      next.finalRace = ready ? {
+        id: `${id}-final`,
+        type: "final",
+        groups: [{
+          id: `${id}-final-group`,
+          name: "결승",
+          slots: [winner, runnerUp],
+          advanceIds: [winner.id]
+        }]
+      } : null;
+      next.broadcast = { mode: "final" };
+      next.activeRoundIndex = 0;
+      next.updatedAt = updatedAt;
+      return normalizeImportedState(next);
+    };
+
+    const installRunning = async ({ id, venueId, generation, fenceToken, fenceSequence, localReady = true, remoteReady = true, remoteNewer = false, foreignSession = false }) => {
+      const localUpdatedAt = now() - 5000;
+      const remoteUpdatedAt = remoteNewer ? localUpdatedAt + 2000 : localUpdatedAt;
+      const local = makeRunning({ id, venueId, generation, fenceToken, fenceSequence, ready: localReady, updatedAt: localUpdatedAt });
+      const remote = makeRunning({ id, venueId, generation, fenceToken, fenceSequence, ready: remoteReady, updatedAt: remoteUpdatedAt });
+      state = normalizeImportedState(local);
+      activeRoundIndex = 0;
+      state.activeRoundIndex = 0;
+      firebaseTournamentId = id;
+      dbVenueIdDraft = "";
+      localStorage.setItem("mini4wdTournamentId", id);
+      localStorage.setItem("mini4wdActiveLiveId", id);
+      localStorage.setItem("mini4wdActiveLiveSignature", local.tournament.liveSignature);
+      persistCurrentState();
+      store.tournaments[id] = tournamentRecordWithStateV278(null, clone(remote));
+      store.publicLive[id] = makePublicLivePayload(remote);
+      store.activeTournaments[venueId] = {
+        protocolVersion: 279,
+        venueId,
+        venueName: remote.tournament.venue,
+        uid: "qa-uid",
+        tournamentId: id,
+        registryGeneration: generation,
+        tournamentName: remote.tournament.name,
+        status: "running",
+        fenceToken,
+        fenceSequence,
+        updatedAt: remoteUpdatedAt
+      };
+      store.operationLocks = store.operationLocks || {};
+      store.operationLocks.leases = store.operationLocks.leases || {};
+      store.operationLocks.leases[venueId] = {
+        protocolVersion: 279,
+        scope: "venue",
+        venueId,
+        venueName: remote.tournament.venue,
+        uid: "qa-uid",
+        email: "qa-venue@example.com",
+        sessionId: foreignSession ? `${sessionId}-foreign` : sessionId,
+        sessionLineageId: foreignSession ? `${sessionLineageId}-foreign` : sessionLineageId,
+        claimSequence: fenceSequence,
+        fenceSequenceHighWater: fenceSequence,
+        fenceToken,
+        tournamentId: id,
+        registryGeneration: generation,
+        tournamentName: remote.tournament.name,
+        status: "running",
+        reason: "qa-manual-finish-preflight-v279",
+        leaseUntil: now() + 60000,
+        clientUpdatedAt: now(),
+        updatedAt: now(),
+        build: "qa-v279"
+      };
+      await refreshOperationLeaseV178();
+      return { local, remote };
+    };
+
+    const historyFor = id => ({
+      privateRecord: Object.values(store.privateResultLogs || {}).flatMap(records => Object.values(records || {})).find(record => record?.sourceTournamentId === id) || null,
+      publicRecord: Object.values(store.publicHistory || {}).find(record => record?.sourceTournamentId === id) || null
+    });
+
+    try {
+      const success = {
+        id: "qa-manual-finish-renew-v279",
+        venueId: "qa-manual-finish-renew-venue-v279",
+        generation: "qa-manual-finish-renew-generation-v279",
+        fenceToken: "qa-manual-finish-renew-fence-v279",
+        fenceSequence: 1201
+      };
+      await installRunning(success);
+      // Keep the cached copy fresh while expiring the authoritative value to
+      // reproduce the boundary between the synchronous UI guard and the
+      // awaited server-side finish preflight.
+      store.operationLocks.leases[success.venueId].leaseUntil = now() - 1000;
+      const successEvents = [];
+      window.__qaFirebaseTransactionLog = [];
+      window.__qaBeforeFirebaseTransaction = path => {
+        if (![ `operationLocks/leases/${success.venueId}`, `tournaments/${success.id}`, `publicLive/${success.id}` ].includes(path)) return;
+        const privateState = store.tournaments?.[success.id]?.state || store.tournaments?.[success.id];
+        const lease = store.operationLocks?.leases?.[success.venueId];
+        successEvents.push({
+          path,
+          privateStatus: privateState?.tournament?.status || "",
+          privatePending: Boolean(privateState?.tournament?.finishSyncPending),
+          leaseSessionId: lease?.sessionId || "",
+          leaseUntil: Number(lease?.leaseUntil || 0)
+        });
+      };
+      await finishTournamentAsyncV116();
+      await new Promise(resolve => setTimeout(resolve, 25));
+      window.__qaBeforeFirebaseTransaction = null;
+      const successLog = [...window.__qaFirebaseTransactionLog];
+      const leaseIndex = successLog.indexOf(`operationLocks/leases/${success.venueId}`);
+      const privateIndices = successLog.reduce((indices, path, index) => path === `tournaments/${success.id}` ? [...indices, index] : indices, []);
+      const terminalEntry = successEvents.filter(event => event.path === `tournaments/${success.id}`)[1] || null;
+      const publicEntry = successEvents.find(event => event.path === `publicLive/${success.id}`) || null;
+      const successPrivateRecord = store.tournaments?.[success.id];
+      const successPrivate = successPrivateRecord?.state || successPrivateRecord;
+      const successPublic = store.publicLive?.[success.id];
+      const successLease = store.operationLocks?.leases?.[success.venueId];
+      const successHistory = historyFor(success.id);
+      const expiredSameSessionRenewedBeforeTerminal = Boolean(
+        leaseIndex >= 0
+        && privateIndices.length >= 2
+        && leaseIndex < privateIndices[1]
+        && terminalEntry?.privateStatus === "running"
+        && terminalEntry?.leaseSessionId === sessionId
+        && terminalEntry.leaseUntil > now()
+        && publicEntry?.privateStatus === "finished"
+        && publicEntry?.privatePending === true
+      );
+      const successConverged = Boolean(
+        successPrivateRecord?.protocolVersion === 279
+        && successPrivate?.tournament?.status === "finished"
+        && successPrivate?.tournament?.finishSyncPending !== true
+        && successPublic?.status === "finished"
+        && successPublic?.live === false
+        && !store.activeTournaments?.[success.venueId]
+        && successLease?.status === "released"
+        && !successLease?.sessionId
+        && Number(successLease?.leaseUntil || 0) === 0
+        && successHistory.privateRecord?.id === success.id
+        && successHistory.publicRecord?.id === success.id
+        && state.tournament?.status === "draft"
+      );
+
+      const foreign = {
+        id: "qa-manual-finish-foreign-v279",
+        venueId: "qa-manual-finish-foreign-venue-v279",
+        generation: "qa-manual-finish-foreign-generation-v279",
+        fenceToken: "qa-manual-finish-foreign-fence-v279",
+        fenceSequence: 1202,
+        foreignSession: true
+      };
+      await installRunning(foreign);
+      window.__qaFirebaseTransactionLog = [];
+      await finishTournamentAsyncV116();
+      await new Promise(resolve => setTimeout(resolve, 10));
+      const foreignLog = [...window.__qaFirebaseTransactionLog];
+      const foreignPrivate = store.tournaments?.[foreign.id]?.state || store.tournaments?.[foreign.id];
+      const foreignPublic = store.publicLive?.[foreign.id];
+      const foreignLease = store.operationLocks?.leases?.[foreign.venueId];
+      const foreignHistory = historyFor(foreign.id);
+      const foreignLeaseAbortedWithoutTerminalWrites = Boolean(
+        state.tournament?.status === "running"
+        && !state.tournament?.endedAtISO
+        && state.tournament?.finishSyncPending !== true
+        && foreignPrivate?.tournament?.status === "running"
+        && foreignPrivate?.tournament?.finishSyncPending !== true
+        && foreignPublic?.status === "running"
+        && foreignPublic?.live === true
+        && store.activeTournaments?.[foreign.venueId]?.tournamentId === foreign.id
+        && foreignLease?.sessionId === `${sessionId}-foreign`
+        && Number(foreignLease?.leaseUntil || 0) > now()
+        && !foreignHistory.privateRecord
+        && !foreignHistory.publicRecord
+        && !foreignLog.includes(`tournaments/${foreign.id}`)
+        && !foreignLog.includes(`publicLive/${foreign.id}`)
+      );
+
+      const unready = {
+        id: "qa-manual-finish-unready-v279",
+        venueId: "qa-manual-finish-unready-venue-v279",
+        generation: "qa-manual-finish-unready-generation-v279",
+        fenceToken: "qa-manual-finish-unready-fence-v279",
+        fenceSequence: 1203,
+        localReady: true,
+        remoteReady: false,
+        remoteNewer: true
+      };
+      await installRunning(unready);
+      store.operationLocks.leases[unready.venueId].leaseUntil = now() - 1000;
+      window.__qaFirebaseTransactionLog = [];
+      await finishTournamentAsyncV116();
+      await new Promise(resolve => setTimeout(resolve, 10));
+      const unreadyLog = [...window.__qaFirebaseTransactionLog];
+      const unreadyPrivate = store.tournaments?.[unready.id]?.state || store.tournaments?.[unready.id];
+      const unreadyPublic = store.publicLive?.[unready.id];
+      const unreadyLease = store.operationLocks?.leases?.[unready.venueId];
+      const unreadyHistory = historyFor(unready.id);
+      const authoritativeUnreadyAbortedWithoutTerminalWrites = Boolean(
+        unreadyLog.includes(`operationLocks/leases/${unready.venueId}`)
+        && unreadyLog.filter(path => path === `tournaments/${unready.id}`).length === 1
+        && !unreadyLog.includes(`publicLive/${unready.id}`)
+        && state.tournament?.status === "running"
+        && !state.finalRace
+        && !state.tournament?.endedAtISO
+        && state.tournament?.finishSyncPending !== true
+        && unreadyPrivate?.tournament?.status === "running"
+        && !unreadyPrivate?.finalRace
+        && unreadyPublic?.status === "running"
+        && unreadyPublic?.live === true
+        && unreadyLease?.sessionId === sessionId
+        && Number(unreadyLease?.leaseUntil || 0) > now()
+        && !unreadyHistory.privateRecord
+        && !unreadyHistory.publicRecord
+      );
+
+      const forceSuccess = {
+        id: "qa-force-end-renew-v279",
+        venueId: "qa-force-end-renew-venue-v279",
+        generation: "qa-force-end-renew-generation-v279",
+        fenceToken: "qa-force-end-renew-fence-v279",
+        fenceSequence: 1301
+      };
+      await installRunning(forceSuccess);
+      store.operationLocks.leases[forceSuccess.venueId].leaseUntil = now() - 1000;
+      const forceSuccessEvents = [];
+      window.__qaFirebaseTransactionLog = [];
+      window.__qaBeforeFirebaseTransaction = path => {
+        if (![ `operationLocks/leases/${forceSuccess.venueId}`, `tournaments/${forceSuccess.id}`, `publicLive/${forceSuccess.id}` ].includes(path)) return;
+        const privateState = store.tournaments?.[forceSuccess.id]?.state || store.tournaments?.[forceSuccess.id];
+        const lease = store.operationLocks?.leases?.[forceSuccess.venueId];
+        forceSuccessEvents.push({
+          path,
+          privateStatus: privateState?.tournament?.status || "",
+          privatePending: Boolean(privateState?.tournament?.finishSyncPending),
+          leaseSessionId: lease?.sessionId || "",
+          leaseUntil: Number(lease?.leaseUntil || 0),
+          leaseReason: lease?.reason || ""
+        });
+      };
+      await forceEndTournament();
+      await new Promise(resolve => setTimeout(resolve, 25));
+      window.__qaBeforeFirebaseTransaction = null;
+      const forceSuccessLog = [...window.__qaFirebaseTransactionLog];
+      const forceLeaseIndex = forceSuccessLog.indexOf(`operationLocks/leases/${forceSuccess.venueId}`);
+      const forcePublicIndex = forceSuccessLog.indexOf(`publicLive/${forceSuccess.id}`);
+      const forcePrivateIndices = forceSuccessLog.reduce((indices, path, index) => path === `tournaments/${forceSuccess.id}` ? [...indices, index] : indices, []);
+      const forceTerminalPrivateIndex = Math.max(-1, ...forcePrivateIndices.filter(index => forcePublicIndex < 0 || index < forcePublicIndex));
+      const forcePrePublicEvents = forceSuccessEvents.slice(0, forceSuccessEvents.findIndex(event => event.path === `publicLive/${forceSuccess.id}`));
+      const forcePrePublicPrivateEvents = forcePrePublicEvents.filter(event => event.path === `tournaments/${forceSuccess.id}`);
+      const forceTerminalEntry = forcePrePublicPrivateEvents[forcePrePublicPrivateEvents.length - 1] || null;
+      const forcePublicEntry = forceSuccessEvents.find(event => event.path === `publicLive/${forceSuccess.id}`) || null;
+      const forceSuccessPrivateRecord = store.tournaments?.[forceSuccess.id];
+      const forceSuccessPrivate = forceSuccessPrivateRecord?.state || forceSuccessPrivateRecord;
+      const forceSuccessPublic = store.publicLive?.[forceSuccess.id];
+      const forceSuccessLease = store.operationLocks?.leases?.[forceSuccess.venueId];
+      const forceEndExpiredLeaseReclaimedBeforeTerminal = Boolean(
+        forceLeaseIndex >= 0
+        && forceTerminalPrivateIndex > forceLeaseIndex
+        && forceTerminalEntry?.privateStatus === "running"
+        && forceTerminalEntry?.leaseSessionId === sessionId
+        && forceTerminalEntry.leaseUntil > now()
+        && forceTerminalEntry?.leaseReason === "force-end-preflight-v279"
+        && forcePublicEntry?.privateStatus === "finished"
+        && forcePublicEntry?.privatePending === true
+      );
+      const forceEndExpiredLeaseConverged = Boolean(
+        forceSuccessPrivateRecord?.protocolVersion === 279
+        && forceSuccessPrivate?.tournament?.status === "finished"
+        && forceSuccessPrivate?.tournament?.finishSyncPending !== true
+        && forceSuccessPublic?.status === "finished"
+        && forceSuccessPublic?.live === false
+        && !store.activeTournaments?.[forceSuccess.venueId]
+        && forceSuccessLease?.status === "released"
+        && !forceSuccessLease?.sessionId
+        && Number(forceSuccessLease?.leaseUntil || 0) === 0
+        && state.tournament?.status === "draft"
+      );
+
+      const forceForeign = {
+        id: "qa-force-end-foreign-v279",
+        venueId: "qa-force-end-foreign-venue-v279",
+        generation: "qa-force-end-foreign-generation-v279",
+        fenceToken: "qa-force-end-foreign-fence-v279",
+        fenceSequence: 1302
+      };
+      await installRunning(forceForeign);
+      let forceForeignConfirmCount = 0;
+      window.confirm = () => {
+        forceForeignConfirmCount += 1;
+        if (forceForeignConfirmCount === 2) {
+          const currentLease = store.operationLocks?.leases?.[forceForeign.venueId] || {};
+          store.operationLocks.leases[forceForeign.venueId] = {
+            ...currentLease,
+            sessionId: `${sessionId}-foreign`,
+            sessionLineageId: `${sessionLineageId}-foreign`,
+            leaseUntil: now() + 60000,
+            clientUpdatedAt: now(),
+            updatedAt: now(),
+            reason: "qa-force-end-confirm-foreign-v279"
+          };
+        }
+        return true;
+      };
+      window.__qaFirebaseTransactionLog = [];
+      const forceForeignResult = await forceEndTournament();
+      window.confirm = originalConfirm;
+      await new Promise(resolve => setTimeout(resolve, 10));
+      const forceForeignLog = [...window.__qaFirebaseTransactionLog];
+      const forceForeignPrivate = store.tournaments?.[forceForeign.id]?.state || store.tournaments?.[forceForeign.id];
+      const forceForeignPublic = store.publicLive?.[forceForeign.id];
+      const forceForeignLease = store.operationLocks?.leases?.[forceForeign.venueId];
+      const forceForeignHistory = historyFor(forceForeign.id);
+      const forceEndForeignLeaseAbortedWithoutTerminalWrites = Boolean(
+        forceForeignResult === false
+        && forceForeignConfirmCount === 2
+        && forceForeignLog.includes(`operationLocks/leases/${forceForeign.venueId}`)
+        && !forceForeignLog.includes(`tournaments/${forceForeign.id}`)
+        && !forceForeignLog.includes(`publicLive/${forceForeign.id}`)
+        && state.tournament?.status === "running"
+        && !state.tournament?.endedAtISO
+        && state.tournament?.finishSyncPending !== true
+        && forceForeignPrivate?.tournament?.status === "running"
+        && forceForeignPrivate?.tournament?.finishSyncPending !== true
+        && forceForeignPublic?.status === "running"
+        && forceForeignPublic?.live === true
+        && store.activeTournaments?.[forceForeign.venueId]?.tournamentId === forceForeign.id
+        && forceForeignLease?.sessionId === `${sessionId}-foreign`
+        && Number(forceForeignLease?.leaseUntil || 0) > now()
+        && !forceForeignHistory.privateRecord
+        && !forceForeignHistory.publicRecord
+      );
+
+      const pendingFirst = {
+        id: "qa-manual-finish-pending-first-retry-v279",
+        venueId: "qa-manual-finish-pending-first-retry-venue-v279",
+        generation: "qa-manual-finish-pending-first-retry-generation-v279",
+        fenceToken: "qa-manual-finish-pending-first-retry-fence-v279",
+        fenceSequence: 1303
+      };
+      await installRunning(pendingFirst);
+      window.__qaRejectFirebaseTransactionPaths = [];
+      window.__qaBeforeFirebaseTransaction = path => {
+        if (
+          path === `tournaments/${pendingFirst.id}`
+          && state.tournament?.status === "finished"
+        ) window.__qaRejectFirebaseTransactionPaths = [path];
+      };
+      window.__qaFirebaseTransactionLog = [];
+      await finishTournamentAsyncV116();
+      await new Promise(resolve => setTimeout(resolve, 10));
+      window.__qaBeforeFirebaseTransaction = null;
+      window.__qaRejectFirebaseTransactionPaths = [];
+      const pendingFirstPrivateBeforeRetry = store.tournaments?.[pendingFirst.id]?.state || store.tournaments?.[pendingFirst.id];
+      const pendingFirstPublicBeforeRetry = store.publicLive?.[pendingFirst.id];
+      const pendingFirstFailedBeforePrivateTerminal = Boolean(
+        state.tournament?.status === "finished"
+        && state.tournament?.finishSyncPending === true
+        && Number(state.tournament?.finishSyncPreviousUpdatedAt || 0) === Number(pendingFirstPrivateBeforeRetry?.updatedAt || 0)
+        && pendingFirstPrivateBeforeRetry?.tournament?.status === "running"
+        && pendingFirstPublicBeforeRetry?.status === "running"
+        && pendingFirstPublicBeforeRetry?.live === true
+        && store.activeTournaments?.[pendingFirst.venueId]?.tournamentId === pendingFirst.id
+      );
+      store.operationLocks.leases[pendingFirst.venueId].leaseUntil = now() - 1000;
+      const pendingFirstLeaseExpiredBeforeRetry = Number(store.operationLocks.leases[pendingFirst.venueId].leaseUntil || 0) < now();
+      const pendingRetryEvents = [];
+      window.__qaFirebaseTransactionLog = [];
+      window.__qaBeforeFirebaseTransaction = path => {
+        if (![ `operationLocks/leases/${pendingFirst.venueId}`, `tournaments/${pendingFirst.id}`, `publicLive/${pendingFirst.id}` ].includes(path)) return;
+        const privateState = store.tournaments?.[pendingFirst.id]?.state || store.tournaments?.[pendingFirst.id];
+        const lease = store.operationLocks?.leases?.[pendingFirst.venueId];
+        pendingRetryEvents.push({
+          path,
+          privateStatus: privateState?.tournament?.status || "",
+          privatePending: Boolean(privateState?.tournament?.finishSyncPending),
+          leaseSessionId: lease?.sessionId || "",
+          leaseUntil: Number(lease?.leaseUntil || 0),
+          leaseReason: lease?.reason || ""
+        });
+      };
+      const pendingFirstRetryResult = await window.retryFinishSyncV278();
+      await new Promise(resolve => setTimeout(resolve, 25));
+      window.__qaBeforeFirebaseTransaction = null;
+      const pendingRetryLog = [...window.__qaFirebaseTransactionLog];
+      const pendingRetryLeaseIndex = pendingRetryLog.indexOf(`operationLocks/leases/${pendingFirst.venueId}`);
+      const pendingRetryPublicIndex = pendingRetryLog.indexOf(`publicLive/${pendingFirst.id}`);
+      const pendingRetryPrivateIndices = pendingRetryLog.reduce((indices, path, index) => path === `tournaments/${pendingFirst.id}` ? [...indices, index] : indices, []);
+      const pendingRetryTerminalIndex = Math.max(-1, ...pendingRetryPrivateIndices.filter(index => pendingRetryPublicIndex < 0 || index < pendingRetryPublicIndex));
+      const pendingRetryPublicEventIndex = pendingRetryEvents.findIndex(event => event.path === `publicLive/${pendingFirst.id}`);
+      const pendingRetryPrePublicEvents = pendingRetryPublicEventIndex < 0 ? pendingRetryEvents : pendingRetryEvents.slice(0, pendingRetryPublicEventIndex);
+      const pendingRetryPrivateEvents = pendingRetryPrePublicEvents.filter(event => event.path === `tournaments/${pendingFirst.id}`);
+      const pendingRetryTerminalEntry = pendingRetryPrivateEvents[pendingRetryPrivateEvents.length - 1] || null;
+      const pendingFirstPrivateAfterRetry = store.tournaments?.[pendingFirst.id]?.state || store.tournaments?.[pendingFirst.id];
+      const pendingFirstPublicAfterRetry = store.publicLive?.[pendingFirst.id];
+      const pendingFirstLeaseAfterRetry = store.operationLocks?.leases?.[pendingFirst.venueId];
+      const pendingFirstHistory = historyFor(pendingFirst.id);
+      const pendingFirstRetryLeaseClaimedBeforeTerminal = Boolean(
+        pendingRetryLeaseIndex >= 0
+        && pendingRetryTerminalIndex > pendingRetryLeaseIndex
+        && pendingRetryTerminalEntry?.privateStatus === "running"
+        && pendingRetryTerminalEntry?.leaseSessionId === sessionId
+        && pendingRetryTerminalEntry.leaseUntil > now()
+        && pendingRetryTerminalEntry?.leaseReason === "finish-retry-preflight-v279"
+      );
+      const pendingFirstRetryTerminalConverged = Boolean(
+        pendingFirstRetryResult === true
+        && pendingFirstPrivateAfterRetry?.tournament?.status === "finished"
+        && pendingFirstPrivateAfterRetry?.tournament?.finishSyncPending !== true
+        && pendingFirstPublicAfterRetry?.status === "finished"
+        && pendingFirstPublicAfterRetry?.live === false
+        && !store.activeTournaments?.[pendingFirst.venueId]
+        && pendingFirstLeaseAfterRetry?.status === "released"
+        && !pendingFirstLeaseAfterRetry?.sessionId
+        && Number(pendingFirstLeaseAfterRetry?.leaseUntil || 0) === 0
+        && pendingFirstHistory.privateRecord?.id === pendingFirst.id
+        && pendingFirstHistory.publicRecord?.id === pendingFirst.id
+        && state.tournament?.status === "draft"
+      );
+      const pendingFirstRetrySafelyRestoredRunning = Boolean(
+        pendingFirstRetryResult === false
+        && state.tournament?.status === "running"
+        && state.tournament?.finishSyncPending !== true
+        && pendingFirstPrivateAfterRetry?.tournament?.status === "running"
+        && pendingFirstPublicAfterRetry?.status === "running"
+        && pendingFirstPublicAfterRetry?.live === true
+        && store.activeTournaments?.[pendingFirst.venueId]?.tournamentId === pendingFirst.id
+        && !pendingFirstHistory.privateRecord
+        && !pendingFirstHistory.publicRecord
+      );
+
+      return {
+        expiredSameSessionRenewedBeforeTerminal,
+        successConverged,
+        foreignLeaseAbortedWithoutTerminalWrites,
+        authoritativeUnreadyAbortedWithoutTerminalWrites,
+        forceEndExpiredLeaseReclaimedBeforeTerminal,
+        forceEndExpiredLeaseConverged,
+        forceEndForeignLeaseAbortedWithoutTerminalWrites,
+        pendingFirstFailedBeforePrivateTerminal,
+        pendingFirstLeaseExpiredBeforeRetry,
+        pendingFirstRetryLeaseClaimedBeforeTerminal,
+        pendingFirstRetryTerminalConverged,
+        pendingFirstRetrySafelyRestoredRunning,
+        successDebug: { successLog, successEvents, privateStatus: successPrivate?.tournament?.status, publicStatus: successPublic?.status, lease: successLease },
+        foreignDebug: { foreignLog, localStatus: state.tournament?.status, privateStatus: foreignPrivate?.tournament?.status, publicStatus: foreignPublic?.status },
+        unreadyDebug: { unreadyLog, privateStatus: unreadyPrivate?.tournament?.status, publicStatus: unreadyPublic?.status },
+        forceSuccessDebug: { forceSuccessLog, forceSuccessEvents, privateStatus: forceSuccessPrivate?.tournament?.status, publicStatus: forceSuccessPublic?.status, lease: forceSuccessLease },
+        forceForeignDebug: { forceForeignResult, forceForeignConfirmCount, forceForeignLog, localStatus: state.tournament?.status, privateStatus: forceForeignPrivate?.tournament?.status, publicStatus: forceForeignPublic?.status, lease: forceForeignLease },
+        pendingFirstDebug: {
+          pendingRetryLog,
+          pendingRetryEvents,
+          retryResult: pendingFirstRetryResult,
+          localStatus: state.tournament?.status,
+          privateBeforeStatus: pendingFirstPrivateBeforeRetry?.tournament?.status,
+          privateAfterStatus: pendingFirstPrivateAfterRetry?.tournament?.status,
+          privateAfterPending: Boolean(pendingFirstPrivateAfterRetry?.tournament?.finishSyncPending),
+          publicAfterStatus: pendingFirstPublicAfterRetry?.status,
+          activeAfter: store.activeTournaments?.[pendingFirst.venueId] || null,
+          history: pendingFirstHistory,
+          leaseAfter: pendingFirstLeaseAfterRetry
+        }
+      };
+    } finally {
+      window.confirm = originalConfirm;
+      window.__qaBeforeFirebaseTransaction = null;
+      window.__qaRejectFirebaseTransactionPaths = [];
+      store.tournaments = backup.tournaments;
+      store.publicLive = backup.publicLive;
+      store.activeTournaments = backup.activeTournaments;
+      store.operationLocks = backup.operationLocks;
+      store.privateResultLogs = backup.privateResultLogs;
+      store.publicHistory = backup.publicHistory;
+      state = normalizeImportedState(backup.state);
+      activeRoundIndex = backup.activeRoundIndex;
+      state.activeRoundIndex = backup.activeRoundIndex;
+      firebaseTournamentId = backup.firebaseTournamentId;
+      dbVenueIdDraft = backup.dbVenueIdDraft;
+      storageKeys.forEach(key => {
+        const value = storageBackup[key];
+        if (value == null) localStorage.removeItem(key);
+        else localStorage.setItem(key, value);
+      });
+      if (typeof refreshOperationLeaseV178 === "function") await refreshOperationLeaseV178();
+      persistCurrentState();
+      renderOperator();
+    }
+  });
+  logs.push({ step: "manual-finish-lease-preflight-v279", info: { manualFinishLeasePreflightV279 } });
+  if (!manualFinishLeasePreflightV279.expiredSameSessionRenewedBeforeTerminal || !manualFinishLeasePreflightV279.successConverged || !manualFinishLeasePreflightV279.foreignLeaseAbortedWithoutTerminalWrites || !manualFinishLeasePreflightV279.authoritativeUnreadyAbortedWithoutTerminalWrites || !manualFinishLeasePreflightV279.forceEndExpiredLeaseReclaimedBeforeTerminal || !manualFinishLeasePreflightV279.forceEndExpiredLeaseConverged || !manualFinishLeasePreflightV279.forceEndForeignLeaseAbortedWithoutTerminalWrites || !manualFinishLeasePreflightV279.pendingFirstFailedBeforePrivateTerminal || !manualFinishLeasePreflightV279.pendingFirstLeaseExpiredBeforeRetry || !manualFinishLeasePreflightV279.pendingFirstRetryLeaseClaimedBeforeTerminal || !manualFinishLeasePreflightV279.pendingFirstRetryTerminalConverged) {
+    failures.push(`manual finish lease preflight v279 failed ${JSON.stringify(manualFinishLeasePreflightV279)}`);
+  }
+
+  const startCrashRecoveryV279 = await page.evaluate(async () => {
+    const clone = value => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+    const store = window.__qaFirebaseStore;
+    const backup = {
+      store: clone(store),
+      state: exportState(),
+      activeRoundIndex,
+      firebaseTournamentId,
+      dbVenueIdDraft
+    };
+    const storageKeys = [STORAGE_KEY, LOCAL_SNAPSHOT_KEY, LOCAL_RESULT_LOGS_KEY, OPERATOR_UNDO_STORAGE_KEY_V266, "mini4wdTournamentId", "mini4wdActiveLiveId", "mini4wdActiveLiveSignature"];
+    const storageBackup = Object.fromEntries(storageKeys.map(key => [key, localStorage.getItem(key)]));
+    const sessionId = window.__mini4wdOperatorSession?.sessionId || "";
+    const serverNow = () => window.__mini4wdFirebaseServerClockV279?.now?.() || Date.now();
+    const restoreStore = snapshot => {
+      Object.keys(store).forEach(key => delete store[key]);
+      Object.assign(store, clone(snapshot));
+    };
+    const installDraft = venueId => {
+      const next = makeInitialState(3);
+      next.inputText = ["Start A/QA", "Start B/QA", "Start C/QA", "Start D/QA", "Start E/QA", "Start F/QA"].join("\n");
+      next.settings = { ...next.settings, laneCount: 3, matchMode: "basic", firebaseAutoSave: false };
+      next.tournament = {
+        ...next.tournament,
+        name: `QA Start Crash ${venueId}`,
+        venue: `QA Venue ${venueId}`,
+        venueId,
+        raceClass: "오픈",
+        status: "draft",
+        liveId: "",
+        liveSignature: "",
+        activeRegistryGeneration: "",
+        startedAtISO: "",
+        startedAtDisplay: ""
+      };
+      state = normalizeImportedState(next);
+      activeRoundIndex = 0;
+      state.activeRoundIndex = 0;
+      firebaseTournamentId = "";
+      dbVenueIdDraft = "";
+      localStorage.removeItem("mini4wdTournamentId");
+      localStorage.removeItem("mini4wdActiveLiveId");
+      localStorage.removeItem("mini4wdActiveLiveSignature");
+      persistCurrentState();
+    };
+    const seedCrashOwner = ({ venueId, tournamentId, generation, fenceToken, fenceSequence, fresh }) => {
+      const grace = Math.max(1000, Number(ACTIVE_REGISTRY_START_GRACE_MS_V278 || 120000));
+      const activeUpdatedAt = fresh ? serverNow() - 1000 : serverNow() - grace - 5000;
+      const leaseUntil = fresh ? serverNow() + 60000 : serverNow() - grace - 5000;
+      store.tournaments = store.tournaments || {};
+      store.publicLive = store.publicLive || {};
+      store.activeTournaments = store.activeTournaments || {};
+      store.operationLocks = store.operationLocks || {};
+      store.operationLocks.leases = store.operationLocks.leases || {};
+      delete store.tournaments[tournamentId];
+      delete store.publicLive[tournamentId];
+      store.activeTournaments[venueId] = {
+        protocolVersion: 279,
+        venueId,
+        venueName: `QA Venue ${venueId}`,
+        uid: "qa-foreign-same-venue-uid",
+        email: "qa-foreign@example.com",
+        tournamentId,
+        registryGeneration: generation,
+        tournamentName: `QA Crashed Start ${tournamentId}`,
+        raceClass: "오픈",
+        status: "running",
+        fenceToken,
+        fenceSequence,
+        updatedAt: activeUpdatedAt
+      };
+      store.operationLocks.leases[venueId] = {
+        protocolVersion: 279,
+        scope: "venue",
+        venueId,
+        venueName: `QA Venue ${venueId}`,
+        uid: "qa-foreign-same-venue-uid",
+        email: "qa-foreign@example.com",
+        sessionId: "qa-foreign-start-session-v279",
+        sessionLineageId: "qa-foreign-start-lineage-v279",
+        claimSequence: fenceSequence,
+        fenceSequenceHighWater: fenceSequence,
+        fenceToken,
+        tournamentId,
+        registryGeneration: generation,
+        tournamentName: `QA Crashed Start ${tournamentId}`,
+        status: "starting",
+        reason: "qa-crashed-start-v279",
+        leaseUntil,
+        clientUpdatedAt: activeUpdatedAt,
+        updatedAt: activeUpdatedAt,
+        build: "qa-v279"
+      };
+      return { activeUpdatedAt, leaseUntil, grace };
+    };
+
+    try {
+      const stale = {
+        venueId: "qa-start-crash-stale-venue-v279",
+        tournamentId: "qa-start-crash-orphan-v279",
+        generation: "qa-start-crash-orphan-generation-v279",
+        fenceToken: "qa-start-crash-orphan-fence-v279",
+        fenceSequence: 1301,
+        fresh: false
+      };
+      installDraft(stale.venueId);
+      const staleTiming = seedCrashOwner(stale);
+      window.__qaFirebaseTransactionLog = [];
+      const staleStartResult = await window.startTournamentAsync();
+      await new Promise(resolve => setTimeout(resolve, 350));
+      const staleLog = [...window.__qaFirebaseTransactionLog];
+      const staleCleanupIndex = staleLog.indexOf(`activeTournaments/${stale.venueId}`);
+      const newLeaseClaimIndex = staleLog.indexOf(`operationLocks/leases/${stale.venueId}`);
+      const startedId = String(state.tournament?.liveId || "");
+      const startedPrivateRecord = store.tournaments?.[startedId];
+      const startedPrivate = startedPrivateRecord?.state || startedPrivateRecord;
+      const startedPublic = store.publicLive?.[startedId];
+      const startedActive = store.activeTournaments?.[stale.venueId];
+      const startedLease = store.operationLocks?.leases?.[stale.venueId];
+      const staleCleanupBeforeNewLeaseClaim = Boolean(
+        staleTiming.activeUpdatedAt < serverNow() - staleTiming.grace
+        && staleTiming.leaseUntil < serverNow()
+        && staleCleanupIndex >= 0
+        && newLeaseClaimIndex > staleCleanupIndex
+      );
+      const staleStartConverged = Boolean(
+        staleStartResult === true
+        && startedId
+        && startedId !== stale.tournamentId
+        && state.tournament?.status === "running"
+        && startedPrivateRecord?.protocolVersion === 279
+        && startedPrivate?.remoteWriteProtocolV279 === 279
+        && startedPrivate?.tournament?.remoteWriteProtocolV279 === 279
+        && startedPrivate?.tournament?.status === "running"
+        && startedPublic?.protocolVersion === 279
+        && startedPublic?.status === "running"
+        && startedPublic?.live === true
+        && startedActive?.protocolVersion === 279
+        && startedActive?.tournamentId === startedId
+        && startedActive?.registryGeneration === startedPrivate?.tournament?.activeRegistryGeneration
+        && startedActive?.fenceToken === startedLease?.fenceToken
+        && Number(startedActive?.fenceSequence || 0) === Number(startedLease?.claimSequence || 0)
+        && startedLease?.sessionId === sessionId
+        && startedLease?.tournamentId === startedId
+        && startedLease?.registryGeneration === startedPrivate?.tournament?.activeRegistryGeneration
+        && !store.tournaments?.[stale.tournamentId]
+        && !store.publicLive?.[stale.tournamentId]
+      );
+      const successDebug = {
+        staleStartResult,
+        staleLog,
+        startedId,
+        localStatus: state.tournament?.status,
+        privateStatus: startedPrivate?.tournament?.status,
+        publicStatus: startedPublic?.status,
+        activeTournamentId: startedActive?.tournamentId,
+        leaseTournamentId: startedLease?.tournamentId,
+        leaseSessionId: startedLease?.sessionId
+      };
+
+      restoreStore(backup.store);
+      const fresh = {
+        venueId: "qa-start-crash-fresh-venue-v279",
+        tournamentId: "qa-start-crash-fresh-owner-v279",
+        generation: "qa-start-crash-fresh-generation-v279",
+        fenceToken: "qa-start-crash-fresh-fence-v279",
+        fenceSequence: 1302,
+        fresh: true
+      };
+      installDraft(fresh.venueId);
+      const freshTiming = seedCrashOwner(fresh);
+      const privateKeysBefore = Object.keys(store.tournaments || {}).sort();
+      const publicKeysBefore = Object.keys(store.publicLive || {}).sort();
+      window.__qaFirebaseTransactionLog = [];
+      const freshStartResult = await window.startTournamentAsync();
+      await new Promise(resolve => setTimeout(resolve, 25));
+      const freshLog = [...window.__qaFirebaseTransactionLog];
+      const freshActive = store.activeTournaments?.[fresh.venueId];
+      const freshLease = store.operationLocks?.leases?.[fresh.venueId];
+      const freshOwnerPreservedAndStartAborted = Boolean(
+        freshStartResult === false
+        && freshTiming.activeUpdatedAt > serverNow() - freshTiming.grace
+        && freshTiming.leaseUntil > serverNow()
+        && state.tournament?.status === "draft"
+        && freshActive?.tournamentId === fresh.tournamentId
+        && freshActive?.registryGeneration === fresh.generation
+        && freshActive?.uid === "qa-foreign-same-venue-uid"
+        && freshLease?.tournamentId === fresh.tournamentId
+        && freshLease?.registryGeneration === fresh.generation
+        && freshLease?.sessionId === "qa-foreign-start-session-v279"
+        && freshLease?.leaseUntil === freshTiming.leaseUntil
+        && JSON.stringify(Object.keys(store.tournaments || {}).sort()) === JSON.stringify(privateKeysBefore)
+        && JSON.stringify(Object.keys(store.publicLive || {}).sort()) === JSON.stringify(publicKeysBefore)
+        && !store.tournaments?.[fresh.tournamentId]
+        && !store.publicLive?.[fresh.tournamentId]
+        && freshLog.includes(`operationLocks/leases/${fresh.venueId}`)
+        && !freshLog.some(path => path.startsWith("tournaments/"))
+        && !freshLog.some(path => path.startsWith("publicLive/"))
+      );
+      const negativeDebug = {
+        freshStartResult,
+        freshLog,
+        localStatus: state.tournament?.status,
+        activeTournamentId: freshActive?.tournamentId,
+        leaseTournamentId: freshLease?.tournamentId,
+        leaseSessionId: freshLease?.sessionId,
+        privateKeyCountBefore: privateKeysBefore.length,
+        privateKeyCountAfter: Object.keys(store.tournaments || {}).length,
+        publicKeyCountBefore: publicKeysBefore.length,
+        publicKeyCountAfter: Object.keys(store.publicLive || {}).length
+      };
+
+      return {
+        staleCleanupBeforeNewLeaseClaim,
+        staleStartConverged,
+        freshOwnerPreservedAndStartAborted,
+        successDebug,
+        negativeDebug
+      };
+    } finally {
+      window.__qaBeforeFirebaseTransaction = null;
+      window.__qaRejectFirebaseTransactionPaths = [];
+      restoreStore(backup.store);
+      state = normalizeImportedState(backup.state);
+      activeRoundIndex = backup.activeRoundIndex;
+      state.activeRoundIndex = backup.activeRoundIndex;
+      firebaseTournamentId = backup.firebaseTournamentId;
+      dbVenueIdDraft = backup.dbVenueIdDraft;
+      storageKeys.forEach(key => {
+        const value = storageBackup[key];
+        if (value == null) localStorage.removeItem(key);
+        else localStorage.setItem(key, value);
+      });
+      if (typeof refreshOperationLeaseV178 === "function") await refreshOperationLeaseV178();
+      persistCurrentState();
+      renderOperator();
+    }
+  });
+  logs.push({ step: "start-crash-recovery-v279", info: { startCrashRecoveryV279 } });
+  if (!startCrashRecoveryV279.staleCleanupBeforeNewLeaseClaim || !startCrashRecoveryV279.staleStartConverged || !startCrashRecoveryV279.freshOwnerPreservedAndStartAborted) {
+    failures.push(`start crash recovery v279 failed ${JSON.stringify(startCrashRecoveryV279)}`);
+  }
+
+  const resultRecordKeyCollisionV279 = await page.evaluate(async () => {
+    const clone = value => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+    const store = window.__qaFirebaseStore;
+    const backup = {
+      store: clone(store),
+      state: exportState(),
+      activeRoundIndex,
+      firebaseTournamentId,
+      dbVenueIdDraft
+    };
+    const storageKeys = [STORAGE_KEY, LOCAL_SNAPSHOT_KEY, LOCAL_RESULT_LOGS_KEY, "mini4wdTournamentId", "mini4wdActiveLiveId", "mini4wdActiveLiveSignature"];
+    const storageBackup = Object.fromEntries(storageKeys.map(key => [key, localStorage.getItem(key)]));
+    const legacyMinuteId = "tournament-20260822-1234";
+    const sourceAId = "qa-result-source-a-live-v279";
+    const sourceBId = "qa-result-source-b-live-v279";
+    const venueAId = "qa-result-source-a-venue-v279";
+    const venueBId = "qa-result-source-b-venue-v279";
+    const generationA = "qa-result-source-a-generation-v279";
+    const generationB = "qa-result-source-b-generation-v279";
+    const fenceTokenB = "qa-result-source-b-fence-v279";
+    const fenceSequenceB = 1402;
+    const terminalAt = (window.__mini4wdFirebaseServerClockV279?.now?.() || Date.now()) - 1000;
+    const sessionId = window.__mini4wdOperatorSession?.sessionId || "";
+
+    const makeTerminalSource = ({ liveId, venueId, generation, suffix, fenceToken, fenceSequence }) => {
+      const next = makeInitialState(3);
+      next.inputText = `Result ${suffix} A/QA\nResult ${suffix} B/QA`;
+      next.settings = { ...next.settings, laneCount: 3, matchMode: "basic", firebaseAutoSave: false };
+      next.remoteWriteProtocolV279 = 279;
+      next.tournament = {
+        ...next.tournament,
+        remoteWriteProtocolV279: 279,
+        id: legacyMinuteId,
+        recordId: "",
+        name: `QA Result ${suffix}`,
+        venue: `QA Result Venue ${suffix}`,
+        venueId,
+        raceClass: "오픈",
+        status: "finished",
+        liveId,
+        liveSignature: `${liveId}-signature`,
+        activeRegistryGeneration: generation,
+        liveWriteFenceV278: fenceToken,
+        liveWriteFenceSequenceV278: fenceSequence,
+        startedAtISO: new Date(terminalAt - 60000).toISOString(),
+        endedAtISO: new Date(terminalAt).toISOString(),
+        endedAtDisplay: formatDateTimeLocal(new Date(terminalAt)),
+        liveStopped: true,
+        finishSyncPending: false,
+        finishSyncPreviousUpdatedAt: terminalAt - 1000,
+        finishSyncPreviousEndedAtISO: "",
+        finishSyncPreviousEndedAtDisplay: "",
+        finishSyncPreviousLiveStopped: false,
+        finishSyncPreviousFirebaseAutoSave: true,
+        finishSyncTerminalUpdatedAt: terminalAt
+      };
+      next.activeRoundIndex = 0;
+      next.updatedAt = terminalAt;
+      return normalizeImportedState(next);
+    };
+
+    try {
+      const sourceA = makeTerminalSource({
+        liveId: sourceAId,
+        venueId: venueAId,
+        generation: generationA,
+        suffix: "A",
+        fenceToken: "qa-result-source-a-fence-v279",
+        fenceSequence: 1401
+      });
+      const sourceB = makeTerminalSource({
+        liveId: sourceBId,
+        venueId: venueBId,
+        generation: generationB,
+        suffix: "B",
+        fenceToken: fenceTokenB,
+        fenceSequence: fenceSequenceB
+      });
+      const recordA = makeTournamentRecordFromStateV278(sourceA);
+      const recordBFromState = makeTournamentRecordFromStateV278(sourceB);
+
+      state = normalizeImportedState(sourceB);
+      activeRoundIndex = 0;
+      state.activeRoundIndex = 0;
+      firebaseTournamentId = sourceBId;
+      dbVenueIdDraft = "";
+      localStorage.setItem("mini4wdTournamentId", sourceBId);
+      localStorage.setItem("mini4wdActiveLiveId", sourceBId);
+      localStorage.setItem("mini4wdActiveLiveSignature", sourceB.tournament.liveSignature);
+      const recordB = makeTournamentRecord();
+      const staleImportedRecordB = { ...recordB, id: legacyMinuteId };
+      state.tournament.finishSyncRecord = clone(staleImportedRecordB);
+      persistCurrentState();
+
+      store.publicHistory = store.publicHistory || {};
+      const legacySourceASeed = {
+        ...makePublicRecord(recordA),
+        id: legacyMinuteId,
+        legacyRecordKeyV279: true
+      };
+      store.publicHistory[legacyMinuteId] = clone(legacySourceASeed);
+      const legacySourceABefore = JSON.stringify(store.publicHistory[legacyMinuteId]);
+      store.tournaments = store.tournaments || {};
+      store.publicLive = store.publicLive || {};
+      delete store.tournaments[sourceBId];
+      delete store.publicLive[sourceBId];
+      store.activeTournaments = store.activeTournaments || {};
+      store.activeTournaments[venueBId] = {
+        protocolVersion: 279,
+        venueId: venueBId,
+        venueName: sourceB.tournament.venue,
+        uid: "qa-uid",
+        email: "qa-venue@example.com",
+        tournamentId: sourceBId,
+        registryGeneration: generationB,
+        tournamentName: sourceB.tournament.name,
+        raceClass: "오픈",
+        status: "running",
+        fenceToken: fenceTokenB,
+        fenceSequence: fenceSequenceB,
+        updatedAt: terminalAt - 1000
+      };
+      store.operationLocks = store.operationLocks || {};
+      store.operationLocks.leases = store.operationLocks.leases || {};
+      store.operationLocks.leases[venueBId] = {
+        protocolVersion: 279,
+        scope: "venue",
+        venueId: venueBId,
+        venueName: sourceB.tournament.venue,
+        uid: "qa-uid",
+        email: "qa-venue@example.com",
+        sessionId,
+        sessionLineageId: "qa-result-source-b-lineage-v279",
+        claimSequence: fenceSequenceB,
+        fenceSequenceHighWater: fenceSequenceB,
+        fenceToken: fenceTokenB,
+        tournamentId: sourceBId,
+        registryGeneration: generationB,
+        tournamentName: sourceB.tournament.name,
+        status: "running",
+        reason: "qa-result-key-collision-v279",
+        leaseUntil: terminalAt + 60000,
+        clientUpdatedAt: terminalAt,
+        updatedAt: terminalAt,
+        build: "qa-v279"
+      };
+      await refreshOperationLeaseV178();
+      window.__qaFirebaseTransactionLog = [];
+      const syncResult = await syncFinishedTournamentAndAdvanceV278("qa-result-key-collision-v279");
+      await new Promise(resolve => setTimeout(resolve, 25));
+
+      const remotePrivateRecord = store.tournaments?.[sourceBId];
+      const remotePrivate = remotePrivateRecord?.state || remotePrivateRecord;
+      const remotePublic = store.publicLive?.[sourceBId];
+      const privateHistoryB = store.privateResultLogs?.[venueBId]?.[sourceBId];
+      const publicHistoryB = store.publicHistory?.[sourceBId];
+      const finalLease = store.operationLocks?.leases?.[venueBId];
+      const buildersUseExactDistinctLiveIds = Boolean(
+        sourceA.tournament.id === legacyMinuteId
+        && sourceB.tournament.id === legacyMinuteId
+        && sourceA.tournament.liveId !== sourceB.tournament.liveId
+        && sourceA.tournament.activeRegistryGeneration !== sourceB.tournament.activeRegistryGeneration
+        && sourceA.tournament.venueId !== sourceB.tournament.venueId
+        && recordA?.id === sourceAId
+        && recordA?.sourceTournamentId === sourceAId
+        && recordBFromState?.id === sourceBId
+        && recordBFromState?.sourceTournamentId === sourceBId
+        && recordB?.id === sourceBId
+        && recordB?.sourceTournamentId === sourceBId
+        && recordA.id !== recordB.id
+      );
+      const legacySourceAPreserved = Boolean(
+        JSON.stringify(store.publicHistory?.[legacyMinuteId]) === legacySourceABefore
+        && store.publicHistory?.[legacyMinuteId]?.sourceTournamentId === sourceAId
+        && store.publicHistory?.[legacyMinuteId]?.legacyRecordKeyV279 === true
+      );
+      const sourceBPublishedAtExactKey = Boolean(
+        syncResult === true
+        && privateHistoryB?.id === sourceBId
+        && privateHistoryB?.sourceTournamentId === sourceBId
+        && privateHistoryB?.registryGeneration === generationB
+        && publicHistoryB?.id === sourceBId
+        && publicHistoryB?.sourceTournamentId === sourceBId
+        && publicHistoryB?.registryGeneration === generationB
+        && store.publicHistory?.[legacyMinuteId]?.sourceTournamentId !== sourceBId
+      );
+      const strictStaleRecordIdNormalizedToSourceKey = Boolean(
+        staleImportedRecordB.id === legacyMinuteId
+        && staleImportedRecordB.sourceTournamentId === sourceBId
+        && privateHistoryB?.id === sourceBId
+        && publicHistoryB?.id === sourceBId
+        && JSON.stringify(store.publicHistory?.[legacyMinuteId]) === legacySourceABefore
+      );
+      const sourceBFinishConverged = Boolean(
+        remotePrivateRecord?.protocolVersion === 279
+        && remotePrivate?.tournament?.status === "finished"
+        && remotePrivate?.tournament?.finishSyncPending !== true
+        && !remotePrivate?.tournament?.finishSyncPublisherToken
+        && remotePublic?.protocolVersion === 279
+        && remotePublic?.status === "finished"
+        && remotePublic?.live === false
+        && !store.activeTournaments?.[venueBId]
+        && finalLease?.status === "released"
+        && !finalLease?.sessionId
+        && Number(finalLease?.leaseUntil || 0) === 0
+        && state.tournament?.status === "draft"
+      );
+
+      return {
+        buildersUseExactDistinctLiveIds,
+        legacySourceAPreserved,
+        sourceBPublishedAtExactKey,
+        strictStaleRecordIdNormalizedToSourceKey,
+        sourceBFinishConverged,
+        debug: {
+          legacyMinuteId,
+          recordAId: recordA?.id,
+          recordBFromStateId: recordBFromState?.id,
+          recordBId: recordB?.id,
+          staleImportedRecordBId: staleImportedRecordB.id,
+          syncResult,
+          remotePrivateStatus: remotePrivate?.tournament?.status,
+          remotePrivatePending: Boolean(remotePrivate?.tournament?.finishSyncPending),
+          remotePublicStatus: remotePublic?.status,
+          publicHistoryKeys: [legacyMinuteId, sourceBId].filter(key => Boolean(store.publicHistory?.[key])),
+          transactionLog: [...window.__qaFirebaseTransactionLog]
+        }
+      };
+    } finally {
+      window.__qaBeforeFirebaseTransaction = null;
+      window.__qaRejectFirebaseTransactionPaths = [];
+      Object.keys(store).forEach(key => delete store[key]);
+      Object.assign(store, clone(backup.store));
+      state = normalizeImportedState(backup.state);
+      activeRoundIndex = backup.activeRoundIndex;
+      state.activeRoundIndex = backup.activeRoundIndex;
+      firebaseTournamentId = backup.firebaseTournamentId;
+      dbVenueIdDraft = backup.dbVenueIdDraft;
+      storageKeys.forEach(key => {
+        const value = storageBackup[key];
+        if (value == null) localStorage.removeItem(key);
+        else localStorage.setItem(key, value);
+      });
+      if (typeof refreshOperationLeaseV178 === "function") await refreshOperationLeaseV178();
+      persistCurrentState();
+      renderOperator();
+    }
+  });
+  logs.push({ step: "result-record-key-collision-v279", info: { resultRecordKeyCollisionV279 } });
+  if (!resultRecordKeyCollisionV279.buildersUseExactDistinctLiveIds || !resultRecordKeyCollisionV279.legacySourceAPreserved || !resultRecordKeyCollisionV279.sourceBPublishedAtExactKey || !resultRecordKeyCollisionV279.strictStaleRecordIdNormalizedToSourceKey || !resultRecordKeyCollisionV279.sourceBFinishConverged) {
+    failures.push(`result record key collision v279 failed ${JSON.stringify(resultRecordKeyCollisionV279)}`);
+  }
+
   await page.evaluate(() => {
     window.setTournamentField("name", "QA Operator Rehearsal");
     window.setTournamentField("venue", "QA Venue");
@@ -3672,6 +5120,12 @@ async function runViewport(browser, meta, viewport) {
       status: "running",
       updatedAt: state.updatedAt
     };
+    const activeStartedLegacy = Boolean(
+      !store.activeTournaments[venueId].protocolVersion
+      && !store.activeTournaments[venueId].uid
+      && !store.activeTournaments[venueId].fenceToken
+      && !store.activeTournaments[venueId].fenceSequence
+    );
     delete store.publicLive[id];
     let result = null;
     try {
@@ -3689,9 +5143,23 @@ async function runViewport(browser, meta, viewport) {
       renderOperator();
       await new Promise(resolve => setTimeout(resolve, 1300));
       const live = store.publicLive?.[id];
+      const active = store.activeTournaments?.[venueId];
+      const lease = store.operationLocks?.leases?.[venueId];
       result = {
         activated,
         leaseClaimed,
+        activeStartedLegacy,
+        activeConvergedV279: Boolean(
+          active?.protocolVersion === 279
+          && active?.uid === "qa-uid"
+          && active?.tournamentId === id
+          && active?.registryGeneration === state.tournament.activeRegistryGeneration
+          && active?.fenceToken === lease?.fenceToken
+          && Number(active?.fenceSequence || 0) === Number(lease?.claimSequence || 0)
+          && Number(active?.fenceSequence || 0) > 0
+        ),
+        active,
+        lease,
         id,
         localActiveRoundIndex: activeRoundIndex,
         localBroadcast: state.broadcast,
@@ -3721,7 +5189,7 @@ async function runViewport(browser, meta, viewport) {
     return result;
   });
   logs.push({ step: "live-round-fallback-v269", info: { liveRoundFallbackV269 } });
-  if (!liveRoundFallbackV269.activated || !liveRoundFallbackV269.leaseClaimed || !liveRoundFallbackV269.publicExists || liveRoundFallbackV269.publicActiveRoundIndex !== 1 || liveRoundFallbackV269.publicBroadcast?.roundIndex !== 1) {
+  if (!liveRoundFallbackV269.activated || !liveRoundFallbackV269.leaseClaimed || !liveRoundFallbackV269.activeStartedLegacy || !liveRoundFallbackV269.activeConvergedV279 || !liveRoundFallbackV269.publicExists || liveRoundFallbackV269.publicActiveRoundIndex !== 1 || liveRoundFallbackV269.publicBroadcast?.roundIndex !== 1) {
     failures.push(`live round fallback v269 failed ${JSON.stringify(liveRoundFallbackV269)}`);
   }
   await showOperatorPage(page);
@@ -3938,6 +5406,12 @@ async function runViewport(browser, meta, viewport) {
       status: "running",
       updatedAt: state.updatedAt
     };
+    const activeStartedLegacy = Boolean(
+      !store.activeTournaments[venueId].protocolVersion
+      && !store.activeTournaments[venueId].uid
+      && !store.activeTournaments[venueId].fenceToken
+      && !store.activeTournaments[venueId].fenceSequence
+    );
     delete store.publicLive[id];
     await window.releaseOperationLeaseV178(true, venueId);
     const claimed = await window.claimOperationLeaseV178("qa-reload-base-v278", true, {
@@ -3951,7 +5425,18 @@ async function runViewport(browser, meta, viewport) {
     const baseSynced = claimed && await forceLiveBroadcastSync("qa-reload-base-v278");
     const basePrivate = store.tournaments[id]?.state || store.tournaments[id];
     const baseUpdatedAt = Number(basePrivate?.updatedAt || 0);
-    const oldLeaseSessionId = store.operationLocks?.leases?.[venueId]?.sessionId || "";
+    const baseLease = store.operationLocks?.leases?.[venueId];
+    const baseActive = store.activeTournaments?.[venueId];
+    const baseActiveConvergedV279 = Boolean(
+      baseActive?.protocolVersion === 279
+      && baseActive?.uid === "qa-uid"
+      && baseActive?.tournamentId === id
+      && baseActive?.registryGeneration === generation
+      && baseActive?.fenceToken === baseLease?.fenceToken
+      && Number(baseActive?.fenceSequence || 0) === Number(baseLease?.claimSequence || 0)
+      && Number(baseActive?.fenceSequence || 0) > 0
+    );
+    const oldLeaseSessionId = baseLease?.sessionId || "";
     const group = state.qualifierRounds[0].stages[0].groups[0];
     group.points[playerId] = 9;
     window.__qaRejectFirebaseTransactionPaths = [`tournaments/${id}`];
@@ -3965,6 +5450,8 @@ async function runViewport(browser, meta, viewport) {
       generation,
       playerId,
       claimed,
+      activeStartedLegacy,
+      baseActiveConvergedV279,
       baseSynced,
       baseUpdatedAt,
       oldLeaseSessionId,
@@ -3987,17 +5474,32 @@ async function runViewport(browser, meta, viewport) {
         && !sessionStorage.getItem(pendingKey);
     }, { id: reloadMutationSetupV278.id, playerId: reloadMutationSetupV278.playerId }, { timeout: 12000 });
     reloadMutationReplayV278 = await page.evaluate(setup => {
-      const privateState = window.__qaFirebaseStore?.tournaments?.[setup.id]?.state || window.__qaFirebaseStore?.tournaments?.[setup.id];
+      const privateRecord = window.__qaFirebaseStore?.tournaments?.[setup.id];
+      const privateState = privateRecord?.state || privateRecord;
       const publicState = window.__qaFirebaseStore?.publicLive?.[setup.id]?.state;
       const lease = window.__qaFirebaseStore?.operationLocks?.leases?.[setup.venueId];
+      const active = window.__qaFirebaseStore?.activeTournaments?.[setup.venueId];
       const pendingKey = window.__mini4wdPendingMutationRuntimeV278?.pendingKey || "";
       return {
         ...setup,
         privateScore: privateState?.qualifierRounds?.[0]?.stages?.[0]?.groups?.[0]?.points?.[setup.playerId],
         publicScores: Object.values(publicState?.qualifierRounds?.[0]?.stages?.[0]?.groups?.[0]?.points || {}),
         localScore: state?.qualifierRounds?.[0]?.stages?.[0]?.groups?.[0]?.points?.[setup.playerId],
+        envelopeProtocolVersion: Number(privateRecord?.protocolVersion || 0),
+        stateProtocolVersion: Number(privateState?.remoteWriteProtocolV279 || 0),
+        tournamentProtocolVersion: Number(privateState?.tournament?.remoteWriteProtocolV279 || 0),
         remoteUpdatedAt: Number(privateState?.updatedAt || 0),
+        envelopeUpdatedAt: Number(privateRecord?.updatedAt || 0),
         newLeaseSessionId: lease?.sessionId || "",
+        replayActiveConvergedV279: Boolean(
+          active?.protocolVersion === 279
+          && active?.uid === "qa-uid"
+          && active?.tournamentId === setup.id
+          && active?.registryGeneration === setup.generation
+          && active?.fenceToken === lease?.fenceToken
+          && Number(active?.fenceSequence || 0) === Number(lease?.claimSequence || 0)
+          && Number(active?.fenceSequence || 0) > 0
+        ),
         pendingCleared: Boolean(pendingKey && !sessionStorage.getItem(pendingKey)),
         conflictBackupAbsent: !localStorage.getItem(`mini4wdUnsyncedLiveConflictV278:${normalizeKey(setup.id)}`),
         replayed: true
@@ -4008,15 +5510,22 @@ async function runViewport(browser, meta, viewport) {
   if (
     !reloadMutationReplayV278.supported
     || !reloadMutationReplayV278.claimed
+    || !reloadMutationReplayV278.activeStartedLegacy
+    || !reloadMutationReplayV278.baseActiveConvergedV279
     || !reloadMutationReplayV278.baseSynced
     || !reloadMutationReplayV278.pendingCreated
     || !reloadMutationReplayV278.replayed
     || reloadMutationReplayV278.privateScore !== 9
     || !reloadMutationReplayV278.publicScores?.includes(9)
     || reloadMutationReplayV278.localScore !== 9
+    || reloadMutationReplayV278.envelopeProtocolVersion !== 279
+    || reloadMutationReplayV278.stateProtocolVersion !== 279
+    || reloadMutationReplayV278.tournamentProtocolVersion !== 279
     || reloadMutationReplayV278.remoteUpdatedAt <= reloadMutationReplayV278.baseUpdatedAt
+    || reloadMutationReplayV278.envelopeUpdatedAt !== reloadMutationReplayV278.remoteUpdatedAt
     || !reloadMutationReplayV278.newLeaseSessionId
     || reloadMutationReplayV278.newLeaseSessionId === reloadMutationReplayV278.oldLeaseSessionId
+    || !reloadMutationReplayV278.replayActiveConvergedV279
     || !reloadMutationReplayV278.pendingCleared
     || !reloadMutationReplayV278.conflictBackupAbsent
   ) {
@@ -4150,7 +5659,7 @@ async function runViewport(browser, meta, viewport) {
   const selectedPointButtons = await page.locator(".point-buttons button.primary").count();
   if (selectedPointButtons < 1) failures.push("point score clicks did not leave a selected score");
 
-  const operatorMutationLeaseClaimedV278 = await page.evaluate(async () => {
+  const operatorMutationLeaseV279 = await page.evaluate(async () => {
     const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
     const players = [
       { id: "qa-advance-a", name: "Advance A", team: "QA", lane: 1 },
@@ -4203,6 +5712,12 @@ async function runViewport(browser, meta, viewport) {
       status: "running",
       updatedAt: state.updatedAt
     };
+    const activeStartedLegacy = Boolean(
+      !store.activeTournaments[venueId].protocolVersion
+      && !store.activeTournaments[venueId].uid
+      && !store.activeTournaments[venueId].fenceToken
+      && !store.activeTournaments[venueId].fenceSequence
+    );
     store.publicLive[id] = makePublicLivePayload(privateState);
     await window.releaseOperationLeaseV178(true, venueId);
     const claimed = await window.claimOperationLeaseV178("qa-operator-mutations-v278", true, {
@@ -4213,11 +5728,32 @@ async function runViewport(browser, meta, viewport) {
       registryGeneration: generation,
       status: "running"
     });
+    const lease = store.operationLocks?.leases?.[venueId];
+    const active = store.activeTournaments?.[venueId];
     persistCurrentState();
     renderOperator();
-    return claimed;
+    return {
+      claimed,
+      activeStartedLegacy,
+      activeConvergedV279: Boolean(
+        active?.protocolVersion === 279
+        && active?.uid === "qa-uid"
+        && active?.tournamentId === id
+        && active?.registryGeneration === generation
+        && active?.fenceToken === lease?.fenceToken
+        && Number(active?.fenceSequence || 0) === Number(lease?.claimSequence || 0)
+        && Number(active?.fenceSequence || 0) > 0
+      ),
+      active,
+      lease
+    };
   });
-  if (!operatorMutationLeaseClaimedV278) failures.push("operator mutation fixture could not claim exact v278 lease");
+  const operatorMutationLeaseClaimedV278 = Boolean(
+    operatorMutationLeaseV279.claimed
+    && operatorMutationLeaseV279.activeStartedLegacy
+    && operatorMutationLeaseV279.activeConvergedV279
+  );
+  if (!operatorMutationLeaseClaimedV278) failures.push(`operator mutation fixture could not claim and converge exact v279 lease ${JSON.stringify(operatorMutationLeaseV279)}`);
   await page.waitForTimeout(300);
   const advanceBefore = await page.evaluate(() => {
     const group = state.qualifierRounds?.[0]?.stages?.[0]?.groups?.[0];
@@ -4240,7 +5776,7 @@ async function runViewport(browser, meta, viewport) {
       storedSelected
     };
   });
-  logs.push({ step: "advance-selection", info: { leaseClaimed: operatorMutationLeaseClaimedV278, before: advanceBefore, after: advanceAfter } });
+  logs.push({ step: "advance-selection", info: { leaseClaimed: operatorMutationLeaseClaimedV278, lease: operatorMutationLeaseV279, before: advanceBefore, after: advanceAfter } });
   if (advanceBefore.advanceIds.includes("qa-advance-a")) failures.push("advance selection started preselected");
   if (!advanceAfter.advanceIds.includes("qa-advance-a")) failures.push(`advance click did not update advanceIds ${JSON.stringify(advanceAfter)}`);
   if (!advanceAfter.slotSelected) failures.push(`advance click did not leave selected UI ${JSON.stringify(advanceAfter)}`);
@@ -5030,7 +6566,9 @@ async function main() {
   const executablePath = browserPath();
   if (!executablePath) throw new Error("No Chrome or Edge executable was found. Set MINI4WD_BROWSER_PATH.");
   const browser = await playwright.chromium.launch({ headless: true, executablePath });
-  const viewports = [
+  const viewports = process.env.MINI4WD_QA_OPERATOR_DESKTOP_ONLY === "1" ? [
+    { width: 1365, height: 900 }
+  ] : [
     { width: 1365, height: 900 },
     { width: 390, height: 844 },
     { width: 320, height: 720 }
@@ -5040,7 +6578,14 @@ async function main() {
   await browser.close();
   await new Promise(resolve => server.close(resolve));
   const failed = results.filter(result => !result.ok);
-  console.log(JSON.stringify({ version: meta.version, label: meta.label, checked: results.length, failed: failed.length, results }, null, 2));
+  const report = { version: meta.version, label: meta.label, checked: results.length, failed: failed.length, results };
+  const printableReport = process.env.MINI4WD_QA_OPERATOR_SUMMARY === "1"
+    ? {
+        ...report,
+        results: results.map(result => ({ viewport: result.viewport, ok: result.ok, failures: result.failures }))
+      }
+    : report;
+  console.log(JSON.stringify(printableReport, null, 2));
   if (failed.length) process.exit(1);
 }
 

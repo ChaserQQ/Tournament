@@ -8,14 +8,15 @@
       "ui-page-live-lobby", "ui-page-mobile-live", "ui-page-tv-live", "ui-page-login",
       "ui-page-print", "ui-page-restricted", "ui-page-error"
     ];
+    const RTDB_WRITE_PROTOCOL_V279 = 279;
     const MINI4WD_BUILD = window.MINI4WD_BUILD_META || {
-      version: 278,
-      label: "BUILD v278 REMOTE AUTO-CLOSE SAFETY",
-      rulesChanged: false,
+      version: 279,
+      label: "BUILD v279 SERVER-ENFORCED LIVE LEASE",
+      rulesChanged: true,
       surfaces: MINI4WD_FALLBACK_SURFACES,
       pageClasses: MINI4WD_FALLBACK_PAGE_CLASSES
     };
-    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v278 REMOTE AUTO-CLOSE SAFETY";
+    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v279 SERVER-ENFORCED LIVE LEASE";
     const MINI4WD_SURFACES = Array.isArray(MINI4WD_BUILD.surfaces) && MINI4WD_BUILD.surfaces.length
       ? Array.from(MINI4WD_BUILD.surfaces)
       : MINI4WD_FALLBACK_SURFACES;
@@ -32,6 +33,9 @@
       return Array.from(MINI4WD_SURFACES);
     }
 
+    let firebaseServerTimeOffsetV279 = 0;
+    let firebaseServerTimeOffsetFetchedAtV279 = 0;
+    let firebaseServerTimeOffsetRefreshV279 = null;
     let state = makeInitialState(3);
     let activeRoundIndex = 0;
     let tvState = null;
@@ -100,7 +104,7 @@
         },
         qualifierRounds: makeQualifierRounds(laneCount, "basic"),
         finalRace: null,
-        updatedAt: Date.now()
+        updatedAt: firebaseServerNowV279()
       };
     }
 
@@ -126,7 +130,7 @@
       }));
     }    function saveLiveState() {
       ensureStateDefaults();
-      state.updatedAt = Date.now();
+      state.updatedAt = firebaseServerNowV279();
       state.activeRoundIndex = activeRoundIndex;
       if (state.tournament.status === "running") {
         state.settings.firebaseAutoSave = true;
@@ -649,6 +653,19 @@ function shuffle(array) {
         restoreStorageValue("mini4wdActiveLiveSignature", preStartLiveSession.signature);
         persistCurrentState();
       };
+      // A tab can disappear after creating the strict active row but before
+      // the first private/public write. Reconcile that expired, rootless start
+      // before reserving a new target lease so another venue operator is not
+      // permanently blocked behind the orphaned active pointer.
+      if (currentAuthUser) {
+        const startDb = initFirebase();
+        if (startDb) {
+          await refreshFirebaseServerTimeOffsetV279(startDb);
+          await cleanupActiveTournamentForVenueV151(startVenueId).catch(error => {
+            console.warn("v279 pre-start active cleanup skipped", error);
+          });
+        }
+      }
       if (typeof window.claimOperationLeaseV178 === "function") {
         const leaseClaimed = await window.claimOperationLeaseV178("tournament-start", false, {
           venueId: startVenueId,
@@ -767,6 +784,20 @@ function shuffle(array) {
       return `active-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
     }
 
+    function currentLeaseFenceMetadataV279() {
+      try {
+        const value = typeof window.__mini4wdGetLiveWriteFenceV278 === "function"
+          ? window.__mini4wdGetLiveWriteFenceV278()
+          : null;
+        return {
+          token: String(value && typeof value === "object" ? value.id || "" : value || ""),
+          sequence: Math.max(0, Number(value && typeof value === "object" ? value.sequence : 0) || 0)
+        };
+      } catch (error) {
+        return { token: "", sequence: 0 };
+      }
+    }
+
     async function claimActiveTournamentForVenue(plannedId, registryGeneration = "", venueIdOverride = "", metadata = {}) {
       const db = initFirebase();
       if (!db || !currentAuthUser) {
@@ -794,7 +825,9 @@ function shuffle(array) {
             );
             if (!sameGeneration) return;
           }
+          const fence = currentLeaseFenceMetadataV279();
           return {
+            protocolVersion: RTDB_WRITE_PROTOCOL_V279,
             venueId,
             venueName: metadata.venueName || currentVenueName(),
             tournamentId: plannedId,
@@ -802,6 +835,8 @@ function shuffle(array) {
             tournamentName: metadata.tournamentName || state.tournament.name || "",
             raceClass: normalizeRaceClassName(metadata.raceClass || state.tournament.raceClass),
             status: "running",
+            fenceToken: fence.token,
+            fenceSequence: fence.sequence,
             uid: currentAuthUser?.uid || "",
             email: currentAuthUser?.email || "",
             updatedAt: firebase.database.ServerValue.TIMESTAMP
@@ -926,14 +961,14 @@ function shuffle(array) {
         const activeIsFresh = Boolean(
           active.status === "running"
           && activeUpdatedAt > 0
-          && Date.now() - activeUpdatedAt >= 0
-          && Date.now() - activeUpdatedAt < ACTIVE_REGISTRY_START_GRACE_MS_V278
+          && firebaseServerNowV279() - activeUpdatedAt >= 0
+          && firebaseServerNowV279() - activeUpdatedAt < ACTIVE_REGISTRY_START_GRACE_MS_V278
         );
         const matchingStartLease = Boolean(
           operationLease
           && String(operationLease.tournamentId || "") === String(tournamentId)
           && normalizeKey(operationLease.venueId || venueId) === venueId
-          && Number(operationLease.leaseUntil || 0) > Date.now()
+          && Number(operationLease.leaseUntil || 0) > firebaseServerNowV279()
         );
         if (activeIsFresh || matchingStartLease) {
           return { removed: false, reason: matchingStartLease ? "start-lease-active" : "starting-grace" };
@@ -1059,30 +1094,17 @@ function shuffle(array) {
       if (!confirm("[2/2] 이 작업은 되돌릴 수 없습니다.\n정말로 모든 경기 기록을 삭제하고 강제 종료할까요?")) return;
       if (db && currentAuthUser) {
         try {
-          const reverified = await readVerifiedRunningTournamentV278(db, activeLiveId);
-          if (!reverified.valid || !liveGenerationsMatchV278(reverified.privateState, state)) {
-            alert("확인하는 동안 서버 대회가 종료되거나 변경되어 강제 종료를 중단했습니다.");
-            if (reverified.privateState) applyAuthoritativeTournamentStateV278(activeLiveId, reverified.privateState);
-            renderOperator();
+          // The confirmation dialogs can outlive the lease TTL. Renew the
+          // exact running identity, then re-read and apply its authoritative
+          // state before the destructive local terminal mutation.
+          const renewed = await renewExactRunningLeaseV279("force-end-preflight-v279");
+          if (!renewed || renewed.tournamentId !== activeLiveId) {
+            alert("확인하는 동안 서버 대회 또는 운영권이 변경되어 강제 종료를 중단했습니다.");
             return false;
           }
-          const leaseStillOwned = typeof window.__mini4wdVerifyOperationLeaseV278 !== "function"
-            || await window.__mini4wdVerifyOperationLeaseV278({
-              venueId: reverified.venueId || currentVenueId(),
-              tournamentId: activeLiveId
-            });
-          if (!leaseStillOwned) {
-            alert("확인하는 동안 운영권이 다른 브라우저로 변경되어 강제 종료를 중단했습니다.");
-            return false;
-          }
-          reverifiedRemoteUpdatedAtV278 = liveFreshTimestampV272(reverified.privateState);
-          // The confirmation dialogs may stay open while another valid client
-          // advances the same running generation. Build the destructive
-          // terminal state from the just-reverified server copy so deleting
-          // race data never also deletes newer roster or metadata changes.
-          applyAuthoritativeTournamentStateV278(activeLiveId, reverified.privateState);
+          reverifiedRemoteUpdatedAtV278 = renewed.remoteUpdatedAt;
         } catch (error) {
-          alert("확인 후 서버 상태를 다시 검증하지 못해 강제 종료를 중단했습니다.");
+          alert("확인 후 서버 상태와 운영권을 다시 검증하지 못해 강제 종료를 중단했습니다.");
           return false;
         }
       }
@@ -1093,7 +1115,7 @@ function shuffle(array) {
       // Close the exact active unique ID before clearing its local session.
       // Syncing after prepareNextTournamentDraftV116 would target the new
       // canonical draft ID and leave the old public/private runner orphaned.
-      const endedAt = new Date();
+      const endedAt = new Date(firebaseServerNowV279());
       state.tournament.finishSyncPreviousUpdatedAt = Number(reverifiedRemoteUpdatedAtV278 || state.updatedAt || 0);
       state.tournament.finishSyncPreviousEndedAtISO = state.tournament.endedAtISO || "";
       state.tournament.finishSyncPreviousEndedAtDisplay = state.tournament.endedAtDisplay || "";
@@ -1110,7 +1132,7 @@ function shuffle(array) {
       state.tournament.liveStopped = true;
       state.tournament.forceEnded = true;
       delete state.tournament.finishSyncRecord;
-      state.updatedAt = Date.now();
+      state.updatedAt = firebaseServerNowV279();
       persistCurrentState();
       renderOperator();
       const synced = await syncFinishedTournamentAndAdvanceV278("force-end-terminal-v278");
@@ -1192,7 +1214,7 @@ function isTournamentLocked() {
     function ensureTournamentStarted() {
       ensureStateDefaults();
       if (!state.tournament.startedAtISO) {
-        const now = new Date();
+        const now = new Date(firebaseServerNowV279());
         state.tournament.startedAtISO = now.toISOString();
         state.tournament.startedAtDisplay = formatDateTimeLocal(now);
         state.tournament.id = state.tournament.id || `tournament-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,"0")}${String(now.getDate()).padStart(2,"0")}-${String(now.getHours()).padStart(2,"0")}${String(now.getMinutes()).padStart(2,"0")}`;
@@ -1917,6 +1939,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
       const inputText = participantInputTextV274();
       const tournament = {
         ...state.tournament,
+        remoteWriteProtocolV279: RTDB_WRITE_PROTOCOL_V279,
         lockedParticipants: state.tournament?.lockedParticipants || (state.tournament?.status === "running" ? inputText : state.tournament?.lockedParticipants),
         venueId: typeof currentVenueId === "function" ? currentVenueId() : (state.tournament?.venueId || ""),
         venue: state.tournament?.venue || (typeof currentVenueName === "function" ? currentVenueName() : ""),
@@ -1930,7 +1953,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
         broadcast: state.broadcast,
         qualifierRounds: state.qualifierRounds,
         finalRace: state.finalRace,
-        updatedAt: state.updatedAt || Date.now()
+        updatedAt: state.updatedAt || firebaseServerNowV279()
       };
     }
 
@@ -1940,6 +1963,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
       const id = explicitLiveId || getCurrentTournamentId();
       const isRunning = publicState.tournament.status === "running";
       const payload = {
+        protocolVersion: RTDB_WRITE_PROTOCOL_V279,
         id,
         liveSignature: buildAutoTournamentId(),
         registryGeneration: String(sourceState?.tournament?.activeRegistryGeneration || ""),
@@ -1950,7 +1974,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
         status: publicState.tournament.status || "draft",
         live: isRunning,
         liveKeyLabel: `${publicState.tournament.venue || currentVenueName()} · ${publicState.tournament.name || "대회명 미입력"} · ${liveSessionDateKey()}`,
-        updatedAt: publicState.updatedAt || Date.now(),
+        updatedAt: publicState.updatedAt || firebaseServerNowV279(),
         state: publicState
       };
       const expectedRunningAt = Number(
@@ -1967,6 +1991,21 @@ function setBroadcastStage(roundIndex, stageIndex) {
     function liveFreshTimestampV272(payload) {
       const value = payload?.state?.updatedAt ?? payload?.updatedAt ?? 0;
       return Number(value || 0) || 0;
+    }
+
+    function stampRemoteStateProtocolV279(sourceState) {
+      if (!sourceState || typeof sourceState !== "object") return sourceState;
+      sourceState.remoteWriteProtocolV279 = RTDB_WRITE_PROTOCOL_V279;
+      sourceState.tournament = sourceState.tournament || {};
+      sourceState.tournament.remoteWriteProtocolV279 = RTDB_WRITE_PROTOCOL_V279;
+      return sourceState;
+    }
+
+    function stampPublicLiveProtocolV279(payload) {
+      if (!payload || typeof payload !== "object") return payload;
+      payload.protocolVersion = RTDB_WRITE_PROTOCOL_V279;
+      if (payload.state && typeof payload.state === "object") stampRemoteStateProtocolV279(payload.state);
+      return payload;
     }
 
     function liveFreshStatusV272(payload) {
@@ -2071,15 +2110,18 @@ function setBroadcastStage(roundIndex, stageIndex) {
     function writeFreshLiveValueV272(db, path, nextValue, reason = "manual") {
       const ref = db?.ref ? db.ref(path) : null;
       if (!ref) return Promise.reject(new Error(`Firebase reference is unavailable: ${path}`));
+      const candidateValue = nextValue && String(path || "").startsWith(`${PUBLIC_LIVE_PATH}/`)
+        ? stampPublicLiveProtocolV279(nextValue)
+        : nextValue;
       if (typeof ref.transaction !== "function") {
-        return ref.set(nextValue).then(() => true);
+        return ref.set(candidateValue).then(() => true);
       }
       return ref.transaction(currentValue => {
         // Abort the transaction when freshness rejects the candidate. Returning
         // the current value is reported by Firebase as committed=true even
         // though no write happened, which can make callers advance state on a
         // false success.
-        return shouldAcceptFreshLiveValueV272(currentValue, nextValue, reason) ? nextValue : undefined;
+        return shouldAcceptFreshLiveValueV272(currentValue, candidateValue, reason) ? candidateValue : undefined;
       }).then(result => {
         if (!result || result.committed === false) {
           const error = new Error(`Firebase transaction was not committed: ${path}`);
@@ -2095,8 +2137,18 @@ function setBroadcastStage(roundIndex, stageIndex) {
     }
 
     function tournamentRecordWithStateV278(currentRecord, nextState) {
-      if (currentRecord?.state) return { ...currentRecord, state: nextState, updatedAt: nextState?.updatedAt || Date.now() };
-      return { state: nextState, updatedAt: nextState?.updatedAt || Date.now() };
+      const protocolState = stampRemoteStateProtocolV279(nextState);
+      const tournament = protocolState?.tournament || {};
+      const envelope = {
+        ...(currentRecord?.state ? currentRecord : {}),
+        protocolVersion: RTDB_WRITE_PROTOCOL_V279,
+        venueId: String(tournament.venueId || ""),
+        registryGeneration: String(tournament.activeRegistryGeneration || ""),
+        status: String(tournament.status || ""),
+        state: protocolState,
+        updatedAt: protocolState?.updatedAt || firebaseServerNowV279()
+      };
+      return envelope;
     }
 
     function writeFreshTournamentStateV278(db, id, nextState, reason = "manual", options = {}) {
@@ -3058,7 +3110,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
         ensureStateDefaults();
         if (window.__mini4wdAutoCloseBusyV278) return;
         const terminalRemoteSyncBlocked = isGenericTerminalRemoteSyncBlockedV278(state);
-        if (!terminalRemoteSyncBlocked) state.updatedAt = Date.now();
+        if (!terminalRemoteSyncBlocked) state.updatedAt = firebaseServerNowV279();
         state.activeRoundIndex = activeRoundIndex;
         if (state.tournament?.status === "running") {
           state.settings.firebaseAutoSave = true;
@@ -3663,6 +3715,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
         firebaseApp = firebase.apps && firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
         firebaseDb = firebase.database();
         firebaseOnline = true;
+        refreshFirebaseServerTimeOffsetV279(firebaseDb).catch(() => false);
         return firebaseDb;
       } catch (error) {
         firebaseOnline = false;
@@ -3721,7 +3774,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
         return Promise.resolve(false);
       }
       refreshLocalLiveWriteFenceV278(state);
-      state.updatedAt = Date.now();
+      state.updatedAt = firebaseServerNowV279();
       state.activeRoundIndex = activeRoundIndex;
       if (state.tournament.status === "running") {
         state.settings.firebaseAutoSave = true;
@@ -3768,7 +3821,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
           return Promise.resolve(false);
         }
         refreshLocalLiveWriteFenceV278(state);
-        state.updatedAt = Date.now();
+        state.updatedAt = firebaseServerNowV279();
         state.activeRoundIndex = activeRoundIndex;
         if (state.tournament.status === "running") {
           state.settings.firebaseAutoSave = true;
@@ -3799,6 +3852,48 @@ function setBroadcastStage(roundIndex, stageIndex) {
         return Promise.resolve(false);
       }
     }
+
+    function firebaseServerNowV279() {
+      const offset = Number(firebaseServerTimeOffsetV279 || 0);
+      return Date.now() + (Number.isFinite(offset) ? offset : 0);
+    }
+
+    function refreshFirebaseServerTimeOffsetV279(dbOverride = null, force = false) {
+      const clientNow = Date.now();
+      if (
+        !force
+        && firebaseServerTimeOffsetFetchedAtV279
+        && clientNow >= firebaseServerTimeOffsetFetchedAtV279
+        && clientNow - firebaseServerTimeOffsetFetchedAtV279 < 60000
+      ) return Promise.resolve(true);
+      if (firebaseServerTimeOffsetRefreshV279) return firebaseServerTimeOffsetRefreshV279;
+      const db = dbOverride || initFirebase();
+      if (!db?.ref) return Promise.resolve(false);
+      const timeoutMarker = {};
+      const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(timeoutMarker), 2500));
+      firebaseServerTimeOffsetRefreshV279 = Promise.race([
+        db.ref(".info/serverTimeOffset").get(),
+        timeoutPromise
+      ]).then(snapshot => {
+        if (snapshot === timeoutMarker) return false;
+        const rawOffset = snapshot && typeof snapshot.val === "function" ? snapshot.val() : 0;
+        const nextOffset = rawOffset == null ? 0 : Number(rawOffset);
+        if (!Number.isFinite(nextOffset)) return false;
+        firebaseServerTimeOffsetV279 = nextOffset;
+        firebaseServerTimeOffsetFetchedAtV279 = Date.now();
+        return true;
+      }).catch(() => false).finally(() => {
+        firebaseServerTimeOffsetRefreshV279 = null;
+      });
+      return firebaseServerTimeOffsetRefreshV279;
+    }
+    try {
+      window.__mini4wdFirebaseServerClockV279 = {
+        now: firebaseServerNowV279,
+        offset: () => Number(firebaseServerTimeOffsetV279 || 0),
+        refresh: (force = false) => refreshFirebaseServerTimeOffsetV279(null, Boolean(force))
+      };
+    } catch (error) {}
 
     function syncOperatorLiveStateV269(reason = "operator") {
       if (isPublicViewerRoute()) return Promise.resolve(false);
@@ -4226,7 +4321,7 @@ function currentActorLabel() {
         qualifierRounds: Array.isArray(imported?.qualifierRounds) ? imported.qualifierRounds : base.qualifierRounds,
         finalRace: imported?.finalRace || null,
         broadcast: { ...base.broadcast, ...(imported?.broadcast || {}) },
-        updatedAt: imported?.updatedAt || Date.now()
+        updatedAt: imported?.updatedAt || firebaseServerNowV279()
       };
       next.tournament.raceClass = normalizeRaceClassName(next.tournament.raceClass || "오픈");
       if (next.tournament.status === undefined) next.tournament.status = next.tournament.startedAtISO ? "running" : "draft";
@@ -4266,7 +4361,7 @@ function currentActorLabel() {
         if (typeof window.__mini4wdRefreshPendingLiveMutationV278 === "function") {
           window.__mini4wdRefreshPendingLiveMutationV278(reason);
         }
-        state.updatedAt = Date.now();
+        state.updatedAt = firebaseServerNowV279();
         state.activeRoundIndex = activeRoundIndex;
         const payload = exportState();
         const json = JSON.stringify(payload);
@@ -4522,6 +4617,7 @@ function currentActorLabel() {
     function logTournamentAction(action, detail = "") {
       try {
         const entry = {
+          protocolVersion: RTDB_WRITE_PROTOCOL_V279,
           action,
           detail,
           actorUid: currentAuthUser?.uid || "local",
@@ -5530,7 +5626,8 @@ function parseBooleanCell(value, defaultValue = false) {
     }
 
     function isAdminUser() {
-      return Boolean(currentAuthUser && (ADMIN_EMAILS.includes(String(currentAuthUser.email || "").toLowerCase()) || currentUserProfile?.role === "admin"));
+      const flags = profilePermissionFlags(currentUserProfile);
+      return Boolean(currentAuthUser && (ADMIN_EMAILS.includes(String(currentAuthUser.email || "").toLowerCase()) || flags.admin));
     }
 
     function isVenueUser() {
@@ -6648,7 +6745,10 @@ function exportTournamentCsv() {
       }));
       const winners = publicRows.filter(row => row.결과 === "최종우승").map(row => row.선수명).filter(Boolean);
       return {
+        protocolVersion: RTDB_WRITE_PROTOCOL_V279,
         id: record.id,
+        sourceTournamentId: record.sourceTournamentId || "",
+        registryGeneration: String(record.registryGeneration || ""),
         venueId: record.venueId || "",
         venueName: record.venueName || "",
         raceClass: normalizeRaceClassName(record.raceClass || "오픈"),
@@ -6666,9 +6766,12 @@ function exportTournamentCsv() {
 
     function makeTournamentRecord() {
       ensureStateDefaults();
-      const id = state.tournament.recordId || state.tournament.id || `record-${Date.now()}`;
+      const id = getWritableTournamentIdV278(state)
+        || state.tournament.recordId
+        || state.tournament.id
+        || `record-${Date.now()}`;
       state.tournament.recordId = id;
-      return { id, venueId: currentVenueId(), venueName: state.tournament.venue || currentVenueName(), raceClass: normalizeRaceClassName(state.tournament.raceClass), tournamentName: state.tournament.name || "", startedAtISO: state.tournament.startedAtISO || "", endedAtISO: state.tournament.endedAtISO || "", createdAt: new Date().toISOString(), mode: state.settings.matchMode, laneCount: state.settings.laneCount, rows: getStageResultRows() };
+      return { protocolVersion: RTDB_WRITE_PROTOCOL_V279, id, sourceTournamentId: getWritableTournamentIdV278(state), registryGeneration: String(state.tournament.activeRegistryGeneration || ""), venueId: currentVenueId(), venueName: state.tournament.venue || currentVenueName(), raceClass: normalizeRaceClassName(state.tournament.raceClass), tournamentName: state.tournament.name || "", startedAtISO: state.tournament.startedAtISO || "", endedAtISO: state.tournament.endedAtISO || "", createdAt: state.tournament.endedAtISO || new Date(firebaseServerNowV279()).toISOString(), mode: state.settings.matchMode, laneCount: state.settings.laneCount, rows: getStageResultRows() };
     }
 
     function makeTournamentRecordFromStateV278(sourceState, fallbackId = "") {
@@ -6691,8 +6794,12 @@ function exportTournamentCsv() {
       }
       const tournament = normalized?.tournament || sourceState.tournament || {};
       const settings = normalized?.settings || sourceState.settings || {};
+      const sourceTournamentId = normalizeOptionalKeyV278(tournament.liveId) || fallbackId || "";
       return {
-        id: tournament.recordId || fallbackId || `record-${Date.now()}`,
+        protocolVersion: RTDB_WRITE_PROTOCOL_V279,
+        id: sourceTournamentId || tournament.recordId || `record-${Date.now()}`,
+        sourceTournamentId,
+        registryGeneration: String(tournament.activeRegistryGeneration || ""),
         venueId: normalizeKey(tournament.venueId || tournament.venue || tournament.venueName || ""),
         venueName: tournament.venue || tournament.venueName || "",
         raceClass: normalizeRaceClassName(tournament.raceClass || "오픈"),
@@ -6717,12 +6824,16 @@ function exportTournamentCsv() {
     async function publishFinishedTournamentRecordV278(db, record, { saveLocal = false } = {}) {
       if (!record?.id) return true;
       if (!db || !currentAuthUser) throw new Error("종료 결과 기록 저장 연결 준비 안됨");
-      const publicRecord = makePublicRecord(record);
+      const strictSourceId = Number(record.protocolVersion || 0) >= RTDB_WRITE_PROTOCOL_V279
+        ? normalizeOptionalKeyV278(record.sourceTournamentId)
+        : "";
+      const publishRecord = strictSourceId ? { ...record, id: strictSourceId } : record;
+      const publicRecord = makePublicRecord(publishRecord);
       await Promise.all([
-        db.ref(`${RESULT_LOGS_PATH}/${record.venueId}/${record.id}`).set(record),
-        db.ref(`${PUBLIC_HISTORY_PATH}/${record.id}`).set(publicRecord)
+        db.ref(`${RESULT_LOGS_PATH}/${publishRecord.venueId}/${publishRecord.id}`).set(publishRecord),
+        db.ref(`${PUBLIC_HISTORY_PATH}/${publishRecord.id}`).set(publicRecord)
       ]);
-      if (saveLocal) saveTournamentRecordLocallyV278(record);
+      if (saveLocal) saveTournamentRecordLocallyV278(publishRecord);
       return true;
     }
 
@@ -6839,7 +6950,7 @@ function exportTournamentCsv() {
       const terminalUpdatedAt = Number(
         state.tournament.finishSyncTerminalUpdatedAt
         || state.updatedAt
-        || Date.now()
+        || firebaseServerNowV279()
       );
       state.tournament.finishSyncTerminalUpdatedAt = terminalUpdatedAt;
       state.updatedAt = terminalUpdatedAt;
@@ -6858,6 +6969,107 @@ function exportTournamentCsv() {
           const remoteState = privateRecord?.state || privateRecord;
           const localAttemptId = terminalAttemptIdentityV278(state);
           const remoteAttemptId = terminalAttemptIdentityV278(remoteState);
+          if (liveFreshStatusV272(remoteState) === "running") {
+            const expectedGeneration = String(state.tournament?.activeRegistryGeneration || "");
+            const expectedPreviousUpdatedAt = Number(state.tournament?.finishSyncPreviousUpdatedAt || 0);
+            const expectedVenueId = currentVenueId();
+            const remoteGeneration = liveRegistryGenerationV278(remoteState);
+            const remoteVenueId = normalizeOptionalKeyV278(
+              remoteState?.tournament?.venueId
+              || remoteState?.tournament?.venue
+              || remoteState?.tournament?.venueName
+              || ""
+            );
+            let verifiedRunning = null;
+            let exactRetryBase = Boolean(
+              expectedGeneration
+              && expectedPreviousUpdatedAt
+              && remoteGeneration === expectedGeneration
+              && remoteVenueId === expectedVenueId
+              && liveFreshTimestampV272(remoteState) === expectedPreviousUpdatedAt
+            );
+            if (exactRetryBase) {
+              verifiedRunning = await readVerifiedRunningTournamentV278(db, id);
+              exactRetryBase = Boolean(
+                verifiedRunning.valid
+                && verifiedRunning.venueId === expectedVenueId
+                && verifiedRunning.registryGeneration === expectedGeneration
+                && liveFreshTimestampV272(verifiedRunning.privateState) === expectedPreviousUpdatedAt
+              );
+            }
+            const claimLease = window.claimOperationLeaseV178;
+            const verifyLease = window.__mini4wdVerifyOperationLeaseV278;
+            let retryLeaseReady = false;
+            if (exactRetryBase && typeof claimLease === "function" && typeof verifyLease === "function") {
+              const claimed = await claimLease("finish-retry-preflight-v279", false, {
+                venueId: expectedVenueId,
+                venueName: state.tournament?.venue || state.tournament?.venueName || "",
+                tournamentId: id,
+                tournamentName: state.tournament?.name || "",
+                registryGeneration: expectedGeneration,
+                status: "running"
+              });
+              if (claimed) {
+                const reverifiedRunning = await readVerifiedRunningTournamentV278(db, id);
+                retryLeaseReady = Boolean(
+                  reverifiedRunning.valid
+                  && reverifiedRunning.venueId === expectedVenueId
+                  && reverifiedRunning.registryGeneration === expectedGeneration
+                  && liveFreshTimestampV272(reverifiedRunning.privateState) === expectedPreviousUpdatedAt
+                  && await verifyLease({
+                    venueId: expectedVenueId,
+                    tournamentId: id,
+                    registryGeneration: expectedGeneration
+                  })
+                );
+                verifiedRunning = reverifiedRunning.valid ? reverifiedRunning : verifiedRunning;
+              }
+            }
+            if (!retryLeaseReady) {
+              const authoritativeRunning = verifiedRunning?.privateState || remoteState;
+              reconcileLocalRunningFinishConflictV278(id, authoritativeRunning);
+              return false;
+            }
+            // The first terminal write may have failed after local persistence.
+            // An exact unchanged running base can safely reuse the stable
+            // terminal attempt after renewing its lease and fence.
+            refreshLocalLiveWriteFenceV278(state);
+          }
+          if (
+            remoteState?.tournament?.status === "finished"
+            && remoteState.tournament.finishSyncPending === true
+            && localAttemptId
+            && remoteAttemptId === localAttemptId
+          ) {
+            const repairPendingFinish = window.__mini4wdRepairRemoteFinishedSyncV278;
+            if (typeof repairPendingFinish !== "function") {
+              state.tournament.finishSyncError = "종료 복구 기능을 준비하지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.";
+              persistCurrentState();
+              return false;
+            }
+            await repairPendingFinish(id, remoteState);
+            const repairedSnapshot = await db.ref(`tournaments/${id}`).get();
+            const repairedRecord = repairedSnapshot?.val ? repairedSnapshot.val() : null;
+            const repairedState = repairedRecord?.state || repairedRecord;
+            if (liveFreshStatusV272(repairedState) === "running") {
+              reconcileLocalRunningFinishConflictV278(id, repairedState);
+              return false;
+            }
+            if (
+              repairedState?.tournament?.status === "finished"
+              && repairedState.tournament.finishSyncPending !== true
+              && terminalAttemptIdentityV278(repairedState) === localAttemptId
+            ) {
+              applyAuthoritativeTournamentStateV278(id, repairedState);
+              firebaseOnline = true;
+              window.__mini4wdFirebaseLastSavedAt = Date.now();
+              window.__mini4wdFirebaseLastError = "";
+              return true;
+            }
+            state.tournament.finishSyncError = "서버의 종료 복구가 아직 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.";
+            persistCurrentState();
+            return false;
+          }
           if (
             remoteState?.tournament?.status === "finished"
             && remoteState.tournament.finishSyncPending !== true
@@ -6953,7 +7165,7 @@ function exportTournamentCsv() {
       // publicLive is now terminal. Clear the durable private retry marker in
       // a separate write so partial failure can never erase the only recovery
       // signal while the public record is still running.
-      const clearedAt = Date.now();
+      const clearedAt = firebaseServerNowV279();
       try {
         const expectedTerminalAt = Number(publishedPrivateState?.tournament?.finishSyncTerminalUpdatedAt || 0);
         const clearResult = await db.ref(`tournaments/${id}`).transaction(currentRecord => {
@@ -7058,6 +7270,57 @@ function exportTournamentCsv() {
     return getFinalWinners().length > 0;
   }
 
+    async function renewExactRunningLeaseV279(reason = "tournament-finish-preflight-v279") {
+      if (!currentAuthUser) return { localOnly: true };
+      const db = initFirebase();
+      const claimLease = window.claimOperationLeaseV178;
+      const verifyLease = window.__mini4wdVerifyOperationLeaseV278;
+      if (!db || typeof claimLease !== "function" || typeof verifyLease !== "function") return null;
+      const tournamentId = getWritableTournamentIdV278(state);
+      const venueId = currentVenueId();
+      const registryGeneration = String(state.tournament?.activeRegistryGeneration || "");
+      if (!tournamentId || !venueId || !registryGeneration || state.tournament?.status !== "running") return null;
+      const renewed = await claimLease(reason, false, {
+        venueId,
+        venueName: currentVenueName(),
+        tournamentId,
+        tournamentName: state.tournament?.name || "",
+        registryGeneration,
+        status: "running"
+      });
+      if (!renewed) return null;
+      if (
+        state.tournament?.status !== "running"
+        || getWritableTournamentIdV278(state) !== tournamentId
+        || currentVenueId() !== venueId
+        || String(state.tournament?.activeRegistryGeneration || "") !== registryGeneration
+      ) return null;
+      const verified = await readVerifiedRunningTournamentV278(db, tournamentId);
+      if (
+        !verified.valid
+        || verified.venueId !== venueId
+        || verified.registryGeneration !== registryGeneration
+        || !liveGenerationsMatchV278(verified.privateState, state)
+      ) {
+        if (verified.privateState) applyAuthoritativeTournamentStateV278(tournamentId, verified.privateState);
+        return null;
+      }
+      if (!await verifyLease({ venueId, tournamentId, registryGeneration })) return null;
+      applyAuthoritativeTournamentStateV278(tournamentId, verified.privateState);
+      return {
+        db,
+        tournamentId,
+        venueId,
+        registryGeneration,
+        privateState: verified.privateState,
+        remoteUpdatedAt: liveFreshTimestampV272(verified.privateState)
+      };
+    }
+
+    async function renewExactFinishLeaseV279() {
+      return Boolean(await renewExactRunningLeaseV279("tournament-finish-preflight-v279"));
+    }
+
   function getTournamentFinishRequirementText() {
     return isRevivalMode()
       ? "결승 우승자 확정 후 종료 가능"
@@ -7075,7 +7338,17 @@ function exportTournamentCsv() {
     }
     if (state.tournament.status === "running" && !confirm("최종 결과를 저장하고 대회를 종료할까요?\n종료 후 새 대회 준비 상태로 전환됩니다.")) return;
     if (state.tournament.status !== "running" && !confirm("현재 진행중 상태가 아닙니다. 그래도 종료할까요?")) return;
-      const now = new Date();
+      if (state.tournament.status === "running" && !await renewExactFinishLeaseV279()) {
+        alert("확인하는 동안 운영권이 만료되거나 변경되어 대회 종료를 중단했습니다. 진행 상태는 그대로 유지됩니다.");
+        return false;
+      }
+      if (state.tournament.status === "running" && !isTournamentFinalResultReady()) {
+        const message = "확인하는 동안 서버 진행 상태가 변경되어 최종 결과가 미확정 상태가 되었습니다. 대회 종료를 중단했습니다.";
+        showError(message);
+        alert(message);
+        return false;
+      }
+      const now = new Date(firebaseServerNowV279());
       state.tournament.finishSyncPreviousUpdatedAt = Number(state.updatedAt || 0);
       state.tournament.finishSyncPreviousEndedAtISO = state.tournament.endedAtISO || "";
       state.tournament.finishSyncPreviousEndedAtDisplay = state.tournament.endedAtDisplay || "";
@@ -7085,7 +7358,7 @@ function exportTournamentCsv() {
       state.tournament.endedAtDisplay = formatDateTimeLocal(now);
       state.tournament.status = "finished";
       state.settings.firebaseAutoSave = false;
-      state.updatedAt = Date.now();
+      state.updatedAt = firebaseServerNowV279();
       state.activeRoundIndex = activeRoundIndex;
       createAutoSnapshot("대회 종료");
       state.tournament.finishSyncRecord = makeTournamentRecord();
@@ -7402,7 +7675,7 @@ function exportTournamentCsv() {
     function effectiveLiveStatus(item = {}) {
       const status = item.status || "draft";
       const updatedAt = toTimeValue(item.updatedAt);
-      if (status === "running" && updatedAt && Date.now() - updatedAt <= LIVE_STALE_MS) return "running";
+      if (status === "running" && updatedAt && firebaseServerNowV279() - updatedAt <= LIVE_STALE_MS) return "running";
       if (status === "running") return "stale";
       if (status === "finished" || status === "archived") return "recent";
       return "waiting";
@@ -8099,7 +8372,21 @@ function normalizePlayerForFinal(player, extra = {}) {
         const cleanFinalists = (round.crowFinalists || []).map(cleanPlayer);
         return { id: round.id, index: round.index, title: round.title, stagePlan: round.stagePlan || [], stages: (round.stages || []).map((stage, stageIndex) => cleanStage(stage, roundIndex, stageIndex)), finalist: round.finalist ? cleanPlayer(round.finalist) : null, noFinalist: Boolean(round.noFinalist), finalistStatus: round.finalistStatus || "", noFinalistReason: round.noFinalistReason || "", crowFinalists: cleanFinalists };
       };
-      const publicTournament = { name: sourceState.tournament?.name || "", venue: sourceState.tournament?.venue || sourceState.tournament?.venueName || "", venueId: sourceState.tournament?.venueId || "", raceClass: normalizeRaceClassName(sourceState.tournament?.raceClass || "오픈"), status: sourceState.tournament?.status || "draft", startedAtISO: sourceState.tournament?.startedAtISO || "", startedAtDisplay: sourceState.tournament?.startedAtDisplay || "", endedAtISO: sourceState.tournament?.endedAtISO || "", endedAtDisplay: sourceState.tournament?.endedAtDisplay || "" };
+      const publicTournament = {
+        name: sourceState.tournament?.name || "",
+        venue: sourceState.tournament?.venue || sourceState.tournament?.venueName || "",
+        venueId: sourceState.tournament?.venueId || "",
+        raceClass: normalizeRaceClassName(sourceState.tournament?.raceClass || "오픈"),
+        status: sourceState.tournament?.status || "draft",
+        startedAtISO: sourceState.tournament?.startedAtISO || "",
+        startedAtDisplay: sourceState.tournament?.startedAtDisplay || "",
+        endedAtISO: sourceState.tournament?.endedAtISO || "",
+        endedAtDisplay: sourceState.tournament?.endedAtDisplay || "",
+        activeRegistryGeneration: String(sourceState.tournament?.activeRegistryGeneration || ""),
+        liveWriteFenceV278: String(sourceState.tournament?.liveWriteFenceV278 || ""),
+        liveWriteFenceSequenceV278: Math.max(0, Number(sourceState.tournament?.liveWriteFenceSequenceV278 || 0) || 0),
+        remoteWriteProtocolV279: RTDB_WRITE_PROTOCOL_V279
+      };
       let cleanFinalRace = null;
       if (sourceState.finalRace) {
         const includeFinalMetrics = broadcast.mode === "final";
@@ -8116,7 +8403,7 @@ function normalizePlayerForFinal(player, extra = {}) {
           cleanFinalRace.group = cleanGroup(sourceState.finalRace.group, includeFinalMetrics);
         }
       }
-      return { settings: sourceState.settings ? { laneCount: sourceState.settings.laneCount, matchMode: sourceState.settings.matchMode } : {}, tournament: publicTournament, activeRoundIndex: sourceState.activeRoundIndex || 0, broadcast, qualifierRounds: (sourceState.qualifierRounds || []).map(cleanRound), finalRace: cleanFinalRace, updatedAt: sourceState.updatedAt || Date.now() };
+      return { remoteWriteProtocolV279: RTDB_WRITE_PROTOCOL_V279, settings: sourceState.settings ? { laneCount: sourceState.settings.laneCount, matchMode: sourceState.settings.matchMode } : {}, tournament: publicTournament, activeRoundIndex: sourceState.activeRoundIndex || 0, broadcast, qualifierRounds: (sourceState.qualifierRounds || []).map(cleanRound), finalRace: cleanFinalRace, updatedAt: sourceState.updatedAt || firebaseServerNowV279() };
     }
 
     function sameResultPlayerIdV187(a, b) {
@@ -8321,9 +8608,17 @@ function normalizePlayerForFinal(player, extra = {}) {
           item,
           status: item?.state?.tournament?.status || item?.status || "",
           live: item?.live !== false,
+          protocolVersion: Number(item?.protocolVersion || item?.state?.remoteWriteProtocolV279 || 0),
           updatedAt: Number(item?.updatedAt || item?.state?.updatedAt || 0)
         }))
-        .filter(entry => entry.id && entry.live && entry.status === "running")
+        .filter(entry => (
+          entry.id
+          && entry.live
+          && entry.status === "running"
+          && entry.protocolVersion >= RTDB_WRITE_PROTOCOL_V279
+          && entry.updatedAt > 0
+          && firebaseServerNowV279() - entry.updatedAt <= LIVE_STALE_MS
+        ))
         .sort((a, b) => b.updatedAt - a.updatedAt)[0] || null;
     }
 
@@ -8568,7 +8863,7 @@ function stopLiveLobbyRealtimeV50() {
         if (!currentPublicLiveWatchMatchesRoute()) return;
         const payload = normalizeLivePayload(raw);
         if (!payload) return;
-        const updated = Number(payload.updatedAt || raw?.updatedAt || 0) || Date.now();
+        const updated = Number(payload.updatedAt || raw?.updatedAt || 0) || firebaseServerNowV279();
         if (lastAppliedUpdatedAt && updated < lastAppliedUpdatedAt) return;
         lastAppliedUpdatedAt = updated;
         received = true;
@@ -8683,7 +8978,7 @@ function stopLiveLobbyRealtimeV50() {
         }
         state.settings.firebaseAutoSave = true;
         activateAutoLiveSession(false);
-        state.updatedAt = Date.now();
+        state.updatedAt = firebaseServerNowV279();
         state.activeRoundIndex = activeRoundIndex;
         persistCurrentState();
         queueFirebaseSave();
@@ -8700,7 +8995,7 @@ function stopLiveLobbyRealtimeV50() {
       if (state.tournament.status !== "running") return "";
       state.settings.firebaseAutoSave = true;
       const id = getWritableTournamentIdV278(state) || getCurrentTournamentId();
-      state.updatedAt = Date.now();
+      state.updatedAt = firebaseServerNowV279();
       state.activeRoundIndex = activeRoundIndex;
       persistCurrentState();
       try {
@@ -8803,7 +9098,7 @@ function stopLiveLobbyRealtimeV50() {
       const remoteAutoCloseRetryTimersV278 = new Map();
       const remoteFinishSyncRetryTimersV278 = new Map();
 
-      function nowV135(){ return Date.now(); }
+      function nowV135(){ return firebaseServerNowV279(); }
       function elapsedTextV135(ms){
         const minutes = Math.max(0, Math.floor((Number(ms) || 0) / 60000));
         if (minutes < 60) return `${minutes}분 전`;
@@ -8826,6 +9121,18 @@ function stopLiveLobbyRealtimeV50() {
       }
       function tournamentLastAtV135(record){
         const stateValue = record?.state || record || {};
+        const protocolVersion = Number(
+          record?.protocolVersion
+          || stateValue?.remoteWriteProtocolV279
+          || stateValue?.tournament?.remoteWriteProtocolV279
+          || 0
+        );
+        const authoritativeUpdatedAt = Number(record?.updatedAt ?? stateValue?.updatedAt ?? 0);
+        if (
+          protocolVersion >= RTDB_WRITE_PROTOCOL_V279
+          && Number.isFinite(authoritativeUpdatedAt)
+          && authoritativeUpdatedAt > 0
+        ) return authoritativeUpdatedAt;
         const candidates = [stateValue.updatedAt, record?.updatedAt, stateValue.tournament?.updatedAt, stateValue.tournament?.startedAtISO];
         let latest = 0;
         for (const item of candidates) {
@@ -8853,6 +9160,12 @@ function stopLiveLobbyRealtimeV50() {
       function activeTournamentEntryV135(id, raw){
         const sourceState = raw?.state || raw || {};
         const status = sourceState?.tournament?.status || raw?.status || "draft";
+        const protocolVersion = Number(
+          raw?.protocolVersion
+          || sourceState?.remoteWriteProtocolV279
+          || sourceState?.tournament?.remoteWriteProtocolV279
+          || 0
+        );
         const lastAt = tournamentLastAtV135(raw);
         const publishPending = status === "finished" && sourceState?.tournament?.autoClosePublishPending === true;
         const finishSyncPending = status === "finished" && sourceState?.tournament?.finishSyncPending === true;
@@ -8860,7 +9173,17 @@ function stopLiveLobbyRealtimeV50() {
           try { return String(participantInputTextV274(sourceState) || "").split(/\n+/).map(v => v.trim()).filter(Boolean).length; }
           catch (error) { return 0; }
         })();
-        return { id, state: sourceState, status, lastAt, participants, publishPending, finishSyncPending };
+        return {
+          id,
+          state: sourceState,
+          status,
+          lastAt,
+          participants,
+          publishPending,
+          finishSyncPending,
+          protocolVersion,
+          legacyReadOnly: protocolVersion < RTDB_WRITE_PROTOCOL_V279
+        };
       }
       function activeTournamentLabelV135(entry){
         const t = entry.state?.tournament || {};
@@ -8870,16 +9193,24 @@ function stopLiveLobbyRealtimeV50() {
         return `${venue} · ${name} · ${klass}`;
       }
       function activeTournamentMetaV135(entry){
+        if (entry.legacyReadOnly) return `${entry.participants || 0}명 · 구버전 기록(읽기 전용)`;
         if (entry.publishPending) return `${entry.participants || 0}명 · 종료 공개 동기화 재시도 대기`;
         if (entry.finishSyncPending) return `${entry.participants || 0}명 · 대회 종료 저장 재시도 대기`;
         const passed = entry.lastAt ? nowV135() - entry.lastAt : 0;
         const stale = entry.lastAt && passed >= AUTO_CLOSE_MS_V135;
         return `${entry.participants || 0}명 · ${activeRoundLabelV135(entry.state)} · 마지막 변경 ${entry.lastAt ? elapsedTextV135(passed) : "-"}${stale ? " · 자동종료 대상" : ""}`;
       }
+
+      function scopedTournamentQueryV279(db) {
+        const ref = db.ref("tournaments");
+        if (isAdminUser()) return ref;
+        return ref.orderByChild("venueId").equalTo(currentVenueKeyV135());
+      }
+
       async function fetchActiveTournamentEntriesV135({ closeStale = false } = {}){
         const db = initFirebase();
         if (!db || !currentAuthUser) throw new Error("로그인 상태가 필요합니다.");
-        const snap = await db.ref("tournaments").get();
+        const snap = await scopedTournamentQueryV279(db).get();
         const raw = snap.val() || {};
         const scopedEntries = Object.entries(raw).map(([id, value]) => activeTournamentEntryV135(id, value))
           .filter(entry => isSameVenueV135(entry.state) || isAdminUser())
@@ -8887,22 +9218,22 @@ function stopLiveLobbyRealtimeV50() {
         const entries = scopedEntries.filter(entry => entry.status === "running" || entry.publishPending || entry.finishSyncPending);
         if (closeStale) {
           let attemptedClose = false;
-          for (const entry of scopedEntries.filter(item => item.finishSyncPending)) {
+          for (const entry of scopedEntries.filter(item => !item.legacyReadOnly && item.finishSyncPending)) {
             attemptedClose = true;
             await repairRemoteFinishedSyncV278(entry.id, entry.state);
           }
-          for (const entry of scopedEntries.filter(item => item.publishPending)) {
+          for (const entry of scopedEntries.filter(item => !item.legacyReadOnly && item.publishPending)) {
             attemptedClose = true;
             await closeRemoteTournamentV135(entry.id, entry.state, entry.state?.tournament?.autoCloseReason || "자동 종료 공개 동기화 재시도");
           }
           for (const entry of entries) {
-            if (entry.status === "running" && entry.lastAt && nowV135() - entry.lastAt >= AUTO_CLOSE_MS_V135) {
+            if (!entry.legacyReadOnly && entry.status === "running" && entry.lastAt && nowV135() - entry.lastAt >= AUTO_CLOSE_MS_V135) {
               attemptedClose = true;
               await closeRemoteTournamentV135(entry.id, entry.state, "60분 무변화 자동 종료");
             }
           }
           if (attemptedClose) {
-            const snap2 = await db.ref("tournaments").get();
+            const snap2 = await scopedTournamentQueryV279(db).get();
             const raw2 = snap2.val() || {};
             return Object.entries(raw2).map(([id, value]) => activeTournamentEntryV135(id, value))
               .filter(entry => entry.status === "running" || entry.publishPending || entry.finishSyncPending)
@@ -8919,11 +9250,11 @@ function stopLiveLobbyRealtimeV50() {
         if (!db) return false;
         remotePendingRecoveryBusyV278 = true;
         try {
-          const snap = await db.ref("tournaments").get();
+          const snap = await scopedTournamentQueryV279(db).get();
           const records = snap.val() || {};
           const pendingEntries = Object.entries(records)
             .map(([id, value]) => activeTournamentEntryV135(id, value))
-            .filter(entry => (entry.finishSyncPending || entry.publishPending) && (isSameVenueV135(entry.state) || isAdminUser()));
+            .filter(entry => !entry.legacyReadOnly && (entry.finishSyncPending || entry.publishPending) && (isSameVenueV135(entry.state) || isAdminUser()));
           for (const entry of pendingEntries) {
             if (entry.finishSyncPending) await repairRemoteFinishedSyncV278(entry.id, entry.state);
             if (entry.publishPending) await closeRemoteTournamentV135(entry.id, entry.state, entry.state?.tournament?.autoCloseReason || "자동 종료 공개 동기화 재시도");
@@ -8945,14 +9276,13 @@ function stopLiveLobbyRealtimeV50() {
         }, delay);
       }
       function remoteRecordWithStateV278(currentRecord, nextState){
-        return currentRecord?.state
-          ? { ...currentRecord, state: nextState, updatedAt: nextState.updatedAt }
-          : { state: nextState, updatedAt: nextState.updatedAt };
+        return tournamentRecordWithStateV278(currentRecord, nextState);
       }
 
       function makeRemoteFinishedPublicLiveV278(id, privateState, reason){
         const publicState = makePublicStatePayload(privateState);
         return {
+          protocolVersion: RTDB_WRITE_PROTOCOL_V279,
           id,
           liveSignature: privateState?.tournament?.liveSignature || id,
           registryGeneration: String(privateState?.tournament?.activeRegistryGeneration || ""),
@@ -9159,7 +9489,8 @@ function stopLiveLobbyRealtimeV50() {
         let resolvedGeneration = "";
         const publicGeneration = String(publicRunningPayload?.registryGeneration || "");
         const privateGeneration = String(tournament.activeRegistryGeneration || "");
-        const sourceGenerationCompatible = (!publicGeneration && !privateGeneration)
+        const sourceGenerationCompatible = publicRunningPayload == null
+          || (!publicGeneration && !privateGeneration)
           || Boolean(publicGeneration && privateGeneration && publicGeneration === privateGeneration);
         if (!sourceGenerationCompatible) {
           return {
@@ -9189,6 +9520,7 @@ function stopLiveLobbyRealtimeV50() {
             resolvedGeneration = sourceGeneration;
           }
           return {
+            protocolVersion: RTDB_WRITE_PROTOCOL_V279,
             venueId,
             venueName: tournament.venue || tournament.venueName || "",
             tournamentId: id,
@@ -9196,6 +9528,8 @@ function stopLiveLobbyRealtimeV50() {
             tournamentName: tournament.name || "",
             raceClass: tournament.raceClass || "오픈",
             status: "running",
+            fenceToken: liveWriteFenceV278(sourceState),
+            fenceSequence: liveWriteFenceSequenceV278(sourceState),
             uid: currentAuthUser?.uid || "",
             email: currentAuthUser?.email || "",
             updatedAt: firebase.database.ServerValue.TIMESTAMP
@@ -9221,6 +9555,7 @@ function stopLiveLobbyRealtimeV50() {
           registryGeneration: resolvedGeneration || String(active?.registryGeneration || "")
         };
       }
+      try { window.__mini4wdEnsureActiveRegistryForRunningV278 = ensureActiveRegistryForRunningV278; } catch (error) {}
 
       async function retireSupersededPublicRunningV278(db, id, expectedFreshAt = 0){
         const result = await db.ref(`${PUBLIC_LIVE_PATH}/${id}`).transaction(current => {
@@ -9359,6 +9694,10 @@ function stopLiveLobbyRealtimeV50() {
       async function repairRemoteFinishedSyncV278(id, sourceState){
         const db = initFirebase();
         if (!db || !id || !sourceState) return false;
+        if (!await refreshFirebaseServerTimeOffsetV279(db)) {
+          scheduleRemoteFinishedSyncRetryV278(id);
+          return false;
+        }
         const recordRef = db.ref(`tournaments/${id}`);
         const publisherToken = `finish-publisher-${nowV135()}-${Math.random().toString(36).slice(2, 10)}`;
         let claimBlocked = false;
@@ -9369,10 +9708,12 @@ function stopLiveLobbyRealtimeV50() {
             const tournament = currentState?.tournament || {};
             if (tournament.status !== "finished" || tournament.finishSyncPending !== true) return;
             const claimedAt = Number(tournament.finishSyncPublisherAt || 0);
+            const claimNow = nowV135();
             const claimedByOther = tournament.finishSyncPublisherToken
               && tournament.finishSyncPublisherToken !== publisherToken
               && claimedAt
-              && nowV135() - claimedAt < AUTO_CLOSE_PUBLISH_LEASE_MS_V278;
+              && claimNow >= claimedAt
+              && claimNow - claimedAt < AUTO_CLOSE_PUBLISH_LEASE_MS_V278;
             if (claimedByOther) {
               claimBlocked = true;
               return;
@@ -9382,7 +9723,7 @@ function stopLiveLobbyRealtimeV50() {
               tournament: {
                 ...tournament,
                 finishSyncPublisherToken: publisherToken,
-                finishSyncPublisherAt: nowV135()
+                finishSyncPublisherAt: claimNow
               }
             };
             return remoteRecordWithStateV278(currentRecord, nextState);
@@ -9531,6 +9872,7 @@ function stopLiveLobbyRealtimeV50() {
         }
         return true;
       }
+      try { window.__mini4wdRepairRemoteFinishedSyncV278 = repairRemoteFinishedSyncV278; } catch (error) {}
 
       async function finalizeRemoteAutoClosePublishV278(recordRef, attemptId, publisherToken){
         try {
@@ -9630,7 +9972,11 @@ function stopLiveLobbyRealtimeV50() {
       async function closeRemoteTournamentV135(id, sourceState, reason){
         const db = initFirebase();
         if (!db || !id || !sourceState) return false;
-        const endedISO = new Date().toISOString();
+        if (!await refreshFirebaseServerTimeOffsetV279(db)) {
+          scheduleRemoteAutoCloseRetryV278(id, reason);
+          return false;
+        }
+        const endedISO = new Date(nowV135()).toISOString();
         let attemptId = `auto-close-${nowV135()}-${Math.random().toString(36).slice(2, 8)}`;
         const publisherToken = `publisher-${nowV135()}-${Math.random().toString(36).slice(2, 10)}`;
         const recordRef = db.ref(`tournaments/${id}`);
@@ -9645,10 +9991,12 @@ function stopLiveLobbyRealtimeV50() {
           const currentStatus = tournament.status || currentRecord?.status || "draft";
           if (currentStatus === "finished" && tournament.autoClosePublishPending === true) {
             const claimedAt = Number(tournament.autoClosePublisherAt || 0);
+            const claimNow = nowV135();
             const claimedByOther = tournament.autoClosePublisherToken
               && tournament.autoClosePublisherToken !== publisherToken
               && claimedAt
-              && nowV135() - claimedAt < AUTO_CLOSE_PUBLISH_LEASE_MS_V278;
+              && claimNow >= claimedAt
+              && claimNow - claimedAt < AUTO_CLOSE_PUBLISH_LEASE_MS_V278;
             if (claimedByOther) {
               claimBlocked = true;
               return;
@@ -9660,7 +10008,7 @@ function stopLiveLobbyRealtimeV50() {
                 ...tournament,
                 recordId: tournament.recordId || `record-${tournament.autoCloseAttemptId || attemptId}`,
                 autoClosePublisherToken: publisherToken,
-                autoClosePublisherAt: nowV135()
+                autoClosePublisherAt: claimNow
               }
             };
             return remoteRecordWithStateV278(currentRecord, claimedState);
@@ -9673,7 +10021,7 @@ function stopLiveLobbyRealtimeV50() {
             ...(nextState.tournament || {}),
             status: "finished",
             endedAtISO: nextState.tournament?.endedAtISO || endedISO,
-            endedAtDisplay: nextState.tournament?.endedAtDisplay || formatDateTimeLocal(new Date()),
+            endedAtDisplay: nextState.tournament?.endedAtDisplay || formatDateTimeLocal(new Date(nowV135())),
             liveStopped: true,
             autoClosed: true,
             autoCloseReason: reason,
@@ -9705,6 +10053,7 @@ function stopLiveLobbyRealtimeV50() {
         // private state through the public DTO allowlist before publishing it.
         const publicState = makePublicStatePayload(nextState);
         const publicLive = {
+          protocolVersion: RTDB_WRITE_PROTOCOL_V279,
           id,
           liveSignature: nextState.tournament?.liveSignature || id,
           registryGeneration: String(nextState.tournament?.activeRegistryGeneration || ""),
@@ -9877,9 +10226,21 @@ function stopLiveLobbyRealtimeV50() {
               return false;
             }
           }
+          const renewed = db && currentAuthUser
+            ? await renewExactRunningLeaseV279("auto-close-current-preflight-v279")
+            : { tournamentId: id, remoteUpdatedAt: Number(state.updatedAt || 0) };
+          const renewedRemoteUpdatedAt = Number(renewed?.remoteUpdatedAt || 0);
+          if (
+            !renewed
+            || renewed.tournamentId !== id
+            || !renewedRemoteUpdatedAt
+            || renewedRemoteUpdatedAt !== Number(state.updatedAt || 0)
+            || nowV135() - renewedRemoteUpdatedAt < AUTO_CLOSE_MS_V135
+          ) return false;
           const registryGeneration = String(state.tournament?.activeRegistryGeneration || "");
           const venueId = currentVenueId();
-          const endedISO = new Date().toISOString();
+          const endedAt = new Date(firebaseServerNowV279());
+          const endedISO = endedAt.toISOString();
           if (typeof createAutoSnapshot === "function") createAutoSnapshot("자동 종료 전 백업");
           state.tournament.finishSyncPreviousUpdatedAt = Number(state.updatedAt || 0);
           state.tournament.finishSyncPreviousEndedAtISO = state.tournament.endedAtISO || "";
@@ -9888,7 +10249,7 @@ function stopLiveLobbyRealtimeV50() {
           state.tournament.finishSyncPreviousFirebaseAutoSave = Boolean(state.settings.firebaseAutoSave);
           state.tournament.status = "finished";
           state.tournament.endedAtISO = state.tournament.endedAtISO || endedISO;
-          state.tournament.endedAtDisplay = state.tournament.endedAtDisplay || formatDateTimeLocal(new Date());
+          state.tournament.endedAtDisplay = state.tournament.endedAtDisplay || formatDateTimeLocal(endedAt);
           state.tournament.liveStopped = true;
           state.tournament.autoClosed = true;
           state.tournament.autoCloseReason = reason;
@@ -9934,6 +10295,7 @@ function stopLiveLobbyRealtimeV50() {
       function checkCurrentTournamentAutoCloseV135(){
         try {
           if (isPublicViewerRoute() || !state?.tournament || state.tournament.status !== "running") return false;
+          if (Number(state.remoteWriteProtocolV279 || state.tournament.remoteWriteProtocolV279 || 0) < RTDB_WRITE_PROTOCOL_V279) return false;
           const lastAt = Number(state.updatedAt || 0);
           if (!lastAt || nowV135() - lastAt < AUTO_CLOSE_MS_V135) return false;
           closeCurrentTournamentV135("60분 이상 상태 변화 없음");
@@ -9948,7 +10310,7 @@ function stopLiveLobbyRealtimeV50() {
           if (!state?.tournament || state.tournament.status === "running") return true;
           const currentId = getCurrentTournamentId();
           const entries = await fetchActiveTournamentEntriesV135({ closeStale: true });
-          const other = entries.find(entry => entry.id !== currentId);
+          const other = entries.find(entry => !entry.legacyReadOnly && entry.id !== currentId);
           if (!other) return true;
           activeListV135 = entries;
           activeListErrorV135 = "";
@@ -10226,7 +10588,7 @@ function stopLiveLobbyRealtimeV50() {
           nextState.updatedAt = Math.max(
             Number(nextState.updatedAt || 0),
             liveFreshTimestampV272(publicPayload)
-          ) || Date.now();
+          ) || firebaseServerNowV279();
         }
         return tournamentRecordWithStateV278(currentRecord, nextState);
       });
@@ -10383,7 +10745,7 @@ function stopLiveLobbyRealtimeV50() {
             : Number(identity.fenceSequence || 0);
           const revision = v278NextMutationRevision();
           const replayId = v278MakeReplayId(revision);
-          const mutationAt = Math.max(Date.now(), baseRemoteUpdatedAt + 1);
+          const mutationAt = Math.max(firebaseServerNowV279(), baseRemoteUpdatedAt + 1);
           state.updatedAt = mutationAt;
           state.activeRoundIndex = activeRoundIndex;
           state.tournament.localMutationRevisionV278 = revision;
@@ -10547,7 +10909,7 @@ function stopLiveLobbyRealtimeV50() {
       function v104ExportNow(){
         ensureStateDefaults();
         refreshLocalLiveWriteFenceV278(state);
-        if (!v104FinishSyncPending()) state.updatedAt = Date.now();
+        if (!v104FinishSyncPending()) state.updatedAt = firebaseServerNowV279();
         state.activeRoundIndex = activeRoundIndex;
         if (state.tournament && state.tournament.status === "running") {
           state.settings.firebaseAutoSave = true;
@@ -10881,7 +11243,7 @@ function stopLiveLobbyRealtimeV50() {
 
       function isLeaseExpiredV178(lease = cachedOperationLeaseV278()) {
         const until = leaseUntilV178(lease);
-        return !lease || !until || Date.now() > until;
+        return !lease || !until || firebaseServerNowV279() > until;
       }
 
       function isLeaseMineV178(lease = cachedOperationLeaseV278()) {
@@ -10892,7 +11254,7 @@ function stopLiveLobbyRealtimeV50() {
           && lease.pendingSessionId
           && lease.pendingSessionId !== operatorSessionIdV178()
           && Number(lease.pendingAt || 0) > 0
-          && Date.now() - Number(lease.pendingAt || 0) < OPERATION_LEASE_MS_V178
+          && firebaseServerNowV279() - Number(lease.pendingAt || 0) < OPERATION_LEASE_MS_V178
         );
         if (foreignPendingFresh) return false;
         return lease.sessionId === operatorSessionIdV178() && (!lease.uid || lease.uid === currentAuthUser?.uid);
@@ -10911,14 +11273,15 @@ function stopLiveLobbyRealtimeV50() {
 
       function leaseRemainingTextV178(lease = cachedOperationLeaseV278()) {
         if (!lease || isLeaseExpiredV178(lease)) return "만료";
-        const seconds = Math.max(0, Math.ceil((leaseUntilV178(lease) - Date.now()) / 1000));
+        const seconds = Math.max(0, Math.ceil((leaseUntilV178(lease) - firebaseServerNowV279()) / 1000));
         return `${seconds}초`;
       }
 
       function buildLeasePayloadV178(reason = "manual", context = {}, leaseMeta = {}) {
-        const now = Date.now();
+        const now = firebaseServerNowV279();
         const venueId = normalizeKey(context.venueId || operatorVenueIdV178());
         return {
+          protocolVersion: RTDB_WRITE_PROTOCOL_V279,
           scope: "venue",
           venueId,
           venueName: context.venueName || currentVenueName(),
@@ -11137,9 +11500,7 @@ function stopLiveLobbyRealtimeV50() {
             // Preserve the exact progress timestamp: this transaction fences
             // whatever running value is newest at commit time without turning
             // lease acquisition into semantic tournament activity.
-            return currentRecord?.state
-              ? { ...currentRecord, state: nextState }
-              : nextState;
+            return tournamentRecordWithStateV278(currentRecord, nextState);
           });
           const finalRecord = result?.snapshot?.val ? result.snapshot.val() : null;
           const finalState = finalRecord?.state || finalRecord;
@@ -11183,6 +11544,10 @@ function stopLiveLobbyRealtimeV50() {
       async function claimOperationLeaseV178(reason = "manual", force = false, context = {}) {
         const db = initFirebase();
         if (!db || !currentAuthUser || !canOperate()) return true;
+        if (!await refreshFirebaseServerTimeOffsetV279(db)) {
+          console.warn("v279 Firebase server clock is unavailable; lease claim stopped");
+          return false;
+        }
         const leaseVenueId = normalizeKey(context.venueId || operatorVenueIdV178());
         let targetId = operationLeaseTournamentIdV278(context);
         let effectiveContext = { ...context, tournamentId: targetId };
@@ -11244,10 +11609,15 @@ function stopLiveLobbyRealtimeV50() {
         const stripPendingClaim = current => {
           const {
             pendingClaimToken: ignoredToken,
+            pendingUid,
             pendingSessionId,
             pendingSessionLineageId,
             pendingClaimSequence,
             pendingFenceToken,
+            pendingTournamentId,
+            pendingRegistryGeneration,
+            pendingVenueId,
+            legacyMigrationV279,
             pendingReason,
             pendingAt,
             ...rest
@@ -11265,7 +11635,7 @@ function stopLiveLobbyRealtimeV50() {
               const pendingFresh = Boolean(
                 pendingOwnedByOther
                 && Number(current.pendingAt || 0)
-                && Date.now() - Number(current.pendingAt || 0) < OPERATION_LEASE_MS_V178
+                && firebaseServerNowV279() - Number(current.pendingAt || 0) < OPERATION_LEASE_MS_V178
               );
               if (pendingFresh) return;
               const sameLineageResume = Boolean(
@@ -11319,20 +11689,45 @@ function stopLiveLobbyRealtimeV50() {
               const fenceToken = `lease-${claimSequence}-${operatorSessionIdV178()}`;
               return {
                 ...(current || {
+                  protocolVersion: RTDB_WRITE_PROTOCOL_V279,
                   scope: "venue",
                   venueId: leaseVenueId,
+                  uid: currentAuthUser?.uid || "",
                   sessionId: "",
                   leaseUntil: 0,
-                  claimSequence: currentSequence
+                  claimSequence: currentSequence,
+                  fenceSequenceHighWater: currentSequence,
+                  fenceToken: "",
+                  tournamentId: "",
+                  registryGeneration: "",
+                  status: "reserving",
+                  updatedAt: firebase.database.ServerValue.TIMESTAMP
                 }),
+                protocolVersion: RTDB_WRITE_PROTOCOL_V279,
+                scope: "venue",
+                venueId: leaseVenueId,
+                uid: String(current?.uid || currentAuthUser?.uid || ""),
+                sessionId: String(current?.sessionId || ""),
+                claimSequence: Math.max(0, Number(current?.claimSequence || 0) || 0),
+                fenceToken: String(current?.fenceToken || ""),
+                tournamentId: String(current?.tournamentId || ""),
+                registryGeneration: String(current?.registryGeneration || ""),
+                leaseUntil: Math.max(0, Number(current?.leaseUntil || 0) || 0),
+                status: String(current?.status || "reserving"),
+                legacyMigrationV279: Boolean(current && Number(current.protocolVersion || 0) < RTDB_WRITE_PROTOCOL_V279),
                 pendingClaimToken,
+                pendingUid: currentAuthUser?.uid || "",
                 pendingSessionId: operatorSessionIdV178(),
                 pendingSessionLineageId: operatorSessionLineageIdV278(),
                 pendingClaimSequence: claimSequence,
                 fenceSequenceHighWater: claimSequence,
                 pendingFenceToken: fenceToken,
+                pendingTournamentId: requestedTargetId,
+                pendingRegistryGeneration: String(effectiveContext.registryGeneration || ""),
+                pendingVenueId: leaseVenueId,
                 pendingReason: reason,
-                pendingAt: Date.now()
+                pendingAt: firebase.database.ServerValue.TIMESTAMP,
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
               };
             });
             const reservedLease = cacheOperationLeaseV278(leaseVenueId, reservation.snapshot?.val() || null);
@@ -11374,7 +11769,7 @@ function stopLiveLobbyRealtimeV50() {
                 const reservedTargetStillBusy = Boolean(
                   reservedTargetId
                   && reservedLease?.sessionId
-                  && Number(reservedLease.leaseUntil || 0) > Date.now()
+                  && Number(reservedLease.leaseUntil || 0) > firebaseServerNowV279()
                   && ["running", "starting"].includes(String(reservedLease.status || ""))
                 );
                 if (active?.status === "running" && activeId) {
@@ -11517,6 +11912,28 @@ function stopLiveLobbyRealtimeV50() {
               && String(confirmedLease?.fenceToken || "") === String(claimedLease?.fenceToken || "")
             );
             if (!ownershipConfirmed) return false;
+            if (targetId && fenceResult.state && liveFreshStatusV272(fenceResult.state) === "running") {
+              const ensureActiveRegistry = window.__mini4wdEnsureActiveRegistryForRunningV278;
+              if (typeof ensureActiveRegistry !== "function") {
+                await releaseOperationLeaseV178(false, leaseVenueId, {
+                  tournamentId: targetId,
+                  registryGeneration: String(effectiveContext.registryGeneration || "")
+                });
+                return false;
+              }
+              const activeFenceSync = await ensureActiveRegistry(
+                db,
+                targetId,
+                fenceResult.state
+              );
+              if (!activeFenceSync.committed) {
+                await releaseOperationLeaseV178(false, leaseVenueId, {
+                  tournamentId: targetId,
+                  registryGeneration: String(effectiveContext.registryGeneration || "")
+                });
+                return false;
+              }
+            }
             if (!directRenewal) v178LineageResumeAvailable = false;
 
             if (
@@ -11602,20 +12019,38 @@ function stopLiveLobbyRealtimeV50() {
             ) return;
             const {
               pendingClaimToken,
+              pendingUid,
               pendingSessionId,
               pendingSessionLineageId,
               pendingClaimSequence,
               pendingFenceToken,
+              pendingTournamentId,
+              pendingRegistryGeneration,
+              pendingVenueId,
               pendingReason,
               pendingAt,
               ...releasedLease
             } = current;
             return {
               ...releasedLease,
+              protocolVersion: RTDB_WRITE_PROTOCOL_V279,
+              scope: "venue",
+              venueId: leaseVenueId,
+              uid: String(current.uid || ""),
               sessionId: "",
               sessionLineageId: "",
+              claimSequence: Math.max(0, Number(current.claimSequence || 0) || 0),
+              fenceSequenceHighWater: Math.max(
+                0,
+                Number(current.claimSequence || 0) || 0,
+                Number(current.fenceSequenceHighWater || 0) || 0
+              ),
+              fenceToken: String(current.fenceToken || ""),
+              tournamentId: String(current.tournamentId || ""),
+              registryGeneration: String(current.registryGeneration || ""),
               leaseUntil: 0,
               status: "released",
+              legacyCleanupV279: Number(current.protocolVersion || 0) < RTDB_WRITE_PROTOCOL_V279,
               reason: force ? "force-release" : "release",
               releasedAt: Date.now(),
               updatedAt: firebase.database.ServerValue.TIMESTAMP
@@ -11637,6 +12072,7 @@ function stopLiveLobbyRealtimeV50() {
         const now = Date.now();
         const path = operatorSessionPathV178();
         const payload = {
+          protocolVersion: RTDB_WRITE_PROTOCOL_V279,
           sessionId: operatorSessionIdV178(),
           uid: currentAuthUser.uid,
           email: currentAuthUser.email || "",

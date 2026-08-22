@@ -25,13 +25,13 @@ before acting.
 
 ## Current verified state
 - Verified 2026-08-22 KST: `main` baseline/remote HEAD before the current release is `a5249174d19246d478827803d98f9fd3bd8aa009` (`Clarify app and context commit state`). Always resolve the exact current HEAD from Git.
-- Verified 2026-08-22 KST: v278 work is on local branch `codex/codebase-refactor-v277`; resolve commit/push/Pages state live before relying on this note.
-- Local reviewed build is `278`, label `BUILD v278 REMOTE AUTO-CLOSE SAFETY`.
-- Local reviewed assets: `config: 156`, `build/app/css/operatorMobileCss: 278`, `og: 51`.
+- Verified 2026-08-22 KST: v279 release work is on local branch `codex/codebase-refactor-v277`; commit, Firebase deploy, `main` push, and Pages verification are pending and must be resolved live before relying on this note.
+- Local reviewed build is `279`, label `BUILD v279 SERVER-ENFORCED LIVE LEASE`.
+- Local reviewed assets: `config: 156`, `build/app: 279`, `css/operatorMobileCss: 278`, `og: 51`.
 - Verified 2026-08-22 KST: app Pages run `29318678193` and documentation-only Pages run `32496497174` completed successfully; public index and build asset both return HTTP 200 and identify v276.
 - Verified 2026-08-22 KST: pre-existing untracked items are `.codex-remote-attachments/`, `DESIGN_OUTPUT.md`, `FIREBASE_REPORT.md`, and `QA_REPORT.md`; leave them untouched unless requested. `package-lock.json` is an intentional project artifact. `node_modules/` is generated QA output and must not be committed.
-- Verified 2026-08-22 KST: local v278 `npm.cmd run qa:all`, `git diff --check`, and changed JS/CJS syntax checks pass.
-- Verified 2026-08-22 KST: v278 production rollout is gated. The unchanged broad RTDB rules allow an already-open v276 tab to remove v278 generation/fence fields during a mixed-version rollout. Do not push v278 to `main`/Pages without explicit approval for either a staged rules migration or a maintenance cutover (zero active/pending tournaments, all operator tabs closed, lease expiry wait, deploy, hard reload/build verification).
+- Verified 2026-08-22 KST: local v279 `npm.cmd run qa:release` passes, including RTDB rules `21/21`, operator browser `3/3`, surface `37/37`, admin `3/3`, result/match/audit/static suites, changed JS/CJS syntax, `git diff --check`, and production dependency audit with zero vulnerabilities.
+- Verified 2026-08-22 KST: v279 production rollout is explicitly approved. A recoverable backup of the six scoped Firebase nodes exists at `C:\Users\rlaal\AppData\Local\Temp\mtm-v279-backup-20260822-121402`. The live preflight found zero v279 active/pending writes, one approximately 60-day-old protocol-0 active pointer whose private record is terminal, and only expired leases with no pending claims. Reverify and remove only that exact stale pointer, deploy RTDB rules first, then push the v279 app to `main` without widening the cleanup scope.
 - Active source-of-truth files: `src/app.js`, `src/core/build.js`, `src/styles/app.css`, `src/styles/operator-mobile.css`, `tools/verify-static.js`, and the QA scripts under `tools/`.
 - `TASK_QUEUE.md` no longer defines split-chat roles. `IMPLEMENTATION_REPORT.md` is a compact deployed-app summary. `UI_REDESIGN_BRIEF.md` contains current UI invariants.
 
@@ -58,6 +58,10 @@ before acting.
 - Public LIVE payloads must remain sanitized and must never embed the full private tournament state.
 
 ## Recent durable changes
+- 2026-08-22 local v279: RTDB writes are server-enforced with strict protocol/envelope, venue, generation, fence, sequence, lease, active-registry, public/private history linkage, and legacy read-only constraints. The emulator security matrix covers 21 allow/deny contracts including root/child/multipath bypasses and sparse legacy lease migration.
+- 2026-08-22 local v279: Firebase server-time offset drives lease and semantic timestamps, survives client-clock rollback, and prevents future publisher timestamps from blocking finish/auto-close recovery. Manual finish, force-end, and current-tab auto-close renew and verify the exact running lease immediately before terminal mutation.
+- 2026-08-22 local v279: a failed first private terminal write can reclaim the exact unchanged running lease/fence and retry; identity or freshness divergence restores authoritative running state instead of leaving an infinite pending finish. Strict result history uses the exact source LIVE ID, preventing same-minute cross-venue key collisions.
+- 2026-08-22 local v279: pre-start cleanup recovers an eligible rootless stale active pointer only with exact expired-lease/high-water proof. Reload mutation replay rebuilds the strict record envelope and all protocol markers.
 - 2026-08-22 local v278: tournament start is single-flight and exact-owner guarded from draft fingerprint through lease reservation, fence allocation, registry activation, and first private/public publication. Running semantic mutations use a reload WAL with exact tournament/generation/venue/fence bases; viewer routes never restore or publish operator state.
 - 2026-08-22 local v278: finish, 60-minute auto-close, undo, snapshot load, remote recovery, takeover, and current-tournament rollover now use exact tournament/generation/venue cleanup. Divergent terminal attempts converge to the authoritative remote terminal without false history, and successful current-tab auto-close releases both the active registry and matching operation lease.
 - 2026-08-22 local v278: optional blank keys remain blank instead of normalizing to `default`, preventing non-default admin venues and legacy blank LIVE IDs from targeting the default venue. Regression QA covers blank-key fallback, stale cleanup races, local terminal conflict retirement/retry, and exact current auto-close lease release.
@@ -84,12 +88,14 @@ before acting.
 - No-finalist is a valid terminal outcome for a round; never require at least one finalist unconditionally.
 - LIVE writes must go through the sanitized payload and freshness guard so a delayed write cannot move viewers back a round.
 - Public viewer routes must not be overwritten by authentication callbacks.
-- Verified 2026-08-22: checked-in RTDB rules grant authenticated users broad tournament/private/log/lock access and allow self-writable profile authorization fields. Treat this as a P0 security migration; change rules only with explicit authorization and emulator/migration coverage to avoid locking out valid operators.
+- The v279 RTDB rules deliberately trust an approved operator inside the same venue. Dynamic result subtrees cannot be fully frozen during a terminal publisher-marker update with dependable RTDB deep equality; a server-side writer or trusted content hash is the follow-up hardening path.
+- Approved legacy venue profiles must retain an explicit `venueId`; the v279 exact venue check intentionally refuses an ambiguous missing-field fallback. The 2026-08-22 live preflight found all seven approved venue profiles populated.
 - Historical reports under untracked `DESIGN_OUTPUT.md`, `QA_REPORT.md`, and `FIREBASE_REPORT.md` are not current source of truth.
 - GitHub Pages currently emits a non-blocking Node 20 deprecation annotation.
 
 ## Next cleanup targets
-- Harden Firebase RTDB rules and profile authorization with an explicitly approved migration and emulator tests.
+- Move terminal result publication to a server-side writer or add a trusted content hash to narrow the same-venue trusted-operator boundary.
+- Backfill and continuously validate explicit `venueId` on any newly discovered legacy approved profiles.
 - Continue enforcing the operator lease on every remaining write path and dispose route/auth listeners cleanly.
 - Split `src/app.js` only along stable responsibilities when touched; avoid a broad rewrite without dedicated regression coverage.
 - Consolidate versioned CSS layers into component-owned rules one surface at a time, with measured browser QA before removal.

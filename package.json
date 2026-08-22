@@ -10,11 +10,16 @@
     "qa:admin": "node tools/qa-admin-flow.cjs",
     "qa:operator": "node tools/qa-operator-flow.cjs",
     "qa:surface": "node tools/qa-surface-check.cjs",
+    "qa:rules": "firebase emulators:exec --only database --project demo-mtm-rules \"node tools/qa-database-rules.mjs\"",
     "qa:all": "npm run verify && npm run qa:audit && npm run qa:result && npm run qa:match && npm run qa:admin && npm run qa:operator && npm run qa:surface",
+    "qa:release": "npm run qa:rules && npm run qa:all",
     "db:audit": "node tools/database-maintenance.cjs audit",
     "db:plan": "node tools/database-maintenance.cjs plan"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "5.0.2",
+    "firebase": "12.18.0",
+    "firebase-tools": "15.20.0",
     "playwright": "1.62.1"
   }
 }
