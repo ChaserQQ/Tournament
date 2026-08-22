@@ -24,14 +24,14 @@ before acting.
 - When a surface needs substantial UI repair, consolidate its DOM/base CSS and remove superseded rules. Do not keep appending late override layers.
 
 ## Current verified state
-- Verified 2026-08-22 KST: `main` baseline/remote HEAD before the current release is `a5249174d19246d478827803d98f9fd3bd8aa009` (`Clarify app and context commit state`). Always resolve the exact current HEAD from Git.
-- Verified 2026-08-22 KST: v279 release work is on local branch `codex/codebase-refactor-v277`; commit, Firebase deploy, `main` push, and Pages verification are pending and must be resolved live before relying on this note.
+- Verified 2026-08-22 KST: the v279 app release commit is `c92dc35ba2abef43c3dbe50859c3937f01dac5dd` (`Enforce Firebase live write protocol v279`) on `main`; always resolve the exact current HEAD from Git because a later documentation-only commit may follow it.
+- Verified 2026-08-22 KST: v279 is deployed. Firebase RTDB rules were released before the app, then `main` was fast-forwarded from `a5249174d19246d478827803d98f9fd3bd8aa009` to the v279 app commit.
 - Local reviewed build is `279`, label `BUILD v279 SERVER-ENFORCED LIVE LEASE`.
 - Local reviewed assets: `config: 156`, `build/app: 279`, `css/operatorMobileCss: 278`, `og: 51`.
-- Verified 2026-08-22 KST: app Pages run `29318678193` and documentation-only Pages run `32496497174` completed successfully; public index and build asset both return HTTP 200 and identify v276.
+- Verified 2026-08-22 KST: Pages run `32550653884` for app commit `c92dc35` completed successfully. The public index, `src/core/build.js?v=279`, and `src/app.js?v=279` return HTTP 200 and identify v279 with protocol marker 279.
 - Verified 2026-08-22 KST: pre-existing untracked items are `.codex-remote-attachments/`, `DESIGN_OUTPUT.md`, `FIREBASE_REPORT.md`, and `QA_REPORT.md`; leave them untouched unless requested. `package-lock.json` is an intentional project artifact. `node_modules/` is generated QA output and must not be committed.
 - Verified 2026-08-22 KST: local v279 `npm.cmd run qa:release` passes, including RTDB rules `21/21`, operator browser `3/3`, surface `37/37`, admin `3/3`, result/match/audit/static suites, changed JS/CJS syntax, `git diff --check`, and production dependency audit with zero vulnerabilities.
-- Verified 2026-08-22 KST: v279 production rollout is explicitly approved. A recoverable backup of the six scoped Firebase nodes exists at `C:\Users\rlaal\AppData\Local\Temp\mtm-v279-backup-20260822-121402`. The live preflight found zero v279 active/pending writes, one approximately 60-day-old protocol-0 active pointer whose private record is terminal, and only expired leases with no pending claims. Reverify and remove only that exact stale pointer, deploy RTDB rules first, then push the v279 app to `main` without widening the cleanup scope.
+- Verified 2026-08-22 KST: v279 rollout completed from a recoverable six-node backup at `C:\Users\rlaal\AppData\Local\Temp\mtm-v279-backup-20260822-121402`. After exact revalidation, only `/activeTournaments/test` was removed; its private terminal record, public LIVE/history, and all other data were preserved. Post-deploy state is active pointers `0`, pending claims `0`, unexpired leases `0`, approved venue profiles `7`, and missing approved-profile `venueId` fields `0`.
 - Active source-of-truth files: `src/app.js`, `src/core/build.js`, `src/styles/app.css`, `src/styles/operator-mobile.css`, `tools/verify-static.js`, and the QA scripts under `tools/`.
 - `TASK_QUEUE.md` no longer defines split-chat roles. `IMPLEMENTATION_REPORT.md` is a compact deployed-app summary. `UI_REDESIGN_BRIEF.md` contains current UI invariants.
 
