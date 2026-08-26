@@ -5612,6 +5612,19 @@ async function runViewport(browser, meta, viewport) {
         dockTop: Math.round(document.querySelector(".operator-mobile-dock-v233")?.getBoundingClientRect().top || 0)
       };
     });
+    await page.evaluate(() => {
+      const round = state.qualifierRounds[activeRoundIndex];
+      const stage = round?.stages?.[round.stages.length - 1];
+      if (stage?.type !== "points") return;
+      stage.groups.forEach(group => {
+        group.points = group.points || {};
+        (group.slots || []).filter(player => player && !player.isEmptyLane && !isPlayerWithdrawn(player.id)).forEach(player => {
+          group.points[player.id] = 0;
+        });
+      });
+      clearOperatorUndoSnapshotV266();
+      renderOperator();
+    });
     const beforeNext = await undoSnapshot();
     await page.locator(".operator-mobile-dock-v233 > button").first().click();
     await page.waitForTimeout(350);
@@ -5621,6 +5634,16 @@ async function runViewport(browser, meta, viewport) {
       await page.waitForTimeout(350);
     }
     const afterNextUndo = await undoSnapshot();
+    await page.evaluate(() => {
+      const round = state.qualifierRounds[activeRoundIndex];
+      const stage = round?.stages?.[round.stages.length - 1];
+      const group = stage?.groups?.[0];
+      const player = (group?.slots || []).find(item => item && !item.isEmptyLane && !isPlayerWithdrawn(item.id));
+      if (stage?.type === "points" && group && player) delete group.points[player.id];
+      clearOperatorUndoSnapshotV266();
+      renderOperator();
+    });
+    const beforeScore = await undoSnapshot();
     const firstPointButton = page.locator(".point-buttons").first().locator("button").first();
     await firstPointButton.click();
     await page.waitForTimeout(250);
@@ -5630,7 +5653,7 @@ async function runViewport(browser, meta, viewport) {
       await page.waitForTimeout(350);
     }
     const afterScoreUndo = await undoSnapshot();
-    operatorMobileUndoV266 = { skipped: false, beforeNext, afterNext, afterNextUndo, afterScore, afterScoreUndo };
+    operatorMobileUndoV266 = { skipped: false, beforeNext, afterNext, afterNextUndo, beforeScore, afterScore, afterScoreUndo };
   }
   logs.push({ step: "operator-mobile-undo-v266", info: { operatorMobileUndoV266 } });
   if (!operatorMobileUndoV266.skipped) {
@@ -5640,10 +5663,10 @@ async function runViewport(browser, meta, viewport) {
     if (operatorMobileUndoV266.afterNextUndo.stageCount !== operatorMobileUndoV266.beforeNext.stageCount || operatorMobileUndoV266.afterNextUndo.undoExists) {
       failures.push(`mobile undo did not restore next-game action ${JSON.stringify(operatorMobileUndoV266)}`);
     }
-    if (operatorMobileUndoV266.afterScore.pointSelections <= operatorMobileUndoV266.afterNextUndo.pointSelections || !operatorMobileUndoV266.afterScore.undoVisible) {
+    if (operatorMobileUndoV266.afterScore.pointSelections <= operatorMobileUndoV266.beforeScore.pointSelections || !operatorMobileUndoV266.afterScore.undoVisible) {
       failures.push(`mobile undo did not appear after score action ${JSON.stringify(operatorMobileUndoV266)}`);
     }
-    if (operatorMobileUndoV266.afterScoreUndo.pointSelections !== operatorMobileUndoV266.afterNextUndo.pointSelections || operatorMobileUndoV266.afterScoreUndo.undoExists) {
+    if (operatorMobileUndoV266.afterScoreUndo.pointSelections !== operatorMobileUndoV266.beforeScore.pointSelections || operatorMobileUndoV266.afterScoreUndo.undoExists) {
       failures.push(`mobile undo did not restore score action ${JSON.stringify(operatorMobileUndoV266)}`);
     }
   }

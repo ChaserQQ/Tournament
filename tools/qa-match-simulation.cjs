@@ -261,6 +261,7 @@ async function runViewport(browser, viewport) {
   const result = await page.evaluate(async () => {
     const summaries = [];
     const alerts = [];
+    const algorithmChecks = {};
     const originalAlert = window.alert;
     const originalConfirm = window.confirm;
     window.alert = message => alerts.push(String(message || ""));
@@ -282,13 +283,16 @@ async function runViewport(browser, viewport) {
       const values = Object.values(window.__qaFirebaseStore?.publicHistory || {});
       return values[values.length - 1] || null;
     };
-    const reset = async (mode, laneCount, playerCount) => {
+    const reset = async (mode, laneCount, playerCount, settings = {}) => {
       state = makeInitialState(laneCount);
       activeRoundIndex = 0;
       state.settings.matchMode = mode;
       state.settings.laneCount = laneCount;
-      state.settings.excludeFinalists = mode !== "crow";
-      state.settings.forcedGroupCount = "";
+      state.settings.excludeFinalists = settings.excludeFinalists ?? mode !== "crow";
+      state.settings.forcedGroupCount = settings.forcedGroupCount ?? "";
+      state.settings.nextGroupSize = settings.nextGroupSize ?? "";
+      state.settings.avoidance = settings.avoidance ?? state.settings.avoidance;
+      state.settings.sameLanePrevention = settings.sameLanePrevention ?? state.settings.sameLanePrevention;
       state.tournament.name = `QA ${mode} full match`;
       state.tournament.venue = "QA Venue";
       state.tournament.raceClass = "QA";
@@ -409,6 +413,79 @@ async function runViewport(browser, viewport) {
     try {
       const modes = ["basic", "points3", "points5Tree", "revival", "crow"];
 
+      state = makeInitialState(5);
+      state.settings.laneCount = 5;
+      state.settings.forcedGroupCount = "4";
+      state.inputText = Array.from({ length: 5 }, (_, index) => `QAforced${index + 1}/T${index + 1}`).join("\n");
+      renderOperator();
+      const forcedValidationInput = document.querySelector(".forced-group-count-input-v265");
+      if (forcedValidationInput) forcedValidationInput.value = "4";
+      state.settings.forcedGroupCount = "4";
+      const forcedGroupError = validateStart(parseParticipants(), "예선");
+      assert(/최대 2조/.test(forcedGroupError), `forced grouping allowed singleton groups: ${forcedGroupError}`);
+
+      const planningCases = [];
+      for (const laneCount of [3, 5]) {
+        for (let targetSize = 2; targetSize <= laneCount; targetSize += 1) {
+          state = makeInitialState(laneCount);
+          state.settings.laneCount = laneCount;
+          state.settings.nextGroupSize = targetSize;
+          state.settings.forcedGroupCount = "";
+          const forcedInput = document.querySelector(".forced-group-count-input-v265");
+          if (forcedInput) forcedInput.value = "";
+          for (let playerCount = 2; playerCount <= 30; playerCount += 1) {
+            const players = Array.from({ length: playerCount }, (_, index) => ({ id: `plan-${laneCount}-${targetSize}-${index}`, name: `P${index}`, team: "" }));
+            const plan = makeStagePlan(playerCount, laneCount);
+            const stage = generateStage(players, 1, 1, plan[0]);
+            const actualGroups = stage.groups.filter(group => actualSlots(group).length > 0);
+            const isFinalName = plan[0] === "라운드 결승";
+            assert(isFinalName === (actualGroups.length === 1), `stage plan/group mismatch lanes=${laneCount} target=${targetSize} players=${playerCount} plan=${plan[0]} groups=${actualGroups.length}`);
+            assert(actualGroups.every(group => actualSlots(group).length >= 2 && actualSlots(group).length <= laneCount), `invalid group size lanes=${laneCount} target=${targetSize} players=${playerCount}`);
+            planningCases.push(`${laneCount}/${targetSize}/${playerCount}`);
+          }
+        }
+      }
+
+      state = makeInitialState(5);
+      activeRoundIndex = 0;
+      state.settings.matchMode = "basic";
+      state.settings.laneCount = 5;
+      state.settings.nextGroupSize = 2;
+      state.settings.forcedGroupCount = "";
+      state.inputText = Array.from({ length: 4 }, (_, index) => `QAboundary${index + 1}/T${index + 1}`).join("\n");
+      state.qualifierRounds = makeQualifierRounds(5, "basic");
+      const boundaryRound = state.qualifierRounds[0];
+      boundaryRound.stagePlan = makeStagePlan(4, 5);
+      boundaryRound.stages = [generateStage(parseParticipants(), boundaryRound.index, 1, boundaryRound.stagePlan[0])];
+      renderOperator();
+      const boundaryStage = lastStage(0);
+      assert(boundaryStage.name === "준결승", `4-player 2-person grouping was mislabeled ${boundaryStage.name}`);
+      assert(boundaryStage.groups.length === 2, `4-player 2-person grouping created ${boundaryStage.groups.length} groups`);
+      const firstBoundaryGroup = boundaryStage.groups[0];
+      const secondBoundaryGroup = boundaryStage.groups[1];
+      const firstBoundaryPlayers = actualSlots(firstBoundaryGroup);
+      const secondBoundaryPlayers = actualSlots(secondBoundaryGroup);
+      firstBoundaryPlayers.forEach(player => toggleAdvance(0, 0, firstBoundaryGroup.id, player.id));
+      const boundaryStageCount = boundaryRound.stages.length;
+      createNextStage(0);
+      await wait(120);
+      const incompleteMessage = document.getElementById("error")?.textContent || "";
+      assert(boundaryRound.stages.length === boundaryStageCount, "incomplete groups advanced and dropped racers");
+      assert(incompleteMessage.includes(secondBoundaryGroup.name), `missing-group error did not identify ${secondBoundaryGroup.name}: ${incompleteMessage}`);
+      toggleAdvance(0, 0, firstBoundaryGroup.id, firstBoundaryPlayers[1].id);
+      toggleAdvance(0, 0, secondBoundaryGroup.id, secondBoundaryPlayers[0].id);
+      const expectedBoundaryIds = new Set([String(firstBoundaryPlayers[0].id), String(secondBoundaryPlayers[0].id)]);
+      createNextStage(0);
+      await wait(160);
+      const boundaryFinal = lastStage(0);
+      const actualBoundaryIds = new Set(actualSlots(boundaryFinal.groups[0]).map(player => String(player.id)));
+      assert(boundaryFinal.name === "라운드 결승" && boundaryFinal.groups.length === 1, `boundary finalists were not consolidated into one final: ${boundaryFinal.name}/${boundaryFinal.groups.length}`);
+      assert(expectedBoundaryIds.size === actualBoundaryIds.size && [...expectedBoundaryIds].every(id => actualBoundaryIds.has(id)), "selected qualifiers changed while creating the next bracket");
+      algorithmChecks.planningCases = planningCases.length;
+      algorithmChecks.incompleteGroupBlocked = true;
+      algorithmChecks.customGroupFinal = `${boundaryStage.groups.length}->${boundaryFinal.groups.length}`;
+      algorithmChecks.forcedSingletonBlocked = true;
+
       await reset("basic", 3, 9);
       let historyBefore = historyCount();
       for (const index of [0, 1, 2]) await runNormalRound(index);
@@ -419,6 +496,19 @@ async function runViewport(browser, viewport) {
       historyBefore = historyCount();
       startQualifierRound(0);
       await ensureLease("qa-points3");
+      {
+        const incompletePointStage = lastStage(0);
+        const incompletePointGroup = incompletePointStage.groups[0];
+        const incompletePointPlayer = actualSlots(incompletePointGroup)[0];
+        setPointScore(0, 0, incompletePointGroup.id, incompletePointPlayer.id, 1);
+        const stageCountBeforeIncompleteScore = state.qualifierRounds[0].stages.length;
+        createNextStage(0);
+        await wait(120);
+        const pointError = document.getElementById("error")?.textContent || "";
+        assert(state.qualifierRounds[0].stages.length === stageCountBeforeIncompleteScore, "incomplete point scores advanced to the next heat");
+        assert(pointError.includes(incompletePointGroup.name), `incomplete point-score error did not identify ${incompletePointGroup.name}: ${pointError}`);
+        algorithmChecks.incompletePointScoresBlocked = true;
+      }
       const points3RefreshLock = (() => {
         const beforeText = state.inputText;
         const beforeNames = parseParticipants().map(player => player.name).join("|");
@@ -448,12 +538,23 @@ async function runViewport(browser, viewport) {
       for (let stageIndex = 0; stageIndex < 3; stageIndex += 1) {
         const stage = lastStage(0);
         assert(stage?.type === "points", `points3 expected points stage ${stageIndex}`);
-        stage.groups.forEach(group => actualSlots(group).forEach((player, index) => setPointScore(0, state.qualifierRounds[0].stages.indexOf(stage), group.id, player.id, 3 - (index % 3))));
+        stage.groups.forEach(group => actualSlots(group).forEach(player => setPointScore(0, state.qualifierRounds[0].stages.indexOf(stage), group.id, player.id, 1)));
         await wait(120);
         createNextStage(0);
         await wait(180);
       }
-      assert(isPointFinalDecisionStage(lastStage(0)), "points3 final decision stage missing");
+      assert(isPointFinalDecisionStage(lastStage(0)), "points3 tied-cutoff decision stage missing");
+      assert(lastStage(0).groups.length > 1, "points3 tied cutoff did not create the expected multi-group playoff");
+      let pointPlayoffGuard = 0;
+      while (!isConfirmableRoundFinalStageV228(lastStage(0)) && pointPlayoffGuard++ < 8) {
+        const previousStageCount = state.qualifierRounds[0].stages.length;
+        await selectFirstInEachGroup(0);
+        createNextStage(0);
+        await wait(180);
+        assert(state.qualifierRounds[0].stages.length === previousStageCount + 1, "points3 tied-cutoff playoff did not advance");
+      }
+      assert(isConfirmableRoundFinalStageV228(lastStage(0)), "points3 tied-cutoff playoff did not converge to one final group");
+      algorithmChecks.pointCutoffPlayoffDepth = pointPlayoffGuard;
       await selectFirstNInFinalStage(0, 1);
       confirmRoundFinalist(0);
       await wait(200);
@@ -583,12 +684,30 @@ async function runViewport(browser, viewport) {
       createFinalRace();
       await wait(180);
       assert(state.finalRace?.type === "crowSemi", "crow semi missing");
-      for (const group of getFinalGroups()) {
-        const player = actualSlots(group)[0];
-        assert(player, `crow semi group has no player: ${group.name || group.id}`);
-        toggleFinalWinner(player.id, group.id);
-        await wait(80);
-      }
+      const crowSemiGroups = getFinalGroups();
+      const crowSemiFirstPlayers = crowSemiGroups.map(group => actualSlots(group)[0]);
+      assert(crowSemiGroups.length === 3 && crowSemiFirstPlayers.every(Boolean), "crow semi groups are incomplete");
+      const crowSemiExtraPlayer = actualSlots(crowSemiGroups[0])[1];
+      assert(crowSemiExtraPlayer, "crow semi first group is missing its second racer");
+      toggleFinalWinner(crowSemiFirstPlayers[0].id, crowSemiGroups[0].id);
+      toggleFinalWinner(crowSemiExtraPlayer.id, crowSemiGroups[0].id);
+      toggleFinalWinner(crowSemiFirstPlayers[1].id, crowSemiGroups[1].id);
+      await wait(120);
+      createCrowFinalFromSemi();
+      await wait(120);
+      assert(state.finalRace?.type === "crowSemi", "crow semi accepted three qualifiers without one winner per group");
+      const crowDistributionError = document.getElementById("error")?.textContent || "";
+      assert(crowDistributionError.includes("각 조"), `crow semi distribution error was unclear: ${crowDistributionError}`);
+      toggleFinalWinner(crowSemiExtraPlayer.id, crowSemiGroups[0].id);
+      toggleFinalWinner(crowSemiFirstPlayers[2].id, crowSemiGroups[2].id);
+      await wait(120);
+      const crowLaneHistory = collectLaneHistory();
+      crowSemiGroups.forEach((group, index) => {
+        const player = crowSemiFirstPlayers[index];
+        assert(crowLaneHistory.get(`${player.id}|${player.lane}`) >= 1, `crow semi lane history missing ${player.name}/${player.lane}`);
+      });
+      algorithmChecks.crowPerGroupWinnerBlocked = true;
+      algorithmChecks.crowSemiLaneHistory = true;
       await wait(160);
       const crowSemiSelectedCount = getFinalGroups()
         .flatMap(group => actualSlots(group).filter(player => (group.advanceIds || []).includes(player.id)))
@@ -622,7 +741,7 @@ async function runViewport(browser, viewport) {
         });
       }
 
-      return { ok: true, modes, summaries, alerts };
+      return { ok: true, modes, summaries, alerts, algorithmChecks };
     } finally {
       window.alert = originalAlert;
       window.confirm = originalConfirm;

@@ -49,14 +49,14 @@
   ];
 
   const meta = Object.freeze({
-    version: 279,
-    label: "BUILD v279 SERVER-ENFORCED LIVE LEASE",
-    title: "MINI4WD TOURNAMENT MAKER - v279 SERVER-ENFORCED LIVE LEASE",
-    rulesChanged: true,
+    version: 280,
+    label: "BUILD v280 BRACKET ADVANCEMENT GUARDS",
+    title: "MINI4WD TOURNAMENT MAKER - v280 BRACKET ADVANCEMENT GUARDS",
+    rulesChanged: false,
     assets: Object.freeze({
       config: 156,
-      build: 279,
-      app: 279,
+      build: 280,
+      app: 280,
       css: 278,
       operatorMobileCss: 278,
       og: 51
