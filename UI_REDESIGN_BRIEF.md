@@ -1,64 +1,95 @@
-# UI Redesign Brief
+# UI Design Contract
 
-This is the current UI direction for MINI4WD Tournament Maker. Use live code and
-`AGENT_MEMORY.md` for implementation facts.
+이 문서는 MINI4WD Tournament Maker의 버전과 무관한 UI 설계 계약이다. 구현 사실과 최신 빌드는 현재 코드와 AGENT_MEMORY.md에서 확인한다.
 
-## Current baseline
-- Verified baseline: v276, `BUILD v276 FIRST STAGE FORCED GROUP COUNT`.
-- The old v222 starting point and split-chat v224 instructions are retired.
-- The rejected v223 CSS-only luxury redesign must not be revived.
+## Product character
 
-## Product direction
-- Build a quiet, fast tournament operations tool, not a landing page.
-- Put the current decision and next action first.
-- Remove repeated explanations, duplicate controls, and duplicate status panels.
-- Use white/gray surfaces, one accent color, and a distinct danger treatment.
-- Use cards only for repeated match/player units or genuinely framed tools. Do not nest cards.
-- Preserve tournament logic and Firebase behavior unless the task explicitly targets them.
+- 빠르고 조용한 대회 운영 도구를 만든다. 홍보용 랜딩 페이지처럼 꾸미지 않는다.
+- 사용자가 지금 판단해야 할 상태와 다음 행동을 가장 먼저 보여 준다.
+- 같은 설명, 상태, 버튼을 여러 패널에 반복하지 않는다.
+- 정보 밀도는 유지하되 장식 때문에 읽기 순서가 흐려지지 않게 한다.
 
-## Alignment contract
-- Every frame in the same stack shares the same left and right edges.
-- Same-type sections use the same vertical gap.
-- Buttons in one group share height, vertical alignment, padding rhythm, and inter-button gap.
-- Border shape and radius are consistent across adjacent frames; default radius is 8px or less.
-- Text must stay inside its control at desktop, 390px mobile, and 320px narrow mobile.
-- Fixed-format controls use stable grid tracks so labels and state changes do not shift layout.
+## Visual system
 
-## Operator screen
-- Header: tournament identity and operation status, visually substantial but compact.
-- Top routes: `선수`, `기록`, `라이브`, `관리`.
-- Main flow: tournament overview, round controls, current stage/group, score or advance selection, then secondary settings.
-- `현재 경기`, participant list, settings, queue, point-stage header, and LIVE-send status must not be repeated in separate panels.
-- Setup and `기타` are static sections, not accordion/tool drawers.
-- `최종 결승 진행` belongs directly below the round buttons when relevant.
-- No-finalist rounds show a deliberate unavailable/complete state and allow the tournament to continue safely.
+- 기본 표면은 흰색과 중립 회색을 사용하고 주요 행동에 한 가지 accent 색을 사용한다.
+- 위험 행동은 일반 accent와 구분되는 일관된 danger 처리를 사용한다.
+- 기본 radius는 8px 이하로 유지하고 인접 프레임의 모서리 규칙을 맞춘다.
+- 카드는 반복되는 선수·경기 단위나 실제로 경계가 필요한 도구에만 사용한다.
+- 카드 안에 같은 목적의 카드를 다시 넣지 않는다.
+- 상태는 색만으로 전달하지 않고 짧은 텍스트나 아이콘 의미를 함께 제공한다.
+
+## Alignment and spacing
+
+- 같은 스택의 모든 프레임은 왼쪽과 오른쪽 가장자리를 공유한다.
+- 같은 유형의 섹션은 동일한 세로 간격을 사용한다.
+- 한 버튼 그룹의 높이, padding, 글자 정렬, radius와 버튼 사이 간격을 맞춘다.
+- 고정 형식 컨트롤은 안정된 grid track을 사용해 문구와 상태가 바뀌어도 레이아웃이 흔들리지 않게 한다.
+- 텍스트와 아이콘은 데스크톱, 390px, 320px에서 컨트롤 밖으로 넘치지 않아야 한다.
+
+## Information hierarchy
+
+- 첫 단계: 대회 정체성, 진행 상태, 현재 라운드와 현재 결정
+- 둘째 단계: 현재 경기의 선수, 레인, 점수 또는 진출 선택
+- 셋째 단계: 다음 경기·라운드 행동과 완료 피드백
+- 넷째 단계: 참가자, 설정, 복구, 출력과 관리 도구
+- 오류는 무엇이 막혔는지와 사용자가 취할 다음 행동을 함께 설명한다.
+
+## Operator
+
+- 상단 경로는 선수, 기록, 라이브, 관리로 유지한다.
+- 현재 경기, 참가자 목록, 설정, 큐, 포인트 단계 설명과 LIVE 전송 상태를 중복 패널로 만들지 않는다.
+- 최종 결승 진행은 필요한 시점에 라운드 버튼 바로 아래에서 찾을 수 있어야 한다.
+- 진출자가 없는 라운드는 의도된 미성립 또는 완료 상태로 보이고 다음 흐름을 막지 않는다.
+- 설정과 기타는 accordion이나 도구 drawer가 아닌 정적 섹션으로 유지한다.
+- 저장과 복구 패널은 snapshot과 진행 대회 복구에 집중한다.
+- 운영권은 서버 lease 상태 패널 하나에서 가져오기, 해제, 새로고침, 진행 대회 확인을 제공한다.
+- 레거시 운영권 상태나 같은 기능의 버튼을 저장 패널에 다시 노출하지 않는다.
 
 ## Mobile operator dock
-- Exactly four equal columns: current primary action, `경기`, `설정`, `기타`.
-- All four button backgrounds share the same outer height, top/bottom position, radius, and padding contract.
-- The primary action may use the accent color but not a different geometry.
-- Primary copy stays on one line; shorten the label when necessary.
-- Dock container top and bottom padding must be optically equal.
-- Reserve page bottom space so content is never hidden behind the dock.
+
+- 정확히 네 개의 동일한 열을 사용한다: 현재 주요 행동, 경기, 설정, 기타.
+- 네 버튼은 같은 외곽 높이, 상하 위치, radius와 padding 계약을 사용한다.
+- 주요 행동은 accent 색을 쓸 수 있지만 다른 버튼과 다른 geometry를 쓰지 않는다.
+- 주요 행동 문구는 한 줄로 유지하며 필요하면 짧고 명확하게 줄인다.
+- dock의 위아래 padding은 시각적으로 균형을 이루어야 한다.
+- 페이지 하단 공간을 확보해 콘텐츠와 floating undo가 dock 뒤에 숨지 않게 한다.
 
 ## Player DB and admin
-- Mobile player/admin lists remain compact horizontal data surfaces with controlled scrolling where needed.
-- Sticky or top controls must not overlap the first list row.
-- Checkboxes, favorite controls, names, venue/team, and record columns keep stable tracks.
-- Bulk actions use equal-width buttons and do not resize the list.
-- Desktop tables and mobile data surfaces must show the same underlying state without rendering duplicate copies.
+
+- 모바일 목록은 조밀한 데이터 표면을 유지하고 필요한 방향에만 스크롤을 허용한다.
+- sticky 또는 상단 컨트롤이 첫 행을 가리지 않는다.
+- checkbox, 즐겨찾기, 이름, 경기장·팀, 기록 열은 안정된 track을 사용한다.
+- 일괄 행동 버튼은 동일 너비와 높이를 사용하며 목록 폭을 바꾸지 않는다.
+- 데스크톱 표와 모바일 표면은 같은 상태를 공유하고 DOM에 중복 데이터 사본을 만들지 않는다.
+- 계정 권한과 대회 기록의 위험 행동은 대상과 결과를 명확히 보여 준다.
 
 ## LIVE and TV
-- Viewer surfaces are read-only and never inherit operator controls or dock navigation.
-- Mobile LIVE prioritizes current match, score/advance state, and recent results.
-- TV LIVE gives finals a dedicated final-state presentation rather than treating them as an ordinary three-group round.
-- Viewer state must follow the operator round/final state without requiring a manual viewer refresh.
-- Missing or stale data shows a clear fallback rather than an old round as if it were current.
+
+- viewer는 읽기 전용이며 운영자 컨트롤과 모바일 운영 dock을 상속하지 않는다.
+- 모바일 LIVE는 현재 경기, 점수·진출 상태, 최근 결과를 우선한다.
+- TV LIVE의 결승은 일반 다조 라운드와 구분되는 전용 최종 상태를 사용한다.
+- viewer는 수동 새로고침 없이 운영자의 최신 라운드와 결승 상태를 따라가야 한다.
+- 데이터가 없거나 오래됐으면 과거 경기를 현재처럼 보여 주지 않고 명확한 fallback을 표시한다.
+
+## Interaction and accessibility
+
+- 키보드 focus가 모든 조작 화면에서 보이도록 한다.
+- disabled 상태는 클릭 불가 여부와 이유를 주변 문맥으로 알 수 있어야 한다.
+- 파괴적 작업은 대상이 분명한 확인 절차를 사용한다.
+- 성공 메시지는 실제 저장이나 삭제가 확인된 뒤에만 표시한다.
+- 터치 영역은 모바일에서 오조작을 줄일 만큼 충분한 크기와 간격을 유지한다.
 
 ## Implementation policy
-- Change the owning DOM/component and base CSS rule. Remove superseded rules in the same pass.
-- Do not add a broad late override layer as the default repair method.
-- Reuse current helpers and established classes before creating abstractions.
-- Verify affected screens at 1365px, 390px, and 320px.
-- Tournament progression changes require full match simulation plus operator-flow QA.
-- LIVE/TV changes require operator publication, mobile viewer, TV viewer, stale-write, and refresh checks.
+
+- 문제를 소유한 DOM, renderer와 기본 CSS 규칙을 수정한다.
+- 대규모 후행 override나 넓은 important 블록을 기본 해결책으로 사용하지 않는다.
+- 새 추상화를 만들기 전에 현재 helper와 class를 재사용할 수 있는지 확인한다.
+- 대체된 selector, 중복 패널과 오래된 copy는 같은 작업에서 제거한다.
+- 로직 변경 없이 가능한 UI 작업은 대회와 Firebase 동작을 그대로 보존한다.
+
+## Verification
+
+- 영향받는 화면을 1365x900, 390x844, 320x720에서 확인한다.
+- 가로 overflow, offscreen 컨트롤, 첫 행 겹침, dock 가림, focus 손실을 점검한다.
+- 운영 화면 변경은 operator QA, 관리자·선수 DB 변경은 admin QA, viewer 변경은 surface QA를 실행한다.
+- 대회 진행 또는 LIVE 상태 의미가 바뀌면 match와 operator 흐름을 함께 검증한다.
