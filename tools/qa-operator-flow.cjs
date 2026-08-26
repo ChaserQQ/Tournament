@@ -4545,7 +4545,10 @@ async function runViewport(browser, meta, viewport) {
       const staleTiming = seedCrashOwner(stale);
       window.__qaFirebaseTransactionLog = [];
       const staleStartResult = await window.startTournamentAsync();
-      await new Promise(resolve => setTimeout(resolve, 350));
+      // startAllFirstStages() schedules LIVE fallback work that can still read
+      // the mutable global state after the start promise resolves. Let those
+      // retries settle before swapping in the negative fresh-owner fixture.
+      await new Promise(resolve => setTimeout(resolve, 1800));
       const staleLog = [...window.__qaFirebaseTransactionLog];
       const staleCleanupIndex = staleLog.indexOf(`activeTournaments/${stale.venueId}`);
       const newLeaseClaimIndex = staleLog.indexOf(`operationLocks/leases/${stale.venueId}`);
@@ -5751,6 +5754,15 @@ async function runViewport(browser, meta, viewport) {
       registryGeneration: generation,
       status: "running"
     });
+    state.tournament.operationLock = {
+      uid: "qa-stale-legacy-owner-v281",
+      email: "stale-legacy-owner@example.invalid",
+      lockedAt: new Date().toISOString(),
+      expiresAt: Date.now() + (6 * 60 * 60 * 1000)
+    };
+    window.__qaOperationLeaseAlertsV281 = [];
+    window.__qaOriginalOperationLeaseAlertV281 = window.alert;
+    window.alert = message => window.__qaOperationLeaseAlertsV281.push(String(message || ""));
     const lease = store.operationLocks?.leases?.[venueId];
     const active = store.activeTournaments?.[venueId];
     persistCurrentState();
@@ -5793,17 +5805,36 @@ async function runViewport(browser, meta, viewport) {
       const stored = JSON.parse(localStorage.getItem("mini4wdTournamentLiveState") || "{}");
       storedSelected = (stored.qualifierRounds?.[0]?.stages?.[0]?.groups?.[0]?.advanceIds || []).includes("qa-advance-a");
     } catch (error) {}
-    return {
+    const alerts = [...(window.__qaOperationLeaseAlertsV281 || [])];
+    if (typeof window.__qaOriginalOperationLeaseAlertV281 === "function") {
+      window.alert = window.__qaOriginalOperationLeaseAlertV281;
+    }
+    delete window.__qaOperationLeaseAlertsV281;
+    delete window.__qaOriginalOperationLeaseAlertV281;
+    const result = {
       advanceIds: [...(group?.advanceIds || [])],
       slotSelected: !!slot?.classList.contains("selected"),
-      storedSelected
+      storedSelected,
+      alerts,
+      legacyOperationLockPresent: Boolean(state.tournament?.operationLock),
+      legacyOperationControlCount: document.querySelectorAll("button[onclick*='acquireOperationLock'], button[onclick*='releaseOperationLock']").length,
+      serverOperationPanelCount: document.querySelectorAll(".session-lease-panel-v178").length
     };
+    state.tournament.operationLock = null;
+    persistCurrentState();
+    renderOperator();
+    return result;
   });
-  logs.push({ step: "advance-selection", info: { leaseClaimed: operatorMutationLeaseClaimedV278, lease: operatorMutationLeaseV279, before: advanceBefore, after: advanceAfter } });
+  logs.push({ step: "operation-lease-single-authority-v281", info: { leaseClaimed: operatorMutationLeaseClaimedV278, lease: operatorMutationLeaseV279, before: advanceBefore, after: advanceAfter } });
   if (advanceBefore.advanceIds.includes("qa-advance-a")) failures.push("advance selection started preselected");
   if (!advanceAfter.advanceIds.includes("qa-advance-a")) failures.push(`advance click did not update advanceIds ${JSON.stringify(advanceAfter)}`);
   if (!advanceAfter.slotSelected) failures.push(`advance click did not leave selected UI ${JSON.stringify(advanceAfter)}`);
   if (!advanceAfter.storedSelected) failures.push(`advance click did not persist local state ${JSON.stringify(advanceAfter)}`);
+  if (advanceAfter.alerts.length) failures.push(`stale legacy operation lock blocked the authoritative server lease ${JSON.stringify(advanceAfter.alerts)}`);
+  if (advanceAfter.legacyOperationLockPresent) failures.push("stale legacy operation lock was not retired after the server lease became authoritative");
+  if (advanceAfter.legacyOperationControlCount !== 0 || advanceAfter.serverOperationPanelCount !== 1) {
+    failures.push(`operator ownership UI is duplicated or missing ${JSON.stringify(advanceAfter)}`);
+  }
 
   await page.evaluate(() => {
     const players = [

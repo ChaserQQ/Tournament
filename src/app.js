@@ -10,13 +10,13 @@
     ];
     const RTDB_WRITE_PROTOCOL_V279 = 279;
     const MINI4WD_BUILD = window.MINI4WD_BUILD_META || {
-      version: 280,
-      label: "BUILD v280 BRACKET ADVANCEMENT GUARDS",
+      version: 281,
+      label: "BUILD v281 OPERATION LEASE SINGLE AUTHORITY",
       rulesChanged: false,
       surfaces: MINI4WD_FALLBACK_SURFACES,
       pageClasses: MINI4WD_FALLBACK_PAGE_CLASSES
     };
-    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v280 BRACKET ADVANCEMENT GUARDS";
+    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v281 OPERATION LEASE SINGLE AUTHORITY";
     const MINI4WD_SURFACES = Array.isArray(MINI4WD_BUILD.surfaces) && MINI4WD_BUILD.surfaces.length
       ? Array.from(MINI4WD_BUILD.surfaces)
       : MINI4WD_FALLBACK_SURFACES;
@@ -4069,7 +4069,35 @@ function currentActorLabel() {
       return state.tournament.operationLock || null;
     }
 
+    function serverOperationLeaseIsAuthoritativeV281() {
+      try {
+        return Boolean(
+          window.__mini4wdOperatorSessionLeaseRuntimeInstalled
+          && currentAuthUser?.uid
+          && canOperate()
+        );
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function retireLegacyOperationLockV281() {
+      if (!serverOperationLeaseIsAuthoritativeV281()) return false;
+      if (!getOperationLock()) return false;
+      state.tournament.operationLock = null;
+      persistCurrentState();
+      return true;
+    }
+
     function isOperationLockedByOther() {
+      // v281: authenticated operators are fenced by the short server lease.
+      // The former six-hour lock is local tournament data and can survive a
+      // restore/import, so consulting both authorities can falsely block the
+      // browser that already owns the server lease.
+      if (serverOperationLeaseIsAuthoritativeV281()) {
+        retireLegacyOperationLockV281();
+        return false;
+      }
       const lock = getOperationLock();
       if (!lock || !lock.uid) return false;
       if (lock.expiresAt && Date.now() > Number(lock.expiresAt)) return false;
@@ -4736,9 +4764,13 @@ function currentActorLabel() {
     }
 
     function renderOperationPanel() {
+      const serverLeaseAuthoritative = serverOperationLeaseIsAuthoritativeV281();
+      if (serverLeaseAuthoritative) retireLegacyOperationLockV281();
       const lock = operationLockText();
       const snapshots = loadSnapshots().slice(0, 3);
-      return `<section class="ops-panel"><div class="ops-row"><div><strong>저장과 복구</strong><br><span class="${lock.on ? 'lock-on' : 'lock-off'}">${escapeHtml(lock.text)}</span></div><div class="ops-buttons"><button class="${lock.on ? 'ghost' : 'primary'}" onclick="acquireOperationLock()">운영권 잡기</button><button class="ghost" onclick="releaseOperationLock(false)">운영권 해제</button><button class="ghost" onclick="createManualSnapshot()">현재 저장</button></div></div>${snapshots.length ? `<div class="snapshot-list">${snapshots.map(s => `<div class="snapshot-item"><span>${escapeHtml(snapshotDisplayTextV278(s))}</span><button class="ghost" onclick="restoreSnapshot('${escapeAttr(s.id)}')">복구</button></div>`).join("")}</div>` : ""}</section>`;
+      const legacyLockStatus = serverLeaseAuthoritative ? "" : `<br><span class="${lock.on ? 'lock-on' : 'lock-off'}">${escapeHtml(lock.text)}</span>`;
+      const legacyLockActions = serverLeaseAuthoritative ? "" : `<button class="${lock.on ? 'ghost' : 'primary'}" onclick="acquireOperationLock()">운영권 잡기</button><button class="ghost" onclick="releaseOperationLock(false)">운영권 해제</button>`;
+      return `<section class="ops-panel"><div class="ops-row"><div><strong>저장과 복구</strong>${legacyLockStatus}</div><div class="ops-buttons">${legacyLockActions}<button class="ghost" onclick="createManualSnapshot()">현재 저장</button></div></div>${snapshots.length ? `<div class="snapshot-list">${snapshots.map(s => `<div class="snapshot-item"><span>${escapeHtml(snapshotDisplayTextV278(s))}</span><button class="ghost" onclick="restoreSnapshot('${escapeAttr(s.id)}')">복구</button></div>`).join("")}</div>` : ""}</section>`;
     }
 
     function logTournamentAction(action, detail = "") {
@@ -10596,10 +10628,18 @@ function stopLiveLobbyRealtimeV50() {
 
       const originalRenderOperationPanelV135 = typeof renderOperationPanel === "function" ? renderOperationPanel : null;
       if (originalRenderOperationPanelV135 && !originalRenderOperationPanelV135.__v135Wrapped) {
-        function renderOpsActionGroupsV152(lock){
-          const lockButton = lock.on
-            ? `<button class="ghost" onclick="releaseOperationLock(false)">운영권 해제</button>`
-            : `<button class="primary" onclick="acquireOperationLock()">운영권 잡기</button>`;
+        function renderOpsActionGroupsV152(lock, serverLeaseAuthoritative = false){
+          const lockButton = serverLeaseAuthoritative
+            ? ""
+            : lock.on
+              ? `<button class="ghost" onclick="releaseOperationLock(false)">운영권 해제</button>`
+              : `<button class="primary" onclick="acquireOperationLock()">운영권 잡기</button>`;
+          const lockActionGroup = lockButton
+            ? `<div class="ops-action-group-v152">
+                <span class="ops-action-title-v152">운영권</span>
+                ${lockButton}
+              </div>`
+            : "";
           const forceEndAction = state?.tournament?.status === "running" && state?.tournament?.liveId
             ? `<div class="ops-action-group-v152 ops-danger-v152">
                 <span class="ops-action-title-v152">종료</span>
@@ -10608,10 +10648,7 @@ function stopLiveLobbyRealtimeV50() {
             : "";
           return `
             <div class="ops-action-groups-v152">
-              <div class="ops-action-group-v152">
-                <span class="ops-action-title-v152">운영권</span>
-                ${lockButton}
-              </div>
+              ${lockActionGroup}
               <div class="ops-action-group-v152">
                 <span class="ops-action-title-v152">저장</span>
                 <button class="ghost" onclick="createManualSnapshot()">현재 저장</button>
@@ -10638,13 +10675,16 @@ function stopLiveLobbyRealtimeV50() {
         }
 
         const renderOperationPanelWrappedV135 = function renderOperationPanelWrappedV135(){
+          const serverLeaseAuthoritative = serverOperationLeaseIsAuthoritativeV281();
+          if (serverLeaseAuthoritative) retireLegacyOperationLockV281();
           const lock = typeof operationLockText === "function" ? operationLockText() : { on:false, text:"운영권 상태를 확인할 수 없습니다." };
           const snapshots = typeof loadSnapshots === "function" ? loadSnapshots().slice(0, 1) : [];
           const activeList = activeListV135 || [];
           const listHtml = renderActiveBackupListV152(activeList);
           const snapshotHtml = renderSnapshotListV152(snapshots);
-          const actionGroups = renderOpsActionGroupsV152(lock);
-          return `<section class="ops-panel active-backup-panel-v135"><div class="ops-row"><div><strong>저장과 복구</strong><br><span class="${lock.on ? 'lock-on' : 'lock-off'}">${escapeHtml(lock.text)}</span><p class="auto-close-note-v135">진행 대회가 남아 있으면 여기서 확인하고 정리합니다.</p></div>${actionGroups}</div>${listHtml}${snapshotHtml}</section>`;
+          const actionGroups = renderOpsActionGroupsV152(lock, serverLeaseAuthoritative);
+          const legacyLockStatus = serverLeaseAuthoritative ? "" : `<br><span class="${lock.on ? 'lock-on' : 'lock-off'}">${escapeHtml(lock.text)}</span>`;
+          return `<section class="ops-panel active-backup-panel-v135"><div class="ops-row"><div><strong>저장과 복구</strong>${legacyLockStatus}<p class="auto-close-note-v135">진행 대회가 남아 있으면 여기서 확인하고 정리합니다.</p></div>${actionGroups}</div>${listHtml}${snapshotHtml}</section>`;
         };
         renderOperationPanelWrappedV135.__v135Wrapped = true;
         try { renderOperationPanel = renderOperationPanelWrappedV135; window.renderOperationPanel = renderOperationPanelWrappedV135; } catch (error) {}
@@ -12476,6 +12516,24 @@ function stopLiveLobbyRealtimeV50() {
         return true;
       }
 
+      async function releaseCurrentOperationLeaseV281() {
+        if (!currentAuthUser || !canOperate()) return false;
+        if (!isOperationLeaseLoadedV278()) await refreshOperationLeaseV178();
+        if (!isLeaseMineV178()) {
+          alert("이 브라우저가 보유한 운영권이 없습니다.");
+          if (typeof renderOperator === "function") renderOperator();
+          return false;
+        }
+        const released = await releaseOperationLeaseV178(false);
+        if (!released) {
+          alert("운영권을 해제하지 못했습니다. 연결 상태를 확인한 뒤 다시 시도하세요.");
+          return false;
+        }
+        retireLegacyOperationLockV281();
+        if (typeof renderOperator === "function") renderOperator();
+        return true;
+      }
+
       function renderOperationSessionPanelV178() {
         const leaseState = isLeaseMineV178() ? "운영 가능" : isLeaseHeldByOtherV178() ? "다른 운영자 사용 중" : isOperationLeaseLoadedV278() ? "운영 가능" : "확인 중";
         const leaseClass = isLeaseMineV178() ? "mine" : isLeaseHeldByOtherV178() ? "other" : "open";
@@ -12490,6 +12548,7 @@ function stopLiveLobbyRealtimeV50() {
             </div>
             <div class="session-actions-v178">
               <button class="${isLeaseMineV178() ? "ghost" : "primary"}" onclick="takeoverOperationLeaseV178(true)">운영권 가져오기</button>
+              <button class="ghost" onclick="releaseCurrentOperationLeaseV281()" ${isLeaseMineV178() ? "" : "disabled"}>운영권 해제</button>
               <button class="ghost" onclick="refreshOperationLeaseV178().then(()=>renderOperator())">새로고침</button>
               <button class="ghost" onclick="refreshRecoveryCandidateV178('manual').then(()=>renderOperator())">진행 대회 확인</button>
             </div>
@@ -12532,6 +12591,11 @@ function stopLiveLobbyRealtimeV50() {
         const wrappedAcquireOperationLockV178 = async function acquireOperationLockV178(){
           const ok = await claimOperationLeaseV178("manual-lock", false);
           if (!ok) return alert("다른 브라우저가 운영권을 가지고 있어 잠금할 수 없습니다.");
+          if (serverOperationLeaseIsAuthoritativeV281()) {
+            retireLegacyOperationLockV281();
+            if (typeof renderOperator === "function") renderOperator();
+            return true;
+          }
           return originalAcquireOperationLockV178.apply(this, arguments);
         };
         wrappedAcquireOperationLockV178.__v178Wrapped = true;
@@ -12541,6 +12605,13 @@ function stopLiveLobbyRealtimeV50() {
       const originalReleaseOperationLockV178 = typeof releaseOperationLock === "function" ? releaseOperationLock : null;
       if (originalReleaseOperationLockV178 && !originalReleaseOperationLockV178.__v178Wrapped) {
         const wrappedReleaseOperationLockV178 = function releaseOperationLockV178(force = false){
+          if (serverOperationLeaseIsAuthoritativeV281()) {
+            retireLegacyOperationLockV281();
+            return releaseOperationLeaseV178(Boolean(force)).then(released => {
+              if (typeof renderOperator === "function") renderOperator();
+              return released;
+            });
+          }
           const result = originalReleaseOperationLockV178.apply(this, arguments);
           releaseOperationLeaseV178(Boolean(force));
           return result;
@@ -12616,6 +12687,7 @@ function stopLiveLobbyRealtimeV50() {
       window.refreshOperationLeaseV178 = refreshOperationLeaseV178;
       window.__mini4wdVerifyOperationLeaseV278 = verifyOperationLeaseOwnershipV278;
       window.takeoverOperationLeaseV178 = takeoverOperationLeaseV178;
+      window.releaseCurrentOperationLeaseV281 = releaseCurrentOperationLeaseV281;
       window.recoverRemoteTournamentV178 = recoverRemoteTournamentV178;
       window.refreshRecoveryCandidateV178 = refreshRecoveryCandidateV178;
       window.__mini4wdCanPublishLiveNowV270 = canPublishLiveNowV270;
@@ -12628,6 +12700,7 @@ function stopLiveLobbyRealtimeV50() {
       };
       window.__mini4wdOperatorSession = {
         sessionId: operatorSessionIdV178(),
+        authority: "server-lease-v281",
         leaseMs: OPERATION_LEASE_MS_V178,
         heartbeatMs: OPERATOR_SESSION_HEARTBEAT_MS_V178,
         paths: ["operationLocks/leases/{venueId}", "operationLocks/sessions/{venueId}/{uid}/{sessionId}"]
@@ -12779,7 +12852,8 @@ function stopLiveLobbyRealtimeV50() {
           "operator-session-lease",
           "same-tab-live-route-guard",
           "mobile-operator-undo-v266",
-          "bracket-advancement-guards-v280"
+          "bracket-advancement-guards-v280",
+          "operation-lease-single-authority-v281"
         ],
         removedLegacyRuntime: [
           "manual-live-session-stubs",
