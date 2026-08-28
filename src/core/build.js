@@ -49,14 +49,14 @@
   ];
 
   const meta = Object.freeze({
-    version: 281,
-    label: "BUILD v281 OPERATION LEASE SINGLE AUTHORITY",
-    title: "MINI4WD TOURNAMENT MAKER - v281 OPERATION LEASE SINGLE AUTHORITY",
+    version: 282,
+    label: "BUILD v282 OPERATOR LEASE AUTO ACQUIRE",
+    title: "MINI4WD TOURNAMENT MAKER - v282 OPERATOR LEASE AUTO ACQUIRE",
     rulesChanged: false,
     assets: Object.freeze({
       config: 156,
-      build: 281,
-      app: 281,
+      build: 282,
+      app: 282,
       css: 278,
       operatorMobileCss: 278,
       og: 51

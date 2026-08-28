@@ -21,11 +21,11 @@
 
 ## Current verified state
 
-- Verified 2026-08-26 KST: 공개 앱은 v281, BUILD v281 OPERATION LEASE SINGLE AUTHORITY이다.
-- build와 app 자산 버전은 281, 두 CSS 자산은 278, config는 156이다.
-- RTDB write protocol은 279이며 v281에서는 Firebase 규칙을 변경하지 않았다.
-- v281 공개 index, build.js, app.js는 HTTP 200으로 확인됐고 단일 서버 lease 운영권 가드가 배포됐다.
-- npm.cmd run qa:all이 v281에서 통과했다.
+- Verified 2026-08-28 KST: 공개 앱은 v282, BUILD v282 OPERATOR LEASE AUTO ACQUIRE이다.
+- build와 app 자산 버전은 282, 두 CSS 자산은 278, config는 156이다.
+- RTDB write protocol은 279이며 v282에서는 Firebase 규칙을 변경하지 않았다.
+- v282 공개 index, build.js, app.js는 HTTP 200으로 확인됐고 승인된 경기장 계정의 초안 운영권 자동 획득과 실제 lease 상태 표시가 배포됐다.
+- npm.cmd run qa:all이 v282에서 통과했다.
 - 현재 소스 기준 파일은 src/app.js, src/core/build.js, src/styles/app.css, src/styles/operator-mobile.css, tools/verify-static.js와 tools 아래 QA 스크립트다.
 - 보존할 추적되지 않은 항목은 .codex-remote-attachments/, DESIGN_OUTPUT.md, FIREBASE_REPORT.md, QA_REPORT.md이다.
 
@@ -51,6 +51,7 @@
 
 ## Recent durable changes
 
+- 2026-08-28 v282: 승인된 venue 계정은 초안 운영 화면 진입 시 비어 있는 서버 lease를 자동 획득한다. 서버 상태를 운영권 보유·획득 중·없음으로 정확히 표시하고 비동기 획득 뒤 가져오기·해제 버튼을 즉시 동기화한다. 관리자 계정, 대회 종료, 명시적 해제 뒤에는 자동 재획득하지 않는다.
 - 2026-08-28 verified live Firebase cleanup: `activeTournaments/아테네월드`가 없고 pending claim과 유효 lease가 없음을 확인한 뒤, 2026-08-21에 만료된 레거시 `operationLocks/leases/아테네월드`만 저장소 밖에 원본 백업하고 제거했다. 아테네월드 계정 프로필과 공개 경기장 디렉터리는 변경하지 않았고 앱·규칙 버전도 그대로다.
 - 2026-08-26 instruction refresh: AGENTS.md를 영구 규칙의 기준으로 신설하고, 프로젝트 메모·작업 큐·구현 개요·UI 계약에서 버전 중복과 과거 역할 지침을 제거했다. 배포 실행 번호를 기록하기 위한 사후 커밋도 중단한다.
 - 2026-08-26 v281: 인증 운영자는 Firebase 서버 lease만 쓰기 권한으로 사용한다. 복원된 레거시 operationLock은 자동 폐기되며 서버 lease 소유자를 차단하지 않는다. 중복 운영권 UI를 한 패널로 합쳤다.

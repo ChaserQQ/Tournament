@@ -10,13 +10,13 @@
     ];
     const RTDB_WRITE_PROTOCOL_V279 = 279;
     const MINI4WD_BUILD = window.MINI4WD_BUILD_META || {
-      version: 281,
-      label: "BUILD v281 OPERATION LEASE SINGLE AUTHORITY",
+      version: 282,
+      label: "BUILD v282 OPERATOR LEASE AUTO ACQUIRE",
       rulesChanged: false,
       surfaces: MINI4WD_FALLBACK_SURFACES,
       pageClasses: MINI4WD_FALLBACK_PAGE_CLASSES
     };
-    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v281 OPERATION LEASE SINGLE AUTHORITY";
+    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v282 OPERATOR LEASE AUTO ACQUIRE";
     const MINI4WD_SURFACES = Array.isArray(MINI4WD_BUILD.surfaces) && MINI4WD_BUILD.surfaces.length
       ? Array.from(MINI4WD_BUILD.surfaces)
       : MINI4WD_FALLBACK_SURFACES;
@@ -11303,6 +11303,7 @@ function stopLiveLobbyRealtimeV50() {
       let v178LastSessionPath = "";
       const v178LeasesByVenue = new Map();
       const v178LeaseClaimInFlightByVenue = new Map();
+      const v282LeaseAcquiredVenues = new Set();
       let v178RecoveryCandidate = null;
       let v178RecoveryBusy = false;
       let v178RecoverySignature = "";
@@ -11443,9 +11444,20 @@ function stopLiveLobbyRealtimeV50() {
       }
 
       function leaseRemainingTextV178(lease = cachedOperationLeaseV278()) {
-        if (!lease || isLeaseExpiredV178(lease)) return "만료";
+        if (!lease) return "없음";
+        if (isLeaseExpiredV178(lease)) return "만료";
         const seconds = Math.max(0, Math.ceil((leaseUntilV178(lease) - firebaseServerNowV279()) / 1000));
         return `${seconds}초`;
+      }
+
+      function operationLeaseUiStateV282() {
+        if (isLeaseMineV178()) return { text: "운영권 보유", className: "mine" };
+        if (isLeaseHeldByOtherV178()) return { text: "다른 운영자 사용 중", className: "other" };
+        if (v178LeaseClaimInFlightByVenue.has(operatorVenueIdV178())) {
+          return { text: "운영권 획득 중", className: "open" };
+        }
+        if (isOperationLeaseLoadedV278()) return { text: "운영권 없음", className: "open" };
+        return { text: "확인 중", className: "open" };
       }
 
       function buildLeasePayloadV178(reason = "manual", context = {}, leaseMeta = {}) {
@@ -11491,20 +11503,24 @@ function stopLiveLobbyRealtimeV50() {
         try {
           const panel = document.querySelector(".session-lease-panel-v178");
           if (!panel) return;
-          const leaseState = isLeaseMineV178() ? "운영 가능" : isLeaseHeldByOtherV178() ? "다른 운영자 사용 중" : isOperationLeaseLoadedV278() ? "운영 가능" : "확인 중";
-          const leaseClass = isLeaseMineV178() ? "mine" : isLeaseHeldByOtherV178() ? "other" : "open";
+          const leaseUi = operationLeaseUiStateV282();
           const heartbeatText = v178LastHeartbeatAt ? formatDateTimeLocal(new Date(v178LastHeartbeatAt)) : "-";
           const chip = panel.querySelector("[data-v178-lease-chip]");
           const heartbeat = panel.querySelector("[data-v178-heartbeat]");
           const lease = panel.querySelector("[data-v178-lease-remaining]");
           const owner = panel.querySelector("[data-v178-owner]");
+          const acquireButton = panel.querySelector("[data-v282-lease-acquire]");
+          const releaseButton = panel.querySelector("[data-v282-lease-release]");
+          const mine = isLeaseMineV178();
           if (chip) {
-            chip.textContent = leaseState;
-            chip.className = `session-chip-v178 ${leaseClass}`;
+            chip.textContent = leaseUi.text;
+            chip.className = `session-chip-v178 ${leaseUi.className}`;
           }
           if (heartbeat) heartbeat.textContent = heartbeatText;
           if (lease) lease.textContent = leaseRemainingTextV178();
           if (owner) owner.textContent = operationOwnerLabelV178();
+          if (acquireButton) acquireButton.className = mine ? "ghost" : "primary";
+          if (releaseButton) releaseButton.disabled = !mine;
         } catch (error) {}
       }
 
@@ -12147,6 +12163,7 @@ function stopLiveLobbyRealtimeV50() {
               venueId: leaseVenueId,
               claimSequence: Number(confirmedLease.claimSequence || 0)
             };
+            v282LeaseAcquiredVenues.add(leaseVenueId);
             syncLeaseStateToDomV178();
             return true;
           } catch (error) {
@@ -12271,10 +12288,21 @@ function stopLiveLobbyRealtimeV50() {
           if (isLeaseMineV178()) await claimOperationLeaseV178("heartbeat", false);
           else {
             await refreshOperationLeaseV178();
+            const venueId = operatorVenueIdV178();
+            const status = String(state?.tournament?.status || "draft");
             if (
-              state?.tournament?.status === "running"
+              status === "running"
               && (!isLeaseHeldByOtherV178() || v178LineageResumeAvailable)
-            ) await claimOperationLeaseV178("auto-resume", false);
+            ) {
+              await claimOperationLeaseV178("auto-resume", false);
+            } else if (
+              status === "draft"
+              && isVenueUser()
+              && !v282LeaseAcquiredVenues.has(venueId)
+              && !isLeaseHeldByOtherV178()
+            ) {
+              await claimOperationLeaseV178("auto-enter-v282", false);
+            }
           }
           return true;
         } catch (error) {
@@ -12535,20 +12563,19 @@ function stopLiveLobbyRealtimeV50() {
       }
 
       function renderOperationSessionPanelV178() {
-        const leaseState = isLeaseMineV178() ? "운영 가능" : isLeaseHeldByOtherV178() ? "다른 운영자 사용 중" : isOperationLeaseLoadedV278() ? "운영 가능" : "확인 중";
-        const leaseClass = isLeaseMineV178() ? "mine" : isLeaseHeldByOtherV178() ? "other" : "open";
+        const leaseUi = operationLeaseUiStateV282();
         const heartbeatText = v178LastHeartbeatAt ? formatDateTimeLocal(new Date(v178LastHeartbeatAt)) : "-";
         const recovery = v178RecoveryCandidate;
         return `<section class="ops-panel session-lease-panel-v178">
           <div class="session-lease-head-v178">
             <div>
               <strong>운영권 보호와 복구 상태</strong>
-              <span class="session-chip-v178 ${leaseClass}" data-v178-lease-chip>${escapeHtml(leaseState)}</span>
+              <span class="session-chip-v178 ${leaseUi.className}" data-v178-lease-chip>${escapeHtml(leaseUi.text)}</span>
               <span class="hint">남은 시간 <span data-v178-lease-remaining>${escapeHtml(leaseRemainingTextV178())}</span></span>
             </div>
             <div class="session-actions-v178">
-              <button class="${isLeaseMineV178() ? "ghost" : "primary"}" onclick="takeoverOperationLeaseV178(true)">운영권 가져오기</button>
-              <button class="ghost" onclick="releaseCurrentOperationLeaseV281()" ${isLeaseMineV178() ? "" : "disabled"}>운영권 해제</button>
+              <button class="${isLeaseMineV178() ? "ghost" : "primary"}" data-v282-lease-acquire onclick="takeoverOperationLeaseV178(true)">운영권 가져오기</button>
+              <button class="ghost" data-v282-lease-release onclick="releaseCurrentOperationLeaseV281()" ${isLeaseMineV178() ? "" : "disabled"}>운영권 해제</button>
               <button class="ghost" onclick="refreshOperationLeaseV178().then(()=>renderOperator())">새로고침</button>
               <button class="ghost" onclick="refreshRecoveryCandidateV178('manual').then(()=>renderOperator())">진행 대회 확인</button>
             </div>
@@ -12853,7 +12880,8 @@ function stopLiveLobbyRealtimeV50() {
           "same-tab-live-route-guard",
           "mobile-operator-undo-v266",
           "bracket-advancement-guards-v280",
-          "operation-lease-single-authority-v281"
+          "operation-lease-single-authority-v281",
+          "draft-auto-operation-lease-v282"
         ],
         removedLegacyRuntime: [
           "manual-live-session-stubs",

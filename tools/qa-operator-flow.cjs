@@ -1208,6 +1208,87 @@ async function runViewport(browser, meta, viewport) {
 
   logs.push({ step: "operator-load", info: await assertNoUiBreakage(page, "operator-load", failures) });
 
+  const draftAutoOperationLeaseV282 = await page.evaluate(async () => {
+    const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
+    const venueId = "qa-draft-auto-lease-v282";
+    const profileBackup = clone(currentUserProfile);
+    const stateBackup = exportState();
+    const roundBackup = activeRoundIndex;
+    const firebaseTournamentIdBackup = firebaseTournamentId;
+    let result = null;
+    try {
+      currentUserProfile = {
+        uid: "qa-uid",
+        email: "qa-venue@example.com",
+        role: "venue",
+        venueId,
+        venueName: "QA Draft Auto Lease",
+        approved: true,
+        permissions: { operate: true, dashboard: true }
+      };
+      state.tournament.status = "draft";
+      state.tournament.venueId = venueId;
+      state.tournament.venue = "QA Draft Auto Lease";
+      window.__qaFirebaseStore.operationLocks = window.__qaFirebaseStore.operationLocks || {};
+      window.__qaFirebaseStore.operationLocks.leases = window.__qaFirebaseStore.operationLocks.leases || {};
+      delete window.__qaFirebaseStore.operationLocks.leases[venueId];
+      renderOperator();
+      const deadline = Date.now() + 4000;
+      let lease = null;
+      while (Date.now() < deadline) {
+        lease = window.__qaFirebaseStore.operationLocks.leases[venueId] || null;
+        if (
+          lease?.protocolVersion === 279
+          && lease?.uid === "qa-uid"
+          && lease?.sessionId === window.__mini4wdOperatorSession?.sessionId
+          && Number(lease?.leaseUntil || 0) > firebaseServerNowV279()
+        ) break;
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      const chip = document.querySelector(".session-lease-panel-v178 [data-v178-lease-chip]");
+      const remaining = document.querySelector(".session-lease-panel-v178 [data-v178-lease-remaining]");
+      const releaseButton = document.querySelector(".session-lease-panel-v178 button[onclick*='releaseCurrentOperationLeaseV281']");
+      result = {
+        venueId,
+        tournamentStatus: state?.tournament?.status || "",
+        claimed: Boolean(
+          lease?.protocolVersion === 279
+          && lease?.uid === "qa-uid"
+          && lease?.sessionId === window.__mini4wdOperatorSession?.sessionId
+          && Number(lease?.leaseUntil || 0) > firebaseServerNowV279()
+        ),
+        leaseStatus: lease?.status || "",
+        leaseReason: lease?.reason || "",
+        chipText: String(chip?.textContent || "").trim(),
+        remainingText: String(remaining?.textContent || "").trim(),
+        releaseEnabled: Boolean(releaseButton && !releaseButton.disabled)
+      };
+      await window.releaseOperationLeaseV178(false, venueId);
+      delete window.__qaFirebaseStore.operationLocks.leases[venueId];
+    } finally {
+      currentUserProfile = profileBackup;
+      state = normalizeImportedState(stateBackup);
+      activeRoundIndex = roundBackup;
+      state.activeRoundIndex = roundBackup;
+      firebaseTournamentId = firebaseTournamentIdBackup;
+      persistCurrentState();
+      renderOperator();
+    }
+    return result;
+  });
+  logs.push({ step: "draft-auto-operation-lease-v282", info: draftAutoOperationLeaseV282 });
+  if (
+    !draftAutoOperationLeaseV282.claimed
+    || draftAutoOperationLeaseV282.tournamentStatus !== "draft"
+    || draftAutoOperationLeaseV282.leaseStatus !== "draft"
+    || !["auto-enter-v282", "heartbeat"].includes(draftAutoOperationLeaseV282.leaseReason)
+    || draftAutoOperationLeaseV282.chipText !== "운영권 보유"
+    || ["", "없음", "만료"].includes(draftAutoOperationLeaseV282.remainingText)
+    || !draftAutoOperationLeaseV282.releaseEnabled
+  ) {
+    failures.push(`draft operator did not auto-acquire the venue lease ${JSON.stringify(draftAutoOperationLeaseV282)}`);
+  }
+
   const functionTypes = await page.evaluate(() => ({
     setMatchMode: typeof window.setMatchMode,
     startQualifierRound: typeof window.startQualifierRound,
