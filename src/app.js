@@ -10,13 +10,13 @@
     ];
     const RTDB_WRITE_PROTOCOL_V279 = 279;
     const MINI4WD_BUILD = window.MINI4WD_BUILD_META || {
-      version: 288,
-      label: "BUILD v288 LEASE LIFECYCLE HARDENING",
+      version: 289,
+      label: "BUILD v289 TERMINAL FINALIZATION RECOVERY",
       rulesChanged: false,
       surfaces: MINI4WD_FALLBACK_SURFACES,
       pageClasses: MINI4WD_FALLBACK_PAGE_CLASSES
     };
-    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v288 LEASE LIFECYCLE HARDENING";
+    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v289 TERMINAL FINALIZATION RECOVERY";
     const MINI4WD_SURFACES = Array.isArray(MINI4WD_BUILD.surfaces) && MINI4WD_BUILD.surfaces.length
       ? Array.from(MINI4WD_BUILD.surfaces)
       : MINI4WD_FALLBACK_SURFACES;
@@ -2273,6 +2273,23 @@ function setBroadcastStage(roundIndex, stageIndex) {
         updatedAt: protocolState?.updatedAt || firebaseServerNowV279()
       };
       return envelope;
+    }
+
+    async function runExistingServerValueTransactionV289(ref, updateFn) {
+      if (!ref || typeof ref.get !== "function" || typeof ref.transaction !== "function") {
+        throw new Error("Firebase existing-value transaction is unavailable");
+      }
+      const knownSnapshot = await ref.get();
+      const knownValue = knownSnapshot?.val ? knownSnapshot.val() : null;
+      if (knownValue == null) return { committed: false, snapshot: knownSnapshot };
+      return ref.transaction(currentValue => {
+        // The compat SDK can invoke a guarded transaction with a provisional
+        // null even after get() returned the existing server record. Seed only
+        // from that exact read; Firebase still reruns the updater against any
+        // authoritative value that changed before commit.
+        currentValue = currentValue == null ? knownValue : currentValue;
+        return updateFn(currentValue);
+      }, null, false);
     }
 
     function writeFreshTournamentStateV278(db, id, nextState, reason = "manual", options = {}) {
@@ -7166,7 +7183,7 @@ function exportTournamentCsv() {
       const publicAttemptId = terminalAttemptIdentityV278(publicTerminal);
       if (!db || !id || !expectedAttemptId || !publicAttemptId || expectedAttemptId === publicAttemptId) return null;
       try {
-        const result = await db.ref(`tournaments/${id}`).transaction(currentRecord => {
+        const result = await runExistingServerValueTransactionV289(db.ref(`tournaments/${id}`), currentRecord => {
           const currentState = currentRecord?.state || currentRecord;
           const tournament = currentState?.tournament || {};
           if (tournament.status !== "finished" || tournament.finishSyncPending !== true) return;
@@ -7436,7 +7453,7 @@ function exportTournamentCsv() {
       const clearedAt = firebaseServerNowV279();
       try {
         const expectedTerminalAt = Number(publishedPrivateState?.tournament?.finishSyncTerminalUpdatedAt || 0);
-        const clearResult = await db.ref(`tournaments/${id}`).transaction(currentRecord => {
+        const clearResult = await runExistingServerValueTransactionV289(db.ref(`tournaments/${id}`), currentRecord => {
           const currentState = currentRecord?.state || currentRecord;
           if (!currentState || currentState?.tournament?.status !== "finished") return;
           const currentTerminalAt = Number(currentState?.tournament?.finishSyncTerminalUpdatedAt || 0);
@@ -9868,7 +9885,7 @@ function stopLiveLobbyRealtimeV50() {
         const publisherAtKey = kind === "auto-close" ? "autoClosePublisherAt" : "finishSyncPublisherAt";
         const errorKey = kind === "auto-close" ? "autoClosePublishError" : "finishSyncError";
         try {
-          const result = await recordRef.transaction(currentRecord => {
+          const result = await runExistingServerValueTransactionV289(recordRef, currentRecord => {
             const currentState = currentRecord?.state || currentRecord;
             const tournament = currentState?.tournament || {};
             if (tournament.status !== "finished" || tournament[pendingKey] !== true) return;
@@ -9932,7 +9949,7 @@ function stopLiveLobbyRealtimeV50() {
       }
 
       async function rollbackRemoteFinishedSyncV278(recordRef, publisherToken, newerPublicRunning){
-        const rollback = await recordRef.transaction(currentRecord => {
+        const rollback = await runExistingServerValueTransactionV289(recordRef, currentRecord => {
           const currentState = currentRecord?.state || currentRecord;
           const currentTournament = currentState?.tournament || {};
           if (currentTournament.status !== "finished" || currentTournament.finishSyncPending !== true || currentTournament.finishSyncPublisherToken !== publisherToken) return;
@@ -9994,7 +10011,7 @@ function stopLiveLobbyRealtimeV50() {
         let claimBlocked = false;
         let claim = null;
         try {
-          claim = await recordRef.transaction(currentRecord => {
+          claim = await runExistingServerValueTransactionV289(recordRef, currentRecord => {
             const currentState = currentRecord?.state || currentRecord;
             const tournament = currentState?.tournament || {};
             if (tournament.status !== "finished" || tournament.finishSyncPending !== true) return;
@@ -10118,7 +10135,7 @@ function stopLiveLobbyRealtimeV50() {
         }
         let finalized = null;
         try {
-          finalized = await recordRef.transaction(currentRecord => {
+          finalized = await runExistingServerValueTransactionV289(recordRef, currentRecord => {
             const currentState = currentRecord?.state || currentRecord;
             const tournament = currentState?.tournament || {};
             if (tournament.status !== "finished" || tournament.finishSyncPending !== true || tournament.finishSyncPublisherToken !== publisherToken) return;
@@ -10167,7 +10184,7 @@ function stopLiveLobbyRealtimeV50() {
 
       async function finalizeRemoteAutoClosePublishV278(recordRef, attemptId, publisherToken){
         try {
-          return await recordRef.transaction(currentRecord => {
+          return await runExistingServerValueTransactionV289(recordRef, currentRecord => {
             const currentState = currentRecord?.state || currentRecord;
             const tournament = currentState?.tournament || {};
             if (tournament.status !== "finished" || tournament.autoCloseAttemptId !== attemptId || tournament.autoClosePublishPending !== true || tournament.autoClosePublisherToken !== publisherToken) return;
@@ -10197,7 +10214,7 @@ function stopLiveLobbyRealtimeV50() {
       }
 
       async function rollbackRemoteAutoCloseV278(recordRef, attemptId, publisherToken, newerPublicRunning = null){
-        return recordRef.transaction(currentRecord => {
+        return runExistingServerValueTransactionV289(recordRef, currentRecord => {
           const currentState = currentRecord?.state || currentRecord;
           const tournament = currentState?.tournament || {};
           if (tournament.status !== "finished" || tournament.autoCloseAttemptId !== attemptId || tournament.autoClosePublishPending !== true || tournament.autoClosePublisherToken !== publisherToken) return;
@@ -10275,7 +10292,7 @@ function stopLiveLobbyRealtimeV50() {
         // v278: decide from the current remote value. A stale list snapshot must
         // not close a tournament that another operator has just resumed. Use
         // the record root so legacy flat records are migrated safely as well.
-        const result = await recordRef.transaction(currentRecord => {
+        const result = await runExistingServerValueTransactionV289(recordRef, currentRecord => {
           if (!currentRecord) return;
           const currentState = currentRecord?.state || currentRecord;
           const tournament = currentState?.tournament || {};
@@ -10850,7 +10867,7 @@ function stopLiveLobbyRealtimeV50() {
       const publicStatus = liveFreshStatusV272(publicPayload);
       if (!["running", "finished", "archived"].includes(publicStatus)) return false;
       const recordRef = db.ref(`tournaments/${id}`);
-      const result = await recordRef.transaction(currentRecord => {
+      const result = await runExistingServerValueTransactionV289(recordRef, currentRecord => {
         const currentState = currentRecord?.state || currentRecord;
         if (!currentState) return;
         if (!liveGenerationsMatchV278(currentState, attemptedState)) return;

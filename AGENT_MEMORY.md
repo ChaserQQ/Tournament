@@ -22,13 +22,13 @@
 
 ## Current verified state
 
-- Verified 2026-08-29 KST: 현재 소스는 v288, BUILD v288 LEASE LIFECYCLE HARDENING이다.
-- build와 app은 288, operator-mobile CSS는 285, 공용 app CSS는 284, config는 156이다.
-- RTDB write protocol은 279이며 v288에서는 Firebase 규칙과 운영 데이터를 변경하지 않았다.
+- Verified 2026-08-29 KST: 현재 소스는 v289, BUILD v289 TERMINAL FINALIZATION RECOVERY이다.
+- build와 app은 289, operator-mobile CSS는 285, 공용 app CSS는 284, config는 156이다.
+- RTDB write protocol은 279이며 v289에서는 Firebase 규칙과 운영 데이터를 변경하지 않았다.
 - Verified 2026-08-29 KST: 사용자 승인으로 아테네월드의 현재 운영 상태를 강제 초기화했다. 활성 포인터, 만료 lease, 세션, 고아 running 비공개/공개 대회 15쌍과 해당 action log가 모두 없으며 즉시 확인과 지연 재확인에서 재생성되지 않았다. 계정 권한, 공개 경기장 등록, 완료 대회와 결과 이력은 보존됐다.
 - 라이브 로비는 승인 경기장 카드만 전체 카드로 표시하고 나머지 빈 슬롯은 접힌 목록으로 축약한다. 20슬롯 계약은 data-v283-total-slots로 유지한다.
 - 모바일 운영 대진표는 현재 조를 첫 위치에 펼치고 대기·완료 조를 48px 접힘 요약으로 표시한다. 390px 7개 조 fixture에서 단계 높이 715px, 가로 넘침 0을 확인했다.
-- npm.cmd run qa:all이 v288에서 통과했다. 같은 계정의 모바일 재진입과 활성 중복 탭 차단, Firebase 부재 시 fail-closed, heartbeat 병합, 실패한 pending 즉시 정리, 초기 `null` 콜백을 포함한 lease 확정·해제, 활성 pointer 해제·정리, 대회 fence 교체, 최종 결승 버튼, 대진·진출·점수, PC·390px·320px 공개/운영 화면을 함께 검증했다. Java 21 로컬 emulator의 qa:rules 22개 계약도 모두 통과했고 활성 규칙과 로컬 규칙의 canonical SHA가 일치한다.
+- npm.cmd run qa:all이 v289에서 통과했다. 같은 계정의 모바일 재진입과 활성 중복 탭 차단, Firebase 부재 시 fail-closed, heartbeat 병합, 실패한 pending 즉시 정리, 초기 `null` 콜백을 포함한 lease·active·fence와 종료·복구·자동 종료 transaction 수렴, 최종 결승 버튼, 대진·진출·점수, PC·390px·320px 공개/운영 화면을 함께 검증했다. Java 21 로컬 emulator의 qa:rules 22개 계약은 v288에서 모두 통과했고 v289에서는 규칙을 변경하지 않았다.
 - 현재 소스 기준 파일은 src/app.js, src/core/build.js, src/styles/app.css, src/styles/operator-mobile.css, tools/verify-static.js와 tools 아래 QA 스크립트다.
 - 보존할 추적되지 않은 항목은 .codex-remote-attachments/, DESIGN_OUTPUT.md, FIREBASE_REPORT.md, QA_REPORT.md이다.
 
@@ -54,6 +54,7 @@
 
 ## Recent durable changes
 
+- 2026-08-29 v289: 실제 아테네 종료 장애를 읽기 전용으로 확인한 결과 비공개·공개 대회는 모두 `finished`, 공개 LIVE는 종료됐지만 비공개의 `finishSyncPending`과 `running` active pointer가 남고 lease만 해제된 상태였다. Firebase compat transaction이 기존 서버 레코드에도 최초 provisional `null`을 전달할 때 종료 pending 해제와 원격 복구 claim이 중단되는 것이 원인이었다. 서버에서 직전에 읽은 정확한 기존 레코드를 최초 후보로 쓰는 공통 guarded transaction을 적용해 일반 종료, 원격 재시도, 자동 종료, rollback과 충돌 수렴이 authoritative rerun에서 identity를 다시 검사하며 끝까지 완료되게 했다. 일반 종료와 pending 복구 양쪽의 null-first 회귀를 PC·390px·320px에서 고정했으며 Firebase 규칙과 운영 데이터는 변경하지 않았다.
 - 2026-08-29 verified live Firebase reset: 사용자가 아테네월드의 현재 대회를 모두 강제 삭제하고 초기화하도록 명시적으로 승인했다. 삭제 전에 `C:\Users\rlaal\Desktop\mtm-firebase-backups\2026-08-29-athens-current-reset-20260829094028`에 대상별 55개 JSON, 전체 대회 안전 스냅샷, manifest와 삭제 patch를 저장하고 형식·필수 대상 존재를 검증했다. 완료 상태 대회를 잘못 가리키던 active pointer, 만료 lease, 세션과 고아 running 비공개 15건·공개 LIVE 15건·해당 action log 15개 범위를 정확한 48경로 원자 patch로 제거했다. 즉시 및 지연 검증에서 active/lease/session/running/action log가 모두 0이고, 승인된 계정 프로필과 공개 경기장 2경로는 동일하며 완료 비공개 대회 14건, 비공개 결과 16건, 공개 이력 17건과 active가 가리키던 finished 비공개/공개 기록이 보존됐다. 앱과 Firebase 규칙은 변경하지 않았다.
 - 2026-08-29 v288: 운영권 흐름을 계정 권한, 세션 presence, 예약, 대회 fence 교체, 확정, active pointer 동기화, 해제 순서로 재점검했다. 모바일 Chrome/PWA가 일반 navigation으로 다시 열려도 이전 같은 계정 세션이 명시적 offline, presence 없음 또는 25초 이상 stale이면 안전하게 이어받고, 최근 online 세션은 중복 탭으로 보고 차단한다. 인증 운영자는 Firebase가 없을 때 lease 확인·획득과 active 등록을 로컬 성공으로 처리하지 않는다. 렌더 중복 heartbeat를 경로별 한 요청으로 병합하고, 확정 실패 pending을 즉시 정리하며, lease 해제·active 해제·stale active 정리·running tournament fence 교체가 provisional `null`에서도 서버에서 읽은 정확한 값으로 CAS를 계속하도록 수정했다. 아테네 계정의 승인·운영 권한과 당시 active/private/public/lease 연결은 읽기 전용으로 정상 일치함을 확인했으며 운영 데이터와 규칙에는 쓰지 않았다.
 - 2026-08-29 v287: Firebase 운영권 예약은 성공하지만 확정 transaction updater가 서버 값을 받기 전 provisional `null`에서 `undefined`를 반환해 즉시 중단되고 `reserving` pending만 남던 문제를 수정했다. 서버에서 확인한 정확한 예약 값을 최초 후보로 사용하고 `applyLocally: false`로 authoritative rerun과 pending token 검증을 유지한다. 실패 안내는 실제 원인이 확인된 경우에만 다른 브라우저 점유를 언급하며 Firebase 규칙과 운영 데이터는 변경하지 않았다. 실제 두 단계 transaction과 초기 `null` 호출을 각각 규칙 emulator와 운영 QA로 고정했다.

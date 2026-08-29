@@ -49,14 +49,14 @@
   ];
 
   const meta = Object.freeze({
-    version: 288,
-    label: "BUILD v288 LEASE LIFECYCLE HARDENING",
-    title: "MINI4WD TOURNAMENT MAKER - v288 LEASE LIFECYCLE HARDENING",
+    version: 289,
+    label: "BUILD v289 TERMINAL FINALIZATION RECOVERY",
+    title: "MINI4WD TOURNAMENT MAKER - v289 TERMINAL FINALIZATION RECOVERY",
     rulesChanged: false,
     assets: Object.freeze({
       config: 156,
-      build: 288,
-      app: 288,
+      build: 289,
+      app: 289,
       css: 284,
       operatorMobileCss: 285,
       og: 51

@@ -3351,6 +3351,9 @@ async function runViewport(browser, meta, viewport) {
     const finishServerClock = window.__mini4wdFirebaseServerClockV279;
     const finishServerClockOffsetBackup = Number(finishServerClock?.offset?.() || 0);
     const finishOriginalDateNow = Date.now;
+    const finishNullFirstPathsBackup = [...(window.__qaFirebaseNullFirstTransactionPathsV287 || [])];
+    const finishNullFirstCountsBackup = { ...(window.__qaFirebaseNullFirstTransactionCountsV287 || {}) };
+    let repairNullFirstTransactionCount = 0;
     let tournamentId = "";
     let canonicalTournamentId = "";
     let staleConflictId = "";
@@ -3463,7 +3466,13 @@ async function runViewport(browser, meta, viewport) {
           publisherAt: Number(pendingPrivate?.tournament?.finishSyncPublisherAt || 0)
         });
       };
+      window.__qaFirebaseNullFirstTransactionPathsV287 = [`tournaments/${tournamentId}`];
+      window.__qaFirebaseNullFirstTransactionCountsV287[`tournaments/${tournamentId}`] = 0;
       const retryResult = await window.retryFinishSyncV278();
+      repairNullFirstTransactionCount = Number(
+        window.__qaFirebaseNullFirstTransactionCountsV287[`tournaments/${tournamentId}`] || 0
+      );
+      window.__qaFirebaseNullFirstTransactionPathsV287 = finishNullFirstPathsBackup;
       window.__qaBeforeFirebaseTransaction = null;
       const finishPublisherClockRefetched = Boolean(
         finishServerClock
@@ -4030,6 +4039,8 @@ async function runViewport(browser, meta, viewport) {
         finishPublisherClockRefetched,
         finishFuturePublisherClaimReplaced,
         repairBridgePublisherTokenCleared,
+        repairBridgeSurvivedNullFirstCallbacks: repairNullFirstTransactionCount >= 2,
+        repairNullFirstTransactionCount,
         repairBridgeTransactionLog,
         repairBridgeEvents,
         retryResult,
@@ -4061,6 +4072,8 @@ async function runViewport(browser, meta, viewport) {
       Date.now = finishOriginalDateNow;
       window.__qaBeforeFirebaseTransaction = null;
       window.__qaRejectFirebaseTransactionPaths = [];
+      window.__qaFirebaseNullFirstTransactionPathsV287 = finishNullFirstPathsBackup;
+      window.__qaFirebaseNullFirstTransactionCountsV287 = finishNullFirstCountsBackup;
       if (tournamentId) {
         delete window.__qaFirebaseStore?.tournaments?.[tournamentId];
         delete window.__qaFirebaseStore?.publicLive?.[tournamentId];
@@ -4132,7 +4145,7 @@ async function runViewport(browser, meta, viewport) {
     }
   });
   logs.push({ step: "finish-sync-failure-v278", info: { finishSyncFailureV278 } });
-  if (finishSyncFailureV278.firstResult !== false || !finishSyncFailureV278.privatePendingWrittenBeforePublic || !finishSyncFailureV278.pendingAfterFailure || !finishSyncFailureV278.remotePrivatePendingAfterFailure || !finishSyncFailureV278.remoteScanRecoveredPendingFinish || !finishSyncFailureV278.noHistoryBeforeTerminalPublic || !finishSyncFailureV278.historyPublishedAfterTerminalAcceptance || !finishSyncFailureV278.repairBridgeLeaseExpiredBeforeRetry || !finishSyncFailureV278.repairBridgePublisherClaimBeforeTerminalAndFinalize || !finishSyncFailureV278.finishPublisherClockRefetched || !finishSyncFailureV278.finishFuturePublisherClaimReplaced || !finishSyncFailureV278.repairBridgePublisherTokenCleared || finishSyncFailureV278.statusAfterFailure !== "finished" || finishSyncFailureV278.statusAfterBlockedPrepare !== "finished") {
+  if (finishSyncFailureV278.firstResult !== false || !finishSyncFailureV278.privatePendingWrittenBeforePublic || !finishSyncFailureV278.pendingAfterFailure || !finishSyncFailureV278.remotePrivatePendingAfterFailure || !finishSyncFailureV278.remoteScanRecoveredPendingFinish || !finishSyncFailureV278.noHistoryBeforeTerminalPublic || !finishSyncFailureV278.historyPublishedAfterTerminalAcceptance || !finishSyncFailureV278.repairBridgeLeaseExpiredBeforeRetry || !finishSyncFailureV278.repairBridgePublisherClaimBeforeTerminalAndFinalize || !finishSyncFailureV278.repairBridgeSurvivedNullFirstCallbacks || !finishSyncFailureV278.finishPublisherClockRefetched || !finishSyncFailureV278.finishFuturePublisherClaimReplaced || !finishSyncFailureV278.repairBridgePublisherTokenCleared || finishSyncFailureV278.statusAfterFailure !== "finished" || finishSyncFailureV278.statusAfterBlockedPrepare !== "finished") {
     failures.push(`finish sync failure advanced or lost retry state ${JSON.stringify(finishSyncFailureV278)}`);
   }
   if (!finishSyncFailureV278.syncErrorAfterFailure || finishSyncFailureV278.retryResult !== true || finishSyncFailureV278.statusAfterRetry !== "draft" || finishSyncFailureV278.remotePrivateStatus !== "finished" || finishSyncFailureV278.remotePrivatePending || finishSyncFailureV278.remotePublicStatus !== "finished" || finishSyncFailureV278.remotePublicLive !== false || !finishSyncFailureV278.recoveredLiveIdPreserved || !finishSyncFailureV278.renderAutosaveHonorsNewerRunning || !finishSyncFailureV278.pendingCancelHidden || !finishSyncFailureV278.staleLocalRetryHonorsNewerRunning || !finishSyncFailureV278.staleTerminalCreatedNoFalseHistory || !finishSyncFailureV278.staleLocalRetryMadeNoTerminalWrites || !finishSyncFailureV278.completedTerminalGenericSyncBlocked || !finishSyncFailureV278.snapshotRestoreCannotReviveTerminal || !finishSyncFailureV278.operatorUndoCannotReviveTerminal || !finishSyncFailureV278.snapshotRestoreRejectsLegacyGenerationMix || !finishSyncFailureV278.operatorUndoRejectsLegacyGenerationMix || !finishSyncFailureV278.snapshotRestoreClaimsExactVenue || !finishSyncFailureV278.forceEndUniqueIdClosedExactRemote) {
@@ -4657,6 +4670,8 @@ async function runViewport(browser, meta, viewport) {
     const sessionLineageId = window.__mini4wdOperatorSession?.lineageId || "qa-lineage-v279";
     const now = () => window.__mini4wdFirebaseServerClockV279?.now?.() || Date.now();
     const originalConfirm = window.confirm;
+    const manualFinishNullFirstPathsBackup = [...(window.__qaFirebaseNullFirstTransactionPathsV287 || [])];
+    const manualFinishNullFirstCountsBackup = { ...(window.__qaFirebaseNullFirstTransactionCountsV287 || {}) };
 
     const makeRunning = ({ id, venueId, generation, fenceToken, fenceSequence, ready, updatedAt }) => {
       const next = makeInitialState(3);
@@ -4784,8 +4799,14 @@ async function runViewport(browser, meta, viewport) {
           leaseUntil: Number(lease?.leaseUntil || 0)
         });
       };
+      window.__qaFirebaseNullFirstTransactionPathsV287 = [`tournaments/${success.id}`];
+      window.__qaFirebaseNullFirstTransactionCountsV287[`tournaments/${success.id}`] = 0;
       await finishTournamentAsyncV116();
       await new Promise(resolve => setTimeout(resolve, 25));
+      const successNullFirstTransactionCount = Number(
+        window.__qaFirebaseNullFirstTransactionCountsV287[`tournaments/${success.id}`] || 0
+      );
+      window.__qaFirebaseNullFirstTransactionPathsV287 = manualFinishNullFirstPathsBackup;
       window.__qaBeforeFirebaseTransaction = null;
       const successLog = [...window.__qaFirebaseTransactionLog];
       const leaseIndex = successLog.indexOf(`operationLocks/leases/${success.venueId}`);
@@ -5112,6 +5133,8 @@ async function runViewport(browser, meta, viewport) {
       return {
         expiredSameSessionRenewedBeforeTerminal,
         successConverged,
+        successFinalizeSurvivedNullFirst: successNullFirstTransactionCount >= 3 && successConverged,
+        successNullFirstTransactionCount,
         foreignLeaseAbortedWithoutTerminalWrites,
         authoritativeUnreadyAbortedWithoutTerminalWrites,
         forceEndExpiredLeaseReclaimedBeforeTerminal,
@@ -5145,6 +5168,8 @@ async function runViewport(browser, meta, viewport) {
       window.confirm = originalConfirm;
       window.__qaBeforeFirebaseTransaction = null;
       window.__qaRejectFirebaseTransactionPaths = [];
+      window.__qaFirebaseNullFirstTransactionPathsV287 = manualFinishNullFirstPathsBackup;
+      window.__qaFirebaseNullFirstTransactionCountsV287 = manualFinishNullFirstCountsBackup;
       store.tournaments = backup.tournaments;
       store.publicLive = backup.publicLive;
       store.activeTournaments = backup.activeTournaments;
@@ -5167,7 +5192,7 @@ async function runViewport(browser, meta, viewport) {
     }
   });
   logs.push({ step: "manual-finish-lease-preflight-v279", info: { manualFinishLeasePreflightV279 } });
-  if (!manualFinishLeasePreflightV279.expiredSameSessionRenewedBeforeTerminal || !manualFinishLeasePreflightV279.successConverged || !manualFinishLeasePreflightV279.foreignLeaseAbortedWithoutTerminalWrites || !manualFinishLeasePreflightV279.authoritativeUnreadyAbortedWithoutTerminalWrites || !manualFinishLeasePreflightV279.forceEndExpiredLeaseReclaimedBeforeTerminal || !manualFinishLeasePreflightV279.forceEndExpiredLeaseConverged || !manualFinishLeasePreflightV279.forceEndForeignLeaseAbortedWithoutTerminalWrites || !manualFinishLeasePreflightV279.pendingFirstFailedBeforePrivateTerminal || !manualFinishLeasePreflightV279.pendingFirstLeaseExpiredBeforeRetry || !manualFinishLeasePreflightV279.pendingFirstRetryLeaseClaimedBeforeTerminal || !manualFinishLeasePreflightV279.pendingFirstRetryTerminalConverged) {
+  if (!manualFinishLeasePreflightV279.expiredSameSessionRenewedBeforeTerminal || !manualFinishLeasePreflightV279.successConverged || !manualFinishLeasePreflightV279.successFinalizeSurvivedNullFirst || !manualFinishLeasePreflightV279.foreignLeaseAbortedWithoutTerminalWrites || !manualFinishLeasePreflightV279.authoritativeUnreadyAbortedWithoutTerminalWrites || !manualFinishLeasePreflightV279.forceEndExpiredLeaseReclaimedBeforeTerminal || !manualFinishLeasePreflightV279.forceEndExpiredLeaseConverged || !manualFinishLeasePreflightV279.forceEndForeignLeaseAbortedWithoutTerminalWrites || !manualFinishLeasePreflightV279.pendingFirstFailedBeforePrivateTerminal || !manualFinishLeasePreflightV279.pendingFirstLeaseExpiredBeforeRetry || !manualFinishLeasePreflightV279.pendingFirstRetryLeaseClaimedBeforeTerminal || !manualFinishLeasePreflightV279.pendingFirstRetryTerminalConverged) {
     failures.push(`manual finish lease preflight v279 failed ${JSON.stringify(manualFinishLeasePreflightV279)}`);
   }
 
