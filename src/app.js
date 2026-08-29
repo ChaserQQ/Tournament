@@ -10,13 +10,13 @@
     ];
     const RTDB_WRITE_PROTOCOL_V279 = 279;
     const MINI4WD_BUILD = window.MINI4WD_BUILD_META || {
-      version: 285,
-      label: "BUILD v285 BRACKET FOCUS AND LEASE RECOVERY",
+      version: 286,
+      label: "BUILD v286 LEASE CLOCK AND FINAL GATE",
       rulesChanged: false,
       surfaces: MINI4WD_FALLBACK_SURFACES,
       pageClasses: MINI4WD_FALLBACK_PAGE_CLASSES
     };
-    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v285 BRACKET FOCUS AND LEASE RECOVERY";
+    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v286 LEASE CLOCK AND FINAL GATE";
     const MINI4WD_SURFACES = Array.isArray(MINI4WD_BUILD.surfaces) && MINI4WD_BUILD.surfaces.length
       ? Array.from(MINI4WD_BUILD.surfaces)
       : MINI4WD_FALLBACK_SURFACES;
@@ -625,6 +625,20 @@ function shuffle(array) {
       return startTournamentAsync();
     }
 
+    function operationLeaseStartFailureMessageV286() {
+      const failure = window.__mini4wdLastLeaseClaimFailureV286 || {};
+      if (failure.reason === "held-by-other") {
+        return "다른 브라우저가 이 경기장의 운영권을 가지고 있어 대회를 시작할 수 없습니다.";
+      }
+      if (failure.reason === "server-clock-unavailable") {
+        return "Firebase 서버 시간을 확인하지 못해 운영권 요청을 중단했습니다. 네트워크 연결을 확인한 뒤 다시 시도하세요.";
+      }
+      if (failure.reason === "permission-denied") {
+        return "계정의 운영권 쓰기 권한을 확인하지 못했습니다. 다시 로그인한 뒤 운영권 가져오기를 시도하세요.";
+      }
+      return "운영권을 확보하지 못했습니다. 운영권 가져오기를 누른 뒤 다시 시도하세요.";
+    }
+
     async function startTournamentAsync() {
       if (startTournamentInFlightV278) return startTournamentInFlightV278;
       const operation = runStartTournamentV278();
@@ -709,7 +723,7 @@ function shuffle(array) {
           status: "starting"
         });
         if (!leaseClaimed) {
-          alert("다른 브라우저가 이 경기장의 운영권을 가지고 있어 대회를 시작할 수 없습니다.");
+          alert(operationLeaseStartFailureMessageV286());
           return false;
         }
       }
@@ -3034,9 +3048,12 @@ function setBroadcastStage(roundIndex, stageIndex) {
     }
 
     function renderOperatorFinalShortcutV245() {
-      if (isRevivalMode() || state.finalRace) return "";
-      const crowUnavailable = isCrowMode() && areCrowRoundsCompleteV275() && getCrowQualifiedCountV275() < 9;
-      const allRoundsComplete = !isCrowMode() && state.qualifierRounds.every(isRoundCompleteV275);
+      if (state.tournament?.status !== "running" || isRevivalMode() || state.finalRace) return "";
+      const crowRoundsComplete = isCrowMode() && areCrowRoundsCompleteV275();
+      const qualifierRounds = Array.isArray(state.qualifierRounds) ? state.qualifierRounds : [];
+      const allRoundsComplete = !isCrowMode() && qualifierRounds.length > 0 && qualifierRounds.every(isRoundCompleteV275);
+      if (!crowRoundsComplete && !allRoundsComplete) return "";
+      const crowUnavailable = crowRoundsComplete && getCrowQualifiedCountV275() < 9;
       const finalUnavailable = allRoundsComplete && getFinalistPlayersV275().length < 2;
       const label = crowUnavailable ? "9강 미성립" : finalUnavailable ? "결승 미성립" : getOperatorFinalActionLabelV245();
       const onClick = crowUnavailable ? "showCrowSemiUnavailableV275()" : finalUnavailable ? "showFinalRaceUnavailableV275()" : "createFinalRace()";
@@ -4060,9 +4077,15 @@ function setBroadcastStage(roundIndex, stageIndex) {
       const db = dbOverride || initFirebase();
       if (!db?.ref) return Promise.resolve(false);
       const timeoutMarker = {};
-      const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(timeoutMarker), 2500));
+      const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(timeoutMarker), 5000));
+      const serverOffsetRef = db.ref(".info/serverTimeOffset");
       firebaseServerTimeOffsetRefreshV279 = Promise.race([
-        db.ref(".info/serverTimeOffset").get(),
+        // Firebase's /.info pseudo-location is served by the realtime listener
+        // protocol. A normal get() reaches the REST path and fails with
+        // "Invalid token in path" in the real SDK even though simple QA stubs
+        // accept it. once("value") is the compat form of the documented
+        // onValue listener and detaches itself after the first value.
+        serverOffsetRef.once("value"),
         timeoutPromise
       ]).then(snapshot => {
         if (snapshot === timeoutMarker) return false;
@@ -11813,7 +11836,13 @@ function stopLiveLobbyRealtimeV50() {
       async function claimOperationLeaseV178(reason = "manual", force = false, context = {}) {
         const db = initFirebase();
         if (!db || !currentAuthUser || !canOperate()) return true;
+        delete window.__mini4wdLastLeaseClaimFailureV286;
         if (!await refreshFirebaseServerTimeOffsetV279(db)) {
+          window.__mini4wdLastLeaseClaimFailureV286 = {
+            reason: "server-clock-unavailable",
+            stage: "server-clock",
+            at: new Date().toISOString()
+          };
           console.warn("v279 Firebase server clock is unavailable; lease claim stopped");
           return false;
         }
@@ -11894,6 +11923,7 @@ function stopLiveLobbyRealtimeV50() {
           return rest;
         };
         const executeClaim = async () => {
+          let reservationBlockedByOtherV286 = false;
           try {
             const reservation = await ref.transaction(current => {
               const sameSession = current?.sessionId === operatorSessionIdV178();
@@ -11921,7 +11951,10 @@ function stopLiveLobbyRealtimeV50() {
                 && !isLeaseExpiredV178(current)
                 && !force
                 && !sameLineageResume
-              ) return;
+              ) {
+                reservationBlockedByOtherV286 = true;
+                return;
+              }
               const currentSequence = Math.max(
                 0,
                 Number(current?.claimSequence || 0) || 0,
@@ -12001,7 +12034,14 @@ function stopLiveLobbyRealtimeV50() {
             });
             const reservedLease = cacheOperationLeaseV278(leaseVenueId, reservation.snapshot?.val() || null);
             syncLeaseStateToDomV178();
-            if (!reservation.committed) return false;
+            if (!reservation.committed) {
+              window.__mini4wdLastLeaseClaimFailureV286 = {
+                reason: reservationBlockedByOtherV286 ? "held-by-other" : "reservation-not-committed",
+                stage: "reservation",
+                at: new Date().toISOString()
+              };
+              return false;
+            }
 
             const directRenewal = Boolean(
               reservedLease?.sessionId === operatorSessionIdV178()
@@ -12245,10 +12285,18 @@ function stopLiveLobbyRealtimeV50() {
               venueId: leaseVenueId,
               claimSequence: Number(confirmedLease.claimSequence || 0)
             };
+            delete window.__mini4wdLastLeaseClaimFailureV286;
             v282LeaseAcquiredVenues.add(leaseVenueId);
             syncLeaseStateToDomV178();
             return true;
           } catch (error) {
+            const errorCode = String(error?.code || "").toLowerCase();
+            window.__mini4wdLastLeaseClaimFailureV286 = {
+              reason: errorCode.includes("permission") ? "permission-denied" : "claim-error",
+              stage: "claim",
+              code: errorCode,
+              at: new Date().toISOString()
+            };
             console.warn("v178 lease claim failed", error);
             return false;
           }

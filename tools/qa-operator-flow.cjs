@@ -119,6 +119,7 @@ const firebaseStub = `
     privateResultLogs: {},
     actionLogs: {}
   };
+  const specialInfoReadsV286 = { get: 0, once: 0 };
   try {
     const reloadStore = JSON.parse(sessionStorage.getItem("__qaFirebaseStoreReloadV278") || "null");
     if (reloadStore && typeof reloadStore === "object") {
@@ -170,7 +171,13 @@ const firebaseStub = `
     const api = {
       path: String(path || ""),
       child(childPath) { return ref([this.path, childPath].filter(Boolean).join("/")); },
-      get() { return Promise.resolve(snapshot(getAt(this.path))); },
+      get() {
+        if (this.path === ".info/serverTimeOffset") {
+          specialInfoReadsV286.get += 1;
+          return Promise.reject(new Error("Invalid token in path"));
+        }
+        return Promise.resolve(snapshot(getAt(this.path)));
+      },
       set(value) { setAt(this.path, value); notifyFirebaseListeners(this.path); return Promise.resolve(); },
       update(value) {
         if (value && typeof value === "object" && !Array.isArray(value)) {
@@ -186,7 +193,12 @@ const firebaseStub = `
         return Promise.resolve();
       },
       remove() { setAt(this.path, null); notifyFirebaseListeners(this.path); return Promise.resolve(); },
-      once(_event, cb) { const snap = snapshot(getAt(this.path)); if (cb) setTimeout(() => cb(snap), 0); return Promise.resolve(snap); },
+      once(_event, cb) {
+        if (this.path === ".info/serverTimeOffset") specialInfoReadsV286.once += 1;
+        const snap = snapshot(getAt(this.path));
+        if (cb) setTimeout(() => cb(snap), 0);
+        return Promise.resolve(snap);
+      },
       on(_event, cb) {
         listeners.push({ path: this.path, cb });
         setTimeout(() => cb(snapshot(getAt(this.path))), 0);
@@ -230,6 +242,7 @@ const firebaseStub = `
   }
   const fakeUser = { uid: "qa-uid", email: "qa-venue@example.com" };
   window.__qaFirebaseStore = store;
+  window.__qaFirebaseSpecialInfoReadsV286 = specialInfoReadsV286;
   window.__qaFirebaseTransactionCounts = {};
   window.__qaFirebaseTransactionLog = [];
   window.firebase = {
@@ -824,15 +837,24 @@ async function assertNoUiBreakage(page, label, failures) {
       const text = String(operatorFinalShortcut?.innerText || operatorFinalShortcut?.textContent || "").trim();
       let finalRaceStarted = false;
       let isRevival = false;
+      let finalDecisionReady = false;
       try {
         finalRaceStarted = typeof state !== "undefined" && !!state.finalRace;
         isRevival = typeof state !== "undefined" && state.settings?.matchMode === "revival";
+        const running = typeof state !== "undefined" && state.tournament?.status === "running";
+        const crow = typeof state !== "undefined" && state.settings?.matchMode === "crow";
+        const roundsComplete = typeof state !== "undefined"
+          && Array.isArray(state.qualifierRounds)
+          && state.qualifierRounds.length > 0
+          && state.qualifierRounds.every(isRoundCompleteV275);
+        finalDecisionReady = Boolean(running && !finalRaceStarted && !isRevival && (crow ? areCrowRoundsCompleteV275() : roundsComplete));
       } catch (error) {}
       return {
         count: operatorFinalShortcut && visible(operatorFinalShortcut) ? 1 : 0,
         text,
         finalRaceStarted,
         isRevival,
+        finalDecisionReady,
         pendingFinalBoxCount: operatorPendingFinalBoxes.length,
         topGap: railRect && shortcutRect ? Math.round(shortcutRect.top - railRect.bottom) : 999,
         leftDelta: railRect && shortcutRect ? Math.round(Math.abs(shortcutRect.left - railRect.left)) : 999,
@@ -1054,12 +1076,16 @@ async function assertNoUiBreakage(page, label, failures) {
       failures.push(`${label}: merged overview missing current group/progress detail ${JSON.stringify(merged)}`);
     }
   }
-  if (info.surface === "operator" && !info.operatorFinalShortcutV245.finalRaceStarted && !info.operatorFinalShortcutV245.isRevival) {
+  if (info.surface === "operator") {
     const shortcut = info.operatorFinalShortcutV245;
-    if (shortcut.count !== 1) failures.push(`${label}: final shortcut missing under round tabs ${JSON.stringify(shortcut)}`);
-    if (!/최종 결승 진행|9강 준결 생성/.test(shortcut.text)) failures.push(`${label}: final shortcut text mismatch ${JSON.stringify(shortcut)}`);
-    if (shortcut.pendingFinalBoxCount !== 0) failures.push(`${label}: old pending final summary card still visible ${JSON.stringify(shortcut)}`);
-    if (shortcut.topGap < 0 || shortcut.topGap > 16 || shortcut.leftDelta > 1 || shortcut.rightDelta > 1) failures.push(`${label}: final shortcut not aligned below round tabs ${JSON.stringify(shortcut)}`);
+    if (shortcut.finalDecisionReady) {
+      if (shortcut.count !== 1) failures.push(`${label}: ready final shortcut missing under round tabs ${JSON.stringify(shortcut)}`);
+      if (!/최종 결승 진행|9강 준결 생성|결승 미성립|9강 미성립/.test(shortcut.text)) failures.push(`${label}: final shortcut text mismatch ${JSON.stringify(shortcut)}`);
+      if (shortcut.topGap < 0 || shortcut.topGap > 16 || shortcut.leftDelta > 1 || shortcut.rightDelta > 1) failures.push(`${label}: final shortcut not aligned below round tabs ${JSON.stringify(shortcut)}`);
+    } else if (shortcut.count !== 0) {
+      failures.push(`${label}: final shortcut visible before final decision ${JSON.stringify(shortcut)}`);
+    }
+    if (!shortcut.finalRaceStarted && shortcut.pendingFinalBoxCount !== 0) failures.push(`${label}: old pending final summary card still visible ${JSON.stringify(shortcut)}`);
   }
   if (info.surface === "operator" && !info.operatorFeedbackNearController) failures.push(`${label}: operator feedback is not beside the controller`);
   if (/^(start-point-round|point-scores)$/.test(label) && info.surface === "operator" && info.operatorFinalistConfirmButtons.length) failures.push(`${label}: finalist confirm button visible before final stage ${JSON.stringify(info.operatorFinalistConfirmButtons)}`);
@@ -1536,6 +1562,7 @@ async function runViewport(browser, meta, viewport) {
         rollbackRefresh,
         rollbackOffset,
         rollbackClockRefetched: rollbackRefresh && rollbackOffset === 31_000,
+        specialInfoReadsV286: clone(window.__qaFirebaseSpecialInfoReadsV286),
         claimed,
         lease,
         serverRemainingMs,
@@ -1574,11 +1601,53 @@ async function runViewport(browser, meta, viewport) {
     || !firebaseServerClockLeaseV279.offsetLoaded
     || firebaseServerClockLeaseV279.loadedOffset !== 30_000
     || !firebaseServerClockLeaseV279.rollbackClockRefetched
+    || firebaseServerClockLeaseV279.specialInfoReadsV286?.get !== 0
+    || !(firebaseServerClockLeaseV279.specialInfoReadsV286?.once > 0)
     || !firebaseServerClockLeaseV279.claimed
     || !firebaseServerClockLeaseV279.leaseUsesServerClock
     || !firebaseServerClockLeaseV279.offsetRestored
   ) {
     failures.push(`firebase server clock lease v279 failed ${JSON.stringify(firebaseServerClockLeaseV279)}`);
+  }
+
+  const finalShortcutGateV286 = await page.evaluate(() => {
+    const backupState = exportState();
+    const backupActiveRoundIndex = activeRoundIndex;
+    try {
+      state = makeInitialState(3);
+      state.settings.matchMode = "basic";
+      state.tournament.status = "draft";
+      const draftHtml = renderOperatorFinalShortcutV245();
+
+      state.tournament.status = "running";
+      const incompleteHtml = renderOperatorFinalShortcutV245();
+
+      state.qualifierRounds.forEach((round, index) => {
+        round.finalist = { id: `qa-final-gate-${index + 1}`, name: `Finalist ${index + 1}`, team: "QA" };
+        round.noFinalist = false;
+        round.finalistStatus = "";
+      });
+      const readyHtml = renderOperatorFinalShortcutV245();
+
+      state.finalRace = { id: "qa-final-gate-created", name: "최종 결승", group: { id: "qa-final-gate-group", slots: [], advanceIds: [] } };
+      const createdHtml = renderOperatorFinalShortcutV245();
+      return {
+        draftHidden: draftHtml === "",
+        incompleteHidden: incompleteHtml === "",
+        readyVisible: /operator-final-shortcut-v245/.test(readyHtml) && /최종 결승 진행/.test(readyHtml),
+        createdHidden: createdHtml === ""
+      };
+    } finally {
+      state = normalizeImportedState(backupState);
+      activeRoundIndex = backupActiveRoundIndex;
+      state.activeRoundIndex = backupActiveRoundIndex;
+      persistCurrentState();
+      renderOperator();
+    }
+  });
+  logs.push({ step: "final-shortcut-gate-v286", info: finalShortcutGateV286 });
+  if (!finalShortcutGateV286.draftHidden || !finalShortcutGateV286.incompleteHidden || !finalShortcutGateV286.readyVisible || !finalShortcutGateV286.createdHidden) {
+    failures.push(`final shortcut gate v286 failed ${JSON.stringify(finalShortcutGateV286)}`);
   }
 
   const publicPayloadPrivacy = await page.evaluate(() => {
