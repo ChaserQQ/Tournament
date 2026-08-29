@@ -17247,13 +17247,21 @@ html body.live-lobby-page-v89:not(.tv-mode) .live-summary-compact-v173 {
     justify-content: stretch !important;
   }
 
+  /* v284: compact mobile navigation keeps four peer actions on one row. */
   html body.surface-live-lobby.live-lobby-page-v89:not(.surface-tv-live):not(.tv-mode) .unified-header-actions-v173 {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 6px !important;
   }
 
   html body[class*="surface-"]:not(.surface-tv-live):not(.tv-mode) .unified-header-actions-v173 button {
     width: 100% !important;
-    min-height: 44px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+  }
+
+  html body.surface-live-lobby.live-lobby-page-v89:not(.surface-tv-live):not(.tv-mode) .unified-header-actions-v173 button {
+    padding-inline: 4px !important;
+    font-size: 12px !important;
   }
 
   html body.surface-player-management.ui-mode-mobile.ui-page-db:not(.tv-mode) .db-topline-v130:not(.db-command-bar-v202),
@@ -21385,7 +21393,8 @@ html body.surface-mobile-live:not(.tv-mode) .history-group-line span {
 
   html body.surface-live-lobby:not(.tv-mode) .live-lobby-actions-v89 button,
   html body.live-lobby-page-v89:not(.tv-mode) .live-lobby-actions-v89 button {
-    min-height: 44px !important;
+    height: 40px !important;
+    min-height: 40px !important;
   }
 
   html body.surface-live-lobby:not(.tv-mode) .live-summary-panel-v212 small,

@@ -341,7 +341,9 @@ async function inspectRoute(browser, meta, route, viewport) {
       .map(node => Number(String(getComputedStyle(node).fontSize || "0").replace("px", "")))
       .filter(Number.isFinite);
     const liveSummary = document.querySelector(".live-summary-panel-v212 small");
-    const liveNavButtons = [...document.querySelectorAll(".live-lobby-header-v89 button")].map(button => String(button.textContent || "").trim());
+    const liveNavButtonNodes = [...document.querySelectorAll(".live-lobby-header-v89 button")];
+    const liveNavButtons = liveNavButtonNodes.map(button => String(button.textContent || "").trim());
+    const liveButtonHeights = liveNavButtonNodes.map(button => button.getBoundingClientRect().height);
     return {
       hash: location.hash,
       surface: doc.getAttribute("data-ui-surface") || "",
@@ -361,7 +363,9 @@ async function inspectRoute(browser, meta, route, viewport) {
       compactEmptySlots: document.querySelectorAll("[data-v283-empty-slot]").length,
       emptySlotsExpanded: Boolean(document.querySelector(".live-empty-slots-v283")?.open),
       liveNavButtons,
-      liveButtonMinHeight: liveButtons.length ? Math.min(...liveButtons.map(button => button.getBoundingClientRect().height)) : 0,
+      liveNavRowCount: new Set(liveNavButtonNodes.map(button => Math.round(button.getBoundingClientRect().top))).size,
+      liveButtonMinHeight: liveButtonHeights.length ? Math.min(...liveButtonHeights) : 0,
+      liveButtonMaxHeight: liveButtonHeights.length ? Math.max(...liveButtonHeights) : 0,
       liveMetadataMinFont: liveMetadataFonts.length ? Math.min(...liveMetadataFonts) : 0,
       liveSummaryClipped: Boolean(liveSummary && (liveSummary.scrollWidth > liveSummary.clientWidth + 1 || liveSummary.scrollHeight > liveSummary.clientHeight + 1)),
       loginInputs: document.querySelectorAll("input[type='email'],input[type='password']").length,
@@ -388,7 +392,8 @@ async function inspectRoute(browser, meta, route, viewport) {
   if (Number.isInteger(expected.compactEmptySlots) && info.compactEmptySlots !== expected.compactEmptySlots) failures.push(`compact empty slots ${info.compactEmptySlots} !== ${expected.compactEmptySlots}`);
   if (expected.compactEmptySlots && info.emptySlotsExpanded) failures.push("compact empty slots must start collapsed");
   if (expected.liveNav && !["뒤로가기", "홈", "기록", "새로고침"].every(label => info.liveNavButtons.includes(label))) failures.push(`missing live navigation ${JSON.stringify(info.liveNavButtons)}`);
-  if (expected.liveNav && viewport.width <= 760 && info.liveButtonMinHeight < 44) failures.push(`mobile live button target ${info.liveButtonMinHeight}px < 44px`);
+  if (expected.liveNav && viewport.width <= 760 && (info.liveButtonMinHeight < 39.5 || info.liveButtonMaxHeight > 40.5)) failures.push(`mobile live buttons must be compact 40px targets ${info.liveButtonMinHeight}-${info.liveButtonMaxHeight}px`);
+  if (expected.liveNav && viewport.width <= 760 && info.liveNavRowCount !== 1) failures.push(`mobile live navigation must share one row, got ${info.liveNavRowCount}`);
   if (expected.liveNav && viewport.width <= 760 && expected.liveCards > 0 && info.liveMetadataMinFont < 12) failures.push(`mobile live metadata font ${info.liveMetadataMinFont}px < 12px`);
   if (expected.liveNav && viewport.width <= 760 && info.liveSummaryClipped) failures.push("mobile live summary is clipped");
   if (expected.tvWrap && !info.tvWrap) failures.push("missing tv fallback wrap");
