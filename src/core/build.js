@@ -49,14 +49,14 @@
   ];
 
   const meta = Object.freeze({
-    version: 286,
-    label: "BUILD v286 LEASE CLOCK AND FINAL GATE",
-    title: "MINI4WD TOURNAMENT MAKER - v286 LEASE CLOCK AND FINAL GATE",
+    version: 287,
+    label: "BUILD v287 DRAFT LEASE COMMIT RECOVERY",
+    title: "MINI4WD TOURNAMENT MAKER - v287 DRAFT LEASE COMMIT RECOVERY",
     rulesChanged: false,
     assets: Object.freeze({
       config: 156,
-      build: 286,
-      app: 286,
+      build: 287,
+      app: 287,
       css: 284,
       operatorMobileCss: 285,
       og: 51

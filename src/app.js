@@ -10,13 +10,13 @@
     ];
     const RTDB_WRITE_PROTOCOL_V279 = 279;
     const MINI4WD_BUILD = window.MINI4WD_BUILD_META || {
-      version: 286,
-      label: "BUILD v286 LEASE CLOCK AND FINAL GATE",
+      version: 287,
+      label: "BUILD v287 DRAFT LEASE COMMIT RECOVERY",
       rulesChanged: false,
       surfaces: MINI4WD_FALLBACK_SURFACES,
       pageClasses: MINI4WD_FALLBACK_PAGE_CLASSES
     };
-    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v286 LEASE CLOCK AND FINAL GATE";
+    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v287 DRAFT LEASE COMMIT RECOVERY";
     const MINI4WD_SURFACES = Array.isArray(MINI4WD_BUILD.surfaces) && MINI4WD_BUILD.surfaces.length
       ? Array.from(MINI4WD_BUILD.surfaces)
       : MINI4WD_FALLBACK_SURFACES;
@@ -12042,6 +12042,18 @@ function stopLiveLobbyRealtimeV50() {
               };
               return false;
             }
+            // Firebase transactions may invoke a new transaction's updater
+            // with null before the server value reaches the local cache. A
+            // guarded updater that returns undefined for that provisional null
+            // aborts immediately and leaves the reservation pending forever.
+            // Seed only that provisional pass with the server-confirmed
+            // reservation; the server hash then reruns the updater against the
+            // authoritative value before anything can commit.
+            const runReservedLeaseTransactionV287 = updateFn => ref.transaction(
+              current => updateFn(current == null ? reservedLease : current),
+              null,
+              false
+            );
 
             const directRenewal = Boolean(
               reservedLease?.sessionId === operatorSessionIdV178()
@@ -12058,7 +12070,7 @@ function stopLiveLobbyRealtimeV50() {
             );
             const abandonReservedClaim = async () => {
               if (!directRenewal) {
-                await ref.transaction(current => (
+                await runReservedLeaseTransactionV287(current => (
                   current?.pendingClaimToken === pendingClaimToken
                     ? stripPendingClaim(current)
                     : undefined
@@ -12152,7 +12164,7 @@ function stopLiveLobbyRealtimeV50() {
             }
             if (pendingReplay?.preflightDeferred) {
               if (!directRenewal) {
-                await ref.transaction(current => (
+                await runReservedLeaseTransactionV287(current => (
                   current?.pendingClaimToken === pendingClaimToken
                     ? stripPendingClaim(current)
                     : undefined
@@ -12163,7 +12175,7 @@ function stopLiveLobbyRealtimeV50() {
             if (pendingReplay?.preflightRejected) {
               v178LineageResumeAvailable = false;
               if (!directRenewal) {
-                await ref.transaction(current => (
+                await runReservedLeaseTransactionV287(current => (
                   current?.pendingClaimToken === pendingClaimToken
                     ? stripPendingClaim(current)
                     : undefined
@@ -12186,7 +12198,7 @@ function stopLiveLobbyRealtimeV50() {
               if (directRenewal) {
                 await releaseOperationLeaseV178(false, leaseVenueId);
               } else {
-                await ref.transaction(current => (
+                await runReservedLeaseTransactionV287(current => (
                   current?.pendingClaimToken === pendingClaimToken
                     ? stripPendingClaim(current)
                     : undefined
@@ -12197,7 +12209,7 @@ function stopLiveLobbyRealtimeV50() {
 
             let claimedLease = candidateLease;
             if (!directRenewal) {
-              const finalized = await ref.transaction(current => {
+              const finalized = await runReservedLeaseTransactionV287(current => {
                 if (current?.pendingClaimToken !== pendingClaimToken) return;
                 return buildLeasePayloadV178(
                   reason,
@@ -12210,7 +12222,14 @@ function stopLiveLobbyRealtimeV50() {
                 );
               });
               claimedLease = cacheOperationLeaseV278(leaseVenueId, finalized.snapshot?.val() || null);
-              if (!finalized.committed) return false;
+              if (!finalized.committed) {
+                window.__mini4wdLastLeaseClaimFailureV286 = {
+                  reason: "finalize-not-committed",
+                  stage: "finalize",
+                  at: new Date().toISOString()
+                };
+                return false;
+              }
             }
 
             const ownershipSnap = await ref.get();
@@ -12641,7 +12660,7 @@ function stopLiveLobbyRealtimeV50() {
         if (reason === "server-transition") return "서버에서 대회 시작 또는 종료가 처리 중입니다. 잠시 뒤 새로고침하고 다시 시도하세요.";
         if (reason === "server-invalid") return "서버 진행 대회의 연결 정보가 일치하지 않습니다. 진행 대회 확인을 먼저 실행하세요.";
         if (reason === "server-read-failed") return "서버의 진행 대회 상태를 확인하지 못했습니다. 연결을 확인하고 다시 시도하세요.";
-        if (reason === "claim-failed") return "운영권을 가져오지 못했습니다. 새로고침한 뒤 다시 시도하거나 다른 브라우저의 운영 상태를 확인하세요.";
+        if (reason === "claim-failed") return operationLeaseStartFailureMessageV286();
         return "운영권을 안전하게 확인하지 못했습니다. 새로고침한 뒤 다시 시도하세요.";
       }
 

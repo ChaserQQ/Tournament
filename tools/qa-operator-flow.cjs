@@ -229,7 +229,21 @@ const firebaseStub = `
           return Promise.reject(new Error("QA rejected Firebase transaction: " + this.path));
         }
         const current = getAt(this.path);
-        const next = updateFn(clone(current));
+        const nullFirst = Array.isArray(window.__qaFirebaseNullFirstTransactionPathsV287)
+          && window.__qaFirebaseNullFirstTransactionPathsV287.includes(this.path);
+        let next;
+        if (nullFirst) {
+          window.__qaFirebaseNullFirstTransactionCountsV287[this.path] = Number(
+            window.__qaFirebaseNullFirstTransactionCountsV287[this.path] || 0
+          ) + 1;
+          const provisional = updateFn(null);
+          if (provisional === undefined) {
+            return Promise.resolve({ committed: false, snapshot: snapshot(current) });
+          }
+          next = current == null ? provisional : updateFn(clone(current));
+        } else {
+          next = updateFn(clone(current));
+        }
         if (next === undefined) {
           return Promise.resolve({ committed: false, snapshot: snapshot(current) });
         }
@@ -245,6 +259,8 @@ const firebaseStub = `
   window.__qaFirebaseSpecialInfoReadsV286 = specialInfoReadsV286;
   window.__qaFirebaseTransactionCounts = {};
   window.__qaFirebaseTransactionLog = [];
+  window.__qaFirebaseNullFirstTransactionPathsV287 = [];
+  window.__qaFirebaseNullFirstTransactionCountsV287 = {};
   window.firebase = {
     initializeApp: () => ({ name: "qa-app" }),
     apps: [],
@@ -1376,6 +1392,8 @@ async function runViewport(browser, meta, viewport) {
       publicLive: clone(store.publicLive?.[tournamentId]),
       lease: clone(store.operationLocks?.leases?.[venueId]),
       takeover: clone(window.__mini4wdLastLeaseTakeoverV285),
+      nullFirstPaths: clone(window.__qaFirebaseNullFirstTransactionPathsV287),
+      nullFirstCounts: clone(window.__qaFirebaseNullFirstTransactionCountsV287),
       storage: Object.fromEntries(storageKeys.map(key => [key, localStorage.getItem(key)]))
     };
     let result = null;
@@ -1420,6 +1438,9 @@ async function runViewport(browser, meta, viewport) {
       delete store.publicLive[tournamentId];
       delete store.operationLocks.leases[venueId];
       if (typeof cacheOperationLeaseV278 === "function") cacheOperationLeaseV278(venueId, null);
+      const leasePath = `operationLocks/leases/${venueId}`;
+      window.__qaFirebaseNullFirstTransactionPathsV287 = [leasePath];
+      window.__qaFirebaseNullFirstTransactionCountsV287 = {};
 
       const taken = await window.takeoverOperationLeaseV178(true);
       const lease = clone(store.operationLocks?.leases?.[venueId]);
@@ -1444,8 +1465,10 @@ async function runViewport(browser, meta, viewport) {
         leaseStatus: lease?.status || "",
         serverTournamentCreated: Boolean(store.tournaments?.[tournamentId]),
         serverActiveCreated: Boolean(store.activeTournaments?.[venueId]),
+        nullFirstTransactionCount: Number(window.__qaFirebaseNullFirstTransactionCountsV287?.[leasePath] || 0),
         diagnostic
       };
+      window.__qaFirebaseNullFirstTransactionPathsV287 = [];
       await window.releaseOperationLeaseV178(false, venueId);
     } finally {
       store.activeTournaments = store.activeTournaments || {};
@@ -1474,6 +1497,8 @@ async function runViewport(browser, meta, viewport) {
       });
       if (backup.takeover == null) delete window.__mini4wdLastLeaseTakeoverV285;
       else window.__mini4wdLastLeaseTakeoverV285 = backup.takeover;
+      window.__qaFirebaseNullFirstTransactionPathsV287 = backup.nullFirstPaths || [];
+      window.__qaFirebaseNullFirstTransactionCountsV287 = backup.nullFirstCounts || {};
       try { v282LeaseAcquiredVenues.delete(venueId); } catch (error) {}
       if (typeof cacheOperationLeaseV278 === "function") cacheOperationLeaseV278(venueId, backup.lease || null);
       renderOperator();
@@ -1492,6 +1517,7 @@ async function runViewport(browser, meta, viewport) {
     || staleLocalTakeoverV285.leaseStatus !== "draft"
     || staleLocalTakeoverV285.serverTournamentCreated
     || staleLocalTakeoverV285.serverActiveCreated
+    || staleLocalTakeoverV285.nullFirstTransactionCount < 2
     || !staleLocalTakeoverV285.diagnostic?.ok
     || staleLocalTakeoverV285.diagnostic?.mode !== "stale-local-reset"
     || !staleLocalTakeoverV285.diagnostic?.snapshotSaved

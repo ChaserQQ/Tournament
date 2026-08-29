@@ -28,12 +28,14 @@ const VENUE_A = "qa-venue-a";
 const VENUE_B = "qa-venue-b";
 const VENUE_AUTO = "qa-venue-auto";
 const VENUE_LEGACY = "qa-venue-legacy";
+const VENUE_DRAFT = "qa-venue-draft";
 const UID_A = "qa-operator-a";
 const UID_TAKEOVER = "qa-operator-takeover";
 const UID_B = "qa-operator-b";
 const UID_AUTO = "qa-operator-auto";
 const UID_AUTO_CLEANER = "qa-operator-auto-cleaner";
 const UID_LEGACY = "qa-operator-legacy";
+const UID_DRAFT = "qa-operator-draft";
 const UID_PENDING = "qa-pending";
 const UID_BOOTSTRAP_ADMIN = "qa-bootstrap-admin";
 const BOOTSTRAP_ADMIN_EMAIL = "chaser.escane@gmail.com";
@@ -44,6 +46,7 @@ const EMAILS = {
   [UID_AUTO]: "operator-auto@example.test",
   [UID_AUTO_CLEANER]: "operator-auto-cleaner@example.test",
   [UID_LEGACY]: "operator-legacy@example.test",
+  [UID_DRAFT]: "operator-draft@example.test",
   [UID_PENDING]: "pending@example.test",
   [UID_BOOTSTRAP_ADMIN]: BOOTSTRAP_ADMIN_EMAIL
 };
@@ -260,6 +263,7 @@ try {
       [UID_AUTO]: venueProfile(UID_AUTO, VENUE_AUTO),
       [UID_AUTO_CLEANER]: venueProfile(UID_AUTO_CLEANER, VENUE_AUTO),
       [UID_LEGACY]: venueProfile(UID_LEGACY, VENUE_LEGACY),
+      [UID_DRAFT]: venueProfile(UID_DRAFT, VENUE_DRAFT),
       [UID_PENDING]: {
         uid: UID_PENDING,
         email: EMAILS[UID_PENDING],
@@ -279,6 +283,7 @@ try {
   const dbAuto = context(testEnv, UID_AUTO);
   const dbAutoCleaner = context(testEnv, UID_AUTO_CLEANER);
   const dbLegacy = context(testEnv, UID_LEGACY);
+  const dbDraft = context(testEnv, UID_DRAFT);
   const dbPending = context(testEnv, UID_PENDING);
   const dbBootstrapAdmin = context(testEnv, UID_BOOTSTRAP_ADMIN);
 
@@ -301,6 +306,58 @@ try {
     const pendingProfile = (await get(ref(dbPending, `userProfiles/${UID_PENDING}`))).val();
     assert.equal(pendingProfile.role, "pending");
     assert.equal(pendingProfile.approved, false);
+  });
+
+  await qaCase("draft-lease-transaction-reserve-finalize-allow", async () => {
+    const draftLeasePath = `operationLocks/leases/${VENUE_DRAFT}`;
+    const draftSessionId = "session-draft-v287";
+    const draftFenceToken = "fence-draft-v287";
+    const reservationResult = await assertSucceeds(runTransaction(
+      ref(dbDraft, draftLeasePath),
+      current => reserveLease({
+        venueId: VENUE_DRAFT,
+        uid: UID_DRAFT,
+        sessionId: draftSessionId,
+        tournamentId: "",
+        generation: "",
+        fenceToken: draftFenceToken,
+        sequence: 1,
+        now: { ".sv": "timestamp" },
+        current
+      })
+    ));
+    assert.equal(reservationResult.committed, true);
+    const reservation = reservationResult.snapshot.val();
+    assert.equal(reservation.pendingTournamentId, "");
+    assert.equal(reservation.pendingRegistryGeneration, "");
+    const finalizeResult = await assertSucceeds(runTransaction(
+      ref(dbDraft, draftLeasePath),
+      current => {
+        const source = current || reservation;
+        if (source?.pendingClaimToken !== reservation.pendingClaimToken) return;
+        const finalized = finalizeLease({
+          reservation: source,
+          uid: UID_DRAFT,
+          sessionId: draftSessionId,
+          now: Date.now()
+        });
+        finalized.tournamentId = "";
+        finalized.registryGeneration = "";
+        finalized.tournamentName = "Draft Rules QA";
+        finalized.status = "draft";
+        finalized.reason = "rules-qa-draft-finalize-v287";
+        finalized.updatedAt = { ".sv": "timestamp" };
+        return finalized;
+      },
+      { applyLocally: false }
+    ));
+    assert.equal(finalizeResult.committed, true);
+    const stored = finalizeResult.snapshot.val();
+    assert.equal(Object.hasOwn(stored, "pendingClaimToken"), false);
+    assert.equal(stored.status, "draft");
+    assert.equal(stored.tournamentId, "");
+    assert.equal(stored.registryGeneration, "");
+    assert.equal(stored.sessionId, draftSessionId);
   });
 
   const tournamentId = "qa-rules-main-v279";
