@@ -21,11 +21,11 @@
 
 ## Current verified state
 
-- Verified 2026-08-28 KST: 공개 앱은 v282, BUILD v282 OPERATOR LEASE AUTO ACQUIRE이다.
-- build와 app 자산 버전은 282, 두 CSS 자산은 278, config는 156이다.
-- RTDB write protocol은 279이며 v282에서는 Firebase 규칙을 변경하지 않았다.
-- v282 공개 index, build.js, app.js는 HTTP 200으로 확인됐고 승인된 경기장 계정의 초안 운영권 자동 획득과 실제 lease 상태 표시가 배포됐다.
-- npm.cmd run qa:all이 v282에서 통과했다.
+- Verified 2026-08-29 KST: 현재 릴리스 소스는 v283, BUILD v283 LIVE LOBBY USABILITY이다.
+- build, app, 두 CSS 자산 버전은 283이고 config는 156이다.
+- RTDB write protocol은 279이며 v283에서는 Firebase 규칙과 운영 데이터를 변경하지 않았다.
+- 라이브 로비는 승인 경기장 카드만 전체 카드로 표시하고 나머지 빈 슬롯은 접힌 목록으로 축약한다. 20슬롯 계약은 data-v283-total-slots로 유지한다.
+- npm.cmd run qa:all이 v283에서 통과했고 실데이터 PC, 390px, 320px 라이브 로비를 별도로 확인했다.
 - 현재 소스 기준 파일은 src/app.js, src/core/build.js, src/styles/app.css, src/styles/operator-mobile.css, tools/verify-static.js와 tools 아래 QA 스크립트다.
 - 보존할 추적되지 않은 항목은 .codex-remote-attachments/, DESIGN_OUTPUT.md, FIREBASE_REPORT.md, QA_REPORT.md이다.
 
@@ -51,6 +51,7 @@
 
 ## Recent durable changes
 
+- 2026-08-29 v283: LIVE 로비의 20슬롯 데이터 계약은 유지하되 승인 경기장이 없는 슬롯은 접힌 축약 목록으로 옮겼다. 뒤로가기·홈·기록·새로고침 이동을 추가하고 모바일 상단 이동, 경기 카드, 운영 화면의 핵심 터치 영역을 44px로 맞췄다. 320px 요약 문구와 12px 카드 메타 가독성을 QA로 고정했다.
 - 2026-08-28 v282: 승인된 venue 계정은 초안 운영 화면 진입 시 비어 있는 서버 lease를 자동 획득한다. 서버 상태를 운영권 보유·획득 중·없음으로 정확히 표시하고 비동기 획득 뒤 가져오기·해제 버튼을 즉시 동기화한다. 관리자 계정, 대회 종료, 명시적 해제 뒤에는 자동 재획득하지 않는다.
 - 2026-08-28 verified live Firebase cleanup: `activeTournaments/아테네월드`가 없고 pending claim과 유효 lease가 없음을 확인한 뒤, 2026-08-21에 만료된 레거시 `operationLocks/leases/아테네월드`만 저장소 밖에 원본 백업하고 제거했다. 아테네월드 계정 프로필과 공개 경기장 디렉터리는 변경하지 않았고 앱·규칙 버전도 그대로다.
 - 2026-08-26 instruction refresh: AGENTS.md를 영구 규칙의 기준으로 신설하고, 프로젝트 메모·작업 큐·구현 개요·UI 계약에서 버전 중복과 과거 역할 지침을 제거했다. 배포 실행 번호를 기록하기 위한 사후 커밋도 중단한다.
@@ -66,6 +67,7 @@
 - 커밋 SHA, Pages 실행, 공개 자산, Firebase 활성 상태는 변동 정보다. 문서 값보다 현재 상태를 우선한다.
 - src/app.js의 높은 버전 접미 함수도 활성 호환 코드일 수 있으므로 이름만 보고 제거하지 않는다.
 - src/styles/operator-mobile.css는 src/styles/app.css 뒤에 로드된다.
+- LIVE 로비의 20슬롯 계약과 렌더링된 전체 카드 수는 같지 않다. 승인 경기장 카드는 전체 카드, 빈 슬롯은 접힌 data-v283-empty-slot 목록으로 검사한다.
 - 인증 운영자의 권한은 서버 lease 하나다. 레거시 operationLock을 다시 쓰기 차단 조건으로 사용하면 안 된다.
 - 운영권 판정과 LIVE 쓰기는 정확한 venue, tournament, generation, fence와 sequence를 함께 확인해야 한다.
 - 수동 조 수는 첫 생성 단계 제약이며 단계 이름이 예선인지로 판단하면 안 된다.

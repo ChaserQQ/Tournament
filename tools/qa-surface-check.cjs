@@ -107,10 +107,39 @@ const firebaseStub = `
 (function(){
   if (window.__qaSurfaceFirebaseInstalled) return;
   window.__qaSurfaceFirebaseInstalled = true;
+  const lobbyFixtureEnabled = /(?:^|[#&])view=(?:live-lobby|lobby)(?:&|$)/.test(String(location.hash || ""));
+  const qaFixtureNow = Date.now();
   const store = {
-    publicLive: {},
-    publicHistory: {},
-    publicVenues: {},
+    publicLive: lobbyFixtureEnabled ? {
+      "qa-live-tournament": {
+        updatedAt: qaFixtureNow,
+        state: {
+          updatedAt: qaFixtureNow,
+          tournament: {
+            venueId: "qa-live",
+            venue: "QA LIVE",
+            name: "QA 진행 대회",
+            raceClass: "오픈",
+            status: "running"
+          }
+        }
+      }
+    } : {},
+    publicHistory: lobbyFixtureEnabled ? {
+      "qa-recent-result": {
+        venueId: "qa-recent",
+        venueName: "QA RECENT",
+        tournamentName: "QA 최근 대회",
+        raceClass: "오픈",
+        createdAt: qaFixtureNow - 1000,
+        rows: [{ "결과": "최종우승", "선수명": "QA 우승" }]
+      }
+    } : {},
+    publicVenues: lobbyFixtureEnabled ? {
+      "qa-live": { venueId: "qa-live", venueName: "QA LIVE", source: "qa-fixture", updatedAt: qaFixtureNow },
+      "qa-recent": { venueId: "qa-recent", venueName: "QA RECENT", source: "qa-fixture", updatedAt: qaFixtureNow - 1000 },
+      "qa-waiting": { venueId: "qa-waiting", venueName: "QA WAITING", source: "qa-fixture", updatedAt: qaFixtureNow - 2000 }
+    } : {},
     publicVenueDirectory: {},
     userProfiles: {},
     users: {},
@@ -231,9 +260,10 @@ async function installLocalRouteStubs(page) {
 }
 
 function expectedFor(routeName) {
-  if (routeName === "mobile-live-missing-id") return { surface: "live-lobby", liveCards: 20 };
+  if (routeName === "mobile-live-missing-id") return { surface: "live-lobby", liveCards: 0, totalSlots: 20, compactEmptySlots: 20, liveNav: true };
   if (routeName === "tv-live-missing-id" || routeName === "tv-live-missing-record") return { surface: "tv-live", tvWrap: true, textIncludes: "LIVE 대기중" };
-  if (routeName.includes("live") || routeName.includes("lobby")) return { surface: "live-lobby", liveCards: 20 };
+  if (routeName === "live-lobby" || routeName === "lobby-alias") return { surface: "live-lobby", liveCards: 3, totalSlots: 20, compactEmptySlots: 17, liveNav: true };
+  if (routeName.includes("live") || routeName.includes("lobby")) return { surface: "live-lobby", liveCards: 0, totalSlots: 20, compactEmptySlots: 20, liveNav: true };
   if (routeName === "print-route") return { surface: "login", loginInputs: true };
   return { surface: "login", loginInputs: true };
 }
@@ -263,7 +293,13 @@ async function inspectRoute(browser, meta, route, viewport) {
     const text = String(document.getElementById("app")?.innerText || "");
     if (target.surface && surface !== target.surface) return false;
     if (target.loginInputs && document.querySelectorAll("input[type='email'],input[type='password']").length < 2) return false;
-    if (target.liveCards && document.querySelectorAll(".live-card-v89").length !== target.liveCards) return false;
+    if (Number.isInteger(target.liveCards) && document.querySelectorAll(".live-card-v89").length !== target.liveCards) return false;
+    if (Number.isInteger(target.totalSlots) && Number(document.querySelector("[data-v283-total-slots]")?.dataset.v283TotalSlots || -1) !== target.totalSlots) return false;
+    if (Number.isInteger(target.compactEmptySlots) && document.querySelectorAll("[data-v283-empty-slot]").length !== target.compactEmptySlots) return false;
+    if (target.liveNav) {
+      const labels = new Set([...document.querySelectorAll(".live-lobby-header-v89 button")].map(button => String(button.textContent || "").trim()));
+      if (!["뒤로가기", "홈", "기록", "새로고침"].every(label => labels.has(label))) return false;
+    }
     if (target.tvWrap && !document.querySelector(".tv-wrap")) return false;
     if (target.textIncludes && !text.includes(target.textIncludes)) return false;
     return Boolean(document.getElementById("app")?.children.length);
@@ -296,6 +332,16 @@ async function inspectRoute(browser, meta, route, viewport) {
       .filter(item => item.left < -2 || item.right > window.innerWidth + 2);
     const text = String(app?.innerText || "").replace(/\s+/g, " ");
     const suspiciousQuestionCount = (text.match(/\?/g) || []).length;
+    const liveButtons = [...document.querySelectorAll(".live-lobby-shell-v89 button")].filter(button => {
+      const rect = button.getBoundingClientRect();
+      const style = getComputedStyle(button);
+      return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+    });
+    const liveMetadataFonts = [...document.querySelectorAll(".live-card-v89 :is(.live-status-v89, .live-venue-v89, .live-meta-v89, .live-result-v89 span, .live-result-v89 small)")]
+      .map(node => Number(String(getComputedStyle(node).fontSize || "0").replace("px", "")))
+      .filter(Number.isFinite);
+    const liveSummary = document.querySelector(".live-summary-panel-v212 small");
+    const liveNavButtons = [...document.querySelectorAll(".live-lobby-header-v89 button")].map(button => String(button.textContent || "").trim());
     return {
       hash: location.hash,
       surface: doc.getAttribute("data-ui-surface") || "",
@@ -311,6 +357,13 @@ async function inspectRoute(browser, meta, route, viewport) {
       offscreen: offscreen.slice(0, 8),
       buttons: [...document.querySelectorAll("button")].slice(0, 12).map(button => String(button.innerText || button.textContent || "").trim()),
       liveCards: document.querySelectorAll(".live-card-v89").length,
+      totalSlots: Number(document.querySelector("[data-v283-total-slots]")?.dataset.v283TotalSlots || 0),
+      compactEmptySlots: document.querySelectorAll("[data-v283-empty-slot]").length,
+      emptySlotsExpanded: Boolean(document.querySelector(".live-empty-slots-v283")?.open),
+      liveNavButtons,
+      liveButtonMinHeight: liveButtons.length ? Math.min(...liveButtons.map(button => button.getBoundingClientRect().height)) : 0,
+      liveMetadataMinFont: liveMetadataFonts.length ? Math.min(...liveMetadataFonts) : 0,
+      liveSummaryClipped: Boolean(liveSummary && (liveSummary.scrollWidth > liveSummary.clientWidth + 1 || liveSummary.scrollHeight > liveSummary.clientHeight + 1)),
       loginInputs: document.querySelectorAll("input[type='email'],input[type='password']").length,
       tvWrap: document.querySelectorAll(".tv-wrap").length
     };
@@ -330,7 +383,14 @@ async function inspectRoute(browser, meta, route, viewport) {
   if (info.hasReplacementChar || info.suspiciousQuestionCount > 8) failures.push(`text encoding suspect: ${info.textSample}`);
   if (expected.surface && info.surface !== expected.surface) failures.push(`surface ${info.surface} !== ${expected.surface}`);
   if (expected.loginInputs && info.loginInputs < 2) failures.push("missing login inputs");
-  if (expected.liveCards && info.liveCards !== expected.liveCards) failures.push(`live cards ${info.liveCards} !== ${expected.liveCards}`);
+  if (Number.isInteger(expected.liveCards) && info.liveCards !== expected.liveCards) failures.push(`live cards ${info.liveCards} !== ${expected.liveCards}`);
+  if (Number.isInteger(expected.totalSlots) && info.totalSlots !== expected.totalSlots) failures.push(`total slots ${info.totalSlots} !== ${expected.totalSlots}`);
+  if (Number.isInteger(expected.compactEmptySlots) && info.compactEmptySlots !== expected.compactEmptySlots) failures.push(`compact empty slots ${info.compactEmptySlots} !== ${expected.compactEmptySlots}`);
+  if (expected.compactEmptySlots && info.emptySlotsExpanded) failures.push("compact empty slots must start collapsed");
+  if (expected.liveNav && !["뒤로가기", "홈", "기록", "새로고침"].every(label => info.liveNavButtons.includes(label))) failures.push(`missing live navigation ${JSON.stringify(info.liveNavButtons)}`);
+  if (expected.liveNav && viewport.width <= 760 && info.liveButtonMinHeight < 44) failures.push(`mobile live button target ${info.liveButtonMinHeight}px < 44px`);
+  if (expected.liveNav && viewport.width <= 760 && expected.liveCards > 0 && info.liveMetadataMinFont < 12) failures.push(`mobile live metadata font ${info.liveMetadataMinFont}px < 12px`);
+  if (expected.liveNav && viewport.width <= 760 && info.liveSummaryClipped) failures.push("mobile live summary is clipped");
   if (expected.tvWrap && !info.tvWrap) failures.push("missing tv fallback wrap");
   if (expected.textIncludes && !info.textSample.includes(expected.textIncludes)) failures.push(`missing expected text: ${expected.textIncludes}`);
 
@@ -359,6 +419,9 @@ async function inspectStaleFallback(browser) {
     surface: document.documentElement.getAttribute("data-ui-surface") || "",
     bodyClass: document.body.className,
     liveCards: document.querySelectorAll(".live-card-v89").length,
+    totalSlots: Number(document.querySelector("[data-v283-total-slots]")?.dataset.v283TotalSlots || 0),
+    compactEmptySlots: document.querySelectorAll("[data-v283-empty-slot]").length,
+    liveNavButtons: [...document.querySelectorAll(".live-lobby-header-v89 button")].map(button => String(button.textContent || "").trim()),
     tvWrap: document.querySelectorAll(".tv-wrap").length,
     overflowX: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - Math.max(document.documentElement.clientWidth, document.body.clientWidth)
   }));
@@ -368,7 +431,10 @@ async function inspectStaleFallback(browser) {
   if (info.hash !== "#view=live-lobby") failures.push(`hash changed to ${info.hash}`);
   if (info.surface !== "live-lobby") failures.push(`surface ${info.surface} !== live-lobby`);
   if (info.tvWrap) failures.push("stale TV fallback rendered over lobby");
-  if (info.liveCards !== 20) failures.push(`live cards ${info.liveCards} !== 20`);
+  if (info.liveCards !== 0) failures.push(`live cards ${info.liveCards} !== 0`);
+  if (info.totalSlots !== 20) failures.push(`total slots ${info.totalSlots} !== 20`);
+  if (info.compactEmptySlots !== 20) failures.push(`compact empty slots ${info.compactEmptySlots} !== 20`);
+  if (!["뒤로가기", "홈", "기록", "새로고침"].every(label => info.liveNavButtons.includes(label))) failures.push(`missing live navigation ${JSON.stringify(info.liveNavButtons)}`);
   if (info.overflowX > 2) failures.push(`horizontal overflow ${info.overflowX}px`);
   return { route: "same-tab-stale-tv-fallback", viewport: { width: 390, height: 844 }, ok: failures.length === 0, failures, info };
 }

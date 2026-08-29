@@ -17248,12 +17248,12 @@ html body.live-lobby-page-v89:not(.tv-mode) .live-summary-compact-v173 {
   }
 
   html body.surface-live-lobby.live-lobby-page-v89:not(.surface-tv-live):not(.tv-mode) .unified-header-actions-v173 {
-    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
   html body[class*="surface-"]:not(.surface-tv-live):not(.tv-mode) .unified-header-actions-v173 button {
     width: 100% !important;
-    min-height: 40px !important;
+    min-height: 44px !important;
   }
 
   html body.surface-player-management.ui-mode-mobile.ui-page-db:not(.tv-mode) .db-topline-v130:not(.db-command-bar-v202),
@@ -20877,8 +20877,85 @@ html body.live-lobby-page-v89:not(.tv-mode) .live-summary-panel-v212 {
 html body.surface-live-lobby:not(.tv-mode) .live-grid-v89,
 html body.live-lobby-page-v89:not(.tv-mode) .live-grid-v89 {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
   gap: 10px !important;
+}
+
+/* v283: empty LIVE slots keep the 20-slot contract without rendering full empty cards. */
+html body.surface-live-lobby:not(.tv-mode) .live-empty-note-v283,
+html body.live-lobby-page-v89:not(.tv-mode) .live-empty-note-v283 {
+  grid-column: 1 / -1 !important;
+}
+
+html body.surface-live-lobby:not(.tv-mode) .live-empty-slots-v283,
+html body.live-lobby-page-v89:not(.tv-mode) .live-empty-slots-v283 {
+  overflow: hidden !important;
+  border: 1px solid var(--v218-line) !important;
+  border-radius: var(--v218-radius-card) !important;
+  background: var(--v218-surface) !important;
+  box-shadow: var(--v218-shadow-flat) !important;
+}
+
+html body.surface-live-lobby:not(.tv-mode) .live-empty-slots-v283 > summary,
+html body.live-lobby-page-v89:not(.tv-mode) .live-empty-slots-v283 > summary {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-height: 44px !important;
+  padding: 9px 12px !important;
+  color: var(--v218-muted-strong) !important;
+  cursor: pointer !important;
+  list-style: none !important;
+}
+
+html body.surface-live-lobby:not(.tv-mode) .live-empty-slots-v283 > summary::-webkit-details-marker,
+html body.live-lobby-page-v89:not(.tv-mode) .live-empty-slots-v283 > summary::-webkit-details-marker {
+  display: none !important;
+}
+
+html body.surface-live-lobby:not(.tv-mode) .live-empty-slots-v283 > summary span,
+html body.live-lobby-page-v89:not(.tv-mode) .live-empty-slots-v283 > summary span,
+html body.surface-live-lobby:not(.tv-mode) .live-empty-slots-v283 > summary b,
+html body.live-lobby-page-v89:not(.tv-mode) .live-empty-slots-v283 > summary b {
+  color: var(--v218-text) !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+}
+
+html body.surface-live-lobby:not(.tv-mode) .live-empty-slots-v283 > summary small,
+html body.live-lobby-page-v89:not(.tv-mode) .live-empty-slots-v283 > summary small {
+  color: var(--v218-muted) !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+
+html body.surface-live-lobby:not(.tv-mode) .live-empty-slots-v283[open] > summary,
+html body.live-lobby-page-v89:not(.tv-mode) .live-empty-slots-v283[open] > summary {
+  border-bottom: 1px solid var(--v218-line) !important;
+}
+
+html body.surface-live-lobby:not(.tv-mode) .live-empty-slot-grid-v283,
+html body.live-lobby-page-v89:not(.tv-mode) .live-empty-slot-grid-v283 {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)) !important;
+  gap: 7px !important;
+  padding: 10px !important;
+}
+
+html body.surface-live-lobby:not(.tv-mode) .live-empty-slot-v283,
+html body.live-lobby-page-v89:not(.tv-mode) .live-empty-slot-v283 {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  min-height: 34px !important;
+  padding: 7px 9px !important;
+  border: 1px solid var(--v218-line) !important;
+  border-radius: var(--v218-radius-card) !important;
+  color: var(--v218-muted) !important;
+  background: var(--v218-surface-soft) !important;
+  font-size: 12px !important;
 }
 
 html body.surface-live-lobby:not(.tv-mode) .live-card-v89,
@@ -20928,7 +21005,7 @@ html body.live-lobby-page-v89:not(.tv-mode) .live-status-v89 {
   border-radius: 999px !important;
   color: var(--v218-muted-strong) !important;
   background: var(--v218-surface-soft) !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
   line-height: 22px !important;
 }
 
@@ -20947,7 +21024,7 @@ html body.surface-live-lobby:not(.tv-mode) .live-venue-v89,
 html body.live-lobby-page-v89:not(.tv-mode) .live-venue-v89 {
   margin: 0 0 5px !important;
   color: var(--v218-muted) !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
   font-weight: 800 !important;
 }
 
@@ -20964,7 +21041,7 @@ html body.live-lobby-page-v89:not(.tv-mode) .live-meta-v89 {
   gap: 3px !important;
   margin-top: 8px !important;
   color: var(--v218-muted) !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 html body.surface-live-lobby:not(.tv-mode) .live-result-v89,
@@ -20978,7 +21055,7 @@ html body.live-lobby-page-v89:not(.tv-mode) .live-result-v89 {
 html body.surface-live-lobby:not(.tv-mode) .live-result-v89 span,
 html body.live-lobby-page-v89:not(.tv-mode) .live-result-v89 span {
   color: var(--v218-muted) !important;
-  font-size: 9px !important;
+  font-size: 11px !important;
   font-weight: 850 !important;
 }
 
@@ -20991,7 +21068,7 @@ html body.live-lobby-page-v89:not(.tv-mode) .live-result-v89 b {
 html body.surface-live-lobby:not(.tv-mode) .live-result-v89 small,
 html body.live-lobby-page-v89:not(.tv-mode) .live-result-v89 small {
   color: var(--v218-muted) !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
 }
 
 html body.surface-live-lobby:not(.tv-mode) .live-lobby-actions-v89,
@@ -21004,21 +21081,21 @@ html body.live-lobby-page-v89:not(.tv-mode) .live-lobby-actions-v89 {
 html body.surface-live-lobby:not(.tv-mode) .live-lobby-actions-v89 button,
 html body.live-lobby-page-v89:not(.tv-mode) .live-lobby-actions-v89 button {
   min-width: 0 !important;
-  min-height: 34px !important;
+  min-height: 40px !important;
   padding: 0 8px !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 html body.surface-live-lobby:not(.tv-mode) .live-lobby-placeholder-v89,
 html body.live-lobby-page-v89:not(.tv-mode) .live-lobby-placeholder-v89 {
-  min-height: 34px !important;
+  min-height: 40px !important;
   display: grid !important;
   place-items: center !important;
   border: 1px dashed var(--v218-line-strong) !important;
   border-radius: var(--v218-radius-card) !important;
   color: var(--v218-muted) !important;
   background: var(--v218-surface-soft) !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
   font-weight: 850 !important;
 }
 
@@ -21055,13 +21132,13 @@ html body.live-lobby-page-v89:not(.tv-mode) .history-row-v89 b {
 html body.surface-live-lobby:not(.tv-mode) .history-row-v89 span,
 html body.live-lobby-page-v89:not(.tv-mode) .history-row-v89 span {
   color: var(--v218-muted) !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
 }
 
 html body.surface-live-lobby:not(.tv-mode) .live-footer-v89,
 html body.live-lobby-page-v89:not(.tv-mode) .live-footer-v89 {
   color: var(--v218-muted) !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
 }
 
 html body.surface-mobile-live:not(.tv-mode) .mobile-view {
@@ -21295,6 +21372,34 @@ html body.surface-mobile-live:not(.tv-mode) .history-group-line span {
   html body.surface-live-lobby:not(.tv-mode) .live-card-v89,
   html body.live-lobby-page-v89:not(.tv-mode) .live-card-v89 {
     min-height: 216px !important;
+  }
+
+  html body.surface-live-lobby:not(.tv-mode) .live-lobby-header-v89 .desc,
+  html body.live-lobby-page-v89:not(.tv-mode) .live-lobby-header-v89 .desc,
+  html body.surface-live-lobby.ui-mode-mobile:not(.tv-mode) .live-card-v89 :is(.live-status-v89, .live-venue-v89, .live-meta-v89, .live-result-v89 span, .live-result-v89 small),
+  html body.live-lobby-page-v89.ui-mode-mobile:not(.tv-mode) .live-card-v89 :is(.live-status-v89, .live-venue-v89, .live-meta-v89, .live-result-v89 span, .live-result-v89 small),
+  html body.surface-live-lobby:not(.tv-mode) .live-lobby-placeholder-v89,
+  html body.live-lobby-page-v89:not(.tv-mode) .live-lobby-placeholder-v89 {
+    font-size: 12px !important;
+  }
+
+  html body.surface-live-lobby:not(.tv-mode) .live-lobby-actions-v89 button,
+  html body.live-lobby-page-v89:not(.tv-mode) .live-lobby-actions-v89 button {
+    min-height: 44px !important;
+  }
+
+  html body.surface-live-lobby:not(.tv-mode) .live-summary-panel-v212 small,
+  html body.live-lobby-page-v89:not(.tv-mode) .live-summary-panel-v212 small {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    text-align: center !important;
+    line-height: 1.4 !important;
+  }
+
+  html body.surface-live-lobby:not(.tv-mode) .live-empty-slot-grid-v283,
+  html body.live-lobby-page-v89:not(.tv-mode) .live-empty-slot-grid-v283 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
   html body.surface-live-lobby:not(.tv-mode) .history-row-v89,

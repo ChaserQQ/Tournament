@@ -10,13 +10,13 @@
     ];
     const RTDB_WRITE_PROTOCOL_V279 = 279;
     const MINI4WD_BUILD = window.MINI4WD_BUILD_META || {
-      version: 282,
-      label: "BUILD v282 OPERATOR LEASE AUTO ACQUIRE",
+      version: 283,
+      label: "BUILD v283 LIVE LOBBY USABILITY",
       rulesChanged: false,
       surfaces: MINI4WD_FALLBACK_SURFACES,
       pageClasses: MINI4WD_FALLBACK_PAGE_CLASSES
     };
-    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v282 OPERATOR LEASE AUTO ACQUIRE";
+    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v283 LIVE LOBBY USABILITY";
     const MINI4WD_SURFACES = Array.isArray(MINI4WD_BUILD.surfaces) && MINI4WD_BUILD.surfaces.length
       ? Array.from(MINI4WD_BUILD.surfaces)
       : MINI4WD_FALLBACK_SURFACES;
@@ -8842,6 +8842,9 @@ function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
       const liveCount = cards.filter(item => item && item.status === "running" && !item.empty).length;
       const emptyCount = cards.filter(item => item && (item.empty || item.status === "empty")).length;
       const waitingCount = Math.max(0, cards.length - liveCount - emptyCount);
+      const indexedCards = cards.map((item, index) => ({ item, index }));
+      const visibleCards = indexedCards.filter(({ item }) => item && !item.empty && item.status !== "empty");
+      const emptyCards = indexedCards.filter(({ item }) => !item || item.empty || item.status === "empty");
       const recent = [...safeRecords].sort((a, b) => getResultRecordDateMs(b) - getResultRecordDateMs(a)).slice(0, 10);
 
       const row = value => value ? `<span>${escapeHtml(value)}</span>` : "";
@@ -8880,6 +8883,16 @@ function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
         </article>`;
       };
 
+      const emptySlotsHtml = emptyCards.length
+        ? `<details class="live-empty-slots-v283 ui-panel-v212" data-v283-empty-count="${emptyCards.length}">
+          <summary><span>빈 슬롯</span><b>${emptyCards.length}개</b><small>슬롯 번호 보기</small></summary>
+          <div class="live-empty-slot-grid-v283">${emptyCards.map(({ index }) => {
+            const slotNo = String(index + 1).padStart(2, "0");
+            return `<span class="live-empty-slot-v283" data-v283-empty-slot="${escapeAttr(slotNo)}"><b>${escapeHtml(slotNo)}</b><span>대기</span></span>`;
+          }).join("")}</div>
+        </details>`
+        : "";
+
       const historyHtml = recent.map(record => `<div class="history-row-v89"><div><b>${escapeHtml(record.venueName || record.venueId || "경기장")}</b><span>${escapeHtml(normalizeRaceClassName(record.raceClass))}</span></div><div><b>${escapeHtml(record.tournamentName || "대회명 미입력")}</b><span>${escapeHtml(record.endedAtISO ? new Date(record.endedAtISO).toLocaleString("ko-KR") : record.createdAt ? new Date(record.createdAt).toLocaleString("ko-KR") : "")}</span></div><div><b>${escapeHtml(getRecordWinnerText(record))}</b><span>우승/상위 결과</span></div></div>`).join("");
 
       app.innerHTML = `<div class="live-lobby-shell-v89 live-lobby-shell-v212 app-shell-v212">
@@ -8893,10 +8906,16 @@ function renderLiveLobbyWithData(tournaments = [], records = [], venues = []) {
             { label: "대기", value: waitingCount },
             { label: "비어 있음", value: emptyCount }
           ],
-          actions: [{ label: "새로고침", onClick: "renderLiveLobbyPage()" }]
+          actions: [
+            { label: "뒤로가기", onClick: "goBack()" },
+            { label: "홈", onClick: "goHome()" },
+            { label: "기록", onClick: "openDashboardPage()" },
+            { label: "새로고침", onClick: "renderLiveLobbyPage()", className: "primary" }
+          ]
         })}
         <section class="live-summary-v89 live-summary-compact-v173 ui-panel-v212 live-summary-panel-v212"><small>${escapeHtml(nowText)} 기준 · ${cards.length}개 슬롯</small></section>
-        <main class="live-grid-v89 ui-workspace-v212 live-lobby-grid-v212">${cards.map(cardHtml).join("")}</main>
+        <main class="live-grid-v89 ui-workspace-v212 live-lobby-grid-v212" data-v283-visible-slots="${visibleCards.length}" data-v283-total-slots="${cards.length}">${visibleCards.length ? visibleCards.map(({ item, index }) => cardHtml(item, index)).join("") : `<div class="live-empty-note-v89 live-empty-note-v283">현재 표시할 경기장이 없습니다.</div>`}</main>
+        ${emptySlotsHtml}
         <section class="live-history-v89 ui-panel-v212 live-history-panel-v212"><h2>최근 경기 히스토리</h2><div class="history-list-v89">${historyHtml || `<div class="live-empty-note-v89">최근 경기 기록이 없습니다.</div>`}</div></section>
         <footer class="live-footer-v89">${escapeHtml(mini4wdBuildLabel())}</footer>
       </div>`;
@@ -12881,7 +12900,8 @@ function stopLiveLobbyRealtimeV50() {
           "mobile-operator-undo-v266",
           "bracket-advancement-guards-v280",
           "operation-lease-single-authority-v281",
-          "draft-auto-operation-lease-v282"
+          "draft-auto-operation-lease-v282",
+          "live-lobby-usability-v283"
         ],
         removedLegacyRuntime: [
           "manual-live-session-stubs",

@@ -775,7 +775,7 @@ async function assertNoUiBreakage(page, label, failures) {
       const taskGaps = taskItems.slice(1).map((rect, index) => Math.round(rect.top - taskItems[index].bottom));
       const header = document.querySelector(".operator-titlebar-v249");
       return {
-        badButtons: visibleButtons.filter(item => item.childTopCount > 1 || item.height > (window.innerWidth <= 760 ? 42 : 46)).slice(0, 8),
+        badButtons: visibleButtons.filter(item => item.childTopCount > 1 || item.height > 46).slice(0, 8),
         maxRoundTabHeight: roundTabHeights.length ? Math.max(...roundTabHeights) : 0,
         maxTaskGap: taskGaps.length ? Math.max(...taskGaps) : 0,
         headerHeight: header ? Math.round(header.getBoundingClientRect().height) : 0
@@ -1012,7 +1012,7 @@ async function assertNoUiBreakage(page, label, failures) {
       failures.push(`${label}: operator v249 emergency panel border mismatch ${JSON.stringify(emergency)}`);
     }
     const compact = info.operatorCompactRhythmV250;
-    if (compact.badButtons.length || compact.maxRoundTabHeight > (info.innerWidth <= 760 ? 40 : 42) || compact.maxTaskGap > 10 || compact.headerHeight > (info.innerWidth <= 760 ? 72 : 82)) {
+    if (compact.badButtons.length || compact.maxRoundTabHeight > (info.innerWidth <= 760 ? 44 : 42) || compact.maxTaskGap > 10 || compact.headerHeight > (info.innerWidth <= 760 ? 72 : 82)) {
       failures.push(`${label}: operator v250 compact rhythm mismatch ${JSON.stringify(compact)}`);
     }
   }
@@ -1089,7 +1089,7 @@ async function assertNoUiBreakage(page, label, failures) {
       failures.push(`${label}: operator mobile dock background width mismatch ${JSON.stringify(dockWidth)}`);
     }
     const dockFrame = info.operatorMobileDockFrameV262;
-    if (dockFrame.count !== 4 || dockFrame.height !== 58 || dockFrame.paddingTop !== 8 || dockFrame.paddingBottom !== 8 || dockFrame.topInset !== 9 || dockFrame.bottomInset !== 9 || dockFrame.insetDelta > 1 || dockFrame.maxButtonInsetDelta > 1) {
+    if (dockFrame.count !== 4 || dockFrame.height !== 62 || dockFrame.paddingTop !== 8 || dockFrame.paddingBottom !== 8 || dockFrame.topInset !== 9 || dockFrame.bottomInset !== 9 || dockFrame.insetDelta > 1 || dockFrame.maxButtonInsetDelta > 1) {
       failures.push(`${label}: operator mobile dock vertical frame mismatch ${JSON.stringify(dockFrame)}`);
     }
     const missingRoutes = ["선수", "기록", "라이브", "관리"].filter(item => !info.operatorMobileTopRouteLabels.includes(item));
@@ -1100,7 +1100,7 @@ async function assertNoUiBreakage(page, label, failures) {
       const minDockButtonHeight = Math.min(...info.operatorMobileDockButtonHeights);
       const maxDockButtonHeight = Math.max(...info.operatorMobileDockButtonHeights);
       if (maxDockButtonHeight - minDockButtonHeight > 1) failures.push(`${label}: operator mobile dock button heights differ ${JSON.stringify(info.operatorMobileDockButtonHeights)}`);
-      if (maxDockButtonHeight > 40) failures.push(`${label}: operator mobile dock buttons too tall ${JSON.stringify(info.operatorMobileDockButtonHeights)}`);
+      if (minDockButtonHeight < 44 || maxDockButtonHeight > 44) failures.push(`${label}: operator mobile dock buttons must be 44px ${JSON.stringify(info.operatorMobileDockButtonHeights)}`);
     }
     if (info.operatorDockHeight > 70) failures.push(`${label}: operator mobile dock too tall ${info.operatorDockHeight}px`);
     if (info.operatorDockRadius > 10) failures.push(`${label}: operator mobile dock radius too round ${info.operatorDockRadius}px`);

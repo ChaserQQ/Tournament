@@ -49,16 +49,16 @@
   ];
 
   const meta = Object.freeze({
-    version: 282,
-    label: "BUILD v282 OPERATOR LEASE AUTO ACQUIRE",
-    title: "MINI4WD TOURNAMENT MAKER - v282 OPERATOR LEASE AUTO ACQUIRE",
+    version: 283,
+    label: "BUILD v283 LIVE LOBBY USABILITY",
+    title: "MINI4WD TOURNAMENT MAKER - v283 LIVE LOBBY USABILITY",
     rulesChanged: false,
     assets: Object.freeze({
       config: 156,
-      build: 282,
-      app: 282,
-      css: 278,
-      operatorMobileCss: 278,
+      build: 283,
+      app: 283,
+      css: 283,
+      operatorMobileCss: 283,
       og: 51
     }),
     surfaces: Object.freeze(surfaces),
