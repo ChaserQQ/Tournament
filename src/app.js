@@ -10,13 +10,13 @@
     ];
     const RTDB_WRITE_PROTOCOL_V279 = 279;
     const MINI4WD_BUILD = window.MINI4WD_BUILD_META || {
-      version: 287,
-      label: "BUILD v287 DRAFT LEASE COMMIT RECOVERY",
+      version: 288,
+      label: "BUILD v288 LEASE LIFECYCLE HARDENING",
       rulesChanged: false,
       surfaces: MINI4WD_FALLBACK_SURFACES,
       pageClasses: MINI4WD_FALLBACK_PAGE_CLASSES
     };
-    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v287 DRAFT LEASE COMMIT RECOVERY";
+    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v288 LEASE LIFECYCLE HARDENING";
     const MINI4WD_SURFACES = Array.isArray(MINI4WD_BUILD.surfaces) && MINI4WD_BUILD.surfaces.length
       ? Array.from(MINI4WD_BUILD.surfaces)
       : MINI4WD_FALLBACK_SURFACES;
@@ -633,6 +633,9 @@ function shuffle(array) {
       if (failure.reason === "server-clock-unavailable") {
         return "Firebase 서버 시간을 확인하지 못해 운영권 요청을 중단했습니다. 네트워크 연결을 확인한 뒤 다시 시도하세요.";
       }
+      if (failure.reason === "firebase-unavailable") {
+        return "Firebase 연결이 준비되지 않아 운영권 요청을 중단했습니다. 네트워크 연결을 확인한 뒤 다시 시도하세요.";
+      }
       if (failure.reason === "permission-denied") {
         return "계정의 운영권 쓰기 권한을 확인하지 못했습니다. 다시 로그인한 뒤 운영권 가져오기를 시도하세요.";
       }
@@ -749,7 +752,7 @@ function shuffle(array) {
         });
       const draftStillExactAfterRegistry = draftStillMatchesStartSnapshot();
       if (!leaseStillOwned || !draftStillExactAfterRegistry) {
-        releaseActiveTournamentForVenue("finished-clear", plannedId, registryGeneration, startVenueId);
+        await releaseActiveTournamentForVenue("finished-clear", plannedId, registryGeneration, startVenueId);
         if (draftStillExactAfterRegistry) restorePreStartDraft();
         else persistCurrentState();
         await releaseNewStartLease();
@@ -777,7 +780,7 @@ function shuffle(array) {
       const leaseOwnedBeforeInitialWrite = typeof window.__mini4wdVerifyOperationLeaseV278 !== "function"
         || await window.__mini4wdVerifyOperationLeaseV278({ venueId: startVenueId, tournamentId: plannedId, registryGeneration });
       if (!leaseOwnedBeforeInitialWrite) {
-        releaseActiveTournamentForVenue("finished-clear", plannedId, registryGeneration, startVenueId);
+        await releaseActiveTournamentForVenue("finished-clear", plannedId, registryGeneration, startVenueId);
         restorePreStartDraft();
         await releaseNewStartLease();
         renderOperator();
@@ -804,7 +807,7 @@ function shuffle(array) {
           && liveRegistryGenerationV278(remotePrivateState) === registryGeneration
         );
         if (!privateStartExists && !remoteReadFailed) {
-          releaseActiveTournamentForVenue("finished-clear", plannedId, registryGeneration, startVenueId);
+          await releaseActiveTournamentForVenue("finished-clear", plannedId, registryGeneration, startVenueId);
           restorePreStartDraft();
           await releaseNewStartLease();
           renderOperator();
@@ -848,6 +851,10 @@ function shuffle(array) {
     async function claimActiveTournamentForVenue(plannedId, registryGeneration = "", venueIdOverride = "", metadata = {}) {
       const db = initFirebase();
       if (!db || !currentAuthUser) {
+        if (currentAuthUser && canOperate()) {
+          alert("Firebase 연결이 준비되지 않아 진행 대회를 등록하지 않았습니다. 연결을 확인한 뒤 다시 시도하세요.");
+          return false;
+        }
         try {
           const existingId = localStorage.getItem("mini4wdActiveLiveId") || "";
           if (existingId && existingId !== plannedId) {
@@ -906,9 +913,9 @@ function shuffle(array) {
       }
     }
 
-    function releaseActiveTournamentForVenue(status = "finished", tournamentIdOverride = "", registryGenerationOverride, venueIdOverride = "") {
+    async function releaseActiveTournamentForVenue(status = "finished", tournamentIdOverride = "", registryGenerationOverride, venueIdOverride = "") {
       const db = initFirebase();
-      if (!db || !currentAuthUser) return;
+      if (!db || !currentAuthUser) return false;
       const venueId = normalizeKey(venueIdOverride || currentVenueId()) || currentVenueId();
       const id = normalizeKey(tournamentIdOverride || getCurrentTournamentId()) || getCurrentTournamentId();
       const registryGeneration = String(
@@ -917,14 +924,24 @@ function shuffle(array) {
           : (state?.tournament?.activeRegistryGeneration || "")
       );
       const ref = db.ref(`activeTournaments/${venueId}`);
-      ref.transaction(active => {
-        if (!active || active.tournamentId !== id) return;
-        // Canonical tournament IDs can be reused on the same day. A delayed
-        // release from an older tab must never remove the newer generation.
-        if ((active.registryGeneration || registryGeneration) && active.registryGeneration !== registryGeneration) return;
-        if (status === "archived" || status === "finished-clear") return null;
-        return { ...active, status, updatedAt: firebase.database.ServerValue.TIMESTAMP };
-      }).catch(() => {});
+      try {
+        const knownSnap = await ref.get();
+        const knownActive = knownSnap.val() || null;
+        if (!knownActive) return false;
+        const result = await ref.transaction(active => {
+          active = active == null ? knownActive : active;
+          if (!active || active.tournamentId !== id) return;
+          // Canonical tournament IDs can be reused on the same day. A delayed
+          // release from an older tab must never remove the newer generation.
+          if ((active.registryGeneration || registryGeneration) && active.registryGeneration !== registryGeneration) return;
+          if (status === "archived" || status === "finished-clear") return null;
+          return { ...active, status, updatedAt: firebase.database.ServerValue.TIMESTAMP };
+        }, null, false);
+        return Boolean(result?.committed);
+      } catch (error) {
+        console.warn("v288 active tournament release failed", error);
+        return false;
+      }
     }
 
     function isFirebasePermissionDeniedV151(error) {
@@ -948,9 +965,14 @@ function shuffle(array) {
     async function removeActiveTournamentRefV151(ref, reason, expectedActive) {
       try {
         const result = await ref.transaction(current => {
+          // Firebase can invoke this guarded cleanup with a provisional null
+          // even though expectedActive was just read from the server. Seed
+          // that first pass only; the server hash will rerun against any
+          // genuinely changed value before allowing the exact CAS delete.
+          current = current == null ? expectedActive : current;
           if (!activeRegistryMatchesV278(current, expectedActive)) return;
           return null;
-        });
+        }, null, false);
         return { removed: Boolean(result?.committed), reason: result?.committed ? reason : "active-registry-changed" };
       } catch (error) {
         if (isFirebasePermissionDeniedV151(error)) return { removed: false, reason: "permission-denied" };
@@ -1211,7 +1233,7 @@ function shuffle(array) {
         // become a result-history entry through the manual rollover path.
         const terminalConflictRetired = state.tournament?.terminalSyncConflictV278?.reason === "divergent-terminal-public";
         if (!terminalConflictRetired) saveTournamentRecord();
-        releaseActiveTournamentForVenue("finished-clear", finishedTournamentId, finishedRegistryGeneration, finishedVenueId);
+        await releaseActiveTournamentForVenue("finished-clear", finishedTournamentId, finishedRegistryGeneration, finishedVenueId);
         if (typeof window.releaseOperationLeaseV178 === "function") {
           try {
             await window.releaseOperationLeaseV178(false, finishedVenueId, {
@@ -5720,6 +5742,7 @@ function parseBooleanCell(value, defaultValue = false) {
     const OPERATOR_SESSION_RESUME_STORAGE_KEY_V278 = "mini4wdOperatorResumeSessionIdV278";
     const OPERATOR_SESSION_HEARTBEAT_MS_V178 = 10000;
     const OPERATION_LEASE_MS_V178 = 45000;
+    const OPERATOR_SESSION_STALE_MS_V288 = 25000;
     const ACTIVE_REGISTRY_START_GRACE_MS_V278 = 30000;
     let firebaseAuth = null;
     let firebaseAuthReadyPromise = null;
@@ -7482,7 +7505,7 @@ function exportTournamentCsv() {
         alert("대회 종료 상태를 서버에 저장하지 못했습니다.\n연결을 확인한 뒤 '종료 저장 재시도'를 눌러주세요. 새 대회 전환은 보류됩니다.");
         return false;
       }
-      releaseActiveTournamentForVenue("finished-clear", finishedTournamentId, finishedRegistryGeneration, finishedVenueId);
+      await releaseActiveTournamentForVenue("finished-clear", finishedTournamentId, finishedRegistryGeneration, finishedVenueId);
       if (typeof window.releaseOperationLeaseV178 === "function") {
         await window.releaseOperationLeaseV178(false, finishedVenueId, {
           tournamentId: finishedTournamentId,
@@ -10537,7 +10560,7 @@ function stopLiveLobbyRealtimeV50() {
             if (!document.body.classList.contains("tv-mode") && typeof renderOperator === "function") renderOperator();
             return false;
           }
-          try { releaseActiveTournamentForVenue("finished-clear", id, registryGeneration, venueId); } catch (error) {}
+          try { await releaseActiveTournamentForVenue("finished-clear", id, registryGeneration, venueId); } catch (error) {}
           if (typeof window.releaseOperationLeaseV178 === "function") {
             await window.releaseOperationLeaseV178(false, venueId, {
               tournamentId: id,
@@ -11408,7 +11431,9 @@ function stopLiveLobbyRealtimeV50() {
       let v178LastSessionPath = "";
       const v178LeasesByVenue = new Map();
       const v178LeaseClaimInFlightByVenue = new Map();
+      const v288HeartbeatInFlightByPath = new Map();
       const v282LeaseAcquiredVenues = new Set();
+      let v288SafeResumeSessionId = "";
       let v178RecoveryCandidate = null;
       let v178RecoveryBusy = false;
       let v178RecoverySignature = "";
@@ -11432,20 +11457,20 @@ function stopLiveLobbyRealtimeV50() {
 
       function operatorSessionIdV178() {
         if (v178SessionId) return v178SessionId;
-        // sessionStorage is copied by window.open/tab duplication. Keep only a
-        // lineage hint there and give every document instance a fresh lease ID,
-        // otherwise two visible tabs can both believe they own the same fence.
+        // sessionStorage is copied by window.open/tab duplication. Keep a
+        // lineage and predecessor hint, but give every document instance a
+        // fresh lease ID so two visible tabs never share one write fence.
         const storedLineage = readSessionStorageV178(OPERATOR_SESSION_STORAGE_KEY_V178);
         const storedPredecessorSessionId = readSessionStorageV178(OPERATOR_SESSION_RESUME_STORAGE_KEY_V278);
         v178SessionLineageId = storedLineage || `op-family-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
         writeSessionStorageV178(OPERATOR_SESSION_STORAGE_KEY_V178, v178SessionLineageId);
         const random = Math.random().toString(36).slice(2, 10);
         v178SessionId = `${v178SessionLineageId}-page-${Date.now().toString(36)}-${random}`;
-        v178ReloadPredecessorSessionId = v178LineageResumeAvailable ? storedPredecessorSessionId : "";
-        // A duplicated tab initially receives the source tab's sessionStorage,
-        // but immediately replaces this predecessor token with its own page
-        // ID. Only a real reload whose stored predecessor still equals the
-        // current server lease may resume without waiting for expiry.
+        // Mobile Chrome/PWA re-entry is not always reported as a navigation
+        // reload. Retain the predecessor for presence-checked recovery; a
+        // duplicated tab is still blocked while the source session heartbeat
+        // remains online and recent.
+        v178ReloadPredecessorSessionId = storedPredecessorSessionId;
         writeSessionStorageV178(OPERATOR_SESSION_RESUME_STORAGE_KEY_V278, v178SessionId);
         return v178SessionId;
       }
@@ -11492,9 +11517,79 @@ function stopLiveLobbyRealtimeV50() {
         return "";
       }
 
+      function operatorSessionPathForV288(sessionId, venueId = operatorVenueIdV178(), uid = currentAuthUser?.uid || "anonymous") {
+        return `${OPERATION_LOCK_PATH}/sessions/${normalizeKey(venueId || "default")}/${uid}/${sessionId}`;
+      }
+
       function operatorSessionPathV178() {
-        const uid = currentAuthUser?.uid || "anonymous";
-        return `${OPERATION_LOCK_PATH}/sessions/${operatorVenueIdV178()}/${uid}/${operatorSessionIdV178()}`;
+        return operatorSessionPathForV288(operatorSessionIdV178());
+      }
+
+      function canResumeSameAccountLeaseV288(lease, presence, expectedUid = currentAuthUser?.uid || "", now = firebaseServerNowV279()) {
+        const uid = String(expectedUid || "");
+        const ownerUid = String(lease?.uid || "");
+        const ownerSessionId = String(lease?.sessionId || "");
+        if (!uid || ownerUid !== uid || !ownerSessionId) return false;
+        if (!presence) return true;
+        if (presence.uid && String(presence.uid) !== uid) return false;
+        if (presence.sessionId && String(presence.sessionId) !== ownerSessionId) return false;
+        if (presence.online === false) return true;
+        const updatedAt = Number(presence.updatedAt || 0);
+        const serverNow = Number(now || 0);
+        return Boolean(
+          updatedAt > 0
+          && serverNow >= updatedAt
+          && serverNow - updatedAt >= OPERATOR_SESSION_STALE_MS_V288
+        );
+      }
+
+      function sameLineageReloadResumeV288(lease) {
+        return Boolean(
+          v178LineageResumeAvailable
+          && v178ReloadPredecessorSessionId
+          && lease?.sessionId === v178ReloadPredecessorSessionId
+          && lease?.sessionLineageId
+          && lease.sessionLineageId === operatorSessionLineageIdV278()
+          && (!lease.uid || lease.uid === currentAuthUser?.uid)
+        );
+      }
+
+      function safeSessionResumeV288(lease) {
+        if (sameLineageReloadResumeV288(lease)) return true;
+        return Boolean(
+          v288SafeResumeSessionId
+          && lease?.sessionId === v288SafeResumeSessionId
+          && lease?.uid === currentAuthUser?.uid
+        );
+      }
+
+      async function refreshSafeSessionResumeV288(db, venueId, lease = cachedOperationLeaseV278(venueId)) {
+        if (!db || !lease?.sessionId || lease.sessionId === operatorSessionIdV178()) return false;
+        if (sameLineageReloadResumeV288(lease)) {
+          v288SafeResumeSessionId = String(lease.sessionId || "");
+          return true;
+        }
+        if (!currentAuthUser?.uid || String(lease.uid || "") !== String(currentAuthUser.uid)) {
+          if (v288SafeResumeSessionId === lease.sessionId) v288SafeResumeSessionId = "";
+          return false;
+        }
+        try {
+          const presenceSnap = await db.ref(
+            operatorSessionPathForV288(lease.sessionId, venueId, lease.uid)
+          ).get();
+          const allowed = canResumeSameAccountLeaseV288(
+            lease,
+            presenceSnap.val() || null,
+            currentAuthUser.uid,
+            firebaseServerNowV279()
+          );
+          if (allowed) v288SafeResumeSessionId = String(lease.sessionId || "");
+          else if (v288SafeResumeSessionId === lease.sessionId) v288SafeResumeSessionId = "";
+          return allowed;
+        } catch (error) {
+          console.warn("v288 predecessor presence check failed", error);
+          return false;
+        }
       }
 
       function isOperatorRouteV178() {
@@ -11646,7 +11741,8 @@ function stopLiveLobbyRealtimeV50() {
 
       async function verifyOperationLeaseOwnershipV278(context = {}) {
         const db = initFirebase();
-        if (!db || !currentAuthUser || !canOperate()) return true;
+        if (!currentAuthUser || !canOperate()) return true;
+        if (!db) return false;
         const venueId = normalizeKey(context.venueId || operatorVenueIdV178());
         try {
           const snap = await db.ref(operationLeasePathV178(venueId)).get();
@@ -11717,7 +11813,14 @@ function stopLiveLobbyRealtimeV50() {
         if (!fenceToken) return { ok: false, state: null };
         const ref = db.ref(`tournaments/${tournamentId}`);
         try {
+          const knownSnap = await ref.get();
+          const knownRecord = knownSnap.val() || null;
           const result = await ref.transaction(currentRecord => {
+            // A cold mobile cache can yield a provisional null on the first
+            // transaction callback. A guarded abort here used to make an
+            // otherwise valid lease claim fail before Firebase consulted the
+            // server. Seed the just-read record for that provisional pass.
+            currentRecord = currentRecord == null ? knownRecord : currentRecord;
             const currentState = currentRecord?.state || currentRecord;
             if (!currentState || liveFreshStatusV272(currentState) !== "running") return;
             const currentVenueId = normalizeOptionalKeyV278(
@@ -11793,7 +11896,7 @@ function stopLiveLobbyRealtimeV50() {
             // whatever running value is newest at commit time without turning
             // lease acquisition into semantic tournament activity.
             return tournamentRecordWithStateV278(currentRecord, nextState);
-          });
+          }, null, false);
           const finalRecord = result?.snapshot?.val ? result.snapshot.val() : null;
           const finalState = finalRecord?.state || finalRecord;
           if (!finalState || liveFreshStatusV272(finalState) !== "running") {
@@ -11832,11 +11935,20 @@ function stopLiveLobbyRealtimeV50() {
           return { ok: false, state: null, replayStatus: pendingReplay?.eligible ? "rejected" : "none" };
         }
       }
+      try { window.__mini4wdRotateLiveWriteFenceForLeaseV278 = rotateLiveWriteFenceForLeaseV278; } catch (error) {}
 
       async function claimOperationLeaseV178(reason = "manual", force = false, context = {}) {
         const db = initFirebase();
-        if (!db || !currentAuthUser || !canOperate()) return true;
         delete window.__mini4wdLastLeaseClaimFailureV286;
+        if (!currentAuthUser || !canOperate()) return true;
+        if (!db) {
+          window.__mini4wdLastLeaseClaimFailureV286 = {
+            reason: "firebase-unavailable",
+            stage: "firebase-init",
+            at: new Date().toISOString()
+          };
+          return false;
+        }
         if (!await refreshFirebaseServerTimeOffsetV279(db)) {
           window.__mini4wdLastLeaseClaimFailureV286 = {
             reason: "server-clock-unavailable",
@@ -11924,7 +12036,16 @@ function stopLiveLobbyRealtimeV50() {
         };
         const executeClaim = async () => {
           let reservationBlockedByOtherV286 = false;
+          let abandonReservedClaimV288 = null;
           try {
+            let resumeLease = cachedOperationLeaseV278(leaseVenueId);
+            if (!isOperationLeaseLoadedV278(leaseVenueId)) {
+              const resumeSnap = await ref.get();
+              resumeLease = cacheOperationLeaseV278(leaseVenueId, resumeSnap.val() || null);
+            }
+            if (resumeLease?.sessionId && resumeLease.sessionId !== operatorSessionIdV178()) {
+              await refreshSafeSessionResumeV288(db, leaseVenueId, resumeLease);
+            }
             const reservation = await ref.transaction(current => {
               const sameSession = current?.sessionId === operatorSessionIdV178();
               const pendingOwnedByOther = Boolean(
@@ -11937,20 +12058,14 @@ function stopLiveLobbyRealtimeV50() {
                 && firebaseServerNowV279() - Number(current.pendingAt || 0) < OPERATION_LEASE_MS_V178
               );
               if (pendingFresh) return;
-              const sameLineageResume = Boolean(
-                v178LineageResumeAvailable
-                && v178ReloadPredecessorSessionId
-                && current?.sessionId === v178ReloadPredecessorSessionId
-                && current?.sessionLineageId
-                && current.sessionLineageId === operatorSessionLineageIdV278()
-              );
+              const safeSessionResume = safeSessionResumeV288(current);
               if (
                 current
                 && current.sessionId
                 && !sameSession
                 && !isLeaseExpiredV178(current)
                 && !force
-                && !sameLineageResume
+                && !safeSessionResume
               ) {
                 reservationBlockedByOtherV286 = true;
                 return;
@@ -12078,6 +12193,7 @@ function stopLiveLobbyRealtimeV50() {
               }
               return false;
             };
+            abandonReservedClaimV288 = abandonReservedClaim;
             if (!directRenewal) {
               try {
                 // The active registry can change between the draft preflight
@@ -12223,6 +12339,7 @@ function stopLiveLobbyRealtimeV50() {
               });
               claimedLease = cacheOperationLeaseV278(leaseVenueId, finalized.snapshot?.val() || null);
               if (!finalized.committed) {
+                await abandonReservedClaim();
                 window.__mini4wdLastLeaseClaimFailureV286 = {
                   reason: "finalize-not-committed",
                   stage: "finalize",
@@ -12262,7 +12379,10 @@ function stopLiveLobbyRealtimeV50() {
                 return false;
               }
             }
-            if (!directRenewal) v178LineageResumeAvailable = false;
+            if (!directRenewal) {
+              v178LineageResumeAvailable = false;
+              v288SafeResumeSessionId = "";
+            }
 
             if (
               pendingReplay?.eligible
@@ -12309,6 +12429,10 @@ function stopLiveLobbyRealtimeV50() {
             syncLeaseStateToDomV178();
             return true;
           } catch (error) {
+            if (typeof abandonReservedClaimV288 === "function") {
+              try { await abandonReservedClaimV288(); }
+              catch (cleanupError) { console.warn("v288 pending lease cleanup failed", cleanupError); }
+            }
             const errorCode = String(error?.code || "").toLowerCase();
             window.__mini4wdLastLeaseClaimFailureV286 = {
               reason: errorCode.includes("permission") ? "permission-denied" : "claim-error",
@@ -12338,7 +12462,14 @@ function stopLiveLobbyRealtimeV50() {
         const leaseVenueId = normalizeKey(venueIdOverride || operatorVenueIdV178());
         try {
           const ref = db.ref(operationLeasePathV178(leaseVenueId));
+          const knownSnap = await ref.get();
+          const knownLease = cacheOperationLeaseV278(leaseVenueId, knownSnap.val() || null);
+          if (!knownLease) {
+            syncLeaseStateToDomV178();
+            return false;
+          }
           const result = await ref.transaction(current => {
+            current = current == null ? knownLease : current;
             if (!current) return;
             if (
               !force
@@ -12392,7 +12523,7 @@ function stopLiveLobbyRealtimeV50() {
               releasedAt: Date.now(),
               updatedAt: firebase.database.ServerValue.TIMESTAMP
             };
-          });
+          }, null, false);
           cacheOperationLeaseV278(leaseVenueId, result.snapshot?.val() || null);
           syncLeaseStateToDomV178();
           return result.committed;
@@ -12406,57 +12537,70 @@ function stopLiveLobbyRealtimeV50() {
         if (!shouldRunOperatorPresenceV178()) return false;
         const db = initFirebase();
         if (!db || !currentAuthUser) return false;
-        const now = Date.now();
         const path = operatorSessionPathV178();
-        const payload = {
-          protocolVersion: RTDB_WRITE_PROTOCOL_V279,
-          sessionId: operatorSessionIdV178(),
-          uid: currentAuthUser.uid,
-          email: currentAuthUser.email || "",
-          venueId: operatorVenueIdV178(),
-          venueName: currentVenueName(),
-          tournamentId: getCurrentTournamentId(),
-          tournamentName: state?.tournament?.name || "",
-          tournamentStatus: state?.tournament?.status || "draft",
-          page: getHashParams().get("view") || "operator",
-          online: true,
-          reason,
-          clientUpdatedAt: now,
-          updatedAt: firebase.database.ServerValue.TIMESTAMP,
-          build: mini4wdBuildLabel()
-        };
-        try {
-          const ref = db.ref(path);
-          if (v178LastSessionPath !== path) {
-            v178LastSessionPath = path;
-            try { ref.onDisconnect().remove(); } catch (error) {}
-          }
-          await ref.update(payload);
-          v178LastHeartbeatAt = now;
-          updateSessionPanelDomV178();
-          if (isLeaseMineV178()) await claimOperationLeaseV178("heartbeat", false);
-          else {
-            await refreshOperationLeaseV178();
-            const venueId = operatorVenueIdV178();
-            const status = String(state?.tournament?.status || "draft");
-            if (
-              status === "running"
-              && (!isLeaseHeldByOtherV178() || v178LineageResumeAvailable)
-            ) {
-              await claimOperationLeaseV178("auto-resume", false);
-            } else if (
-              status === "draft"
-              && isVenueUser()
-              && !v282LeaseAcquiredVenues.has(venueId)
-              && !isLeaseHeldByOtherV178()
-            ) {
-              await claimOperationLeaseV178("auto-enter-v282", false);
+        const existing = v288HeartbeatInFlightByPath.get(path);
+        if (existing) return existing;
+        const operation = (async () => {
+          const now = Date.now();
+          const payload = {
+            protocolVersion: RTDB_WRITE_PROTOCOL_V279,
+            sessionId: operatorSessionIdV178(),
+            uid: currentAuthUser.uid,
+            email: currentAuthUser.email || "",
+            venueId: operatorVenueIdV178(),
+            venueName: currentVenueName(),
+            tournamentId: getCurrentTournamentId(),
+            tournamentName: state?.tournament?.name || "",
+            tournamentStatus: state?.tournament?.status || "draft",
+            page: getHashParams().get("view") || "operator",
+            online: true,
+            reason,
+            clientUpdatedAt: now,
+            updatedAt: firebase.database.ServerValue.TIMESTAMP,
+            build: mini4wdBuildLabel()
+          };
+          try {
+            const ref = db.ref(path);
+            if (v178LastSessionPath !== path) {
+              v178LastSessionPath = path;
+              try { ref.onDisconnect().remove(); } catch (error) {}
             }
+            await ref.update(payload);
+            v178LastHeartbeatAt = now;
+            updateSessionPanelDomV178();
+            if (isLeaseMineV178()) await claimOperationLeaseV178("heartbeat", false);
+            else {
+              const lease = await refreshOperationLeaseV178();
+              const venueId = operatorVenueIdV178();
+              const safeResume = await refreshSafeSessionResumeV288(db, venueId, lease);
+              const status = String(state?.tournament?.status || "draft");
+              if (
+                status === "running"
+                && (!isLeaseHeldByOtherV178() || safeResume)
+              ) {
+                await claimOperationLeaseV178("auto-resume", false);
+              } else if (
+                status === "draft"
+                && isVenueUser()
+                && !v282LeaseAcquiredVenues.has(venueId)
+                && (!isLeaseHeldByOtherV178() || safeResume)
+              ) {
+                await claimOperationLeaseV178("auto-enter-v282", false);
+              }
+            }
+            return true;
+          } catch (error) {
+            console.warn("v178 heartbeat failed", error);
+            return false;
           }
-          return true;
-        } catch (error) {
-          console.warn("v178 heartbeat failed", error);
-          return false;
+        })();
+        v288HeartbeatInFlightByPath.set(path, operation);
+        try {
+          return await operation;
+        } finally {
+          if (v288HeartbeatInFlightByPath.get(path) === operation) {
+            v288HeartbeatInFlightByPath.delete(path);
+          }
         }
       }
 
@@ -12691,9 +12835,10 @@ function stopLiveLobbyRealtimeV50() {
           registryGeneration: localGeneration
         } : { venueId, venueName, tournamentId: "", status: "draft" };
         const db = initFirebase();
-        if (!db || !currentAuthUser || !canOperate()) {
+        if (!currentAuthUser || !canOperate()) {
           return { ok: true, mode: "local-only", venueId, context: localContext };
         }
+        if (!db) return { ok: false, reason: "server-read-failed", venueId };
 
         let active = null;
         try {
@@ -13009,6 +13154,11 @@ function stopLiveLobbyRealtimeV50() {
       window.refreshRecoveryCandidateV178 = refreshRecoveryCandidateV178;
       window.__mini4wdCanPublishLiveNowV270 = canPublishLiveNowV270;
       window.__mini4wdEnsureWritableLeaseForLiveSyncV270 = ensureWritableLeaseForBackgroundSyncV270;
+      window.__mini4wdWriteOperatorHeartbeatV178 = writeOperatorHeartbeatV178;
+      window.__mini4wdLeaseReliabilityV288 = {
+        stalePresenceMs: OPERATOR_SESSION_STALE_MS_V288,
+        canResumeSameAccountLease: canResumeSameAccountLeaseV288
+      };
       window.__mini4wdGetLiveWriteFenceV278 = () => {
         const lease = cachedOperationLeaseV278();
         return isLeaseMineV178(lease)
@@ -13017,6 +13167,7 @@ function stopLiveLobbyRealtimeV50() {
       };
       window.__mini4wdOperatorSession = {
         sessionId: operatorSessionIdV178(),
+        lineageId: operatorSessionLineageIdV278(),
         authority: "server-lease-v281",
         leaseMs: OPERATION_LEASE_MS_V178,
         heartbeatMs: OPERATOR_SESSION_HEARTBEAT_MS_V178,

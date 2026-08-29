@@ -22,12 +22,12 @@
 
 ## Current verified state
 
-- Verified 2026-08-29 KST: 현재 소스는 v287, BUILD v287 DRAFT LEASE COMMIT RECOVERY이다.
-- build와 app은 287, operator-mobile CSS는 285, 공용 app CSS는 284, config는 156이다.
-- RTDB write protocol은 279이며 v287에서는 Firebase 규칙과 운영 데이터를 변경하지 않았다.
+- Verified 2026-08-29 KST: 현재 소스는 v288, BUILD v288 LEASE LIFECYCLE HARDENING이다.
+- build와 app은 288, operator-mobile CSS는 285, 공용 app CSS는 284, config는 156이다.
+- RTDB write protocol은 279이며 v288에서는 Firebase 규칙과 운영 데이터를 변경하지 않았다.
 - 라이브 로비는 승인 경기장 카드만 전체 카드로 표시하고 나머지 빈 슬롯은 접힌 목록으로 축약한다. 20슬롯 계약은 data-v283-total-slots로 유지한다.
 - 모바일 운영 대진표는 현재 조를 첫 위치에 펼치고 대기·완료 조를 48px 접힘 요약으로 표시한다. 390px 7개 조 fixture에서 단계 높이 715px, 가로 넘침 0을 확인했다.
-- npm.cmd run qa:all이 v287에서 통과했다. Firebase 서버 시각 조회, 초기 `null` 콜백을 포함한 초안 운영권 예약·확정, 최종 결승 버튼 노출 시점, 아테네 유형의 서버 미등록 로컬 진행 상태 복구, 대진·진출·점수, PC·390px·320px 공개/운영 화면을 함께 검증했다. Java 21 로컬 emulator의 qa:rules 22개 계약도 모두 통과했고 활성 규칙과 로컬 규칙의 canonical SHA가 일치한다.
+- npm.cmd run qa:all이 v288에서 통과했다. 같은 계정의 모바일 재진입과 활성 중복 탭 차단, Firebase 부재 시 fail-closed, heartbeat 병합, 실패한 pending 즉시 정리, 초기 `null` 콜백을 포함한 lease 확정·해제, 활성 pointer 해제·정리, 대회 fence 교체, 최종 결승 버튼, 대진·진출·점수, PC·390px·320px 공개/운영 화면을 함께 검증했다. Java 21 로컬 emulator의 qa:rules 22개 계약도 모두 통과했고 활성 규칙과 로컬 규칙의 canonical SHA가 일치한다.
 - 현재 소스 기준 파일은 src/app.js, src/core/build.js, src/styles/app.css, src/styles/operator-mobile.css, tools/verify-static.js와 tools 아래 QA 스크립트다.
 - 보존할 추적되지 않은 항목은 .codex-remote-attachments/, DESIGN_OUTPUT.md, FIREBASE_REPORT.md, QA_REPORT.md이다.
 
@@ -53,6 +53,7 @@
 
 ## Recent durable changes
 
+- 2026-08-29 v288: 운영권 흐름을 계정 권한, 세션 presence, 예약, 대회 fence 교체, 확정, active pointer 동기화, 해제 순서로 재점검했다. 모바일 Chrome/PWA가 일반 navigation으로 다시 열려도 이전 같은 계정 세션이 명시적 offline, presence 없음 또는 25초 이상 stale이면 안전하게 이어받고, 최근 online 세션은 중복 탭으로 보고 차단한다. 인증 운영자는 Firebase가 없을 때 lease 확인·획득과 active 등록을 로컬 성공으로 처리하지 않는다. 렌더 중복 heartbeat를 경로별 한 요청으로 병합하고, 확정 실패 pending을 즉시 정리하며, lease 해제·active 해제·stale active 정리·running tournament fence 교체가 provisional `null`에서도 서버에서 읽은 정확한 값으로 CAS를 계속하도록 수정했다. 아테네 계정의 승인·운영 권한과 당시 active/private/public/lease 연결은 읽기 전용으로 정상 일치함을 확인했으며 운영 데이터와 규칙에는 쓰지 않았다.
 - 2026-08-29 v287: Firebase 운영권 예약은 성공하지만 확정 transaction updater가 서버 값을 받기 전 provisional `null`에서 `undefined`를 반환해 즉시 중단되고 `reserving` pending만 남던 문제를 수정했다. 서버에서 확인한 정확한 예약 값을 최초 후보로 사용하고 `applyLocally: false`로 authoritative rerun과 pending token 검증을 유지한다. 실패 안내는 실제 원인이 확인된 경우에만 다른 브라우저 점유를 언급하며 Firebase 규칙과 운영 데이터는 변경하지 않았다. 실제 두 단계 transaction과 초기 `null` 호출을 각각 규칙 emulator와 운영 QA로 고정했다.
 - 2026-08-29 v286: Firebase compat SDK의 `.info/serverTimeOffset`을 `get()`으로 읽을 때 실제 환경에서 `Invalid token in path`가 발생해 빈 서버 lease도 다른 브라우저 점유로 잘못 안내되던 문제를 `once("value")` 리스너 조회로 수정했다. 운영권 실패 원인별 안내를 분리했고, 최종 결승 바로가기는 대회 진행 중 모든 예선 또는 크로우 라운드가 끝난 최종 결정 시점에만 나타나며 결승 생성 뒤에는 숨긴다. QA stub도 `.info`의 `get()`을 거부하도록 실제 SDK 계약을 반영했다.
 - 2026-08-29 v285: 수동 운영권 가져오기는 로컬 대회 ID를 그대로 신뢰하지 않고 서버 active tournament를 먼저 확인한다. 서버에 활성 대회가 없는데 브라우저에 진행 상태가 남아 있으면 확인 후 자동 스냅샷을 성공시킨 다음 새 초안으로 전환해 빈 venue lease를 획득하며, 서버 대회는 생성하지 않는다. 모바일 대진표는 현재 조만 펼치고 나머지 조를 상태별 접힘 요약으로 바꿔 390px 7개 조 높이를 715px로 줄였다.
@@ -78,6 +79,10 @@
 - 인증 운영자의 권한은 서버 lease 하나다. 레거시 operationLock을 다시 쓰기 차단 조건으로 사용하면 안 된다.
 - Firebase Realtime Database의 `.info` 의사 경로는 일반 `get()` REST 조회가 아니라 `on("value")` 또는 compat `once("value")` 리스너로 읽는다. QA stub도 `.info/serverTimeOffset`의 `get()`을 성공시키면 안 된다.
 - Firebase transaction updater는 서버에 기존 값이 있어도 최초 로컬 호출에서 `null`을 받을 수 있다. 정확한 서버 예약을 이미 확인한 2단계 CAS는 그 예약을 최초 후보로 사용하고 `applyLocally: false`로 authoritative 값에서 다시 토큰·fence를 검사해야 하며, provisional `null`에서 바로 `undefined`를 반환하면 예약만 남고 확정이 중단된다.
+- 서버에서 값을 먼저 읽은 guarded transaction은 lease뿐 아니라 active pointer 정리와 tournament fence 교체에서도 그 값을 provisional `null`의 최초 후보로 사용하고 `applyLocally: false`로 실행해야 한다. 실제 서버 값이 바뀌면 Firebase의 authoritative rerun에서 정확한 identity 비교가 다시 실패해야 한다.
+- 모바일 Chrome/PWA 재진입은 navigation type이 항상 `reload`가 아니다. 같은 계정의 이전 lease를 자동 복구할 때는 정확한 session presence가 offline, 없음 또는 25초 이상 stale인지 확인하고, 최근 online 세션은 중복 탭 보호를 위해 자동으로 빼앗지 않는다.
+- 로그인한 승인 운영자에게 Firebase가 준비되지 않은 상태를 로컬 성공으로 간주하면 lease와 active registry 없이 로컬 running 상태가 생긴다. 인증 운영자의 claim, ownership verify, active claim은 연결 부재 시 fail-closed여야 한다.
+- 운영권 예약 이후 fence 또는 finalize 단계가 실패하면 자신의 정확한 pending token을 즉시 CAS 정리해야 하며 TTL 만료만 기다리면 재시도가 계속 막힐 수 있다.
 - 로컬에 남은 running 상태의 tournament ID를 수동 운영권 claim의 exact identity로 바로 넘기면 서버에 활성 대회가 없는 경우 fence 검증이 실패한다. 먼저 서버 active pointer를 확인하고, 없으면 로컬 진행 상태를 스냅샷한 뒤 초안으로 전환해 빈 venue lease를 요청한다.
 - 운영권 판정과 LIVE 쓰기는 정확한 venue, tournament, generation, fence와 sequence를 함께 확인해야 한다.
 - 수동 조 수는 첫 생성 단계 제약이며 단계 이름이 예선인지로 판단하면 안 된다.

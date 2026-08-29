@@ -1525,6 +1525,384 @@ async function runViewport(browser, meta, viewport) {
     failures.push(`stale local takeover v285 recovery failed ${JSON.stringify(staleLocalTakeoverV285)}`);
   }
 
+  const operationLeaseReliabilityV288 = await page.evaluate(async () => {
+    const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
+    const reliability = window.__mini4wdLeaseReliabilityV288;
+    const writeHeartbeat = window.__mini4wdWriteOperatorHeartbeatV178;
+    if (!reliability || typeof reliability.canResumeSameAccountLease !== "function" || typeof writeHeartbeat !== "function") {
+      return { supported: false };
+    }
+    const now = firebaseServerNowV279();
+    const uid = "qa-uid";
+    const oldSessionId = "qa-old-mobile-session-v288";
+    const lease = {
+      protocolVersion: 279,
+      scope: "venue",
+      venueId: "qa-resume-policy-v288",
+      uid,
+      sessionId: oldSessionId,
+      sessionLineageId: "qa-mobile-lineage-v288",
+      claimSequence: 7,
+      fenceSequenceHighWater: 7,
+      fenceToken: "qa-resume-fence-v288",
+      tournamentId: "",
+      registryGeneration: "",
+      status: "draft",
+      leaseUntil: now + 45_000,
+      updatedAt: now
+    };
+    const presence = (overrides = {}) => ({
+      protocolVersion: 279,
+      uid,
+      sessionId: oldSessionId,
+      venueId: lease.venueId,
+      online: true,
+      updatedAt: now - 1_000,
+      ...overrides
+    });
+    const policy = {
+      recentOnlineBlocked: !reliability.canResumeSameAccountLease(lease, presence(), uid, now),
+      explicitOfflineAllowed: reliability.canResumeSameAccountLease(lease, presence({ online: false }), uid, now),
+      staleHeartbeatAllowed: reliability.canResumeSameAccountLease(
+        lease,
+        presence({ updatedAt: now - Number(reliability.stalePresenceMs || 0) - 1 }),
+        uid,
+        now
+      ),
+      missingPresenceAllowed: reliability.canResumeSameAccountLease(lease, null, uid, now),
+      foreignAccountBlocked: !reliability.canResumeSameAccountLease(lease, presence(), "qa-other-uid", now)
+    };
+
+    const originalFirebase = window.firebase;
+    const originalFirebaseDb = firebaseDb;
+    const originalFirebaseOnline = firebaseOnline;
+    let outage = null;
+    try {
+      firebaseDb = null;
+      window.firebase = null;
+      const claimResult = await window.claimOperationLeaseV178("qa-firebase-outage-v288", false, {
+        venueId: "qa-outage-v288",
+        tournamentId: "",
+        status: "draft"
+      });
+      const verifyResult = await window.__mini4wdVerifyOperationLeaseV278({ venueId: "qa-outage-v288" });
+      const activeClaimResult = await claimActiveTournamentForVenue(
+        "qa-outage-tournament-v288",
+        "qa-outage-generation-v288",
+        "qa-outage-v288",
+        { venueName: "QA Outage Venue" }
+      );
+      outage = {
+        claimFailedClosed: claimResult === false,
+        verifyFailedClosed: verifyResult === false,
+        activeClaimFailedClosed: activeClaimResult === false,
+        failureReason: String(window.__mini4wdLastLeaseClaimFailureV286?.reason || "")
+      };
+    } finally {
+      window.firebase = originalFirebase;
+      firebaseDb = originalFirebaseDb;
+      firebaseOnline = originalFirebaseOnline;
+    }
+
+    const store = window.__qaFirebaseStore;
+    const venueId = "qa-heartbeat-coalesce-v288";
+    const finalizeVenueId = "qa-finalize-cleanup-v288";
+    const activeReleaseVenueId = "qa-active-release-v288";
+    const activeCleanupVenueId = "qa-active-cleanup-v288";
+    const activeCleanupTournamentId = "qa-active-cleanup-tournament-v288";
+    const fenceVenueId = "qa-fence-rotation-v288";
+    const fenceTournamentId = "qa-fence-rotation-tournament-v288";
+    const leasePath = `operationLocks/leases/${venueId}`;
+    const finalizeLeasePath = `operationLocks/leases/${finalizeVenueId}`;
+    const activeReleasePath = `activeTournaments/${activeReleaseVenueId}`;
+    const activeCleanupPath = `activeTournaments/${activeCleanupVenueId}`;
+    const activeCleanupPrivatePath = `tournaments/${activeCleanupTournamentId}`;
+    const activeCleanupPublicPath = `publicLive/${activeCleanupTournamentId}`;
+    const activeCleanupLeasePath = `operationLocks/leases/${activeCleanupVenueId}`;
+    const fenceTournamentPath = `tournaments/${fenceTournamentId}`;
+    const backup = {
+      profile: clone(currentUserProfile),
+      state: exportState(),
+      activeRoundIndex,
+      firebaseTournamentId,
+      lease: clone(store.operationLocks?.leases?.[venueId]),
+      finalizeLease: clone(store.operationLocks?.leases?.[finalizeVenueId]),
+      activeRelease: clone(store.activeTournaments?.[activeReleaseVenueId]),
+      activeCleanup: clone(store.activeTournaments?.[activeCleanupVenueId]),
+      activeCleanupPrivate: clone(store.tournaments?.[activeCleanupTournamentId]),
+      activeCleanupPublic: clone(store.publicLive?.[activeCleanupTournamentId]),
+      activeCleanupLease: clone(store.operationLocks?.leases?.[activeCleanupVenueId]),
+      fenceTournament: clone(store.tournaments?.[fenceTournamentId]),
+      beforeTransaction: window.__qaBeforeFirebaseTransaction,
+      rejectedTransactionPaths: clone(window.__qaRejectFirebaseTransactionPaths),
+      nullFirstPaths: clone(window.__qaFirebaseNullFirstTransactionPathsV287),
+      nullFirstCounts: clone(window.__qaFirebaseNullFirstTransactionCountsV287)
+    };
+    let heartbeat = null;
+    let finalizeRecovery = null;
+    let activeRelease = null;
+    let activeCleanup = null;
+    let fenceRotation = null;
+    try {
+      currentUserProfile = {
+        uid,
+        email: "qa-venue@example.com",
+        role: "venue",
+        venueId,
+        venueName: "QA Heartbeat Venue",
+        approved: true,
+        permissions: { operate: true, dashboard: true }
+      };
+      state.tournament.status = "draft";
+      state.tournament.venueId = venueId;
+      state.tournament.venue = "QA Heartbeat Venue";
+      firebaseTournamentId = "";
+      store.operationLocks = store.operationLocks || {};
+      store.operationLocks.leases = store.operationLocks.leases || {};
+      store.operationLocks.leases[venueId] = {
+        ...lease,
+        venueId,
+        venueName: "QA Heartbeat Venue",
+        sessionId: window.__mini4wdOperatorSession?.sessionId || "",
+        sessionLineageId: window.__mini4wdOperatorSession?.lineageId || "qa-current-lineage-v288",
+        claimSequence: 8,
+        fenceSequenceHighWater: 8,
+        fenceToken: "qa-current-fence-v288",
+        reason: "qa-heartbeat-ready-v288",
+        leaseUntil: firebaseServerNowV279() + 45_000
+      };
+      await window.refreshOperationLeaseV178();
+      const before = Number(window.__qaFirebaseTransactionCounts[leasePath] || 0);
+      const results = await Promise.all(Array.from({ length: 5 }, () => writeHeartbeat("qa-concurrent-render-v288")));
+      const after = Number(window.__qaFirebaseTransactionCounts[leasePath] || 0);
+      heartbeat = {
+        allSucceeded: results.every(Boolean),
+        leaseTransactionCount: after - before,
+        leaseStillOwned: store.operationLocks.leases[venueId]?.sessionId === window.__mini4wdOperatorSession?.sessionId
+      };
+      window.__qaFirebaseNullFirstTransactionPathsV287 = [leasePath];
+      window.__qaFirebaseNullFirstTransactionCountsV287 = {};
+      const releasedAfterNullFirst = await window.releaseOperationLeaseV178(false, venueId);
+      heartbeat.releaseSurvivedNullFirst = Boolean(
+        releasedAfterNullFirst
+        && store.operationLocks.leases[venueId]?.status === "released"
+        && !store.operationLocks.leases[venueId]?.sessionId
+      );
+      heartbeat.releaseNullFirstCount = Number(window.__qaFirebaseNullFirstTransactionCountsV287[leasePath] || 0);
+      window.__qaFirebaseNullFirstTransactionPathsV287 = [];
+
+      currentUserProfile = { ...currentUserProfile, venueId: finalizeVenueId, venueName: "QA Finalize Cleanup Venue" };
+      state.tournament.venueId = finalizeVenueId;
+      state.tournament.venue = "QA Finalize Cleanup Venue";
+      delete store.operationLocks.leases[finalizeVenueId];
+      const firstTransactionCount = Number(window.__qaFirebaseTransactionCounts[finalizeLeasePath] || 0);
+      const rejectFinalizeAt = firstTransactionCount + 2;
+      window.__qaRejectFirebaseTransactionPaths = [];
+      window.__qaBeforeFirebaseTransaction = path => {
+        if (path !== finalizeLeasePath) return;
+        const count = Number(window.__qaFirebaseTransactionCounts[path] || 0);
+        window.__qaRejectFirebaseTransactionPaths = count === rejectFinalizeAt ? [path] : [];
+      };
+      const firstClaim = await window.claimOperationLeaseV178("qa-finalize-failure-v288", true, {
+        venueId: finalizeVenueId,
+        venueName: "QA Finalize Cleanup Venue",
+        tournamentId: "",
+        status: "draft"
+      });
+      const afterFailure = clone(store.operationLocks.leases[finalizeVenueId]);
+      window.__qaBeforeFirebaseTransaction = null;
+      window.__qaRejectFirebaseTransactionPaths = [];
+      const secondClaim = await window.claimOperationLeaseV178("qa-finalize-retry-v288", true, {
+        venueId: finalizeVenueId,
+        venueName: "QA Finalize Cleanup Venue",
+        tournamentId: "",
+        status: "draft"
+      });
+      const recoveredLease = clone(store.operationLocks.leases[finalizeVenueId]);
+      finalizeRecovery = {
+        firstClaimFailed: firstClaim === false,
+        pendingClearedAfterFailure: Boolean(afterFailure && !afterFailure.pendingClaimToken),
+        retrySucceeded: secondClaim === true,
+        retryOwned: Boolean(
+          recoveredLease?.sessionId === window.__mini4wdOperatorSession?.sessionId
+          && Number(recoveredLease?.leaseUntil || 0) > firebaseServerNowV279()
+        ),
+        retrySequenceAdvanced: Number(recoveredLease?.claimSequence || 0) > Number(afterFailure?.claimSequence || 0)
+      };
+      await window.releaseOperationLeaseV178(false, finalizeVenueId);
+
+      store.activeTournaments = store.activeTournaments || {};
+      store.activeTournaments[activeReleaseVenueId] = {
+        protocolVersion: 279,
+        venueId: activeReleaseVenueId,
+        tournamentId: "qa-active-release-tournament-v288",
+        registryGeneration: "qa-active-release-generation-v288",
+        status: "running",
+        updatedAt: firebaseServerNowV279()
+      };
+      window.__qaFirebaseNullFirstTransactionPathsV287 = [activeReleasePath];
+      window.__qaFirebaseNullFirstTransactionCountsV287 = {};
+      const activeReleaseResult = await releaseActiveTournamentForVenue(
+        "finished-clear",
+        "qa-active-release-tournament-v288",
+        "qa-active-release-generation-v288",
+        activeReleaseVenueId
+      );
+      activeRelease = {
+        returnedSuccess: activeReleaseResult === true,
+        pointerRemoved: !store.activeTournaments[activeReleaseVenueId],
+        nullFirstCount: Number(window.__qaFirebaseNullFirstTransactionCountsV287[activeReleasePath] || 0)
+      };
+      window.__qaFirebaseNullFirstTransactionPathsV287 = [];
+
+      const activeCleanupGeneration = "qa-active-cleanup-generation-v288";
+      store.activeTournaments[activeCleanupVenueId] = {
+        protocolVersion: 279,
+        venueId: activeCleanupVenueId,
+        tournamentId: activeCleanupTournamentId,
+        registryGeneration: activeCleanupGeneration,
+        status: "running",
+        updatedAt: firebaseServerNowV279() - 60_000
+      };
+      store.tournaments = store.tournaments || {};
+      store.publicLive = store.publicLive || {};
+      store.tournaments[activeCleanupTournamentId] = {
+        state: {
+          tournament: {
+            status: "finished",
+            venueId: activeCleanupVenueId,
+            activeRegistryGeneration: activeCleanupGeneration
+          },
+          updatedAt: firebaseServerNowV279() - 30_000
+        }
+      };
+      store.publicLive[activeCleanupTournamentId] = {
+        status: "finished",
+        registryGeneration: activeCleanupGeneration,
+        updatedAt: firebaseServerNowV279() - 30_000
+      };
+      delete store.operationLocks.leases[activeCleanupVenueId];
+      window.__qaFirebaseNullFirstTransactionPathsV287 = [activeCleanupPath];
+      window.__qaFirebaseNullFirstTransactionCountsV287 = {};
+      const activeCleanupResult = await window.cleanupActiveTournamentForVenueV151(activeCleanupVenueId);
+      activeCleanup = {
+        returnedSuccess: activeCleanupResult?.removed === true,
+        pointerRemoved: !store.activeTournaments[activeCleanupVenueId],
+        reason: String(activeCleanupResult?.reason || ""),
+        nullFirstCount: Number(window.__qaFirebaseNullFirstTransactionCountsV287[activeCleanupPath] || 0)
+      };
+      window.__qaFirebaseNullFirstTransactionPathsV287 = [];
+
+      const fenceGeneration = "qa-fence-rotation-generation-v288";
+      store.tournaments[fenceTournamentId] = {
+        state: {
+          tournament: {
+            status: "running",
+            venueId: fenceVenueId,
+            venue: "QA Fence Rotation Venue",
+            activeRegistryGeneration: fenceGeneration,
+            liveWriteFenceV278: "qa-old-fence-v288",
+            liveWriteFenceSequenceV278: 3
+          },
+          updatedAt: firebaseServerNowV279() - 5_000
+        }
+      };
+      window.__qaFirebaseNullFirstTransactionPathsV287 = [fenceTournamentPath];
+      window.__qaFirebaseNullFirstTransactionCountsV287 = {};
+      const fenceRotationResult = await window.__mini4wdRotateLiveWriteFenceForLeaseV278(
+        firebaseDb,
+        fenceVenueId,
+        { claimSequence: 4, fenceToken: "qa-new-fence-v288" },
+        {
+          tournamentId: fenceTournamentId,
+          registryGeneration: fenceGeneration,
+          status: "running"
+        }
+      );
+      const fencedState = store.tournaments[fenceTournamentId]?.state || store.tournaments[fenceTournamentId];
+      fenceRotation = {
+        returnedSuccess: fenceRotationResult?.ok === true,
+        fenceUpdated: Boolean(
+          fencedState?.tournament?.liveWriteFenceV278 === "qa-new-fence-v288"
+          && Number(fencedState?.tournament?.liveWriteFenceSequenceV278 || 0) === 4
+        ),
+        nullFirstCount: Number(window.__qaFirebaseNullFirstTransactionCountsV287[fenceTournamentPath] || 0)
+      };
+      window.__qaFirebaseNullFirstTransactionPathsV287 = [];
+    } finally {
+      window.__qaBeforeFirebaseTransaction = backup.beforeTransaction;
+      window.__qaRejectFirebaseTransactionPaths = backup.rejectedTransactionPaths || [];
+      window.__qaFirebaseNullFirstTransactionPathsV287 = backup.nullFirstPaths || [];
+      window.__qaFirebaseNullFirstTransactionCountsV287 = backup.nullFirstCounts || {};
+      store.operationLocks = store.operationLocks || {};
+      store.operationLocks.leases = store.operationLocks.leases || {};
+      if (backup.lease == null) delete store.operationLocks.leases[venueId];
+      else store.operationLocks.leases[venueId] = backup.lease;
+      if (backup.finalizeLease == null) delete store.operationLocks.leases[finalizeVenueId];
+      else store.operationLocks.leases[finalizeVenueId] = backup.finalizeLease;
+      store.activeTournaments = store.activeTournaments || {};
+      if (backup.activeRelease == null) delete store.activeTournaments[activeReleaseVenueId];
+      else store.activeTournaments[activeReleaseVenueId] = backup.activeRelease;
+      if (backup.activeCleanup == null) delete store.activeTournaments[activeCleanupVenueId];
+      else store.activeTournaments[activeCleanupVenueId] = backup.activeCleanup;
+      store.tournaments = store.tournaments || {};
+      store.publicLive = store.publicLive || {};
+      if (backup.activeCleanupPrivate == null) delete store.tournaments[activeCleanupTournamentId];
+      else store.tournaments[activeCleanupTournamentId] = backup.activeCleanupPrivate;
+      if (backup.activeCleanupPublic == null) delete store.publicLive[activeCleanupTournamentId];
+      else store.publicLive[activeCleanupTournamentId] = backup.activeCleanupPublic;
+      if (backup.activeCleanupLease == null) delete store.operationLocks.leases[activeCleanupVenueId];
+      else store.operationLocks.leases[activeCleanupVenueId] = backup.activeCleanupLease;
+      if (backup.fenceTournament == null) delete store.tournaments[fenceTournamentId];
+      else store.tournaments[fenceTournamentId] = backup.fenceTournament;
+      currentUserProfile = backup.profile;
+      state = normalizeImportedState(backup.state);
+      activeRoundIndex = backup.activeRoundIndex;
+      state.activeRoundIndex = backup.activeRoundIndex;
+      firebaseTournamentId = backup.firebaseTournamentId;
+      persistCurrentState();
+      try { v282LeaseAcquiredVenues.delete(venueId); } catch (error) {}
+      try { v282LeaseAcquiredVenues.delete(finalizeVenueId); } catch (error) {}
+      renderOperator();
+    }
+    return { supported: true, policy, outage, heartbeat, finalizeRecovery, activeRelease, activeCleanup, fenceRotation };
+  });
+  logs.push({ step: "operation-lease-reliability-v288", info: operationLeaseReliabilityV288 });
+  if (
+    !operationLeaseReliabilityV288.supported
+    || !operationLeaseReliabilityV288.policy?.recentOnlineBlocked
+    || !operationLeaseReliabilityV288.policy?.explicitOfflineAllowed
+    || !operationLeaseReliabilityV288.policy?.staleHeartbeatAllowed
+    || !operationLeaseReliabilityV288.policy?.missingPresenceAllowed
+    || !operationLeaseReliabilityV288.policy?.foreignAccountBlocked
+    || !operationLeaseReliabilityV288.outage?.claimFailedClosed
+    || !operationLeaseReliabilityV288.outage?.verifyFailedClosed
+    || !operationLeaseReliabilityV288.outage?.activeClaimFailedClosed
+    || operationLeaseReliabilityV288.outage?.failureReason !== "firebase-unavailable"
+    || !operationLeaseReliabilityV288.heartbeat?.allSucceeded
+    || operationLeaseReliabilityV288.heartbeat?.leaseTransactionCount !== 1
+    || !operationLeaseReliabilityV288.heartbeat?.leaseStillOwned
+    || !operationLeaseReliabilityV288.heartbeat?.releaseSurvivedNullFirst
+    || operationLeaseReliabilityV288.heartbeat?.releaseNullFirstCount < 1
+    || !operationLeaseReliabilityV288.finalizeRecovery?.firstClaimFailed
+    || !operationLeaseReliabilityV288.finalizeRecovery?.pendingClearedAfterFailure
+    || !operationLeaseReliabilityV288.finalizeRecovery?.retrySucceeded
+    || !operationLeaseReliabilityV288.finalizeRecovery?.retryOwned
+    || !operationLeaseReliabilityV288.finalizeRecovery?.retrySequenceAdvanced
+    || !operationLeaseReliabilityV288.activeRelease?.returnedSuccess
+    || !operationLeaseReliabilityV288.activeRelease?.pointerRemoved
+    || operationLeaseReliabilityV288.activeRelease?.nullFirstCount < 1
+    || !operationLeaseReliabilityV288.activeCleanup?.returnedSuccess
+    || !operationLeaseReliabilityV288.activeCleanup?.pointerRemoved
+    || operationLeaseReliabilityV288.activeCleanup?.reason !== "status-finished"
+    || operationLeaseReliabilityV288.activeCleanup?.nullFirstCount < 1
+    || !operationLeaseReliabilityV288.fenceRotation?.returnedSuccess
+    || !operationLeaseReliabilityV288.fenceRotation?.fenceUpdated
+    || operationLeaseReliabilityV288.fenceRotation?.nullFirstCount < 1
+  ) {
+    failures.push(`operation lease reliability v288 failed ${JSON.stringify(operationLeaseReliabilityV288)}`);
+  }
+
   const functionTypes = await page.evaluate(() => ({
     setMatchMode: typeof window.setMatchMode,
     startQualifierRound: typeof window.startQualifierRound,
@@ -2417,14 +2795,11 @@ async function runViewport(browser, meta, viewport) {
           updatedAt: Date.now() + 1
         };
       };
-      releaseActiveTournamentForVenue("finished-clear", registryReleaseRaceId, "release-a", "qa-venue");
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await releaseActiveTournamentForVenue("finished-clear", registryReleaseRaceId, "release-a", "qa-venue");
       const oldGenerationReleasePreservedNewClaim = store.activeTournaments?.["qa-venue"]?.registryGeneration === "release-b";
-      releaseActiveTournamentForVenue("finished-clear", registryReleaseRaceId, "", "qa-venue");
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await releaseActiveTournamentForVenue("finished-clear", registryReleaseRaceId, "", "qa-venue");
       const legacyReleasePreservedTokenizedClaim = store.activeTournaments?.["qa-venue"]?.registryGeneration === "release-b";
-      releaseActiveTournamentForVenue("finished-clear", registryReleaseRaceId, "release-b", "qa-venue");
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await releaseActiveTournamentForVenue("finished-clear", registryReleaseRaceId, "release-b", "qa-venue");
       const matchingGenerationReleaseSucceeded = !store.activeTournaments?.["qa-venue"];
 
       const cleanupOldState = makePrivateState(cleanupRaceOldId, Date.now());
