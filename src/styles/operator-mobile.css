@@ -804,6 +804,157 @@
   }
 }
 
+/* v285: the current mobile bracket group stays open while the rest become
+   compact, reversible summaries. Desktop restores the canonical group order. */
+@media (max-width: 760px) {
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-stage-v227 .operator-groups-v227 {
+    align-items: start !important;
+  }
+
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-stage-v227 .operator-group-v285 {
+    width: 100% !important;
+    scroll-margin-top: 8px !important;
+  }
+
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-stage-v227 .operator-group-current-v285 {
+    border-color: #e9a9c4 !important;
+    background: #fffafd !important;
+    box-shadow: inset 4px 0 0 var(--op-mobile-accent-v255) !important;
+  }
+
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-group-title-copy-v285 {
+    display: flex !important;
+    align-items: center !important;
+    min-width: 0 !important;
+    gap: 7px !important;
+  }
+
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-group-title-copy-v285 strong {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-group-status-v285 {
+    flex: 0 0 auto !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    min-width: 34px !important;
+    min-height: 22px !important;
+    padding: 0 7px !important;
+    border: 1px solid var(--op-mobile-line-v255) !important;
+    border-radius: 999px !important;
+    background: var(--op-mobile-soft-v255) !important;
+    color: var(--op-mobile-muted-v255) !important;
+    font-size: 10px !important;
+    font-weight: 950 !important;
+    line-height: 1 !important;
+  }
+
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-group-status-current-v285 {
+    border-color: var(--op-mobile-accent-v255) !important;
+    background: var(--op-mobile-accent-v255) !important;
+    color: #ffffff !important;
+  }
+
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-group-status-complete-v285 {
+    border-color: #bbf7d0 !important;
+    background: #f0fdf4 !important;
+    color: #166534 !important;
+  }
+
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) details.operator-group-collapsible-v285 {
+    display: block !important;
+    min-height: 48px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: 1px solid var(--op-mobile-line-v255) !important;
+    background: var(--op-mobile-surface-v255) !important;
+  }
+
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) details.operator-group-collapsible-v285 > summary.operator-group-summary-v285 {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-height: 48px !important;
+    margin: 0 !important;
+    padding: 8px 34px 8px 10px !important;
+    border: 0 !important;
+    background: var(--op-mobile-surface-v255) !important;
+    cursor: pointer !important;
+    list-style: none !important;
+  }
+
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) details.operator-group-collapsible-v285 > summary.operator-group-summary-v285::-webkit-details-marker {
+    display: none !important;
+  }
+
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) details.operator-group-collapsible-v285 > summary.operator-group-summary-v285::after {
+    content: "" !important;
+    position: absolute !important;
+    right: 13px !important;
+    top: 50% !important;
+    width: 8px !important;
+    height: 8px !important;
+    border-right: 2px solid var(--op-mobile-muted-v255) !important;
+    border-bottom: 2px solid var(--op-mobile-muted-v255) !important;
+    transform: translateY(-65%) rotate(45deg) !important;
+  }
+
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) details.operator-group-collapsible-v285[open] > summary.operator-group-summary-v285 {
+    border-bottom: 1px solid var(--op-mobile-line-v255) !important;
+  }
+
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) details.operator-group-collapsible-v285[open] > summary.operator-group-summary-v285::after {
+    transform: translateY(-35%) rotate(225deg) !important;
+  }
+
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) details.operator-group-collapsible-v285 > summary.operator-group-summary-v285:focus-visible {
+    outline: 3px solid var(--op-mobile-accent-v255) !important;
+    outline-offset: -3px !important;
+  }
+
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operator-group-body-v285 {
+    padding: 7px !important;
+  }
+
+  html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) details.operator-group-collapsible-v285:not([open]) {
+    height: 48px !important;
+    max-height: 48px !important;
+  }
+}
+
+@media (min-width: 761px) {
+  html body.surface-operator:not(.tv-mode) .operator-group-v285 {
+    order: var(--operator-group-original-order-v285, 0) !important;
+  }
+
+  html body.surface-operator:not(.tv-mode) .operator-group-title-copy-v285 {
+    display: flex !important;
+    align-items: center !important;
+    min-width: 0 !important;
+  }
+
+  html body.surface-operator:not(.tv-mode) .operator-group-status-v285 {
+    display: none !important;
+  }
+
+  html body.surface-operator:not(.tv-mode) details.operator-group-collapsible-v285 > summary.operator-group-summary-v285 {
+    pointer-events: none !important;
+    list-style: none !important;
+  }
+
+  html body.surface-operator:not(.tv-mode) details.operator-group-collapsible-v285 > summary.operator-group-summary-v285::-webkit-details-marker {
+    display: none !important;
+  }
+
+  html body.surface-operator:not(.tv-mode) details.operator-group-collapsible-v285 > .operator-group-body-v285 {
+    display: block !important;
+  }
+}
+
 @media (max-width: 760px) and (forced-colors: active) {
   html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) button:focus-visible {
     outline: 3px solid Highlight !important;

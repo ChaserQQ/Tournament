@@ -437,6 +437,7 @@ async function assertNoUiBreakage(page, label, failures) {
     const operatorFoldPanels = document.querySelectorAll("details.operator-page").length;
     const operatorStaticPanels = document.querySelectorAll(".operator-static-panel-v236").length;
     const operatorMobileSlots = [...document.querySelectorAll(".stage-card .slot:not(.empty-lane)")]
+      .filter(visible)
       .slice(0, 10)
       .map(slot => {
         const slotRect = slot.getBoundingClientRect();
@@ -460,6 +461,29 @@ async function assertNoUiBreakage(page, label, failures) {
           laneClipped: !!(laneRect && (laneRect.top < slotRect.top - 1 || laneRect.bottom > slotRect.bottom + 1))
         };
       });
+    const operatorCurrentStageV285 = document.querySelector(".operator-stage-v227.current-stage");
+    const operatorCurrentStageRectV285 = operatorCurrentStageV285?.getBoundingClientRect();
+    const operatorMobileGroupsV285 = [...(operatorCurrentStageV285?.querySelectorAll(":scope > .operator-groups-v227 > .operator-group-v285") || [])]
+      .map(group => {
+        const rect = group.getBoundingClientRect();
+        return {
+          state: group.getAttribute("data-operator-group-state") || "",
+          originalIndex: Number(group.getAttribute("data-operator-group-index") || -1),
+          tagName: group.tagName,
+          open: group.tagName === "DETAILS" ? group.open : true,
+          height: Math.round(rect.height),
+          top: Math.round(rect.top),
+          totalSlots: group.querySelectorAll(".slot").length,
+          visibleSlots: [...group.querySelectorAll(".slot")].filter(visible).length
+        };
+      });
+    const operatorBracketDensityV285 = {
+      stageHeight: operatorCurrentStageRectV285 ? Math.round(operatorCurrentStageRectV285.height) : 0,
+      groups: operatorMobileGroupsV285,
+      currentCount: operatorMobileGroupsV285.filter(group => group.state === "current").length,
+      unfinishedCount: operatorMobileGroupsV285.filter(group => ["current", "pending"].includes(group.state)).length,
+      firstState: operatorMobileGroupsV285[0]?.state || ""
+    };
     const operatorDock = document.querySelector(".mobile-operator-dock-v147");
     const operatorDockRect = operatorDock ? operatorDock.getBoundingClientRect() : null;
     const operatorDockStyle = operatorDock ? getComputedStyle(operatorDock) : null;
@@ -937,6 +961,7 @@ async function assertNoUiBreakage(page, label, failures) {
       dbToolbarGroups,
       dbMobileListRhythmV261,
       operatorMobileSlots,
+      operatorBracketDensityV285,
       operatorFoldPanels,
       operatorStaticPanels,
       operatorTextClutterCount: operatorTextClutter.length,
@@ -1147,6 +1172,20 @@ async function assertNoUiBreakage(page, label, failures) {
     if (maxSlotHeight > 150) failures.push(`${label}: mobile operator slot too tall ${maxSlotHeight}px`);
     if (info.operatorDockHeight && info.operatorWrapPaddingBottom < info.operatorDockHeight + 36) failures.push(`${label}: mobile operator dock clearance too small ${info.operatorWrapPaddingBottom}/${info.operatorDockHeight}`);
   }
+  if (info.surface === "operator" && info.innerWidth <= 760 && info.currentStage) {
+    const density = info.operatorBracketDensityV285;
+    const groups = density?.groups || [];
+    if (density?.unfinishedCount > 0 && (density.currentCount !== 1 || density.firstState !== "current")) {
+      failures.push(`${label}: v285 current bracket group is not first ${JSON.stringify(density)}`);
+    }
+    const expandedNonCurrent = groups.filter(group => group.state !== "current" && (group.tagName !== "DETAILS" || group.open || group.height > 56 || group.visibleSlots > 0));
+    if (expandedNonCurrent.length) {
+      failures.push(`${label}: v285 non-current bracket groups are not compact ${JSON.stringify(expandedNonCurrent.slice(0, 3))}`);
+    }
+    if (groups.length >= 4 && density.stageHeight > 900) {
+      failures.push(`${label}: v285 mobile bracket remains too tall ${density.stageHeight}px/${groups.length} groups`);
+    }
+  }
   if (/^(start-point-round|point-scores)$/.test(label) && info.surface === "operator" && info.innerWidth <= 760 && info.currentStage) {
     if (info.operatorTextClutterCount > 3) failures.push(`${label}: mobile operator text clutter ${info.operatorTextClutterCount} ${JSON.stringify(info.operatorTextClutterSample)}`);
   }
@@ -1287,6 +1326,151 @@ async function runViewport(browser, meta, viewport) {
     || !draftAutoOperationLeaseV282.releaseEnabled
   ) {
     failures.push(`draft operator did not auto-acquire the venue lease ${JSON.stringify(draftAutoOperationLeaseV282)}`);
+  }
+
+  const staleLocalTakeoverV285 = await page.evaluate(async () => {
+    const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
+    const store = window.__qaFirebaseStore;
+    const venueId = "qa-stale-local-takeover-v285";
+    const tournamentId = "qa-stale-local-only-v285";
+    const storageKeys = [
+      "mini4wdSnapshotsV44",
+      "mini4wdTournamentId",
+      "mini4wdActiveLiveId",
+      "mini4wdActiveLiveSignature",
+      "mini4wdActiveLiveDate"
+    ];
+    const backup = {
+      profile: clone(currentUserProfile),
+      state: exportState(),
+      activeRoundIndex,
+      firebaseTournamentId,
+      active: clone(store.activeTournaments?.[venueId]),
+      tournament: clone(store.tournaments?.[tournamentId]),
+      publicLive: clone(store.publicLive?.[tournamentId]),
+      lease: clone(store.operationLocks?.leases?.[venueId]),
+      takeover: clone(window.__mini4wdLastLeaseTakeoverV285),
+      storage: Object.fromEntries(storageKeys.map(key => [key, localStorage.getItem(key)]))
+    };
+    let result = null;
+    try {
+      currentUserProfile = {
+        uid: "qa-uid",
+        email: "qa-venue@example.com",
+        role: "venue",
+        venueId,
+        venueName: "QA Stale Local Venue",
+        approved: true,
+        permissions: { operate: true, dashboard: true }
+      };
+      const running = makeInitialState(3);
+      running.inputText = "Alpha\tQA\nBeta\tQA\nGamma\tQA";
+      running.tournament = {
+        ...running.tournament,
+        name: "Stale local tournament",
+        venue: "QA Stale Local Venue",
+        venueId,
+        status: "running",
+        liveId: tournamentId,
+        liveSignature: `${tournamentId}-signature`,
+        activeRegistryGeneration: "stale-generation-v285",
+        startedAtISO: new Date(Date.now() - 60000).toISOString()
+      };
+      running.updatedAt = Date.now() - 5000;
+      state = normalizeImportedState(running);
+      activeRoundIndex = 0;
+      state.activeRoundIndex = 0;
+      firebaseTournamentId = tournamentId;
+      localStorage.setItem("mini4wdTournamentId", tournamentId);
+      localStorage.setItem("mini4wdActiveLiveId", tournamentId);
+      localStorage.setItem("mini4wdActiveLiveSignature", running.tournament.liveSignature);
+      store.activeTournaments = store.activeTournaments || {};
+      store.tournaments = store.tournaments || {};
+      store.publicLive = store.publicLive || {};
+      store.operationLocks = store.operationLocks || {};
+      store.operationLocks.leases = store.operationLocks.leases || {};
+      delete store.activeTournaments[venueId];
+      delete store.tournaments[tournamentId];
+      delete store.publicLive[tournamentId];
+      delete store.operationLocks.leases[venueId];
+      if (typeof cacheOperationLeaseV278 === "function") cacheOperationLeaseV278(venueId, null);
+
+      const taken = await window.takeoverOperationLeaseV178(true);
+      const lease = clone(store.operationLocks?.leases?.[venueId]);
+      const snapshots = JSON.parse(localStorage.getItem("mini4wdSnapshotsV44") || "{}");
+      const savedSnapshot = Object.values(snapshots).find(snapshot => (
+        snapshot?.label === "서버 미등록 로컬 진행 자동 보관"
+        && snapshot?.state?.tournament?.liveId === tournamentId
+      ));
+      const diagnostic = clone(window.__mini4wdLastLeaseTakeoverV285);
+      result = {
+        taken,
+        localStatus: state?.tournament?.status || "",
+        closeReason: state?.tournament?.previousTournamentCloseReason || "",
+        snapshotSaved: Boolean(savedSnapshot),
+        snapshotStatus: savedSnapshot?.state?.tournament?.status || "",
+        leaseOwned: Boolean(
+          lease?.uid === "qa-uid"
+          && lease?.sessionId === window.__mini4wdOperatorSession?.sessionId
+          && Number(lease?.leaseUntil || 0) > firebaseServerNowV279()
+        ),
+        leaseTournamentId: lease?.tournamentId || "",
+        leaseStatus: lease?.status || "",
+        serverTournamentCreated: Boolean(store.tournaments?.[tournamentId]),
+        serverActiveCreated: Boolean(store.activeTournaments?.[venueId]),
+        diagnostic
+      };
+      await window.releaseOperationLeaseV178(false, venueId);
+    } finally {
+      store.activeTournaments = store.activeTournaments || {};
+      store.tournaments = store.tournaments || {};
+      store.publicLive = store.publicLive || {};
+      store.operationLocks = store.operationLocks || {};
+      store.operationLocks.leases = store.operationLocks.leases || {};
+      if (backup.active == null) delete store.activeTournaments[venueId];
+      else store.activeTournaments[venueId] = backup.active;
+      if (backup.tournament == null) delete store.tournaments[tournamentId];
+      else store.tournaments[tournamentId] = backup.tournament;
+      if (backup.publicLive == null) delete store.publicLive[tournamentId];
+      else store.publicLive[tournamentId] = backup.publicLive;
+      if (backup.lease == null) delete store.operationLocks.leases[venueId];
+      else store.operationLocks.leases[venueId] = backup.lease;
+      currentUserProfile = backup.profile;
+      state = normalizeImportedState(backup.state);
+      activeRoundIndex = backup.activeRoundIndex;
+      state.activeRoundIndex = backup.activeRoundIndex;
+      firebaseTournamentId = backup.firebaseTournamentId;
+      persistCurrentState();
+      storageKeys.forEach(key => {
+        const value = backup.storage[key];
+        if (value == null) localStorage.removeItem(key);
+        else localStorage.setItem(key, value);
+      });
+      if (backup.takeover == null) delete window.__mini4wdLastLeaseTakeoverV285;
+      else window.__mini4wdLastLeaseTakeoverV285 = backup.takeover;
+      try { v282LeaseAcquiredVenues.delete(venueId); } catch (error) {}
+      if (typeof cacheOperationLeaseV278 === "function") cacheOperationLeaseV278(venueId, backup.lease || null);
+      renderOperator();
+    }
+    return result;
+  });
+  logs.push({ step: "stale-local-takeover-v285", info: staleLocalTakeoverV285 });
+  if (
+    !staleLocalTakeoverV285.taken
+    || staleLocalTakeoverV285.localStatus !== "draft"
+    || staleLocalTakeoverV285.closeReason !== "stale-local-operation-recovery-v285"
+    || !staleLocalTakeoverV285.snapshotSaved
+    || staleLocalTakeoverV285.snapshotStatus !== "running"
+    || !staleLocalTakeoverV285.leaseOwned
+    || staleLocalTakeoverV285.leaseTournamentId !== ""
+    || staleLocalTakeoverV285.leaseStatus !== "draft"
+    || staleLocalTakeoverV285.serverTournamentCreated
+    || staleLocalTakeoverV285.serverActiveCreated
+    || !staleLocalTakeoverV285.diagnostic?.ok
+    || staleLocalTakeoverV285.diagnostic?.mode !== "stale-local-reset"
+    || !staleLocalTakeoverV285.diagnostic?.snapshotSaved
+  ) {
+    failures.push(`stale local takeover v285 recovery failed ${JSON.stringify(staleLocalTakeoverV285)}`);
   }
 
   const functionTypes = await page.evaluate(() => ({
@@ -5758,8 +5942,14 @@ async function runViewport(browser, meta, viewport) {
   const pointButtons = await page.locator(".point-buttons button").count();
   if (pointButtons < 4) failures.push(`point buttons too few: ${pointButtons}`);
   const pointGroups = await page.locator(".point-buttons").count();
+  let visiblePointIndexV285 = 0;
   for (let index = 0; index < Math.min(pointGroups, 8); index += 1) {
-    await page.locator(".point-buttons").nth(index).locator("button").nth(index % 4).click();
+    const visiblePointGroupsV285 = page.locator(".point-buttons:visible");
+    const visibleCountV285 = await visiblePointGroupsV285.count();
+    if (!visibleCountV285) break;
+    const targetIndexV285 = Math.min(visiblePointIndexV285, visibleCountV285 - 1);
+    await visiblePointGroupsV285.nth(targetIndexV285).locator("button").nth(index % 4).click();
+    visiblePointIndexV285 = targetIndexV285 + 1 >= visibleCountV285 ? 0 : targetIndexV285 + 1;
     await page.waitForTimeout(120);
   }
   logs.push({ step: "point-scores", info: await assertNoUiBreakage(page, "point-scores", failures) });

@@ -22,11 +22,12 @@
 
 ## Current verified state
 
-- Verified 2026-08-29 KST: 현재 릴리스 소스는 v284, BUILD v284 MOBILE CONTROL HIERARCHY이다.
-- build와 두 CSS 자산은 284, app은 동작 변경이 없어 283, config는 156이다.
-- RTDB write protocol은 279이며 v284에서는 Firebase 규칙과 운영 데이터를 변경하지 않았다.
+- Verified 2026-08-29 KST: 현재 릴리스 소스는 v285, BUILD v285 BRACKET FOCUS AND LEASE RECOVERY이다.
+- build, app, operator-mobile CSS는 285, 공용 app CSS는 284, config는 156이다.
+- RTDB write protocol은 279이며 v285에서는 Firebase 규칙과 운영 데이터를 변경하지 않았다.
 - 라이브 로비는 승인 경기장 카드만 전체 카드로 표시하고 나머지 빈 슬롯은 접힌 목록으로 축약한다. 20슬롯 계약은 data-v283-total-slots로 유지한다.
-- npm.cmd run qa:all이 v284에서 통과했다. 실데이터 320px 라이브 로비와 자동화된 PC·390px·320px 공개/운영 화면에서 버튼 높이, 한 줄 이동, 가로 넘침을 확인했다.
+- 모바일 운영 대진표는 현재 조를 첫 위치에 펼치고 대기·완료 조를 48px 접힘 요약으로 표시한다. 390px 7개 조 fixture에서 단계 높이 715px, 가로 넘침 0을 확인했다.
+- npm.cmd run qa:all이 v285에서 통과했다. 아테네 유형의 서버 미등록 로컬 진행 상태 복구, 대진·진출·점수, PC·390px·320px 공개/운영 화면을 함께 검증했다. qa:rules는 이 PC의 Java 8 때문에 실행할 수 없었지만 규칙은 변경하지 않았고 활성 규칙과 로컬 규칙의 canonical SHA가 일치한다.
 - 현재 소스 기준 파일은 src/app.js, src/core/build.js, src/styles/app.css, src/styles/operator-mobile.css, tools/verify-static.js와 tools 아래 QA 스크립트다.
 - 보존할 추적되지 않은 항목은 .codex-remote-attachments/, DESIGN_OUTPUT.md, FIREBASE_REPORT.md, QA_REPORT.md이다.
 
@@ -52,6 +53,7 @@
 
 ## Recent durable changes
 
+- 2026-08-29 v285: 수동 운영권 가져오기는 로컬 대회 ID를 그대로 신뢰하지 않고 서버 active tournament를 먼저 확인한다. 서버에 활성 대회가 없는데 브라우저에 진행 상태가 남아 있으면 확인 후 자동 스냅샷을 성공시킨 다음 새 초안으로 전환해 빈 venue lease를 획득하며, 서버 대회는 생성하지 않는다. 모바일 대진표는 현재 조만 펼치고 나머지 조를 상태별 접힘 요약으로 바꿔 390px 7개 조 높이를 715px로 줄였다.
 - 2026-08-29 v284: 모바일 입력 필드는 44px로 유지하고 이동·라운드·결승·도크 버튼은 40px로 분리했다. LIVE 상단 이동 4개는 320px에서도 한 줄로 배치하고 운영 도크 프레임은 58px로 줄였다. 320px·390px에서 버튼 높이, 한 줄 배치, 가로 넘침 없음과 12px 메타 가독성을 QA로 고정했다.
 - 2026-08-29 v283: LIVE 로비의 20슬롯 데이터 계약은 유지하되 승인 경기장이 없는 슬롯은 접힌 축약 목록으로 옮겼다. 뒤로가기·홈·기록·새로고침 이동을 추가하고 모바일 핵심 터치 영역을 확장했다. 320px 요약 문구와 12px 카드 메타 가독성을 QA로 고정했다.
 - 2026-08-28 v282: 승인된 venue 계정은 초안 운영 화면 진입 시 비어 있는 서버 lease를 자동 획득한다. 서버 상태를 운영권 보유·획득 중·없음으로 정확히 표시하고 비동기 획득 뒤 가져오기·해제 버튼을 즉시 동기화한다. 관리자 계정, 대회 종료, 명시적 해제 뒤에는 자동 재획득하지 않는다.
@@ -72,6 +74,7 @@
 - 모바일 버튼을 모두 같은 높이로 확대하면 입력·보조 이동·핵심 실행의 위계가 사라지고 헤더와 도크가 과도하게 커진다. 입력 44px과 조밀한 버튼 40px 계약을 실제 320px·390px 행 수와 함께 검사한다.
 - LIVE 로비의 20슬롯 계약과 렌더링된 전체 카드 수는 같지 않다. 승인 경기장 카드는 전체 카드, 빈 슬롯은 접힌 data-v283-empty-slot 목록으로 검사한다.
 - 인증 운영자의 권한은 서버 lease 하나다. 레거시 operationLock을 다시 쓰기 차단 조건으로 사용하면 안 된다.
+- 로컬에 남은 running 상태의 tournament ID를 수동 운영권 claim의 exact identity로 바로 넘기면 서버에 활성 대회가 없는 경우 fence 검증이 실패한다. 먼저 서버 active pointer를 확인하고, 없으면 로컬 진행 상태를 스냅샷한 뒤 초안으로 전환해 빈 venue lease를 요청한다.
 - 운영권 판정과 LIVE 쓰기는 정확한 venue, tournament, generation, fence와 sequence를 함께 확인해야 한다.
 - 수동 조 수는 첫 생성 단계 제약이며 단계 이름이 예선인지로 판단하면 안 된다.
 - no-finalist는 유효한 결과이므로 최소 한 명의 진출자를 전역 조건으로 강제하면 안 된다.

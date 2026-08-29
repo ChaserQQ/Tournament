@@ -10,13 +10,13 @@
     ];
     const RTDB_WRITE_PROTOCOL_V279 = 279;
     const MINI4WD_BUILD = window.MINI4WD_BUILD_META || {
-      version: 283,
-      label: "BUILD v283 LIVE LOBBY USABILITY",
+      version: 285,
+      label: "BUILD v285 BRACKET FOCUS AND LEASE RECOVERY",
       rulesChanged: false,
       surfaces: MINI4WD_FALLBACK_SURFACES,
       pageClasses: MINI4WD_FALLBACK_PAGE_CLASSES
     };
-    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v283 LIVE LOBBY USABILITY";
+    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v285 BRACKET FOCUS AND LEASE RECOVERY";
     const MINI4WD_SURFACES = Array.isArray(MINI4WD_BUILD.surfaces) && MINI4WD_BUILD.surfaces.length
       ? Array.from(MINI4WD_BUILD.surfaces)
       : MINI4WD_FALLBACK_SURFACES;
@@ -2784,12 +2784,15 @@ function setBroadcastStage(roundIndex, stageIndex) {
     }
 
     function renderOperatorOverviewV226(round, counts = {}) {
-      const { currentStage, stageLabel, progressLabel, nextGroupText } = getOperatorControlContextV246(round);
+      const { currentStage, progress, stageLabel, progressLabel, nextGroupText } = getOperatorControlContextV246(round);
       const players = counts.players || parseParticipants();
       const participantCount = players.filter(player => player && !player.isEmptyLane).length;
       const estimatedGroups = counts.estimatedGroups ?? (participantCount ? Math.ceil(participantCount / state.settings.laneCount) : 0);
       const finalizedCount = counts.finalizedCount ?? roundCompleteCountV275();
       const totalGroups = currentStage?.groups?.length || estimatedGroups;
+      const currentGroupValue = currentStage
+        ? `${progress.nextIndex >= 0 ? progress.nextIndex + 1 : progress.total}/${progress.total}`
+        : totalGroups;
       const tournamentName = state.tournament?.name || "대회명 미입력";
       const venueName = state.tournament?.venue || currentVenueName() || "경기장 미입력";
       const raceClass = normalizeRaceClassName(state.tournament?.raceClass || "오픈");
@@ -2803,7 +2806,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
           <span class="operator-overview-meta-v246">${escapeHtml(`${tournamentName} · ${venueName} · ${raceClass}`)}</span>
         </div>
         <div class="operator-overview-stat-v226"><small>참가자</small><strong>${participantCount}</strong></div>
-        <div class="operator-overview-stat-v226"><small>현재 조</small><strong>${totalGroups}</strong></div>
+        <div class="operator-overview-stat-v226"><small>현재 조</small><strong>${escapeHtml(currentGroupValue)}</strong></div>
         <div class="operator-overview-stat-v226"><small>진출 확정</small><strong>${finalizedCount}/${state.qualifierRounds.length}</strong></div>
         ${renderOperatorControlConsoleV226(round, roundIndex, isMobileOperatorView)}
         <div class="error operator-feedback-v228" id="error"></div>
@@ -2858,17 +2861,69 @@ function setBroadcastStage(roundIndex, stageIndex) {
     function getOperatorStageProgressV225(stage) {
       const groups = stage?.groups || [];
       const done = groups.filter(group => groupHasResult(group, stage)).length;
-      const nextGroup = groups.find(group => !groupHasResult(group, stage)) || groups[groups.length - 1] || null;
+      const nextIndex = groups.findIndex(group => !groupHasResult(group, stage));
+      const nextGroup = nextIndex >= 0 ? groups[nextIndex] : groups[groups.length - 1] || null;
       const names = (nextGroup?.slots || [])
         .filter(player => player && !player.isEmptyLane)
         .map(player => player.name || player.nickname || player.realName || "참가자");
       return {
         done,
         total: groups.length,
+        nextIndex,
+        nextId: nextGroup?.id || "",
         nextName: nextGroup?.name || "",
         nextPlayers: names.slice(0, 3).join(" · "),
         extraCount: Math.max(0, names.length - 3)
       };
+    }
+
+    function isMobileOperatorBracketV285() {
+      try {
+        if (window.matchMedia && window.matchMedia("(max-width: 760px)").matches) return true;
+        return window.innerWidth <= 760;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function getOperatorGroupEntriesV285(stage, isPast = false) {
+      const groups = Array.isArray(stage?.groups) ? stage.groups : [];
+      const progress = getOperatorStageProgressV225(stage);
+      const compactMobile = !isPast && isMobileOperatorBracketV285();
+      const entries = groups.map((group, originalIndex) => {
+        const complete = groupHasResult(group, stage);
+        const stateName = !complete && originalIndex === progress.nextIndex
+          ? "current"
+          : complete ? "complete" : "pending";
+        return {
+          group,
+          originalIndex,
+          stateName,
+          collapsible: compactMobile && stateName !== "current"
+        };
+      });
+      if (!compactMobile || progress.nextIndex < 0) return entries;
+      // Mobile operators see the actionable group first, then upcoming groups,
+      // and finally compact completed groups. IDs remain authoritative for all
+      // selection handlers, so the tournament data order is never mutated.
+      return [
+        ...entries.filter(entry => entry.stateName === "current"),
+        ...entries.filter(entry => entry.stateName === "pending"),
+        ...entries.filter(entry => entry.stateName === "complete")
+      ];
+    }
+
+    function operatorGroupStateLabelV285(stateName = "") {
+      if (stateName === "current") return "현재";
+      if (stateName === "complete") return "완료";
+      if (stateName === "pending") return "대기";
+      return "";
+    }
+
+    function renderOperatorGroupTitleV285(group, stateName = "") {
+      const activeCount = (group?.slots || []).filter(slot => !slot.isEmptyLane).length;
+      const stateLabel = operatorGroupStateLabelV285(stateName);
+      return `<div class="operator-group-title-copy-v285"><strong>${escapeHtml(group?.name || "조")}</strong>${stateLabel ? `<span class="operator-group-status-v285 operator-group-status-${escapeAttr(stateName)}-v285">${escapeHtml(stateLabel)}</span>` : ""}</div><span class="badge">${activeCount}명 경기</span>`;
     }
 
     function isConfirmableRoundFinalStageV228(stage) {
@@ -3430,6 +3485,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
       if (stage.type === "points") return renderPointStage(stage, roundIndex, stageIndex, isPast);
 
       const isBroadcast = state.broadcast.mode === "stage" && state.broadcast.roundIndex === roundIndex && state.broadcast.stageIndex === stageIndex;
+      const groupEntriesV285 = getOperatorGroupEntriesV285(stage, isPast);
       const hidePointFinalHeaderV239 = isPointFinalDecisionStage(stage);
       const sameTeamMeta = Number(stage.meta?.sameTeam || 0);
       const stageGuide = stage.type === "pointTieBreak"
@@ -3454,7 +3510,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
           ${!hidePointFinalHeaderV239 && sameTeamMeta > 0 ? `<div class="error" style="display:block; margin-bottom:12px; border-color:#fb923c; color:#fed7aa; background:rgba(251,146,60,.1);">같은 팀 일부 배정</div>` : ""}
 
           <div class="groups operator-groups-v227">
-            ${stage.groups.map(group => renderGroup(group, roundIndex, stageIndex, stage)).join("")}
+            ${groupEntriesV285.map(entry => renderGroup(entry.group, roundIndex, stageIndex, stage, entry)).join("")}
           </div>
         </section>
       `;
@@ -3462,21 +3518,26 @@ function setBroadcastStage(roundIndex, stageIndex) {
 
 
     function renderPointStage(stage, roundIndex, stageIndex, isPast = false) {
+      const groupEntriesV285 = getOperatorGroupEntriesV285(stage, isPast);
       return `
         <section class="stage-card point-stage point-stage-trim-v247 operator-stage-v227 ${isPast ? "past-stage" : "current-stage"}">
           <div class="groups operator-groups-v227">
-            ${stage.groups.map(group => `
-              <article class="group operator-group-v227">
-                <div class="group-title">
-                  <strong>${escapeHtml(group.name)}</strong>
-                  <span class="badge">${group.slots.filter(slot => !slot.isEmptyLane).length}명 경기</span>
-                </div>
-                ${group.slots.map(player => renderPointPlayerSlot(player, group, stage, roundIndex, stageIndex)).join("")}
-              </article>
-            `).join("")}
+            ${groupEntriesV285.map(entry => renderPointGroupV285(entry, stage, roundIndex, stageIndex)).join("")}
           </div>
         </section>
       `;
+    }
+
+    function renderPointGroupV285(entry, stage, roundIndex, stageIndex) {
+      const { group, originalIndex, stateName, collapsible } = entry;
+      const className = `group operator-group-v227 operator-group-v285 operator-group-${stateName}-v285${collapsible ? " operator-group-collapsible-v285" : ""}`;
+      const attributes = `data-operator-group-state="${escapeAttr(stateName)}" data-operator-group-index="${originalIndex}" style="--operator-group-original-order-v285:${originalIndex}"`;
+      const title = renderOperatorGroupTitleV285(group, stateName);
+      const slots = group.slots.map(player => renderPointPlayerSlot(player, group, stage, roundIndex, stageIndex)).join("");
+      if (collapsible) {
+        return `<details class="${className}" ${attributes}><summary class="group-title operator-group-summary-v285">${title}</summary><div class="operator-group-body-v285">${slots}</div></details>`;
+      }
+      return `<article class="${className}" ${attributes}><div class="group-title">${title}</div>${slots}</article>`;
     }
 
     function renderPointPlayerSlot(player, group, stage, roundIndex, stageIndex) {
@@ -3768,16 +3829,18 @@ function setBroadcastStage(roundIndex, stageIndex) {
       return `<div class="final-lane-tools round-final-lane-tools">${Array.from({ length: maxLane }, (_, i) => i + 1).map(lane => `<button class="${Number(player.lane) === lane ? "primary" : "ghost"}" onclick="forceStageLane(${roundIndex}, ${stageIndex}, '${escapeAttr(group.id)}', '${escapeAttr(player.id)}', ${lane})">${lane}</button>`).join("")}</div>`;
     }
 
-    function renderGroup(group, roundIndex, stageIndex, stage = null) {
-      return `
-        <article class="group operator-group-v227 ${isManualLaneStage(stage) ? "round-final-manual-lane-group" : ""}">
-          <div class="group-title">
-            <strong>${escapeHtml(group.name)}</strong>
-            <span class="badge">${group.slots.filter(slot => !slot.isEmptyLane).length}명 경기</span>
-          </div>
-          ${group.slots.map(player => renderPlayerSlot(player, group, roundIndex, stageIndex, stage)).join("")}
-        </article>
-      `;
+    function renderGroup(group, roundIndex, stageIndex, stage = null, options = {}) {
+      const stateName = options.stateName || "";
+      const originalIndex = Number.isInteger(options.originalIndex) ? options.originalIndex : 0;
+      const collapsible = Boolean(options.collapsible);
+      const className = `group operator-group-v227 operator-group-v285 operator-group-${stateName || "standard"}-v285${collapsible ? " operator-group-collapsible-v285" : ""}${isManualLaneStage(stage) ? " round-final-manual-lane-group" : ""}`;
+      const attributes = `data-operator-group-state="${escapeAttr(stateName)}" data-operator-group-index="${originalIndex}" style="--operator-group-original-order-v285:${originalIndex}"`;
+      const title = renderOperatorGroupTitleV285(group, stateName);
+      const slots = group.slots.map(player => renderPlayerSlot(player, group, roundIndex, stageIndex, stage)).join("");
+      if (collapsible) {
+        return `<details class="${className}" ${attributes}><summary class="group-title operator-group-summary-v285">${title}</summary><div class="operator-group-body-v285">${slots}</div></details>`;
+      }
+      return `<article class="${className}" ${attributes}><div class="group-title">${title}</div>${slots}</article>`;
     }
 
     function renderPlayerSlot(player, group, roundIndex, stageIndex, stage = null) {
@@ -12525,39 +12588,180 @@ function stopLiveLobbyRealtimeV50() {
         return true;
       }
 
-      async function takeoverOperationLeaseV178(force = true) {
-        if (isLeaseHeldByOtherV178() && !confirm(`현재 운영권: ${operationOwnerLabelV178()}\n이 브라우저로 운영권을 가져올까요?`)) return false;
-        const runningId = state?.tournament?.status === "running" ? getWritableTournamentIdV278(state) : "";
-        const context = runningId ? {
-          venueId: operatorVenueIdV178(),
-          venueName: state?.tournament?.venue || state?.tournament?.venueName || "",
-          tournamentId: runningId,
+      function operationTakeoverFailureCopyV285(reason = "") {
+        if (reason === "snapshot-save-failed") return "기존 로컬 진행 상태를 보관하지 못해 운영권 복구를 중단했습니다. 브라우저 저장 공간을 확인하세요.";
+        if (reason === "server-transition") return "서버에서 대회 시작 또는 종료가 처리 중입니다. 잠시 뒤 새로고침하고 다시 시도하세요.";
+        if (reason === "server-invalid") return "서버 진행 대회의 연결 정보가 일치하지 않습니다. 진행 대회 확인을 먼저 실행하세요.";
+        if (reason === "server-read-failed") return "서버의 진행 대회 상태를 확인하지 못했습니다. 연결을 확인하고 다시 시도하세요.";
+        if (reason === "claim-failed") return "운영권을 가져오지 못했습니다. 새로고침한 뒤 다시 시도하거나 다른 브라우저의 운영 상태를 확인하세요.";
+        return "운영권을 안전하게 확인하지 못했습니다. 새로고침한 뒤 다시 시도하세요.";
+      }
+
+      function rememberOperationTakeoverV285(payload = {}) {
+        window.__mini4wdLastLeaseTakeoverV285 = {
+          ok: Boolean(payload.ok),
+          mode: String(payload.mode || ""),
+          reason: String(payload.reason || ""),
+          venueId: String(payload.venueId || ""),
+          tournamentId: String(payload.tournamentId || ""),
+          snapshotSaved: Boolean(payload.snapshotSaved),
+          at: new Date().toISOString()
+        };
+      }
+
+      async function resolveOperationTakeoverPreflightV285() {
+        const venueId = normalizeKey(operatorVenueIdV178());
+        const venueName = state?.tournament?.venue || state?.tournament?.venueName || currentVenueName() || "";
+        const localRunning = state?.tournament?.status === "running";
+        const localTournamentId = localRunning ? getWritableTournamentIdV278(state) : "";
+        const localGeneration = localRunning ? liveRegistryGenerationV278(state) : "";
+        const localContext = localRunning ? {
+          venueId,
+          venueName,
+          tournamentId: localTournamentId,
           tournamentName: state?.tournament?.name || "",
           status: "running",
-          registryGeneration: liveRegistryGenerationV278(state)
-        } : {};
-        const ok = await claimOperationLeaseV178(force ? "manual-takeover" : "manual", force, context);
-        if (!ok) return alert("운영권을 가져오지 못했습니다. 다른 브라우저의 상태를 확인하세요.");
-        if (runningId) {
+          registryGeneration: localGeneration
+        } : { venueId, venueName, tournamentId: "", status: "draft" };
+        const db = initFirebase();
+        if (!db || !currentAuthUser || !canOperate()) {
+          return { ok: true, mode: "local-only", venueId, context: localContext };
+        }
+
+        let active = null;
+        try {
+          const activeSnap = await db.ref(`activeTournaments/${venueId}`).get();
+          active = activeSnap.val() || null;
+        } catch (error) {
+          console.warn("v285 operation takeover active lookup failed", error);
+          return { ok: false, reason: "server-read-failed", venueId };
+        }
+
+        if (active) {
+          const activeId = String(active.tournamentId || active.id || "");
+          if (active.status !== "running" || !activeId) {
+            return { ok: false, reason: "server-transition", venueId };
+          }
+          try {
+            const verified = await readVerifiedRunningTournamentV278(db, activeId);
+            if (!verified.valid || verified.venueId !== venueId) {
+              return { ok: false, reason: "server-invalid", venueId, tournamentId: activeId };
+            }
+            const remoteGeneration = String(verified.registryGeneration || "");
+            const localIdentityDiffers = Boolean(
+              localRunning
+              && (
+                String(localTournamentId || "") !== activeId
+                || String(localGeneration || "") !== remoteGeneration
+              )
+            );
+            let snapshotSaved = false;
+            if (localIdentityDiffers) {
+              const proceed = confirm("이 브라우저의 진행 상태와 서버 진행 대회가 다릅니다.\n현재 로컬 상태를 자동 보관한 뒤 서버 진행 상태로 전환할까요?");
+              if (!proceed) return { ok: false, reason: "cancelled", venueId, tournamentId: activeId };
+              snapshotSaved = createAutoSnapshot("운영권 복구 전 로컬 진행 보관");
+              if (!snapshotSaved) return { ok: false, reason: "snapshot-save-failed", venueId, tournamentId: activeId };
+            }
+            return {
+              ok: true,
+              mode: localIdentityDiffers ? "server-running-replace" : "server-running",
+              venueId,
+              tournamentId: activeId,
+              snapshotSaved,
+              context: {
+                venueId,
+                venueName: active.venueName || verified.privateState?.tournament?.venue || venueName,
+                tournamentId: activeId,
+                tournamentName: active.tournamentName || verified.privateState?.tournament?.name || "",
+                status: "running",
+                registryGeneration: remoteGeneration
+              }
+            };
+          } catch (error) {
+            console.warn("v285 operation takeover running verification failed", error);
+            return { ok: false, reason: "server-read-failed", venueId, tournamentId: activeId };
+          }
+        }
+
+        if (localRunning) {
+          const proceed = confirm("서버에 등록된 진행 대회는 없지만 이 브라우저에는 이전 진행 상태가 남아 있습니다.\n현재 상태를 자동 보관한 뒤 새 대회 준비 상태로 전환하고 운영권을 가져올까요?");
+          if (!proceed) return { ok: false, reason: "cancelled", venueId, tournamentId: localTournamentId };
+          const snapshotSaved = createAutoSnapshot("서버 미등록 로컬 진행 자동 보관");
+          if (!snapshotSaved) return { ok: false, reason: "snapshot-save-failed", venueId, tournamentId: localTournamentId };
+          prepareNextTournamentDraftV116("stale-local-operation-recovery-v285");
+          return {
+            ok: true,
+            mode: "stale-local-reset",
+            venueId,
+            tournamentId: "",
+            snapshotSaved: true,
+            context: {
+              venueId,
+              venueName: state?.tournament?.venue || venueName,
+              tournamentId: "",
+              tournamentName: state?.tournament?.name || "",
+              status: "draft"
+            }
+          };
+        }
+
+        return { ok: true, mode: "draft", venueId, context: localContext };
+      }
+
+      async function takeoverOperationLeaseV178(force = true) {
+        if (isLeaseHeldByOtherV178() && !confirm(`현재 운영권: ${operationOwnerLabelV178()}\n이 브라우저로 운영권을 가져올까요?`)) return false;
+        const preflight = await resolveOperationTakeoverPreflightV285();
+        if (!preflight.ok) {
+          rememberOperationTakeoverV285({ ...preflight, ok: false });
+          if (preflight.reason !== "cancelled") alert(operationTakeoverFailureCopyV285(preflight.reason));
+          return false;
+        }
+
+        const ok = await claimOperationLeaseV178(force ? "manual-takeover-v285" : "manual-v285", force, preflight.context || {});
+        if (!ok) {
+          rememberOperationTakeoverV285({ ...preflight, ok: false, reason: "claim-failed" });
+          alert(operationTakeoverFailureCopyV285("claim-failed"));
+          return false;
+        }
+
+        const venueId = normalizeKey(preflight.venueId || operatorVenueIdV178());
+        const claimedLease = cachedOperationLeaseV278(venueId);
+        const claimedTournamentId = String(claimedLease?.tournamentId || "");
+        const claimedGeneration = String(claimedLease?.registryGeneration || "");
+        if (claimedTournamentId) {
           try {
             const db = initFirebase();
-            const verified = await readVerifiedRunningTournamentV278(db, runningId);
+            const verified = await readVerifiedRunningTournamentV278(db, claimedTournamentId);
             if (
               !verified.valid
-              || verified.venueId !== context.venueId
-              || verified.registryGeneration !== context.registryGeneration
+              || verified.venueId !== venueId
+              || String(verified.registryGeneration || "") !== claimedGeneration
             ) {
-              await releaseClaimedOperationLeaseExactV278(context.venueId, runningId, context.registryGeneration);
-              alert("운영권 확인 중 서버 진행 상태가 변경되었습니다. 최신 진행 대회를 다시 확인하세요.");
+              await releaseClaimedOperationLeaseExactV278(venueId, claimedTournamentId, claimedGeneration);
+              rememberOperationTakeoverV285({ ...preflight, ok: false, reason: "server-invalid", tournamentId: claimedTournamentId });
+              alert("운영권 확인 중 서버 진행 상태가 변경되었습니다. 진행 대회 확인 후 다시 시도하세요.");
               return false;
             }
-            applyAuthoritativeTournamentStateV278(runningId, verified.privateState);
+            applyAuthoritativeTournamentStateV278(claimedTournamentId, verified.privateState);
           } catch (error) {
-            await releaseClaimedOperationLeaseExactV278(context.venueId, runningId, context.registryGeneration);
+            await releaseClaimedOperationLeaseExactV278(venueId, claimedTournamentId, claimedGeneration);
+            rememberOperationTakeoverV285({ ...preflight, ok: false, reason: "server-read-failed", tournamentId: claimedTournamentId });
             alert("운영권을 가져온 뒤 최신 진행 상태를 확인하지 못했습니다.");
             return false;
           }
+        } else if (initFirebase() && currentAuthUser && canOperate() && state?.tournament?.status === "running") {
+          await releaseOperationLeaseV178(false, venueId);
+          rememberOperationTakeoverV285({ ...preflight, ok: false, reason: "server-invalid" });
+          alert("서버 진행 대회 없이 로컬 진행 상태만 남아 있어 운영권을 중단했습니다. 다시 시도해 안전 복구를 완료하세요.");
+          return false;
         }
+
+        rememberOperationTakeoverV285({
+          ...preflight,
+          ok: true,
+          mode: claimedTournamentId ? "server-running" : preflight.mode,
+          tournamentId: claimedTournamentId
+        });
         logTournamentAction(force ? "운영권 가져오기" : "운영권 확보", operatorSessionIdV178());
         renderOperator();
         return true;
