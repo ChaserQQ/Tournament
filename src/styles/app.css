@@ -2691,6 +2691,7 @@
     .crow-rank-item { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 12px; border:1px solid rgba(238,233,223,.08); border-radius:14px; background:rgba(238,233,223,.035); }
     .crow-rank-item b { color:var(--point); }
     .final-lane-tools { display:flex; flex-wrap:wrap; gap:5px; justify-content:flex-end; align-items:center; }
+    .final-lane-tools .lane-picker-label { flex-basis: 100%; grid-column: 1 / -1; margin: 0; text-align: left; }
     .final-lane-tools button { min-height:28px !important; padding:5px 8px !important; border-radius:9px !important; font-size:11px !important; }
     .final-slot-actions { display:grid; grid-template-columns:auto 1fr; gap:8px; align-items:center; width:100%; }
     @media (max-width:760px) {

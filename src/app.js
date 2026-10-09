@@ -10,13 +10,13 @@
     ];
     const RTDB_WRITE_PROTOCOL_V279 = 279;
     const MINI4WD_BUILD = window.MINI4WD_BUILD_META || {
-      version: 290,
-      label: "BUILD v290 GGP FINAL TOURNAMENT",
+      version: 291,
+      label: "BUILD v291 FINAL LANE SELECTION",
       rulesChanged: false,
       surfaces: MINI4WD_FALLBACK_SURFACES,
       pageClasses: MINI4WD_FALLBACK_PAGE_CLASSES
     };
-    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v290 GGP FINAL TOURNAMENT";
+    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v291 FINAL LANE SELECTION";
     const MINI4WD_SURFACES = Array.isArray(MINI4WD_BUILD.surfaces) && MINI4WD_BUILD.surfaces.length
       ? Array.from(MINI4WD_BUILD.surfaces)
       : MINI4WD_FALLBACK_SURFACES;
@@ -3897,7 +3897,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
     function isManualLaneStage(stage) {
       if (!stage) return false;
       const name = String(stage.name || "");
-      return stage.type === "pointFinal" || name === "라운드 결승" || name === "결승" || name.includes("결정전");
+      return stage.type === "ggpRoundFinal" || stage.type === "pointFinal" || name === "라운드 결승" || name === "결승" || name.includes("결정전");
     }
 
     function getStageLaneCount(stage = null) {
@@ -3916,7 +3916,10 @@ function setBroadcastStage(roundIndex, stageIndex) {
       const target = (group.slots || []).find(item => item.id === playerId);
       if (!target || target.isEmptyLane) return;
       const laneNo = Number(lane);
-      if (!laneNo || laneNo < 1 || laneNo > getStageLaneCount(stage)) return;
+      if (!Number.isInteger(laneNo) || laneNo < 1 || laneNo > getStageLaneCount(stage) || Number(target.lane) === laneNo) return;
+      if (isGgpMode() && !canEditGgpStage(roundIndex, stageIndex)) return;
+      if (isGgpMode() && group.ggpResultConfirmed) return showError("결과가 확정된 경기입니다. 되돌리기 후 레인을 지정하세요.");
+      captureOperatorUndoSnapshotV266("라운드 결승 레인 변경");
       const oldLane = target.lane;
       const other = (group.slots || []).find(item => Number(item.lane) === laneNo);
       target.lane = laneNo;
@@ -3932,7 +3935,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
     function renderStageLaneTools(stage, group, player, roundIndex, stageIndex) {
       if (!isManualLaneStage(stage) || !player || player.isEmptyLane) return "";
       const maxLane = getStageLaneCount(stage);
-      return `<div class="final-lane-tools round-final-lane-tools">${Array.from({ length: maxLane }, (_, i) => i + 1).map(lane => `<button class="${Number(player.lane) === lane ? "primary" : "ghost"}" onclick="forceStageLane(${roundIndex}, ${stageIndex}, '${escapeAttr(group.id)}', '${escapeAttr(player.id)}', ${lane})">${lane}</button>`).join("")}</div>`;
+      return `<div class="final-lane-tools round-final-lane-tools" role="group" aria-label="${escapeAttr(player.name)} 레인 지정"><span class="hint lane-picker-label">레인 지정</span>${Array.from({ length: maxLane }, (_, i) => i + 1).map(lane => `<button class="${Number(player.lane) === lane ? "primary" : "ghost"}" aria-label="${lane}레인 지정" aria-pressed="${Number(player.lane) === lane}" ${isGgpMode() && (group.ggpResultConfirmed || isRoundCompleteV275(state.qualifierRounds[roundIndex])) ? "disabled" : ""} onclick="forceStageLane(${roundIndex}, ${stageIndex}, '${escapeAttr(group.id)}', '${escapeAttr(player.id)}', ${lane})">${lane}</button>`).join("")}</div>`;
     }
 
     function renderGroup(group, roundIndex, stageIndex, stage = null, options = {}) {
@@ -8680,11 +8683,14 @@ function normalizePlayerForFinal(player, extra = {}) {
       const group = getFinalGroups().find(item => String(item.id) === String(groupId));
       if (!group) return;
       const target = group.slots.find(item => samePlayerIdV280(item.id, playerId));
-      const other = group.slots.find(item => Number(item.lane) === Number(lane));
-      if (!target || target.isEmptyLane) return;
+      const laneNo = Number(lane);
+      const maxLane = Number(state.finalRace.groupSize || state.settings.laneCount || 3);
+      if (!target || target.isEmptyLane || !Number.isInteger(laneNo) || laneNo < 1 || laneNo > maxLane || Number(target.lane) === laneNo) return;
+      if (isGgpMode() && group.ggpResultConfirmed) return showError("결과가 확정된 경기입니다. 되돌리기 후 레인을 지정하세요.");
+      const other = group.slots.find(item => Number(item.lane) === laneNo);
       const oldLane = target.lane;
       captureOperatorUndoSnapshotV266("결승 레인 변경");
-      target.lane = Number(lane);
+      target.lane = laneNo;
       if (other && other.id !== target.id) other.lane = oldLane;
       group.slots.sort((a, b) => Number(a.lane) - Number(b.lane));
       logTournamentAction("결승 레인 강제 지정", `${target.name}: ${lane}LANE`);
@@ -8694,7 +8700,7 @@ function normalizePlayerForFinal(player, extra = {}) {
 
     function renderFinalLaneTools(group, player) {
       const maxLane = state.finalRace?.groupSize || state.settings.laneCount || 3;
-      return `<div class="final-lane-tools">${Array.from({ length: maxLane }, (_, i) => i + 1).map(lane => `<button class="${Number(player.lane) === lane ? "primary" : "ghost"}" onclick="forceFinalLane('${escapeAttr(group.id)}','${escapeAttr(player.id)}',${lane})">${lane}</button>`).join("")}</div>`;
+      return `<div class="final-lane-tools round-final-lane-tools" role="group" aria-label="${escapeAttr(player.name)} 레인 지정"><span class="hint lane-picker-label">레인 지정</span>${Array.from({ length: maxLane }, (_, i) => i + 1).map(lane => `<button class="${Number(player.lane) === lane ? "primary" : "ghost"}" aria-label="${lane}레인 지정" aria-pressed="${Number(player.lane) === lane}" ${isGgpMode() && group.ggpResultConfirmed ? "disabled" : ""} onclick="forceFinalLane('${escapeAttr(group.id)}','${escapeAttr(player.id)}',${lane})">${lane}</button>`).join("")}</div>`;
     }
 
     function renderFinalGroup(group, finalRaceType) {

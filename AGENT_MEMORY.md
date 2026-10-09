@@ -22,13 +22,13 @@
 
 ## Current verified state
 
-- Verified 2026-10-09 KST: 현재 소스는 v290, BUILD v290 GGP FINAL TOURNAMENT이다.
-- build, app, 공용 app CSS는 290, operator-mobile CSS는 285, config는 156이다.
-- RTDB write protocol은 279이며 v290에서는 Firebase 규칙과 운영 데이터를 변경하지 않았다.
+- Verified 2026-10-10 KST: 현재 소스는 v291, BUILD v291 FINAL LANE SELECTION이다.
+- build, app, 공용 app CSS는 291, operator-mobile CSS는 285, config는 156이다.
+- RTDB write protocol은 279이며 v291에서는 Firebase 규칙과 운영 데이터를 변경하지 않았다.
 - Verified 2026-08-29 KST: 사용자 승인으로 아테네월드의 현재 운영 상태를 강제 초기화했다. 활성 포인터, 만료 lease, 세션, 고아 running 비공개/공개 대회 15쌍과 해당 action log가 모두 없으며 즉시 확인과 지연 재확인에서 재생성되지 않았다. 계정 권한, 공개 경기장 등록, 완료 대회와 결과 이력은 보존됐다.
 - 라이브 로비는 승인 경기장 카드만 전체 카드로 표시하고 나머지 빈 슬롯은 접힌 목록으로 축약한다. 20슬롯 계약은 data-v283-total-slots로 유지한다.
 - 모바일 운영 대진표는 현재 조를 첫 위치에 펼치고 대기·완료 조를 48px 접힘 요약으로 표시한다. 390px 7개 조 fixture에서 단계 높이 715px, 가로 넘침 0을 확인했다.
-- npm.cmd run qa:all이 v290에서 통과했다. 기존 결과·대진·관리자·운영권·복구·공개 화면 회귀와 GGP 5라운드 전체 시뮬레이션, 복수 시드 9개 및 진출자 15명 편성, 전원 이탈 종료, 공개 DTO/결과 이력을 검증했다. GGP 시드 설정·최종 준결승·LIVE는 1365x900, 390x844, 320x720에서 가로 넘침이 없고 준비/진행 상태의 실제 새로고침 복구가 통과했다. 규칙은 변경하지 않았으며 마지막 qa:rules 22개 계약 통과는 v288이다.
+- npm.cmd run qa:all이 v291에서 통과했다. 기존 결과·대진·관리자·운영권·복구·공개 화면 회귀와 GGP 5라운드 전체 시뮬레이션, 복수 시드 9개 및 진출자 15명 편성, 전원 이탈 종료, 공개 DTO/결과 이력을 검증했다. 1365x900, 390x844, 320x720에서 각 라운드 결승·최종 결승 레인 지정, 자리 교환, 빈 레인 이동, 진출자 보존, 저장·공개 DTO 반영과 최종 결승 실제 되돌리기가 통과했고 가로 넘침이 없다. 준비/진행 상태의 실제 새로고침 복구도 통과했다. 규칙은 변경하지 않았으며 마지막 qa:rules 22개 계약 통과는 v288이다.
 - 현재 소스 기준 파일은 src/app.js, src/core/build.js, src/styles/app.css, src/styles/operator-mobile.css, tools/verify-static.js와 tools 아래 QA 스크립트다.
 - 보존할 추적되지 않은 항목은 .codex-remote-attachments/, DESIGN_OUTPUT.md, FIREBASE_REPORT.md, QA_REPORT.md이다.
 
@@ -54,6 +54,8 @@
 
 ## Recent durable changes
 
+- 2026-10-10 v291: 각 라운드 결승과 최종 결승의 수동 레인 버튼에 ‘레인 지정’과 선택 상태를 표시하고 모바일 최종 결승 버튼을 조밀한 격자로 정렬했다. 점유 레인은 서로 교환하며 빈 레인 이동도 저장·공개 DTO에 반영한다. 라운드 결승 레인 변경에도 되돌리기 스냅샷을 남기고 잘못된 레인 번호와 GGP 결과 확정 후 변경을 차단한다. 5개 라운드와 최종 결승의 실제 버튼, 저장, 자리 교환, 되돌리기를 PC·390px·320px에서 검증한다.
+
 - 2026-10-09 v290: GGP 최종전 모드(5레인·5라운드)를 추가했다. 예선 조별 최대 2명 → 인원에 따른 준결승 조별 1명 → 라운드 결승 상위 3명을 선발한다. 사용자 확정 규칙은 월간 시드 보유자와 라운드 진출자 모두 이후 예선 제외, 최종 준결승만 5개 조 고정이다. 월간 최대 9개 복수 시드는 대회 준비에서 조·레인을 선점하고 동일 선수라도 독립 출전권 ID로 보존한다. 각 조 결과를 명시적으로 확정하며 0명/부분 완주 결과를 허용한다. 최종 준결승 이력을 결승과 함께 저장하고 공개 DTO에는 비공개 시드 설정·원본 선수 ID를 노출하지 않는다. src/app.js, app.css, 빌드 자산과 qa-match-simulation.cjs를 변경했다. 공지 원문: https://naver.me/5fdxlbzN (사용자 수정 규칙 우선).
 
 - 2026-08-29 v289: 실제 아테네 종료 장애를 읽기 전용으로 확인한 결과 비공개·공개 대회는 모두 `finished`, 공개 LIVE는 종료됐지만 비공개의 `finishSyncPending`과 `running` active pointer가 남고 lease만 해제된 상태였다. Firebase compat transaction이 기존 서버 레코드에도 최초 provisional `null`을 전달할 때 종료 pending 해제와 원격 복구 claim이 중단되는 것이 원인이었다. 서버에서 직전에 읽은 정확한 기존 레코드를 최초 후보로 쓰는 공통 guarded transaction을 적용해 일반 종료, 원격 재시도, 자동 종료, rollback과 충돌 수렴이 authoritative rerun에서 identity를 다시 검사하며 끝까지 완료되게 했다. 일반 종료와 pending 복구 양쪽의 null-first 회귀를 PC·390px·320px에서 고정했으며 Firebase 규칙과 운영 데이터는 변경하지 않았다.
@@ -75,6 +77,8 @@
 - v236-v266: 운영 화면 중복 구조를 줄이고 설정·기타를 정적 영역으로 정리했으며 모바일 도크를 네 열로 통일하고 한 단계 되돌리기를 추가했다.
 
 ## Known traps
+
+- saveLiveState의 로컬 저장은 debounce된다. UI 변경 직후 localStorage를 바로 비교하지 말고 해당 상태가 실제 저장될 때까지 기다려 검증한다.
 
 - GGP의 코스아웃은 해당 경기에서 미선택 후 결과 확정으로 처리한다. 참가자 조정의 영구 제외 기능으로 처리하면 다음 라운드 재참가까지 막힌다. 월간 시드 선수도 전체 참가 명단에 넣고 별도 시드 조·레인을 지정해야 한다. 같은 선수의 복수 시드는 sourcePlayerId만 같고 출전권 ID는 달라야 한다. 확정 라운드 수정은 되돌리기를 사용하며 라운드를 미리 일괄 편성하면 상위 3명 제외가 깨진다.
 

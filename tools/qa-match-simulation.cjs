@@ -902,7 +902,69 @@ async function runGgpUi(browser, viewport) {
   await page.evaluate(async () => {
     await startTournamentAsync();
     if (state.tournament.status !== "running") throw new Error("GGP UI tournament did not start");
-    // Build completed round fixtures to inspect final surfaces and exercise guarded undo.
+  });
+  // Exercise the actual lane buttons in every GGP round final, including occupied and empty lanes.
+  const laneChecks = [];
+  for (let roundIndex = 0; roundIndex < 5; roundIndex++) {
+    const fixture = await page.evaluate(ri => {
+      state.qualifierRounds.forEach((round, i) => {
+        round.finalist = null; round.ggpFinalists = [];
+        round.noFinalist = i < ri; round.finalistStatus = i < ri ? "none" : "";
+        if (i >= ri) round.stages = [];
+      });
+      const round = state.qualifierRounds[ri];
+      const players = getEligibleParticipants().slice(0, 3);
+      const stage = generateGgpStage(players, round, "ggpRoundFinal");
+      round.stages = [stage];
+      const group = stage.groups[0];
+      const racer = group.slots.find(player => !player.isEmptyLane);
+      const opponent = group.slots.find(player => !player.isEmptyLane && player.id !== racer.id);
+      const empty = group.slots.find(player => player.isEmptyLane);
+      group.advanceIds = [racer.id];
+      activeRoundIndex = ri; state.broadcast = { mode: "stage", roundIndex: ri, stageIndex: 0 };
+      saveLiveState(); renderOperator();
+      return { roundIndex: ri, groupId: group.id, id: racer.id, name: racer.name, lane: racer.lane, opponentId: opponent.id, targetLane: opponent.lane, emptyLane: empty.lane };
+    }, roundIndex);
+    const picker = () => page.locator(".current-stage").getByRole("group", { name: `${fixture.name} 레인 지정`, exact: true });
+    await picker().getByRole("button", { name: `${fixture.targetLane}레인 지정`, exact: true }).click();
+    const swapped = await page.evaluate(f => {
+      const group = state.qualifierRounds[f.roundIndex].stages[0].groups[0];
+      const undo = loadOperatorUndoSnapshotV266();
+      return group.slots.find(p => p.id === f.id).lane === f.targetLane
+        && group.slots.find(p => p.id === f.opponentId).lane === f.lane
+        && group.advanceIds[0] === f.id
+        && undo?.label === "라운드 결승 레인 변경"
+        && undo.state.qualifierRounds[f.roundIndex].stages[0].groups[0].slots.find(p => p.id === f.id).lane === f.lane;
+    }, fixture);
+    if (!swapped) failures.push(`GGP round ${roundIndex + 1} lane swap / undo snapshot failed`);
+    await picker().getByRole("button", { name: `${fixture.emptyLane}레인 지정`, exact: true }).click();
+    // Local writes are intentionally debounced; wait for the persisted state, not a fixed delay.
+    await page.waitForFunction(f => {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+      return saved?.qualifierRounds[f.roundIndex]?.stages[0]?.groups[0]?.slots.find(p => p.id === f.id)?.lane === f.emptyLane;
+    }, fixture);
+    const emptyAndSaved = await page.evaluate(f => {
+      const group = state.qualifierRounds[f.roundIndex].stages[0].groups[0];
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      const publicState = makePublicStatePayload(exportState());
+      const before = JSON.stringify(group.slots);
+      [0, 6, 1.5, "bad"].forEach(lane => forceStageLane(f.roundIndex, 0, f.groupId, f.id, lane));
+      return {
+        invalidRejected: JSON.stringify(group.slots) === before,
+        actualLane: group.slots.find(p => p.id === f.id).lane,
+        targetEmpty: Boolean(group.slots.find(p => p.lane === f.targetLane).isEmptyLane),
+        savedLane: saved.qualifierRounds[f.roundIndex].stages[0].groups[0].slots.find(p => p.id === f.id).lane,
+        publicLane: publicState.qualifierRounds[f.roundIndex].stages[0].groups[0].slots.find(p => p.name === f.name).lane,
+        expected: f.emptyLane,
+        unique: new Set(group.slots.map(p => p.lane)).size === 5
+      };
+    }, fixture);
+    if (!emptyAndSaved.invalidRejected || !emptyAndSaved.targetEmpty || !emptyAndSaved.unique || emptyAndSaved.actualLane !== emptyAndSaved.expected || emptyAndSaved.savedLane !== emptyAndSaved.expected || emptyAndSaved.publicLane !== emptyAndSaved.expected) failures.push(`GGP round ${roundIndex + 1} empty lane / persistence / validation failed`);
+    laneChecks.push({ roundIndex, swapped, emptyAndSaved });
+    if (roundIndex === 4) await page.locator(".current-stage").screenshot({ path: path.join(screenshotDir, `mtm-ggp-round-lanes-${viewport.width}.png`) });
+  }
+  await page.evaluate(() => {
+    // Build completed round fixtures to inspect final surfaces.
     state.qualifierRounds.forEach((round, index) => {
       round.noFinalist = true;
       round.finalistStatus = "none";
@@ -936,8 +998,47 @@ async function runGgpUi(browser, viewport) {
   const viewerCheck = await page.evaluate(() => ({ seedControls: document.querySelectorAll(".ggp-seeds").length, text: document.body.innerText.includes("GGP 최종 준결승"), overflow: document.documentElement.scrollWidth > innerWidth + 1 }));
   if (viewerCheck.seedControls || !viewerCheck.text || viewerCheck.overflow) failures.push(`GGP viewer failed: ${JSON.stringify(viewerCheck)}`);
   await page.screenshot({ path: path.join(screenshotDir, `mtm-ggp-viewer-${viewport.width}.png`), fullPage: true });
+  const finalLaneFixture = await page.evaluate(async () => {
+    renderOperator();
+    await window.claimOperationLeaseV178("qa-ggp-final-lanes", true);
+    getFinalGroups().forEach(group => {
+      const player = group.slots.find(p => !p.isEmptyLane);
+      if (player) toggleFinalWinner(player.id, group.id);
+      confirmGgpGroup(-1, 0, group.id);
+    });
+    createGgpFinalFromSemi();
+    const group = state.finalRace.group;
+    const racers = group.slots.filter(p => !p.isEmptyLane);
+    const racer = racers[0], opponent = racers[1];
+    return { id: racer.id, lane: racer.lane, otherId: opponent.id, targetLane: opponent.lane, groupId: group.id };
+  });
+  // Two monthly seeds belong to the same racer, so select by the unique entry's current lane.
+  const finalPicker = page.locator(".final-box .slot").filter({ has: page.locator(`.final-lane-tools button[aria-label="${finalLaneFixture.lane}레인 지정"][aria-pressed="true"]`) }).locator(".final-lane-tools");
+  await finalPicker.getByRole("button", { name: `${finalLaneFixture.targetLane}레인 지정`, exact: true }).click();
+  const finalLaneCheck = await page.evaluate(f => {
+    const group = state.finalRace.group;
+    const before = JSON.stringify(group.slots);
+    [0,6,1.5,"bad"].forEach(lane => forceFinalLane(f.groupId, f.id, lane));
+    const exported = normalizeImportedState(JSON.parse(JSON.stringify(exportState())));
+    return JSON.stringify(group.slots) === before && group.slots.find(p => p.id === f.id).lane === f.targetLane
+      && group.slots.find(p => p.id === f.otherId).lane === f.lane
+      && loadOperatorUndoSnapshotV266()?.label === "결승 레인 변경"
+      && exported.finalRace.group.slots.find(p => p.id === f.id).lane === f.targetLane
+      && new Set(group.slots.map(p => p.lane)).size === 5;
+  }, finalLaneFixture);
+  if (!finalLaneCheck) failures.push("GGP final lane swap / persistence / validation failed");
+  await page.locator(".final-box").screenshot({ path: path.join(screenshotDir, `mtm-ggp-final-lanes-${viewport.width}.png`) });
+  const laneUiOverflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
+  if (laneUiOverflow) failures.push("GGP lane controls overflow");
+  const laneUndoRestored = await page.evaluate(async f => {
+    await forceLiveBroadcastSync("qa-final-lane-before-undo");
+    await restoreOperatorUndoV266();
+    return state.finalRace?.group?.slots.find(p => p.id === f.id)?.lane === f.lane
+      && state.finalRace.group.slots.find(p => p.id === f.otherId)?.lane === f.targetLane;
+  }, finalLaneFixture);
+  if (!laneUndoRestored) failures.push("GGP final lane change did not undo");
   await page.close();
-  return { viewport, failures, result: { ok: failures.length === 0, ggpUi: true, draftCheck, finalCheck, liveRestore, viewerCheck } };
+  return { viewport, failures, result: { ok: failures.length === 0, ggpUi: true, draftCheck, finalCheck, liveRestore, viewerCheck, laneChecks, finalLaneCheck, laneUiOverflow, laneUndoRestored } };
 }
 
 async function main() {
