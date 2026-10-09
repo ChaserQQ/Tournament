@@ -23556,3 +23556,20 @@ html body.surface-operator.ui-mode-mobile.ui-page-operator:not(.tv-mode) .operat
     overflow: hidden !important;
   }
 }
+
+/* GGP seed assignments and explicit per-race results. */
+.ggp-seed-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 52px 52px 44px;
+  gap: 6px;
+  align-items: end;
+  margin-bottom: 10px;
+}
+.ggp-seed-row label { min-width: 0; margin: 0; }
+.ggp-seed-row select { width: 100%; min-width: 0; height: 44px; padding: 4px; }
+.ggp-seed-row button { min-width: 0; height: 40px; padding: 4px; }
+.ggp-group-result { display: grid; gap: 8px; padding: 10px; }
+.ggp-group-result span { overflow-wrap: anywhere; font-size: 12px; }
+.ggp-group-result button { min-height: 40px; }
+
+.ggp-seeds h3 { margin: 0 0 10px; font-size: 13px; line-height: 1.4; }

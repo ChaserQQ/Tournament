@@ -299,6 +299,10 @@ async function runViewport(browser, viewport) {
       state.tournament.id = `qa-${mode}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       state.tournament.recordId = state.tournament.id;
       state.inputText = Array.from({ length: playerCount }, (_, index) => `QA${mode}${index + 1}/T${(index % 3) + 1}`).join("\n");
+      if (settings.ggpSeeds) {
+        const player = parseParticipants()[0];
+        state.tournament.ggpSeeds = Array.from({ length: 9 }, (_, index) => ({ name: player.name, team: player.team, group: index % 5 + 1, lane: Math.floor(index / 5) + 1 }));
+      }
       state.qualifierRounds = makeQualifierRounds(laneCount, mode);
       state.finalRace = null;
       state.tournament.status = "draft";
@@ -741,6 +745,110 @@ async function runViewport(browser, viewport) {
         });
       }
 
+      // GGP: 60 eligible racers plus one racer holding nine independent monthly seeds.
+      historyBefore = historyCount();
+      await reset("ggp", 5, 61, { ggpSeeds: true, excludeFinalists: false });
+      await ensureLease("qa-ggp");
+      const seedPlayer = parseParticipants()[0];
+      assert(state.qualifierRounds.length === 5, "GGP needs five rounds");
+      assert(state.qualifierRounds.slice(1).every(round => !round.stages.length), "GGP pre-generated later rounds before exclusions");
+      assert(getEligibleParticipants().length === 60, "GGP monthly seed was not excluded");
+      const seedsSaved = JSON.stringify(state.tournament.ggpSeeds);
+      updateGgpSeed(0, "remove");
+      assert(JSON.stringify(state.tournament.ggpSeeds) === seedsSaved, "GGP seeds changed after start");
+      startQualifierRound(2);
+      assert(!state.qualifierRounds[2].stages.length, "GGP allowed skipping an unfinished round");
+      const ggpCounts = [];
+      for (let ri = 0; ri < 5; ri++) {
+        if (!lastStage(ri)) startQualifierRound(ri);
+        let stage = lastStage(ri);
+        const excluded = new Set([seedPlayer.id, ...getGgpQualifiedPlayers().map(player => player.id)]);
+        assert(stage.groups.flatMap(actualSlots).every(player => !excluded.has(player.id)), "GGP qualified player re-entered a later round");
+        ggpCounts.push(stage.groups.flatMap(actualSlots).length);
+        if (ri === 0) {
+          createNextStage(ri);
+          assert(lastStage(ri) === stage, "GGP advanced with unresolved races");
+          const firstGroup = stage.groups[0];
+          actualSlots(firstGroup).slice(0, 3).forEach(player => toggleAdvance(ri, 0, firstGroup.id, player.id));
+          assert(firstGroup.advanceIds.length === 2, "GGP qualifier accepted three advances");
+          firstGroup.advanceIds.slice().forEach(id => toggleAdvance(ri, 0, firstGroup.id, id));
+        }
+        for (let guard = 0; guard < 8; guard++) {
+          stage = lastStage(ri);
+          const si = state.qualifierRounds[ri].stages.length - 1;
+          const quota = ggpAdvanceLimit(stage.type);
+          stage.groups.forEach(group => {
+            actualSlots(group).slice(0, quota).forEach(player => toggleAdvance(ri, si, group.id, player.id));
+            confirmGgpGroup(ri, si, group.id);
+          });
+          if (stage.type === "ggpRoundFinal") {
+            confirmRoundFinalist(ri, { activateNext: true });
+            assert(state.qualifierRounds[ri].ggpFinalists.length === 3, "GGP round did not qualify three racers");
+            break;
+          }
+          createNextStage(ri);
+          assert(lastStage(ri) !== stage, "GGP next stage was not generated");
+        }
+      }
+      assert(JSON.stringify(ggpCounts) === JSON.stringify([60,57,54,51,48]), `GGP exclusion counts wrong: ${ggpCounts}`);
+      assert(new Set(getGgpQualifiedPlayers().map(player => player.id)).size === 15, "GGP qualifiers duplicated");
+      createFinalRace();
+      assert(state.finalRace.type === "ggpSemiFinal" && getFinalGroups().length === 5, "GGP final semifinal must have exactly five groups");
+      assert(getFinalGroups().flatMap(actualSlots).length === 24, "GGP final semifinal lost slots");
+      assert(new Set(getFinalGroups().flatMap(actualSlots).map(player => player.id)).size === 24, "GGP multiple seeds collapsed to one ID");
+      getGgpSeeds().forEach(seed => assert(getFinalGroups()[seed.group - 1].slots[seed.lane - 1].sourcePlayerId === seedPlayer.id, "GGP reserved seed moved"));
+      assert(!isTournamentFinalResultReady(), "GGP semifinal can finish tournament");
+      const privateSemi = JSON.parse(JSON.stringify(exportState()));
+      state = normalizeImportedState(privateSemi);
+      assert(getFinalGroups().length === 5 && getGgpQualifiedPlayers().length === 15, "GGP restore lost qualifiers or seeds");
+      getFinalGroups().forEach(group => {
+        toggleFinalWinner(actualSlots(group)[0].id, group.id);
+        confirmGgpGroup(-1, 0, group.id);
+      });
+      const publicSemi = makePublicStatePayload(exportState());
+      assert(publicSemi.qualifierRounds.every(round => round.ggpFinalists.length === 3), "GGP public DTO lost qualifiers");
+      assert(!JSON.stringify(publicSemi).includes("sourcePlayerId") && !JSON.stringify(publicSemi).includes("ggpSeeds"), "GGP private seed data leaked");
+      assert(!JSON.stringify(publicSemi).includes(seedPlayer.id), "GGP private IDs leaked");
+      createGgpFinalFromSemi();
+      assert(state.finalRace.type === "ggpFinal" && actualSlots(state.finalRace.group).length === 5, "GGP final did not receive five winners");
+      const publicFinal = makePublicLivePayload(exportState());
+      const recovered = window.__mini4wdMergeNewerPublicRunningStateV278(privateSemi, publicFinal);
+      assert(!recovered.finalRace.groups && recovered.finalRace.semiGroups.length === 5, "GGP recovered final retained stale semifinal groups");
+      assert(recovered.finalRace.semiGroups.flatMap(actualSlots).every(player => !player.id.startsWith("pub-")), "GGP recovery lost private entry IDs");
+      toggleFinalWinner(actualSlots(state.finalRace.group)[0].id, state.finalRace.group.id);
+      assert(!isTournamentFinalResultReady(), "GGP final finished before explicit result confirmation");
+      confirmGgpGroup(-1, 0, state.finalRace.group.id);
+      assert(isTournamentFinalResultReady(), "GGP final confirmation missing");
+      const ggpRows = getStageResultRows();
+      assert(ggpRows.filter(row => row.단계 === "GGP최종준결").length === 25, "GGP result export lost semifinal history");
+      assert(ggpRows.filter(row => /GGP [123]위/.test(row.결과)).length === 15, "GGP round ranking export missing");
+      await wait(180);
+      await finishTournament();
+      await wait(900);
+      assert(historyCount() > historyBefore, "GGP public history did not save");
+      await summarize("ggp", { ggpCounts, seeds: 9, qualified: 15, historySaved: true });
+
+      // No qualifiers / fewer finishers must not strand the tournament.
+      await reset("ggp", 5, 4);
+      for (let ri = 0; ri < 5; ri++) {
+        if (!lastStage(ri)) startQualifierRound(ri);
+        const stage = lastStage(ri);
+        stage.groups.forEach(group => confirmGgpGroup(ri, 0, group.id));
+        createNextStage(ri);
+        assert(isRoundNoFinalistV275(state.qualifierRounds[ri]), "GGP all-out round not completed");
+      }
+      assert(getEligibleParticipants().length === 4, "GGP course-out permanently withdrew entrants");
+      createFinalRace();
+      assert(getFinalGroups().length === 5, "GGP empty final semifinal lost fixed five groups");
+      getFinalGroups().forEach(group => confirmGgpGroup(-1, 0, group.id));
+      createGgpFinalFromSemi();
+      assert(isTournamentFinalResultReady() && getFinalWinners().length === 0, "GGP all-out final cannot finish without invented winner");
+      await wait(180);
+      await finishTournament();
+      await wait(900);
+      algorithmChecks.ggpAllOut = true;
+      algorithmChecks.ggpSeedPlacementAndExclusion = true;
+      modes.push("ggp");
       return { ok: true, modes, summaries, alerts, algorithmChecks };
     } finally {
       window.alert = originalAlert;
@@ -750,6 +858,86 @@ async function runViewport(browser, viewport) {
 
   await page.close();
   return { viewport, failures, result };
+}
+
+async function runGgpUi(browser, viewport) {
+  const page = await browser.newPage({ viewport });
+  const failures = [];
+  await installNetworkStubs(page);
+  page.on("pageerror", error => failures.push(error.message));
+  page.on("dialog", dialog => dialog.accept());
+  await page.goto(`http://127.0.0.1:${port}/index.html`, { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.documentElement.getAttribute("data-ui-surface") === "operator");
+  await page.evaluate(() => {
+    state = makeInitialState(3);
+    state.inputText = Array.from({ length: 61 }, (_, i) => `GGP선수${i + 1}/테스트`).join("\n");
+    state.tournament.name = "GGP UI QA";
+    state.tournament.venue = "QA Venue";
+    renderOperator();
+  });
+  await page.getByRole("button", { name: "GGP 최종전", exact: true }).click();
+  await page.getByRole("button", { name: "시드 추가", exact: true }).click();
+  await page.getByRole("button", { name: "시드 추가", exact: true }).click();
+  await page.getByLabel("시드 2 조", { exact: true }).selectOption("5");
+  await page.getByLabel("시드 2 레인", { exact: true }).selectOption("5");
+  await page.getByLabel("시드 1 조", { exact: true }).selectOption("5");
+  await page.getByLabel("시드 1 레인", { exact: true }).selectOption("5");
+  const duplicateBlocked = await page.evaluate(() => Boolean(validateGgpSeeds()));
+  if (!duplicateBlocked) failures.push("GGP duplicate seed placement accepted");
+  await page.getByLabel("시드 1 조", { exact: true }).selectOption("1");
+  await page.getByLabel("시드 1 레인", { exact: true }).selectOption("1");
+  const screenshotDir = require("os").tmpdir();
+  await page.locator(".ggp-seeds").screenshot({ path: path.join(screenshotDir, `mtm-ggp-seeds-${viewport.width}.png`) });
+  const draftCheck = await page.evaluate(() => ({
+    lanes: state.settings.laneCount,
+    seeds: state.tournament.ggpSeeds.length,
+    overflow: document.documentElement.scrollWidth > innerWidth + 1,
+    rowOverflow: [...document.querySelectorAll(".ggp-seed-row")].some(row => row.scrollWidth > row.clientWidth + 1)
+  }));
+  if (draftCheck.lanes !== 5 || draftCheck.seeds !== 2 || draftCheck.overflow || draftCheck.rowOverflow) failures.push(`GGP seed UI failed: ${JSON.stringify(draftCheck)}`);
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.documentElement.getAttribute("data-ui-surface") === "operator");
+  const restored = await page.evaluate(() => state.settings.matchMode === "ggp" && state.tournament.ggpSeeds?.length === 2 && state.tournament.ggpSeeds[1].group === 5 && state.tournament.ggpSeeds[1].lane === 5);
+  if (!restored) failures.push("GGP seed assignments lost on actual reload");
+  await page.evaluate(async () => {
+    await startTournamentAsync();
+    if (state.tournament.status !== "running") throw new Error("GGP UI tournament did not start");
+    // Build completed round fixtures to inspect final surfaces and exercise guarded undo.
+    state.qualifierRounds.forEach((round, index) => {
+      round.noFinalist = true;
+      round.finalistStatus = "none";
+    });
+    createFinalRace();
+  });
+  await page.locator(".final-box").scrollIntoViewIfNeeded();
+  await page.locator(".final-box").screenshot({ path: path.join(screenshotDir, `mtm-ggp-semi-${viewport.width}.png`) });
+  const finalCheck = await page.evaluate(() => {
+    const groups = getFinalGroups();
+    return { count: groups.length, overflow: document.documentElement.scrollWidth > innerWidth + 1, seedPlaces: [groups[0].slots[0].name, groups[4].slots[4].name] };
+  });
+  if (finalCheck.count !== 5 || finalCheck.overflow || finalCheck.seedPlaces.some(name => name !== "GGP선수1")) failures.push(`GGP semifinal UI failed: ${JSON.stringify(finalCheck)}`);
+  // No production endpoint is used: keep the same stub database over a real reload.
+  const store = await page.evaluate(() => {
+    flushStateBeforeUnloadV95("qa-ggp-reload");
+    return JSON.parse(JSON.stringify(window.__qaFirebaseStore));
+  });
+  await page.addInitScript(value => { window.__qaGgpRestoredStore = value; }, store);
+  await page.route("**/*", route => {
+    if (/gstatic\.com\/firebasejs/.test(route.request().url())) return route.fulfill({ status: 200, contentType: "application/javascript", body: firebaseStub.replace("const listeners = [];", "Object.assign(store, window.__qaGgpRestoredStore || {}); const listeners = [];") });
+    return route.fallback();
+  });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.documentElement.getAttribute("data-ui-surface") === "operator");
+  const liveRestore = await page.evaluate(() => state.finalRace?.type === "ggpSemiFinal" && getFinalGroups().length === 5 && state.tournament.ggpSeeds?.length === 2);
+  if (!liveRestore) failures.push("GGP running semifinal lost on reload");
+  const publicPayload = await page.evaluate(() => makePublicLivePayload(exportState()));
+  // Render the same allowlisted data on the viewer; no operator seed controls may appear.
+  await page.evaluate(payload => { renderMobileSnapshot(payload.state); }, publicPayload);
+  const viewerCheck = await page.evaluate(() => ({ seedControls: document.querySelectorAll(".ggp-seeds").length, text: document.body.innerText.includes("GGP 최종 준결승"), overflow: document.documentElement.scrollWidth > innerWidth + 1 }));
+  if (viewerCheck.seedControls || !viewerCheck.text || viewerCheck.overflow) failures.push(`GGP viewer failed: ${JSON.stringify(viewerCheck)}`);
+  await page.screenshot({ path: path.join(screenshotDir, `mtm-ggp-viewer-${viewport.width}.png`), fullPage: true });
+  await page.close();
+  return { viewport, failures, result: { ok: failures.length === 0, ggpUi: true, draftCheck, finalCheck, liveRestore, viewerCheck } };
 }
 
 async function main() {
@@ -766,8 +954,9 @@ async function main() {
     ];
     const results = [];
     for (const viewport of viewports) {
-      results.push(await runViewport(browser, viewport));
+      if (!process.env.MINI4WD_QA_GGP_UI_ONLY) results.push(await runViewport(browser, viewport));
     }
+    for (const viewport of [...viewports, { width: 320, height: 720 }]) results.push(await runGgpUi(browser, viewport));
     const failed = results.reduce((count, item) => count + item.failures.length + (item.result?.ok ? 0 : 1), 0);
     const output = {
       version: meta.version,

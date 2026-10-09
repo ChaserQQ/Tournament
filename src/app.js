@@ -10,13 +10,13 @@
     ];
     const RTDB_WRITE_PROTOCOL_V279 = 279;
     const MINI4WD_BUILD = window.MINI4WD_BUILD_META || {
-      version: 289,
-      label: "BUILD v289 TERMINAL FINALIZATION RECOVERY",
+      version: 290,
+      label: "BUILD v290 GGP FINAL TOURNAMENT",
       rulesChanged: false,
       surfaces: MINI4WD_FALLBACK_SURFACES,
       pageClasses: MINI4WD_FALLBACK_PAGE_CLASSES
     };
-    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v289 TERMINAL FINALIZATION RECOVERY";
+    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v290 GGP FINAL TOURNAMENT";
     const MINI4WD_SURFACES = Array.isArray(MINI4WD_BUILD.surfaces) && MINI4WD_BUILD.surfaces.length
       ? Array.from(MINI4WD_BUILD.surfaces)
       : MINI4WD_FALLBACK_SURFACES;
@@ -120,7 +120,7 @@
         }];
       }
 
-      return Array.from({ length: laneCount }, (_, index) => ({
+      return Array.from({ length: matchMode === "ggp" ? 5 : laneCount }, (_, index) => ({
         id: `qr-${index + 1}`,
         index: index + 1,
         title: `${index + 1}차 라운드`,
@@ -354,6 +354,7 @@ function shuffle(array) {
     }
 
     function getForcedGroupCount() {
+      if (isGgpMode()) return null;
       const raw = syncForcedGroupCountInputFromDom();
       if (!raw) return null;
       if (!/^\d+$/.test(raw)) return null;
@@ -428,6 +429,7 @@ function shuffle(array) {
     }
 
     function getNextGroupSize() {
+      if (isGgpMode()) return 5;
       const size = Number(state.settings.nextGroupSize || 0);
       if (!size || size < 2 || size > state.settings.laneCount) return state.settings.laneCount;
       return size;
@@ -439,6 +441,7 @@ function shuffle(array) {
     }
 
     function renderGroupSizeControl() {
+      if (isGgpMode()) return `<span class="hint">GGP · 5레인 자동 편성</span>`;
       const options = ["", ...Array.from({ length: Math.max(0, state.settings.laneCount - 1) }, (_, index) => index + 2)];
       return `
         <div class="group-size-control group-size-control-v145" role="group" aria-label="다음 경기 조 인원">
@@ -539,6 +542,10 @@ function shuffle(array) {
     function getEligibleParticipants() {
       const withdrawnIds = getWithdrawnPlayerIdSet();
       const participants = parseParticipants().filter(player => !withdrawnIds.has(String(player.id)));
+      if (isGgpMode()) {
+        const excluded = new Set([...getGgpSeeds().map(seed => seed.player?.id), ...getGgpQualifiedPlayers().map(player => player.id)].filter(Boolean).map(String));
+        return participants.filter(player => !excluded.has(String(player.id)));
+      }
       if (!state.settings.excludeFinalists) return participants;
 
       const finalizedIds = new Set(
@@ -550,13 +557,18 @@ function shuffle(array) {
     }
 
     function validateStart(players, stageName = "예선") {
-      if (players.length < 2) return "참가자는 최소 2명 이상 필요합니다.";
+      if (isGgpMode()) {
+        const error = validateGgpSeeds();
+        if (error) return error;
+      }
+      if (players.length < (isGgpMode() ? 1 : 2)) return isGgpMode() ? "예선 참가자는 최소 1명 이상 필요합니다." : "참가자는 최소 2명 이상 필요합니다.";
       if (players.length > 150) return "현재 버전은 150명 이하를 권장합니다.";
 
       const names = parseParticipants().map(p => p.name);
       const duplicated = [...new Set(names.filter((name, index) => names.indexOf(name) !== index))];
       if (duplicated.length) return "동명이인이 있습니다. 이름 뒤에 번호 등을 붙여 구분하세요: " + duplicated.join(", ");
 
+      if (isGgpMode()) return "";
       const forcedError = validateForcedGroupCountInput();
       if (forcedError) return forcedError;
       const forced = getForcedGroupCount();
@@ -1690,6 +1702,16 @@ function normalizeMatchMode(mode = state?.settings?.matchMode) {
         return false;
       }
       if (!canModifyTournamentAction("라운드 시작")) return;
+      if (isGgpMode()) {
+        if (state.qualifierRounds.some((round, index) => index < roundIndex && !isRoundCompleteV275(round))) return showError("이전 라운드를 먼저 완료하세요.");
+        if (state.finalRace || isRoundCompleteV275(state.qualifierRounds[roundIndex]) || state.qualifierRounds.some((round, index) => index > roundIndex && round.stages.length)) return showError("확정된 라운드는 한 단계 되돌리기로 수정하세요.");
+        if (state.qualifierRounds[roundIndex]?.stages?.length && !confirm("현재 라운드의 경기 결과를 지우고 재추첨할까요?")) return;
+        captureOperatorUndoSnapshotV266("GGP 라운드 시작");
+        prepareGgpRound(roundIndex);
+        activeRoundIndex = roundIndex;
+        state.broadcast = { mode: "stage", roundIndex, stageIndex: 0 };
+        saveLiveState(); renderOperator(); return;
+      }
       if (!validateTournamentMetaRequired()) return;
       ensureTournamentStarted();
 
@@ -1731,7 +1753,9 @@ function normalizeMatchMode(mode = state?.settings?.matchMode) {
     function resetQualifierRound(roundIndex) {
       if (!canModifyTournamentAction("라운드 초기화")) return;
       const round = state.qualifierRounds[roundIndex];
+      if (isGgpMode() && !canEditGgpStage(roundIndex, round.stages.length - 1)) return;
       captureOperatorUndoSnapshotV266("라운드 초기화");
+      if (isGgpMode()) round.ggpFinalists = [];
       round.stagePlan = [];
       round.stages = [];
       round.finalist = null;
@@ -1852,6 +1876,7 @@ function normalizeMatchMode(mode = state?.settings?.matchMode) {
       const round = state.qualifierRounds[roundIndex];
       if (!round || !round.stages.length) return showError("먼저 해당 라운드를 시작하세요.");
 
+      if (isGgpMode()) return createGgpNextStage(roundIndex);
       if (isPointRound(roundIndex)) return createPointNextStage(roundIndex);
       if (isRevivalMode()) return createRevivalNextStage(roundIndex);
 
@@ -1892,9 +1917,12 @@ function setBroadcastStage(roundIndex, stageIndex) {
       if (!player || player.isEmptyLane) return;
       if (isPlayerWithdrawn(player.id)) return showError("이탈 처리된 선수는 진출자로 선택할 수 없습니다.");
 
+      if (isGgpMode() && !canEditGgpStage(roundIndex, stageIndex)) return;
+      if (isGgpMode() && !(group.advanceIds || []).includes(player.id) && getSelectedGroupPlayersV280(group).length >= ggpAdvanceLimit(stage.type)) return showError(`이 경기는 최대 ${ggpAdvanceLimit(stage.type)}명까지 선택할 수 있습니다.`);
       group.advanceIds = group.advanceIds || [];
       const wasSelected = group.advanceIds.some(id => samePlayerIdV280(id, player.id));
       captureOperatorUndoSnapshotV266(wasSelected ? "진출 선택 해제" : "진출 선택");
+      if (isGgpMode()) group.ggpResultConfirmed = false;
       if (wasSelected) {
         group.advanceIds = group.advanceIds.filter(id => !samePlayerIdV280(id, player.id));
       } else {
@@ -1910,6 +1938,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
 
     function setLaneCount(laneCount) {
       ensureStateDefaults();
+      if (isGgpMode() && laneCount !== 5) return showError("GGP 최종전은 5레인입니다.");
       if (state.tournament?.status === "running" && !canModifyTournamentAction("레인 수 변경")) return;
       if (isTournamentLocked() && !confirm("대회가 시작/종료된 상태입니다. 레인 수를 바꾸면 기록이 꼬일 수 있습니다. 계속할까요?")) return;
       if (state.qualifierRounds.some(round => round.stages.length) || state.finalRace) {
@@ -1932,6 +1961,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
     }
 
     function setSetting(key, value) {
+      if (isGgpMode() && ["excludeFinalists", "forcedGroupCount", "nextGroupSize"].includes(key)) return;
       state.settings[key] = value;
       renderOperator();
     }
@@ -2479,6 +2509,13 @@ function setBroadcastStage(roundIndex, stageIndex) {
       });
       state.finalRace = null;
 
+      if (isGgpMode()) {
+        state.qualifierRounds.forEach(round => { round.ggpFinalists = []; round.noFinalist = false; round.finalistStatus = ""; });
+        prepareGgpRound(0);
+        state.broadcast = { mode: "stage", roundIndex: 0, stageIndex: 0 };
+        activeRoundIndex = 0;
+        renderOperator(); return;
+      }
       state.qualifierRounds.forEach((round, index) => {
         const roundPlayers = state.settings.excludeFinalists ? getEligibleParticipants() : parseParticipants();
 
@@ -2608,6 +2645,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
 
     function groupHasResult(group, stage) {
       if (!group) return false;
+      if (String(stage?.type || "").startsWith("ggp")) return group.ggpResultConfirmed === true;
       const activePlayers = getActiveGroupPlayersV280(group);
       if (!activePlayers.length) return true;
       if (stage?.type === "points") return groupHasCompletePointScoresV280(group);
@@ -2638,6 +2676,10 @@ function setBroadcastStage(roundIndex, stageIndex) {
 
     function emergencyAddParticipant() {
       if (!canModifyTournamentAction("진행 중 참가자 추가")) return;
+      if (isGgpMode() && state.tournament.status === "running") {
+        const target = getEmergencyTargetStage();
+        if (state.finalRace || target?.stage?.type !== "ggpQualifier" || isRoundCompleteV275(state.qualifierRounds[target.roundIndex])) return showError("GGP 참가자 추가는 현재 라운드 예선에서만 가능합니다.");
+      }
       const name = document.getElementById("emergencyAddName")?.value.trim();
       const team = document.getElementById("emergencyAddTeam")?.value.trim();
       const player = normalizeEmergencyParticipant(name, team);
@@ -2994,7 +3036,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
       const canConfirmFinalist = isConfirmableRoundFinalStageV228(currentStage);
       const canConfirmNoFinalist = canConfirmNoFinalistV275(currentStage);
       const primary = getOperatorPrimaryActionV224(round, roundIndex);
-      const confirmLabel = isPointFinalStage ? "1차 진출자 확정" : isRevivalMode() ? "우승자 확정" : isCrowMode() ? "1~3위 확정" : "결승 진출자 확정";
+      const confirmLabel = isPointFinalStage ? "1차 진출자 확정" : isRevivalMode() ? "우승자 확정" : (isCrowMode() || isGgpMode()) ? "1~3위 확정" : "결승 진출자 확정";
       const secondaryActions = [];
       if (currentStage) {
         secondaryActions.push({ label: "재추첨", onClick: `startQualifierRound(${roundIndex})`, className: "ghost" });
@@ -3044,19 +3086,20 @@ function setBroadcastStage(roundIndex, stageIndex) {
           <section class="operator-config-group-v224 operator-config-group-v227 operator-unified-section-v230">
             ${renderOperatorSubheadV230({ title: "규칙" })}
             <label>레인</label>
-            <div class="btnrow"><button class="${state.settings.laneCount === 3 ? "active" : ""}" onclick="setLaneCount(3)">3레인</button><button class="${state.settings.laneCount === 5 ? "active" : ""}" onclick="setLaneCount(5)">5레인</button></div>
+            <div class="btnrow"><button class="${state.settings.laneCount === 3 ? "active" : ""}" ${isGgpMode() ? "disabled" : ""} onclick="setLaneCount(3)">3레인</button><button class="${state.settings.laneCount === 5 ? "active" : ""}" onclick="setLaneCount(5)">5레인</button></div>
             <label>같은 팀 회피</label>
             <div class="btnrow four">${["none", "low", "medium", "high"].map(level => `<button class="${state.settings.avoidance === level ? "active" : ""}" onclick="setSetting('avoidance', '${level}')">${avoidanceLabel(level)}</button>`).join("")}</div>
             <label>레인 중복 회피</label>
             <div class="btnrow"><button class="${!state.settings.sameLanePrevention ? "active" : ""}" onclick="setSetting('sameLanePrevention', false)">없음</button><button class="${state.settings.sameLanePrevention ? "active" : ""}" onclick="setSetting('sameLanePrevention', true)">적용</button></div>
-            <div class="form-grid"><div><label>조 편성</label><input class="mini-input forced-group-count-input-v265" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="자동" value="${escapeHtml(state.settings.forcedGroupCount)}" oninput="setForcedGroupCountDraft(this.value, this)" onchange="commitForcedGroupCountInput(this)" onblur="commitForcedGroupCountInput(this)" onkeydown="if(event.key==='Enter'){commitForcedGroupCountInput(this); this.blur();}" /></div><div><label>레인 수</label><input type="number" value="${state.settings.laneCount}" disabled /></div></div>
-            <label class="settings-checkline-v182"><input type="checkbox" ${state.settings.excludeFinalists ? "checked" : ""} onchange="setSetting('excludeFinalists', this.checked)" /><span>결승 진출자는 다음 라운드 제외</span></label>
+            <div class="form-grid"><div><label>조 편성</label><input class="mini-input forced-group-count-input-v265" ${isGgpMode() ? "disabled" : ""} type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="자동" value="${escapeHtml(state.settings.forcedGroupCount)}" oninput="setForcedGroupCountDraft(this.value, this)" onchange="commitForcedGroupCountInput(this)" onblur="commitForcedGroupCountInput(this)" onkeydown="if(event.key==='Enter'){commitForcedGroupCountInput(this); this.blur();}" /></div><div><label>레인 수</label><input type="number" value="${state.settings.laneCount}" disabled /></div></div>
+            <label class="settings-checkline-v182"><input type="checkbox" ${state.settings.excludeFinalists || isGgpMode() ? "checked" : ""} ${isGgpMode() ? "disabled" : ""} onchange="setSetting('excludeFinalists', this.checked)" /><span>결승 진출자는 다음 라운드 제외</span></label>
           </section>
 
           <section class="operator-mode-group-v224 operator-mode-group-v227 operator-unified-section-v230">
             ${renderOperatorSubheadV230({ title: "방식" })}
-            <div class="btnrow mode-row match-mode-grid-v124 match-mode-grid-v140"><button class="${normalizeMatchMode(state.settings.matchMode) === 'basic' ? "active" : ""}" onclick="setMatchMode('basic')">토너먼트</button><button class="${normalizeMatchMode(state.settings.matchMode) === 'points3' ? "active" : ""}" onclick="setMatchMode('points3')">포인트전 3회</button><button class="${normalizeMatchMode(state.settings.matchMode) === 'points5Tree' ? "active" : ""}" onclick="setMatchMode('points5Tree')">포인트전 5회</button><button class="${state.settings.matchMode === 'revival' ? "active" : ""}" onclick="setMatchMode('revival')">패자부활</button><button class="${state.settings.matchMode === 'crow' ? "active" : ""}" onclick="setMatchMode('crow')">토너먼트(9강)</button></div>
+            <div class="btnrow mode-row match-mode-grid-v124 match-mode-grid-v140"><button class="${normalizeMatchMode(state.settings.matchMode) === 'basic' ? "active" : ""}" onclick="setMatchMode('basic')">토너먼트</button><button class="${normalizeMatchMode(state.settings.matchMode) === 'points3' ? "active" : ""}" onclick="setMatchMode('points3')">포인트전 3회</button><button class="${normalizeMatchMode(state.settings.matchMode) === 'points5Tree' ? "active" : ""}" onclick="setMatchMode('points5Tree')">포인트전 5회</button><button class="${state.settings.matchMode === 'revival' ? "active" : ""}" onclick="setMatchMode('revival')">패자부활</button><button class="${state.settings.matchMode === 'crow' ? "active" : ""}" onclick="setMatchMode('crow')">토너먼트(9강)</button><button class="${isGgpMode() ? "active" : ""}" onclick="setMatchMode('ggp')">GGP 최종전</button></div>
           </section>
+          ${renderGgpSeeds()}
         </div>
       </section>`;
     }
@@ -3083,7 +3126,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
     }
 
     function getOperatorFinalActionLabelV245() {
-      return isCrowMode() ? "9강 준결 생성" : "최종 결승 진행";
+      return isGgpMode() ? "최종 준결 생성" : isCrowMode() ? "9강 준결 생성" : "최종 결승 진행";
     }
 
     function renderOperatorFinalShortcutV245() {
@@ -3093,7 +3136,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
       const allRoundsComplete = !isCrowMode() && qualifierRounds.length > 0 && qualifierRounds.every(isRoundCompleteV275);
       if (!crowRoundsComplete && !allRoundsComplete) return "";
       const crowUnavailable = crowRoundsComplete && getCrowQualifiedCountV275() < 9;
-      const finalUnavailable = allRoundsComplete && getFinalistPlayersV275().length < 2;
+      const finalUnavailable = !isGgpMode() && allRoundsComplete && getFinalistPlayersV275().length < 2;
       const label = crowUnavailable ? "9강 미성립" : finalUnavailable ? "결승 미성립" : getOperatorFinalActionLabelV245();
       const onClick = crowUnavailable ? "showCrowSemiUnavailableV275()" : finalUnavailable ? "showFinalRaceUnavailableV275()" : "createFinalRace()";
       return `<div class="operator-final-shortcut-v245" aria-label="${escapeAttr(label)}"><button type="button" class="primary" onclick="${escapeAttr(onClick)}">${escapeHtml(label)}</button></div>`;
@@ -3109,6 +3152,11 @@ function setBroadcastStage(roundIndex, stageIndex) {
       const currentStage = currentStageIndex >= 0 ? round.stages[currentStageIndex] : null;
       if (state.tournament.status === "draft") {
         return { label: "대회 시작", onClick: "startTournament()", className: "primary operator-mobile-primary-v224" };
+      }
+      if (isGgpMode() && state.tournament.status === "running") {
+        if (state.finalRace?.type === "ggpSemiFinal") return { label: "결승 생성", onClick: "createGgpFinalFromSemi()", className: "primary operator-mobile-primary-v224" };
+        if (state.finalRace?.type === "ggpFinal" && !isTournamentFinalResultReady()) return { label: "결과 확정", onClick: `confirmGgpGroup(-1,0,'${state.finalRace.group.id}')`, className: "primary operator-mobile-primary-v224" };
+        if (!state.finalRace && state.qualifierRounds.every(isRoundCompleteV275)) return { label: "최종 준결 생성", onClick: "createFinalRace()", className: "primary operator-mobile-primary-v224" };
       }
       if (state.finalRace && state.tournament.status === "running" && isTournamentFinalResultReady()) {
         return { label: "대회 종료", onClick: "finishTournament()", className: "primary operator-mobile-primary-v224" };
@@ -3136,7 +3184,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
       if (isFinalDecisionStage && !round?.finalist && !isRoundNoFinalistV275(round) && canConfirmNoFinalistV275(currentStage)) {
         return { label: "진출자 없음 확정", onClick: `confirmNoFinalistV275(${roundIndex}, { activateNext: true })`, className: "primary operator-mobile-primary-v224" };
       }
-      const finalDecisionLabel = isRevivalMode() ? "우승 확정" : isCrowMode() ? "1~3위 확정" : "진출 확정";
+      const finalDecisionLabel = isRevivalMode() ? "우승 확정" : (isCrowMode() || isGgpMode()) ? "1~3위 확정" : "진출 확정";
       const nextLabel = isFinalDecisionStage
         ? (round?.finalist ? "다음 라운드" : finalDecisionLabel)
         : currentStage?.type === "pointTieBreak"
@@ -3193,6 +3241,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
             </ol>
 
             <h2>2. 경기 방식</h2>
+            <h3>GGP 최종전</h3><p>5레인, 총 5라운드입니다. 예선 조별 상위 2명, 준결승 조별 1명, 라운드 결승 상위 3명을 순서대로 선택하고 각 조의 결과를 확정합니다. 전원 이탈은 선택 없이 확정합니다. 월간 시드와 라운드 진출자는 이후 예선에서 제외됩니다. 월간 시드의 조·레인을 보존하여 최종 준결승 5개 조를 편성하며 조별 1명이 최종 결승에 진출합니다.</p>
             <h3>토너먼트</h3>
             <p>3레인은 1차~3차 라운드, 5레인은 1차~5차 라운드로 운영합니다. 각 라운드의 결승 진출자가 모두 확정되면 최종 결승을 진행합니다.</p>
 
@@ -3410,6 +3459,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
     }
 
     function getRoundStatus(round) {
+      if (round.ggpFinalists?.length) return `${round.ggpFinalists.length}명 진출 확정`;
       if (round.finalist) return round.finalist.name || "확정";
       if (isRoundNoFinalistV275(round)) return "진출자 없음";
       if (round.stages.length) return `진행중 · ${round.stages[round.stages.length - 1].name}`;
@@ -3562,7 +3612,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
             </div>
           </div>`}
 
-          ${stageGuide}
+          ${String(stage.type || "").startsWith("ggp") ? `<p class="hint">조별 최대 ${ggpAdvanceLimit(stage.type)}명을 순위대로 선택하고 결과를 확정하세요. 전원 이탈은 선택 없이 확정합니다.</p>` : stageGuide}
           ${!hidePointFinalHeaderV239 && sameTeamMeta > 0 ? `<div class="error" style="display:block; margin-bottom:12px; border-color:#fb923c; color:#fed7aa; background:rgba(251,146,60,.1);">같은 팀 일부 배정</div>` : ""}
 
           <div class="groups operator-groups-v227">
@@ -3892,7 +3942,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
       const className = `group operator-group-v227 operator-group-v285 operator-group-${stateName || "standard"}-v285${collapsible ? " operator-group-collapsible-v285" : ""}${isManualLaneStage(stage) ? " round-final-manual-lane-group" : ""}`;
       const attributes = `data-operator-group-state="${escapeAttr(stateName)}" data-operator-group-index="${originalIndex}" style="--operator-group-original-order-v285:${originalIndex}"`;
       const title = renderOperatorGroupTitleV285(group, stateName);
-      const slots = group.slots.map(player => renderPlayerSlot(player, group, roundIndex, stageIndex, stage)).join("");
+      const slots = group.slots.map(player => renderPlayerSlot(player, group, roundIndex, stageIndex, stage)).join("") + (String(stage?.type || "").startsWith("ggp") ? renderGgpGroupResult(group, roundIndex, stageIndex) : "");
       if (collapsible) {
         return `<details class="${className}" ${attributes}><summary class="group-title operator-group-summary-v285">${title}</summary><div class="operator-group-body-v285">${slots}</div></details>`;
       }
@@ -3935,7 +3985,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
             <div class="slot-inner final-slot-actions round-final-slot-actions">
               ${renderPlayerCardMain(player, group)}
               <div class="final-card-actions round-final-card-actions">
-                <button class="${selected ? "primary" : "ghost"}" onclick="toggleAdvance(${roundIndex}, ${stageIndex}, '${escapeAttr(group.id)}', '${escapeAttr(player.id)}')">${selected ? "선택 해제" : isCrowMode() ? "순위 선택" : "진출 선택"}</button>
+                <button class="${selected ? "primary" : "ghost"}" onclick="toggleAdvance(${roundIndex}, ${stageIndex}, '${escapeAttr(group.id)}', '${escapeAttr(player.id)}')">${selected ? (isGgpMode() ? `${group.advanceIds.indexOf(player.id) + 1}위 해제` : "선택 해제") : (isCrowMode() || isGgpMode()) ? "순위 선택" : "진출 선택"}</button>
                 ${renderStageLaneTools(stage, group, player, roundIndex, stageIndex)}
               </div>
             </div>
@@ -5129,7 +5179,7 @@ function avoidanceLabel(level) {
             <section class="history-round">
               <div class="history-round-head">
                 <strong>${escapeHtml(round.title)}</strong>
-                <span>${round.finalist ? `확정 · ${escapeHtml(round.finalist.name)}` : round.stages?.length ? "진행중" : "미진행"}</span>
+                <span>${round.ggpFinalists?.length ? `확정 · ${round.ggpFinalists.map(player => escapeHtml(player.name)).join(", ")}` : isRoundNoFinalistV275(round) ? "진출자 없음" : round.finalist ? `확정 · ${escapeHtml(round.finalist.name)}` : round.stages?.length ? "진행중" : "미진행"}</span>
               </div>
               ${(round.stages || []).map(stage => `
                 <details class="history-stage">
@@ -5143,7 +5193,7 @@ function avoidanceLabel(level) {
                       return `
                         <div class="history-group-line">
                           <b>${escapeHtml(group.name)}</b>
-                          <span>${stage.type === "points" ? "포인트전" : selectedNames.length ? `진출: ${escapeHtml(selectedNames.join(", "))}` : "진출자 미선택"}</span>
+                          <span>${stage.type === "points" ? "포인트전" : selectedNames.length ? `진출: ${escapeHtml(selectedNames.join(", "))}` : group.ggpResultConfirmed ? "진출자 없음" : "진출자 미선택"}</span>
                         </div>
                       `;
                     }).join("")}
@@ -7547,7 +7597,8 @@ function exportTournamentCsv() {
 
   function isTournamentFinalResultReady() {
     if (isRevivalMode()) return Boolean(state.qualifierRounds?.[0]?.finalist);
-    if (!state.finalRace || state.finalRace.type === "crowSemi") return false;
+    if (!state.finalRace || ["crowSemi", "ggpSemiFinal"].includes(state.finalRace.type)) return false;
+    if (state.finalRace.type === "ggpFinal") return state.finalRace.group?.ggpResultConfirmed === true;
     return getFinalWinners().length > 0;
   }
 
@@ -7654,7 +7705,7 @@ function exportTournamentCsv() {
 
     function isRankWinnerResultV188(result) {
       const text = String(result || "");
-      return /^9강\s*1위$/.test(text) || /^순위결정\s*1위$/.test(text);
+      return /^GGP\s*1위/.test(text) || /^9강\s*1위$/.test(text) || /^순위결정\s*1위$/.test(text);
     }
 
     function isLegacyPointTieBreakRowV189(row = {}, lowScoreWins = false) {
@@ -8059,9 +8110,231 @@ function flattenPrivateResultLogs(raw = {}) {
       return state?.settings?.matchMode === "crow";
     }
 
+    function isGgpMode() {
+      return state?.settings?.matchMode === "ggp";
+    }
+
+    function getGgpSeeds() {
+      const players = parseParticipants();
+      return (state.tournament.ggpSeeds || []).map(seed => ({
+        ...seed,
+        player: players.find(player => player.name === seed.name && player.team === seed.team)
+      }));
+    }
+
+    function validateGgpSeeds() {
+      const seeds = getGgpSeeds();
+      if (seeds.length > 9) return "월간 시드는 최대 9개입니다.";
+      const occupied = new Set();
+      for (const seed of seeds) {
+        if (!seed.player) return "월간 시드 선수가 참가 명단에 없습니다. 시드를 다시 지정하세요.";
+        if (![1, 2, 3, 4, 5].includes(seed.group) || ![1, 2, 3, 4, 5].includes(seed.lane)) return "시드의 조와 레인은 1~5로 지정하세요.";
+        const key = `${seed.group}/${seed.lane}`;
+        if (occupied.has(key)) return "월간 시드의 조·레인이 중복되었습니다.";
+        occupied.add(key);
+      }
+      return "";
+    }
+
+    function updateGgpSeed(index, field, value) {
+      if (!isGgpMode() || state.tournament.status !== "draft" || !canModifyTournamentAction("월간 시드 설정")) return;
+      const seeds = state.tournament.ggpSeeds || [];
+      if (field === "add") {
+        if (seeds.length >= 9) return showError("월간 시드는 최대 9개입니다.");
+        const player = parseParticipants()[0];
+        if (!player) return showError("먼저 참가자 명단을 입력하세요.");
+        const place = Array.from({ length: 25 }, (_, i) => ({ group: Math.floor(i / 5) + 1, lane: i % 5 + 1 }))
+          .find(slot => !seeds.some(seed => seed.group === slot.group && seed.lane === slot.lane));
+        seeds.push({ name: player.name, team: player.team, ...place });
+      } else if (field === "remove") {
+        seeds.splice(index, 1);
+      } else if (seeds[index]) {
+        if (field === "player") {
+          const player = parseParticipants().find(item => String(item.id) === String(value));
+          if (!player) return;
+          seeds[index].name = player.name;
+          seeds[index].team = player.team;
+        } else if (["group", "lane"].includes(field)) seeds[index][field] = Number(value);
+      }
+      state.tournament.ggpSeeds = seeds;
+      saveLiveState();
+      renderOperator();
+    }
+
+    function renderGgpSeeds() {
+      if (!isGgpMode()) return "";
+      const seeds = getGgpSeeds();
+      const players = parseParticipants();
+      const disabled = state.tournament.status !== "draft" ? "disabled" : "";
+      return `<section class="operator-unified-section-v230 ggp-seeds" aria-label="GGP 월간 시드">
+        <h3>월간 시드 · ${seeds.length}/9</h3>
+        <p class="hint">월간 우승자와 라운드 상위 3명은 이후 예선에서 제외됩니다. 복수 시드는 같은 선수를 여러 번 등록하세요.</p>
+        ${seeds.map((seed, index) => `<div class="ggp-seed-row">
+          <label>시드 ${index + 1}<select aria-label="시드 ${index + 1} 선수" ${disabled} onchange="updateGgpSeed(${index},'player',this.value)">
+            ${!seed.player ? `<option value="">선수 재지정 필요</option>` : ""}${players.map(player => `<option value="${escapeAttr(player.id)}" ${seed.player?.id === player.id ? "selected" : ""}>${escapeHtml(player.name)}${player.team ? " / " + escapeHtml(player.team) : ""}</option>`).join("")}</select></label>
+          ${["group", "lane"].map(field => `<label>${field === "group" ? "조" : "레인"}<select aria-label="시드 ${index + 1} ${field === "group" ? "조" : "레인"}" ${disabled} onchange="updateGgpSeed(${index},'${field}',this.value)">${[1,2,3,4,5].map(value => `<option value="${value}" ${seed[field] === value ? "selected" : ""}>${value}</option>`).join("")}</select></label>`).join("")}
+          <button type="button" class="ghost" ${disabled} aria-label="시드 ${index + 1} 삭제" onclick="updateGgpSeed(${index},'remove')">삭제</button>
+        </div>`).join("")}
+        ${!disabled ? `<button type="button" class="ghost" ${seeds.length >= 9 ? "disabled" : ""} onclick="updateGgpSeed(0,'add')">시드 추가</button>` : ""}
+        ${validateGgpSeeds() ? `<p class="hint">${escapeHtml(validateGgpSeeds())}</p>` : ""}
+      </section>`;
+    }
+
+    function getGgpQualifiedPlayers() {
+      return (state.qualifierRounds || []).flatMap(round => round.ggpFinalists || []);
+    }
+
+    function generateGgpStage(players, round, type) {
+      const name = type === "ggpQualifier" ? "예선" : type === "ggpRoundFinal" ? "라운드 결승" : "준결승";
+      const stage = generateStage(players, round.index, round.stages.length + 1, name);
+      stage.type = type;
+      // GGP uses the track's five lanes; only the final semifinal has a fixed group count.
+      stage.groups.forEach(group => { group.ggpResultConfirmed = false; });
+      return stage;
+    }
+
+    function prepareGgpRound(roundIndex) {
+      const round = state.qualifierRounds[roundIndex];
+      if (!round) return false;
+      round.stagePlan = ["예선 (조별 2명)", "준결승 (조별 1명)", "라운드 결승 (상위 3명)"];
+      round.stages = [];
+      round.finalist = null;
+      round.ggpFinalists = [];
+      round.noFinalist = false;
+      round.finalistStatus = "";
+      round.noFinalistReason = "";
+      const players = getEligibleParticipants();
+      if (!players.length) {
+        round.noFinalist = true;
+        round.finalistStatus = "none";
+        round.noFinalistReason = "no-eligible-players";
+      } else round.stages = [generateGgpStage(players, round, "ggpQualifier")];
+      return true;
+    }
+
+    function canEditGgpStage(roundIndex, stageIndex) {
+      const round = state.qualifierRounds[roundIndex];
+      if (!round || isRoundCompleteV275(round) || state.finalRace || stageIndex !== round.stages.length - 1
+        || state.qualifierRounds.some((item, index) => index > roundIndex && (item.stages.length || isRoundCompleteV275(item)))) {
+        showError("확정된 경기입니다. 한 단계 되돌리기로 돌아간 뒤 수정하세요.");
+        return false;
+      }
+      return true;
+    }
+
+    function ggpAdvanceLimit(type) {
+      return type === "ggpQualifier" ? 2 : type === "ggpRoundFinal" ? 3 : 1;
+    }
+
+    function confirmGgpGroup(roundIndex, stageIndex, groupId) {
+      if (!isGgpMode() || !canModifyTournamentAction("GGP 경기 결과 확정")) return;
+      const isFinal = roundIndex === -1;
+      if (!isFinal && !canEditGgpStage(roundIndex, stageIndex)) return;
+      const stage = isFinal ? state.finalRace : state.qualifierRounds[roundIndex]?.stages[stageIndex];
+      const group = (isFinal ? getFinalGroups() : stage?.groups || []).find(item => item.id === groupId);
+      if (!group || !String(stage?.type || "").startsWith("ggp")) return;
+      const count = getSelectedGroupPlayersV280(group).length;
+      const limit = Math.min(ggpAdvanceLimit(stage.type), getActiveGroupPlayersV280(group).length);
+      if (count > limit) return showError(`이 경기는 최대 ${limit}명까지 선택할 수 있습니다.`);
+      if (count < limit && !confirm(count === 0 ? "진출자 없이 이 경기를 확정할까요? 재경기는 진행하지 않습니다." : `${count}명만 진출시키고 나머지는 탈락 처리할까요?`)) return;
+      captureOperatorUndoSnapshotV266("GGP 경기 결과 확정");
+      group.ggpResultConfirmed = true;
+      logTournamentAction("GGP 경기 결과 확정", `${group.name}: ${count}명`);
+      saveLiveState();
+      renderOperator();
+    }
+
+    function renderGgpGroupResult(group, roundIndex, stageIndex) {
+      const selected = getSelectedGroupPlayersV280(group);
+      const order = selected.map((player, index) => `${index + 1}위 ${player.name}`).join(" · ");
+      return `<div class="ggp-group-result"><span>${escapeHtml(order || "선택 없음")}</span>
+        <button type="button" class="${group.ggpResultConfirmed ? "ghost" : "primary"}" ${group.ggpResultConfirmed ? "disabled" : ""} onclick="confirmGgpGroup(${roundIndex},${stageIndex},'${escapeAttr(group.id)}')">${group.ggpResultConfirmed ? `확정 · ${selected.length}명` : "결과 확정"}</button></div>`;
+    }
+
+    function ensureGgpResults(stage) {
+      const groups = stage.groups || (stage.group ? [stage.group] : []);
+      if (groups.some(group => !group.ggpResultConfirmed || getSelectedGroupPlayersV280(group).length > ggpAdvanceLimit(stage.type))) {
+        showError("각 조의 결과를 확정하세요. 전원 이탈한 조는 선택 없이 결과 확정을 누르세요.");
+        return false;
+      }
+      return true;
+    }
+
+    function completeGgpRound(roundIndex, selected, activateNext) {
+      const round = state.qualifierRounds[roundIndex];
+      captureOperatorUndoSnapshotV266("GGP 라운드 진출 확정");
+      round.ggpFinalists = selected.map((player, index) => normalizePlayerForFinal(player, { ggpRank: index + 1, sourceRoundIndex: round.index }));
+      round.finalist = round.ggpFinalists[0] || null;
+      round.noFinalist = selected.length === 0;
+      round.finalistStatus = selected.length ? "" : "none";
+      round.noFinalistReason = selected.length ? "" : "no-qualifiers";
+      if (activateNext) activateNextRoundAfterFinalist(roundIndex, true);
+      saveLiveState();
+      renderOperator();
+    }
+
+    function createGgpNextStage(roundIndex) {
+      const round = state.qualifierRounds[roundIndex];
+      if (!canEditGgpStage(roundIndex, round.stages.length - 1)) return;
+      const stage = round.stages[round.stages.length - 1];
+      if (!ensureGgpResults(stage)) return;
+      const selected = getSelectedFromStage(stage);
+      if (!selected.length) return completeGgpRound(roundIndex, [], true);
+      if (stage.type === "ggpRoundFinal") return completeGgpRound(roundIndex, selected, true);
+      const type = stage.type === "ggpQualifier" || selected.length > 5 ? "ggpSemi" : "ggpRoundFinal";
+      captureOperatorUndoSnapshotV266("GGP 다음 경기");
+      round.stages.push(generateGgpStage(selected, round, type));
+      activeRoundIndex = roundIndex;
+      state.broadcast = { mode: "stage", roundIndex, stageIndex: round.stages.length - 1 };
+      saveLiveState();
+      renderOperator();
+    }
+
+    function createGgpSemiFinal() {
+      if (state.finalRace) return showError("최종전이 이미 생성되었습니다. 한 단계 되돌리기를 사용하세요.");
+      if (!state.qualifierRounds.every(isRoundCompleteV275)) return showError("5개 라운드를 모두 완료하세요.");
+      const error = validateGgpSeeds();
+      if (error) return showError(error);
+      const groups = Array.from({ length: 5 }, (_, index) => ({
+        id: `ggp-semi-${index + 1}`, name: `최종 준결승 ${index + 1}조`,
+        slots: Array.from({ length: 5 }, (_, lane) => makeEmptyLaneSlot(lane + 1)), advanceIds: [], ggpResultConfirmed: false
+      }));
+      getGgpSeeds().forEach((seed, index) => {
+        groups[seed.group - 1].slots[seed.lane - 1] = { ...seed.player, id: `${seed.player.id}::ggp-seed-${index + 1}`, sourcePlayerId: seed.player.id, lane: seed.lane };
+      });
+      const qualifiers = shuffle(getGgpQualifiedPlayers());
+      if (qualifiers.length + getGgpSeeds().length > 25) return showError("최종 준결승은 최대 25자리입니다.");
+      qualifiers.forEach(player => {
+        const candidates = groups.filter(group => group.slots.some(slot => slot.isEmptyLane));
+        const min = Math.min(...candidates.map(group => group.slots.filter(slot => !slot.isEmptyLane).length));
+        const group = shuffle(candidates.filter(item => item.slots.filter(slot => !slot.isEmptyLane).length === min))[0];
+        const empty = shuffle(group.slots.filter(slot => slot.isEmptyLane))[0];
+        group.slots[empty.lane - 1] = { ...player, lane: empty.lane };
+      });
+      captureOperatorUndoSnapshotV266("GGP 최종 준결승 생성");
+      state.finalRace = { id: `ggp-semi-${Date.now()}`, type: "ggpSemiFinal", name: "GGP 최종 준결승", groupSize: 5, groups };
+      state.broadcast = { mode: "final" };
+      saveLiveState();
+      renderOperator();
+    }
+
+    function createGgpFinalFromSemi() {
+      if (!canModifyTournamentAction("GGP 최종 결승 생성") || state.finalRace?.type !== "ggpSemiFinal") return;
+      if (!ensureGgpResults(state.finalRace)) return;
+      const winners = getFinalWinners();
+      captureOperatorUndoSnapshotV266("GGP 최종 결승 생성");
+      const semiGroups = state.finalRace.groups;
+      state.finalRace = { id: `ggp-final-${Date.now()}`, type: "ggpFinal", name: "GGP 최종 결승", groupSize: 5, semiGroups,
+        group: { id: "ggp-final-group", name: "FINAL", slots: assignLanes(winners, 5), advanceIds: [], ggpResultConfirmed: winners.length === 0 } };
+      state.broadcast = { mode: "final" };
+      saveLiveState();
+      renderOperator();
+    }
+
     function ruleSummary(mode = state.settings.matchMode) {
       const normalized = normalizeMatchMode(mode);
       return {
+        ggp: "5라운드 상위 3명과 월간 시드로 최종 준결승 5개 조를 진행합니다.",
         basic: "라운드별 결승 진출자를 모아 최종 결승을 진행합니다.",
         crow: "라운드별 1~3위 총 9명으로 준결/결승을 진행합니다.",
         points3: "3회 포인트 합산 후 상위 결정전을 진행합니다.",
@@ -8073,6 +8346,7 @@ function flattenPrivateResultLogs(raw = {}) {
     function matchModeLabel(mode = state.settings.matchMode) {
       const normalized = normalizeMatchMode(mode);
       return {
+        ggp: "GGP 최종전",
         basic: "토너먼트",
         crow: "토너먼트(9강)",
         points3: "포인트전 3회",
@@ -8110,6 +8384,7 @@ function normalizePlayerForFinal(player, extra = {}) {
     function rebuildUnplayedNormalRound(roundIndex) {
       const round = state.qualifierRounds?.[roundIndex];
       if (!round || roundHasAnyResult(round) || round.finalist) return false;
+      if (isGgpMode()) return prepareGgpRound(roundIndex);
       const players = getEligibleParticipants();
       const error = validateStart(players, "예선");
       if (error) {
@@ -8139,6 +8414,10 @@ function normalizePlayerForFinal(player, extra = {}) {
         rebuildUnplayedNormalRound(nextIndex);
       }
 
+      if (isGgpMode() && isRoundCompleteV275(nextRound)) {
+        activeRoundIndex = nextIndex;
+        return activateNextRoundAfterFinalist(nextIndex, true);
+      }
       if (!nextRound.stages?.length) return false;
       activeRoundIndex = nextIndex;
       state.activeRoundIndex = nextIndex;
@@ -8170,6 +8449,7 @@ function normalizePlayerForFinal(player, extra = {}) {
     }
 
     function confirmNoFinalistV275(roundIndex, options = {}) {
+      if (isGgpMode()) return confirmRoundFinalist(roundIndex, options);
       const round = state.qualifierRounds?.[roundIndex];
       if (!round || !round.stages?.length) return showError("먼저 해당 라운드를 진행하세요.");
       const lastStage = round.stages[round.stages.length - 1];
@@ -8194,6 +8474,15 @@ function normalizePlayerForFinal(player, extra = {}) {
     }
 
     function confirmRoundFinalist(roundIndex, options = {}) {
+      if (!canModifyTournamentAction("라운드 진출 확정")) return;
+      if (isGgpMode()) {
+        const round = state.qualifierRounds[roundIndex];
+        if (!round || !canEditGgpStage(roundIndex, round.stages.length - 1)) return;
+        const stage = round.stages[round.stages.length - 1];
+        if (stage?.type !== "ggpRoundFinal") return showError("라운드 결승에서 상위 3명을 확정하세요.");
+        if (!ensureGgpResults(stage)) return;
+        return completeGgpRound(roundIndex, getSelectedFromStage(stage), options.activateNext);
+      }
       const round = state.qualifierRounds[roundIndex];
       if (!round || !round.stages.length) return showError("먼저 해당 라운드를 진행하세요.");
       const lastStage = round.stages[round.stages.length - 1];
@@ -8335,6 +8624,7 @@ function normalizePlayerForFinal(player, extra = {}) {
 
     function createFinalRace() {
       if (!canModifyTournamentAction("최종 결승 생성")) return;
+      if (isGgpMode()) return createGgpSemiFinal();
       if (isCrowMode()) return createCrowSemiFinal();
       if (!state.qualifierRounds.every(isRoundCompleteV275)) return showError("모든 라운드를 완료한 뒤 최종 결승을 생성하세요.");
       const finalists = getFinalistPlayersV275();
@@ -8361,7 +8651,7 @@ function normalizePlayerForFinal(player, extra = {}) {
     }
 
     function toggleFinalWinner(playerId, groupId = "") {
-      if (!state.finalRace) return;
+      if (!canModifyTournamentAction("결승 결과 선택") || !state.finalRace) return;
       const groups = getFinalGroups();
       const group = groupId
         ? groups.find(item => String(item.id) === String(groupId))
@@ -8371,7 +8661,9 @@ function normalizePlayerForFinal(player, extra = {}) {
       if (!player || player.isEmptyLane) return;
       const ids = group.advanceIds || [];
       const wasSelected = ids.some(id => samePlayerIdV280(id, player.id));
+      if (isGgpMode() && !wasSelected && ids.length >= 1) return showError("조별 1위 한 명만 선택하세요.");
       captureOperatorUndoSnapshotV266("결승 선택");
+      if (isGgpMode()) group.ggpResultConfirmed = false;
       group.advanceIds = wasSelected
         ? ids.filter(id => !samePlayerIdV280(id, player.id))
         : [...ids, player.id];
@@ -8384,6 +8676,7 @@ function normalizePlayerForFinal(player, extra = {}) {
     function forceFinalLane(groupId, playerId, lane) {
       if (!canModifyTournamentAction("결승 레인 지정")) return;
       if (!state.finalRace) return;
+      if (state.finalRace.type === "ggpSemiFinal") return showError("월간 시드 선점 레인은 최종 준결승에서 변경할 수 없습니다.");
       const group = getFinalGroups().find(item => String(item.id) === String(groupId));
       if (!group) return;
       const target = group.slots.find(item => samePlayerIdV280(item.id, playerId));
@@ -8421,13 +8714,13 @@ function normalizePlayerForFinal(player, extra = {}) {
             <div class="slot-inner final-slot-actions">
               ${renderPlayerCardMain(player, group)}
               <div class="final-card-actions">
-                <button class="${selected ? "primary" : "ghost"}" onclick="toggleFinalWinner('${escapeAttr(player.id)}','${escapeAttr(group.id)}')">${selected ? "선택 해제" : finalRaceType === "crowSemi" ? "결승 진출" : "우승 선택"}</button>
-                ${renderFinalLaneTools(group, player)}
+                <button class="${selected ? "primary" : "ghost"}" onclick="toggleFinalWinner('${escapeAttr(player.id)}','${escapeAttr(group.id)}')">${selected ? "선택 해제" : ["crowSemi", "ggpSemiFinal"].includes(finalRaceType) ? "결승 진출" : "우승 선택"}</button>
+                ${isGgpMode() && finalRaceType === "ggpSemiFinal" ? "" : renderFinalLaneTools(group, player)}
               </div>
             </div>
           </div>
         `;
-      }).join("")}</article>`;
+      }).join("")}${isGgpMode() ? renderGgpGroupResult(group, -1, 0) : ""}</article>`;
     }
 
     function renderFinalRace() {
@@ -8437,11 +8730,11 @@ function normalizePlayerForFinal(player, extra = {}) {
       const groups = getFinalGroups();
       const winners = getFinalWinners();
       const isBroadcast = state.broadcast.mode === "final";
-      const isCrowSemi = state.finalRace.type === "crowSemi";
+      const isCrowSemi = ["crowSemi", "ggpSemiFinal"].includes(state.finalRace.type);
       const finishAction = !isCrowSemi && state.tournament.status === "running" && isTournamentFinalResultReady()
         ? `<div class="final-complete-actions-v142"><div class="final-complete-copy-v142"><strong>최종 결승 종료</strong><span>결과를 저장하고 새 대회 준비 상태로 전환합니다.</span></div><button class="primary" onclick="finishTournament()">대회 종료</button></div>`
         : "";
-      return `<section class="final-box"><div class="round-head" style="margin-bottom:12px;"><h2>${escapeHtml(state.finalRace.name || "최종 결승")} ${isBroadcast ? `<span class="round-badge live-badge">● TV 송출중</span>` : ""}</h2><div>${isCrowSemi ? `<button class="primary" onclick="createCrowFinalFromSemi()">결승 생성</button>` : ""}</div></div><div class="groups" style="grid-template-columns:${groups.length > 1 ? "repeat(3,minmax(0,1fr))" : "1fr"};">${groups.map(group => renderFinalGroup(group, state.finalRace.type)).join("")}</div>${winners.length ? `<div class="champion"><small>${isCrowSemi ? "9강 SEMI RESULT" : "FINAL RESULT"}</small><strong>${winners.map(p => escapeHtml(p.name)).join(", ")}</strong><span>${isCrowSemi ? "결승 진출자" : winners.length > 1 ? "공동 최종 선정" : "최종 우승자"}</span></div>` : ""}${finishAction}</section>`;
+      return `<section class="final-box"><div class="round-head" style="margin-bottom:12px;"><h2>${escapeHtml(state.finalRace.name || "최종 결승")} ${isBroadcast ? `<span class="round-badge live-badge">● TV 송출중</span>` : ""}</h2><div>${isCrowSemi ? `<button class="primary" onclick="${isGgpMode() ? "createGgpFinalFromSemi()" : "createCrowFinalFromSemi()"}">결승 생성</button>` : ""}</div></div><div class="groups" style="grid-template-columns:${groups.length > 1 ? "repeat(3,minmax(0,1fr))" : "1fr"};">${groups.map(group => renderFinalGroup(group, state.finalRace.type)).join("")}</div>${isGgpMode() && state.finalRace.type === "ggpFinal" && isTournamentFinalResultReady() && !winners.length ? `<p class="hint">최종 결승 진출자 또는 완주자가 없어 우승자 없이 종료합니다.</p>` : ""}${winners.length ? `<div class="champion"><small>${isCrowSemi ? "SEMI RESULT" : "FINAL RESULT"}</small><strong>${winners.map(p => escapeHtml(p.name)).join(", ")}</strong><span>${isCrowSemi ? "결승 진출자" : winners.length > 1 ? "공동 최종 선정" : "최종 우승자"}</span></div>` : ""}${finishAction}</section>`;
     }
 
     function getBroadcastTarget(payload) {
@@ -8493,9 +8786,11 @@ function normalizePlayerForFinal(player, extra = {}) {
         });
         collectPlayerId(round?.finalist);
         (round?.crowFinalists || []).forEach(collectPlayerId);
+        (round?.ggpFinalists || []).forEach(collectPlayerId);
       });
       if (sourceState.finalRace) {
         (sourceState.finalRace.groups || []).forEach(collectGroupIds);
+        (sourceState.finalRace.semiGroups || []).forEach(collectGroupIds);
         if (sourceState.finalRace.group) collectGroupIds(sourceState.finalRace.group);
       }
       return participantIds;
@@ -8570,7 +8865,7 @@ function normalizePlayerForFinal(player, extra = {}) {
         if (!player) return player;
         if (player.isEmptyLane) return { id: `empty-${player.lane || ++seq}`, lane: player.lane, name: "빈 레인", team: "", isEmptyLane: true };
         const displayName = publicDisplayName(player);
-        return { id: publicId(player.id || displayName), lane: player.lane || null, name: displayName, nickname: displayName, team: player.team || "", todayLaneWinRate: getTodayLaneWinRate(player.lane), crowRank: player.crowRank || null, sourceRoundIndex: player.sourceRoundIndex || null };
+        return { id: publicId(player.id || displayName), lane: player.lane || null, name: displayName, nickname: displayName, team: player.team || "", todayLaneWinRate: getTodayLaneWinRate(player.lane), crowRank: player.crowRank || null, ggpRank: player.ggpRank || null, sourceRoundIndex: player.sourceRoundIndex || null };
       };
       const cleanPointSummary = player => ({
         id: publicId(player?.id || player?.nickname || player?.name || "참가자"),
@@ -8616,6 +8911,7 @@ function normalizePlayerForFinal(player, extra = {}) {
           advanceIds,
           points
         };
+        if (Object.prototype.hasOwnProperty.call(group || {}, "ggpResultConfirmed")) cleanedGroup.ggpResultConfirmed = group.ggpResultConfirmed === true;
         if (Object.prototype.hasOwnProperty.call(group || {}, "tiedScore")) {
           const tiedScore = Number(group.tiedScore);
           cleanedGroup.tiedScore = Number.isFinite(tiedScore) ? tiedScore : 0;
@@ -8659,7 +8955,7 @@ function normalizePlayerForFinal(player, extra = {}) {
       };
       const cleanRound = (round, roundIndex) => {
         const cleanFinalists = (round.crowFinalists || []).map(cleanPlayer);
-        return { id: round.id, index: round.index, title: round.title, stagePlan: round.stagePlan || [], stages: (round.stages || []).map((stage, stageIndex) => cleanStage(stage, roundIndex, stageIndex)), finalist: round.finalist ? cleanPlayer(round.finalist) : null, noFinalist: Boolean(round.noFinalist), finalistStatus: round.finalistStatus || "", noFinalistReason: round.noFinalistReason || "", crowFinalists: cleanFinalists };
+        return { id: round.id, index: round.index, title: round.title, stagePlan: round.stagePlan || [], stages: (round.stages || []).map((stage, stageIndex) => cleanStage(stage, roundIndex, stageIndex)), finalist: round.finalist ? cleanPlayer(round.finalist) : null, noFinalist: Boolean(round.noFinalist), finalistStatus: round.finalistStatus || "", noFinalistReason: round.noFinalistReason || "", crowFinalists: cleanFinalists, ggpFinalists: (round.ggpFinalists || []).map(cleanPlayer) };
       };
       const publicTournament = {
         name: sourceState.tournament?.name || "",
@@ -8688,6 +8984,7 @@ function normalizePlayerForFinal(player, extra = {}) {
         if (Array.isArray(sourceState.finalRace.groups)) {
           cleanFinalRace.groups = sourceState.finalRace.groups.map(group => cleanGroup(group, includeFinalMetrics));
         }
+        if (Array.isArray(sourceState.finalRace.semiGroups)) cleanFinalRace.semiGroups = sourceState.finalRace.semiGroups.map(group => cleanGroup(group));
         if (sourceState.finalRace.group) {
           cleanFinalRace.group = cleanGroup(sourceState.finalRace.group, includeFinalMetrics);
         }
@@ -8721,6 +9018,8 @@ function normalizePlayerForFinal(player, extra = {}) {
         ? (round.crowFinalists || []).find(item => sameResultPlayerIdV187(item.id, player.id))?.crowRank || ""
         : "";
       if (crowRank) return `9강 ${crowRank}위`;
+      const ggpRank = isFinalResultStage && isAdvanced ? (round.ggpFinalists || []).find(item => sameResultPlayerIdV187(item.id, player.id))?.ggpRank : null;
+      if (ggpRank) return `GGP ${ggpRank}위 · 최종준결진출`;
       const isFinalist = isFinalResultStage && isAdvanced && round.finalist && sameResultPlayerIdV187(round.finalist.id, player.id);
       if (isFinalist && isRevivalMode()) return "최종우승";
       if (isFinalist) return "최종결승진출";
@@ -8736,11 +9035,13 @@ function normalizePlayerForFinal(player, extra = {}) {
         const result = getQualifierStageResultV187(round, stage, stageIndex, group, player);
         rows.push({ ...meta, 경기장ID: currentVenueId(), 선수ID: ident.playerId, 실명: ident.realName, 연락처: ident.contact, 차수: round.title, 단계: stage.name, 조: group.name, 레인: `${player.lane}LANE`, 선수명: player.name, 팀명: player.team || "", 점수: score, 결과: result, 비고: stage.type || "" });
       }))));
-      if (state.finalRace) getFinalGroups().forEach(group => group.slots.forEach(player => {
+      const resultFinalGroups = [...(state.finalRace?.semiGroups || []), ...getFinalGroups()];
+      if (state.finalRace) resultFinalGroups.forEach(group => group.slots.forEach(player => {
         const selected = (group.advanceIds || []).some(id => samePlayerIdV280(id, player.id));
         const ident = resolvePlayerIdentity(player);
-        const finalType = state.finalRace.type === "crowSemi" ? "9강준결" : "FINAL";
-        rows.push({ ...meta, 경기장ID: currentVenueId(), 선수ID: ident.playerId, 실명: ident.realName, 연락처: ident.contact, 차수: state.finalRace.name || "최종 결승", 단계: finalType, 조: group.name, 레인: `${player.lane}LANE`, 선수명: player.name, 팀명: player.team || "", 점수: "", 결과: player.isEmptyLane ? "빈 레인" : selected ? (state.finalRace.type === "crowSemi" ? "결승진출" : "최종우승") : "결승참가", 비고: state.finalRace.type || "final" });
+        const isGgpSemi = state.finalRace.type === "ggpSemiFinal" || (state.finalRace.semiGroups || []).includes(group);
+        const finalType = isGgpSemi ? "GGP최종준결" : state.finalRace.type === "crowSemi" ? "9강준결" : "FINAL";
+        rows.push({ ...meta, 경기장ID: currentVenueId(), 선수ID: ident.playerId, 실명: ident.realName, 연락처: ident.contact, 차수: state.finalRace.name || "최종 결승", 단계: finalType, 조: group.name, 레인: `${player.lane}LANE`, 선수명: player.name, 팀명: player.team || "", 점수: "", 결과: player.isEmptyLane ? "빈 레인" : selected ? (["crowSemi", "ggpSemiFinal"].includes(state.finalRace.type) || isGgpSemi ? "결승진출" : "최종우승") : "결승참가", 비고: state.finalRace.type || "final" });
       }));
       return rows;
     }
@@ -9376,9 +9677,11 @@ function stopLiveLobbyRealtimeV50() {
         if (!confirm('경기 방식을 바꾸면 현재 대진표가 라운드 초기화됩니다. 계속할까요?')) return;
       }
       const currentTournament = { ...state.tournament };
+      if (mode !== "ggp") delete currentTournament.ggpSeeds;
       const inputText = state.inputText;
       const previousSettings = { ...state.settings, matchMode: mode };
       if (mode === 'crow') previousSettings.laneCount = 3;
+      if (mode === 'ggp') Object.assign(previousSettings, { laneCount: 5, excludeFinalists: true, forcedGroupCount: '', nextGroupSize: '' });
       state = makeInitialState(previousSettings.laneCount || 3);
       state.inputText = inputText;
       state.tournament = currentTournament;
@@ -9665,8 +9968,10 @@ function stopLiveLobbyRealtimeV50() {
             });
             visitor(round?.finalist);
             (round?.crowFinalists || []).forEach(visitor);
+            (round?.ggpFinalists || []).forEach(visitor);
           });
           (source?.finalRace?.groups || []).forEach(group => (group?.slots || []).forEach(visitor));
+          (source?.finalRace?.semiGroups || []).forEach(group => (group?.slots || []).forEach(visitor));
           (source?.finalRace?.group?.slots || []).forEach(visitor);
         };
         visitParticipantState(privateState, rememberPrivatePlayer);
@@ -9713,6 +10018,7 @@ function stopLiveLobbyRealtimeV50() {
             team: publicPlayer.team || ""
           };
           if (Object.prototype.hasOwnProperty.call(publicPlayer, "lane")) next.lane = publicPlayer.lane;
+          if (Object.prototype.hasOwnProperty.call(publicPlayer, "ggpRank")) next.ggpRank = publicPlayer.ggpRank;
           if (Object.prototype.hasOwnProperty.call(publicPlayer, "crowRank")) next.crowRank = publicPlayer.crowRank;
           if (Object.prototype.hasOwnProperty.call(publicPlayer, "sourceRoundIndex")) next.sourceRoundIndex = publicPlayer.sourceRoundIndex;
           return next;
@@ -9752,6 +10058,7 @@ function stopLiveLobbyRealtimeV50() {
             });
           }
           if (Object.prototype.hasOwnProperty.call(publicRound, "finalist")) next.finalist = rehydratePlayer(publicRound.finalist);
+          if (Array.isArray(publicRound.ggpFinalists)) next.ggpFinalists = publicRound.ggpFinalists.map(rehydratePlayer);
           if (Array.isArray(publicRound.crowFinalists)) next.crowFinalists = publicRound.crowFinalists.map(rehydratePlayer);
           return next;
         };
@@ -9781,6 +10088,8 @@ function stopLiveLobbyRealtimeV50() {
             if (Array.isArray(incoming.finalRace.groups)) {
               merged.finalRace.groups = mergeGroups(privateFinal.groups || [], incoming.finalRace.groups);
             }
+            if (incoming.finalRace.type === "ggpFinal") delete merged.finalRace.groups;
+            if (Array.isArray(incoming.finalRace.semiGroups)) merged.finalRace.semiGroups = mergeGroups(privateFinal.semiGroups || privateFinal.groups || [], incoming.finalRace.semiGroups);
             if (incoming.finalRace.group) merged.finalRace.group = mergeGroup(privateFinal.group || {}, incoming.finalRace.group);
           }
         }

@@ -49,15 +49,15 @@
   ];
 
   const meta = Object.freeze({
-    version: 289,
-    label: "BUILD v289 TERMINAL FINALIZATION RECOVERY",
-    title: "MINI4WD TOURNAMENT MAKER - v289 TERMINAL FINALIZATION RECOVERY",
+    version: 290,
+    label: "BUILD v290 GGP FINAL TOURNAMENT",
+    title: "MINI4WD TOURNAMENT MAKER - v290 GGP FINAL TOURNAMENT",
     rulesChanged: false,
     assets: Object.freeze({
       config: 156,
-      build: 289,
-      app: 289,
-      css: 284,
+      build: 290,
+      app: 290,
+      css: 290,
       operatorMobileCss: 285,
       og: 51
     }),
