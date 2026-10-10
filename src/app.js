@@ -10,13 +10,13 @@
     ];
     const RTDB_WRITE_PROTOCOL_V279 = 279;
     const MINI4WD_BUILD = window.MINI4WD_BUILD_META || {
-      version: 292,
-      label: "BUILD v292 TV FOUR GROUPS",
+      version: 293,
+      label: "BUILD v293 GGP FIVE SEMIFINAL GROUPS",
       rulesChanged: false,
       surfaces: MINI4WD_FALLBACK_SURFACES,
       pageClasses: MINI4WD_FALLBACK_PAGE_CLASSES
     };
-    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v292 TV FOUR GROUPS";
+    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v293 GGP FIVE SEMIFINAL GROUPS";
     const MINI4WD_SURFACES = Array.isArray(MINI4WD_BUILD.surfaces) && MINI4WD_BUILD.surfaces.length
       ? Array.from(MINI4WD_BUILD.surfaces)
       : MINI4WD_FALLBACK_SURFACES;
@@ -441,7 +441,7 @@ function shuffle(array) {
     }
 
     function renderGroupSizeControl() {
-      if (isGgpMode()) return `<span class="hint">GGP · 5레인 자동 편성</span>`;
+      if (isGgpMode()) return `<span class="hint">GGP · 예선 자동 / 준결승 5개 조</span>`;
       const options = ["", ...Array.from({ length: Math.max(0, state.settings.laneCount - 1) }, (_, index) => index + 2)];
       return `
         <div class="group-size-control group-size-control-v145" role="group" aria-label="다음 경기 조 인원">
@@ -455,12 +455,14 @@ function shuffle(array) {
       `;
     }
 
-    function buildCandidateGroups(players, stageName, stageIndex = 1) {
+    function buildCandidateGroups(players, stageName, stageIndex = 1, fixedGroupCount = null) {
       const laneCount = state.settings.laneCount;
       const targetGroupSize = getNextGroupSize();
       const forced = getForcedGroupCountForStageV276(stageIndex);
 
-      const groupCount = calculateGroupCountV280(players.length, laneCount, targetGroupSize, forced);
+      // A format's fixed group count is independent of the first-stage manual setting.
+      const groupCount = fixedGroupCount ?? calculateGroupCountV280(players.length, laneCount, targetGroupSize, forced);
+      if (fixedGroupCount && players.length > fixedGroupCount * laneCount) throw new Error("고정 조의 레인 수보다 참가자가 많습니다.");
 
       const groups = Array.from({ length: groupCount }, () => []);
 
@@ -488,9 +490,9 @@ function shuffle(array) {
         groups[ranked[0].index].push(player);
       });
 
-      const activeGroups = groups.filter(group => group.length > 0);
+      const activeGroups = fixedGroupCount ? groups : groups.filter(group => group.length > 0);
 
-      if (!forced && activeGroups.length > 1) {
+      if (!fixedGroupCount && !forced && activeGroups.length > 1) {
         const singleIndex = activeGroups.findIndex(group => group.length === 1);
         if (singleIndex >= 0) {
           const targetIndex = activeGroups.findIndex((group, index) => index !== singleIndex && group.length < laneCount);
@@ -504,14 +506,14 @@ function shuffle(array) {
       return activeGroups;
     }
 
-    function generateStage(players, qualifierIndex, stageIndex, stageName) {
+    function generateStage(players, qualifierIndex, stageIndex, stageName, fixedGroupCount = null) {
       const laneCount = state.settings.laneCount;
       const tries = players.length <= laneCount ? 1 : getAttemptCount();
       let best = null;
       let bestScore = Infinity;
 
       for (let i = 0; i < tries; i += 1) {
-        const candidate = buildCandidateGroups(players, stageName, stageIndex);
+        const candidate = buildCandidateGroups(players, stageName, stageIndex, fixedGroupCount);
         const score = scoreGroups(candidate);
         if (score < bestScore) {
           best = candidate;
@@ -3241,7 +3243,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
             </ol>
 
             <h2>2. 경기 방식</h2>
-            <h3>GGP 최종전</h3><p>5레인, 총 5라운드입니다. 예선 조별 상위 2명, 준결승 조별 1명, 라운드 결승 상위 3명을 순서대로 선택하고 각 조의 결과를 확정합니다. 전원 이탈은 선택 없이 확정합니다. 월간 시드와 라운드 진출자는 이후 예선에서 제외됩니다. 월간 시드의 조·레인을 보존하여 최종 준결승 5개 조를 편성하며 조별 1명이 최종 결승에 진출합니다.</p>
+            <h3>GGP 최종전</h3><p>5레인, 총 5라운드입니다. 예선은 인원에 따라 자동 편성하여 조별 상위 2명을 선발합니다. 라운드 준결승은 5개 조로 고정하며 조별 1명, 라운드 결승은 상위 3명을 선택하고 각 조의 결과를 확정합니다. 전원 이탈은 선택 없이 확정합니다. 월간 시드와 라운드 진출자는 이후 예선에서 제외됩니다. 월간 시드의 조·레인을 보존하여 최종 준결승 5개 조를 편성하며 조별 1명이 최종 결승에 진출합니다.</p>
             <h3>토너먼트</h3>
             <p>3레인은 1차~3차 라운드, 5레인은 1차~5차 라운드로 운영합니다. 각 라운드의 결승 진출자가 모두 확정되면 최종 결승을 진행합니다.</p>
 
@@ -8189,17 +8191,21 @@ function flattenPrivateResultLogs(raw = {}) {
 
     function generateGgpStage(players, round, type) {
       const name = type === "ggpQualifier" ? "예선" : type === "ggpRoundFinal" ? "라운드 결승" : "준결승";
-      const stage = generateStage(players, round.index, round.stages.length + 1, name);
+      if (type === "ggpSemi" && players.length > 25) {
+        showError(`라운드 준결승은 5개 조, 최대 25명입니다. 현재 진출자 ${players.length}명의 예선 결과를 확인하세요.`);
+        return null;
+      }
+      const stage = generateStage(players, round.index, round.stages.length + 1, name, type === "ggpSemi" ? 5 : null);
       stage.type = type;
-      // GGP uses the track's five lanes; only the final semifinal has a fixed group count.
-      stage.groups.forEach(group => { group.ggpResultConfirmed = false; });
+      // Preserve all five semifinal groups even with few finishers; empty groups need no result entry.
+      stage.groups.forEach(group => { group.ggpResultConfirmed = !group.slots.some(player => !player.isEmptyLane); });
       return stage;
     }
 
     function prepareGgpRound(roundIndex) {
       const round = state.qualifierRounds[roundIndex];
       if (!round) return false;
-      round.stagePlan = ["예선 (조별 2명)", "준결승 (조별 1명)", "라운드 결승 (상위 3명)"];
+      round.stagePlan = ["예선 (조별 2명)", "준결승 (5개 조 · 조별 1명)", "라운드 결승 (상위 3명)"];
       round.stages = [];
       round.finalist = null;
       round.ggpFinalists = [];
@@ -8285,8 +8291,10 @@ function flattenPrivateResultLogs(raw = {}) {
       if (!selected.length) return completeGgpRound(roundIndex, [], true);
       if (stage.type === "ggpRoundFinal") return completeGgpRound(roundIndex, selected, true);
       const type = stage.type === "ggpQualifier" || selected.length > 5 ? "ggpSemi" : "ggpRoundFinal";
+      const nextStage = generateGgpStage(selected, round, type);
+      if (!nextStage) return;
       captureOperatorUndoSnapshotV266("GGP 다음 경기");
-      round.stages.push(generateGgpStage(selected, round, type));
+      round.stages.push(nextStage);
       activeRoundIndex = roundIndex;
       state.broadcast = { mode: "stage", roundIndex, stageIndex: round.stages.length - 1 };
       saveLiveState();
@@ -8337,7 +8345,7 @@ function flattenPrivateResultLogs(raw = {}) {
     function ruleSummary(mode = state.settings.matchMode) {
       const normalized = normalizeMatchMode(mode);
       return {
-        ggp: "5라운드 상위 3명과 월간 시드로 최종 준결승 5개 조를 진행합니다.",
+        ggp: "예선은 자동, 라운드 준결승은 5개 조입니다. 5라운드 상위 3명과 월간 시드로 최종 준결승 5개 조를 진행합니다.",
         basic: "라운드별 결승 진출자를 모아 최종 결승을 진행합니다.",
         crow: "라운드별 1~3위 총 9명으로 준결/결승을 진행합니다.",
         points3: "3회 포인트 합산 후 상위 결정전을 진행합니다.",

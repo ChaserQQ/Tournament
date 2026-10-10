@@ -762,6 +762,7 @@ async function runViewport(browser, viewport) {
       for (let ri = 0; ri < 5; ri++) {
         if (!lastStage(ri)) startQualifierRound(ri);
         let stage = lastStage(ri);
+        assert(stage.groups.length === Math.ceil(getEligibleParticipants().length / 5), "GGP qualifier must retain automatic group count");
         const excluded = new Set([seedPlayer.id, ...getGgpQualifiedPlayers().map(player => player.id)]);
         assert(stage.groups.flatMap(actualSlots).every(player => !excluded.has(player.id)), "GGP qualified player re-entered a later round");
         ggpCounts.push(stage.groups.flatMap(actualSlots).length);
@@ -775,6 +776,7 @@ async function runViewport(browser, viewport) {
         }
         for (let guard = 0; guard < 8; guard++) {
           stage = lastStage(ri);
+          if (stage.type === "ggpSemi") assert(stage.groups.length === 5, "GGP round semifinal must have exactly five groups");
           const si = state.qualifierRounds[ri].stages.length - 1;
           const quota = ggpAdvanceLimit(stage.type);
           stage.groups.forEach(group => {
@@ -782,6 +784,7 @@ async function runViewport(browser, viewport) {
             confirmGgpGroup(ri, si, group.id);
           });
           if (stage.type === "ggpRoundFinal") {
+            assert(stage.groups.length === 1 && actualSlots(stage.groups[0]).length === 5, "GGP round final must receive five semifinal winners");
             confirmRoundFinalist(ri, { activateNext: true });
             assert(state.qualifierRounds[ri].ggpFinalists.length === 3, "GGP round did not qualify three racers");
             break;
@@ -903,6 +906,44 @@ async function runGgpUi(browser, viewport) {
     await startTournamentAsync();
     if (state.tournament.status !== "running") throw new Error("GGP UI tournament did not start");
   });
+  const roundSemiCheck = await page.evaluate(() => {
+    const players = getEligibleParticipants();
+    const round = state.qualifierRounds[0];
+    const matrix = [1, 2, 4, 5, 6, 9, 10, 11, 24, 25].map(count => {
+      const source = players.slice(0, count);
+      const stage = generateGgpStage(source, round, "ggpSemi");
+      const actual = stage.groups.flatMap(group => group.slots.filter(player => !player.isEmptyLane));
+      return {
+        count, groups: stage.groups.length,
+        preserved: actual.length === count && new Set(actual.map(player => player.id)).size === count && source.every(player => actual.some(slot => slot.id === player.id)),
+        lanes: stage.groups.every(group => group.slots.length === 5 && new Set(group.slots.map(player => player.lane)).size === 5),
+        emptyConfirmed: stage.groups.filter(group => group.slots.every(player => player.isEmptyLane)).every(group => group.ggpResultConfirmed)
+      };
+    });
+    // Reject an oversized semifinal without losing any source results or adding a sixth group.
+    const oversized = generateGgpStage(Array.from({ length: 65 }, (_, i) => ({ id: `overflow-${i}`, name: `초과${i}` })), round, "ggpQualifier");
+    oversized.groups.forEach(group => { group.advanceIds = group.slots.filter(player => !player.isEmptyLane).slice(0, 2).map(player => player.id); group.ggpResultConfirmed = true; });
+    const originalStages = round.stages;
+    round.stages = [oversized];
+    const before = JSON.stringify(round.stages);
+    createGgpNextStage(0);
+    const overflowRejected = JSON.stringify(round.stages) === before;
+    round.stages = originalStages;
+    const qualifier = round.stages[0];
+    const qualifierGroups = qualifier.groups.length;
+    qualifier.groups.forEach(group => {
+      group.slots.filter(player => !player.isEmptyLane).slice(0, 2).forEach(player => toggleAdvance(0, 0, group.id, player.id));
+      confirmGgpGroup(0, 0, group.id);
+    });
+    const expectedIds = new Set(getSelectedFromStage(qualifier).map(player => player.id));
+    createGgpNextStage(0);
+    const semi = round.stages[1];
+    const publicStage = makePublicStatePayload(exportState()).qualifierRounds[0].stages[1];
+    const restoredStage = normalizeImportedState(exportState()).qualifierRounds[0].stages[1];
+    return { matrix, overflowRejected, qualifierGroups, semiGroups: semi.groups.length, allAdvanced: semi.groups.flatMap(group => group.slots.filter(player => !player.isEmptyLane)).length === expectedIds.size && semi.groups.every(group => group.slots.every(player => player.isEmptyLane || expectedIds.has(player.id))), publicGroups: publicStage.groups.length, restoredGroups: restoredStage.groups.length };
+  });
+  if (roundSemiCheck.matrix.some(item => item.groups !== 5 || !item.preserved || !item.lanes || !item.emptyConfirmed) || !roundSemiCheck.overflowRejected || roundSemiCheck.qualifierGroups !== 12 || roundSemiCheck.semiGroups !== 5 || !roundSemiCheck.allAdvanced || roundSemiCheck.publicGroups !== 5 || roundSemiCheck.restoredGroups !== 5) failures.push(`GGP fixed round semifinals failed: ${JSON.stringify(roundSemiCheck)}`);
+  await page.locator(".current-stage").screenshot({ path: path.join(screenshotDir, `mtm-ggp-round-semi-${viewport.width}.png`) });
   // Exercise the actual lane buttons in every GGP round final, including occupied and empty lanes.
   const laneChecks = [];
   for (let roundIndex = 0; roundIndex < 5; roundIndex++) {
@@ -1038,7 +1079,7 @@ async function runGgpUi(browser, viewport) {
   }, finalLaneFixture);
   if (!laneUndoRestored) failures.push("GGP final lane change did not undo");
   await page.close();
-  return { viewport, failures, result: { ok: failures.length === 0, ggpUi: true, draftCheck, finalCheck, liveRestore, viewerCheck, laneChecks, finalLaneCheck, laneUiOverflow, laneUndoRestored } };
+  return { viewport, failures, result: { ok: failures.length === 0, ggpUi: true, draftCheck, roundSemiCheck, finalCheck, liveRestore, viewerCheck, laneChecks, finalLaneCheck, laneUiOverflow, laneUndoRestored } };
 }
 
 async function main() {

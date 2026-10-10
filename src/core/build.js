@@ -49,14 +49,14 @@
   ];
 
   const meta = Object.freeze({
-    version: 292,
-    label: "BUILD v292 TV FOUR GROUPS",
-    title: "MINI4WD TOURNAMENT MAKER - v292 TV FOUR GROUPS",
+    version: 293,
+    label: "BUILD v293 GGP FIVE SEMIFINAL GROUPS",
+    title: "MINI4WD TOURNAMENT MAKER - v293 GGP FIVE SEMIFINAL GROUPS",
     rulesChanged: false,
     assets: Object.freeze({
       config: 156,
-      build: 292,
-      app: 292,
+      build: 293,
+      app: 293,
       css: 292,
       operatorMobileCss: 285,
       og: 51
