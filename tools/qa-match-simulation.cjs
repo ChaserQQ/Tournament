@@ -944,6 +944,57 @@ async function runGgpUi(browser, viewport) {
   });
   if (roundSemiCheck.matrix.some(item => item.groups !== 5 || !item.preserved || !item.lanes || !item.emptyConfirmed) || !roundSemiCheck.overflowRejected || roundSemiCheck.qualifierGroups !== 12 || roundSemiCheck.semiGroups !== 5 || !roundSemiCheck.allAdvanced || roundSemiCheck.publicGroups !== 5 || roundSemiCheck.restoredGroups !== 5) failures.push(`GGP fixed round semifinals failed: ${JSON.stringify(roundSemiCheck)}`);
   await page.locator(".current-stage").screenshot({ path: path.join(screenshotDir, `mtm-ggp-round-semi-${viewport.width}.png`) });
+  // RTDB removes empty arrays/nulls, unlike JSON.stringify and the in-memory stub.
+  const remoteRecovery = await page.evaluate(() => {
+    function serverValue(value) {
+      if (value == null) return undefined;
+      if (typeof value !== "object") return value;
+      const entries = Object.entries(value).map(([key, item]) => [key, serverValue(item)]).filter(([, item]) => item !== undefined);
+      if (!entries.length) return undefined;
+      return Array.isArray(value) ? entries.map(([, item]) => item) : Object.fromEntries(entries);
+    }
+    const round = state.qualifierRounds[0];
+    round.stages[1].groups.forEach(group => {
+      const winner = group.slots.find(player => !player.isEmptyLane);
+      if (winner) toggleAdvance(0, 1, group.id, winner.id);
+      confirmGgpGroup(0, 1, group.id);
+    });
+    createGgpNextStage(0);
+    const before = exportState();
+    const remote = serverValue(before);
+    const rawBefore = JSON.stringify(remote);
+    const omitted = !Object.hasOwn(remote.qualifierRounds[1], "stages")
+      && !Object.hasOwn(remote.qualifierRounds[0].stages[2].groups[0], "advanceIds");
+    applyAuthoritativeTournamentStateV278(state.tournament.liveId, remote);
+    renderOperator();
+    const final = state.qualifierRounds[0].stages[2];
+    const finalIds = final.groups[0].slots.filter(player => !player.isEmptyLane).map(player => player.id);
+    const preserved = JSON.stringify(state.qualifierRounds[0].stages[0]) === JSON.stringify(before.qualifierRounds[0].stages[0])
+      && finalIds.length === 5 && !final.groups[0].advanceIds.length && !final.groups[0].ggpResultConfirmed;
+    const emptyRounds = state.qualifierRounds.slice(1).every(item => item.stages.length === 0 && getRoundStatus(item) === "미진행");
+    const sourceUnchanged = JSON.stringify(remote) === rawBefore;
+    localStorage.setItem(STORAGE_KEY, rawBefore);
+    state = makeInitialState(3);
+    persistedStateLoadedV95 = false;
+    const localRestored = restorePersistedStateV95() && state.settings.matchMode === "ggp"
+      && state.qualifierRounds[0].stages[2].groups[0].slots.length === 5
+      && state.qualifierRounds.slice(1).every(item => item.stages.length === 0);
+    renderOperator();
+    const publicState = serverValue(makePublicStatePayload(exportState()));
+    renderMobileSnapshot(publicState);
+    const viewerRendered = document.body.innerText.includes("라운드 결승");
+    renderOperator();
+    const finalGroup = final.groups[0];
+    finalIds.slice(0, 3).forEach(id => toggleAdvance(0, 2, finalGroup.id, id));
+    confirmGgpGroup(0, 2, finalGroup.id);
+    createGgpNextStage(0);
+    const continued = state.qualifierRounds[0].ggpFinalists.length === 3 && state.qualifierRounds[1].stages.length === 1
+      && !state.qualifierRounds[1].stages[0].groups.some(group => group.slots.some(player => finalIds.slice(0, 3).includes(player.id)));
+    applyAuthoritativeTournamentStateV278(before.tournament.liveId, before);
+    renderOperator();
+    return { omitted, preserved, emptyRounds, sourceUnchanged, localRestored, viewerRendered, continued };
+  });
+  if (Object.values(remoteRecovery).some(value => !value)) failures.push(`GGP RTDB recovery failed: ${JSON.stringify(remoteRecovery)}`);
   // Exercise the actual lane buttons in every GGP round final, including occupied and empty lanes.
   const laneChecks = [];
   for (let roundIndex = 0; roundIndex < 5; roundIndex++) {
@@ -1079,7 +1130,7 @@ async function runGgpUi(browser, viewport) {
   }, finalLaneFixture);
   if (!laneUndoRestored) failures.push("GGP final lane change did not undo");
   await page.close();
-  return { viewport, failures, result: { ok: failures.length === 0, ggpUi: true, draftCheck, roundSemiCheck, finalCheck, liveRestore, viewerCheck, laneChecks, finalLaneCheck, laneUiOverflow, laneUndoRestored } };
+  return { viewport, failures, result: { ok: failures.length === 0, ggpUi: true, draftCheck, roundSemiCheck, remoteRecovery, finalCheck, liveRestore, viewerCheck, laneChecks, finalLaneCheck, laneUiOverflow, laneUndoRestored } };
 }
 
 async function main() {

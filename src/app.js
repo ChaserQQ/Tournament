@@ -4653,7 +4653,22 @@ function currentActorLabel() {
         ...(imported || {}),
         settings: { ...base.settings, ...(imported?.settings || {}) },
         tournament: { ...base.tournament, ...(imported?.tournament || {}) },
-        qualifierRounds: Array.isArray(imported?.qualifierRounds) ? imported.qualifierRounds : base.qualifierRounds,
+        // RTDB omits empty arrays. Restore the collection contract before any
+        // recovery, status calculation or render reads an unstarted round.
+        qualifierRounds: (Array.isArray(imported?.qualifierRounds) ? imported.qualifierRounds : base.qualifierRounds).map(round => ({
+          ...round,
+          stagePlan: Array.isArray(round.stagePlan) ? round.stagePlan : [],
+          crowFinalists: Array.isArray(round.crowFinalists) ? round.crowFinalists : [],
+          ggpFinalists: Array.isArray(round.ggpFinalists) ? round.ggpFinalists : [],
+          stages: (Array.isArray(round.stages) ? round.stages : []).map(stage => ({
+            ...stage,
+            groups: (Array.isArray(stage.groups) ? stage.groups : []).map(group => ({
+              ...group,
+              slots: Array.isArray(group.slots) ? group.slots : [],
+              advanceIds: Array.isArray(group.advanceIds) ? group.advanceIds : []
+            }))
+          }))
+        })),
         finalRace: imported?.finalRace || null,
         broadcast: { ...base.broadcast, ...(imported?.broadcast || {}) },
         updatedAt: imported?.updatedAt || firebaseServerNowV279()
