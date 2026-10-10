@@ -10,13 +10,13 @@
     ];
     const RTDB_WRITE_PROTOCOL_V279 = 279;
     const MINI4WD_BUILD = window.MINI4WD_BUILD_META || {
-      version: 291,
-      label: "BUILD v291 FINAL LANE SELECTION",
+      version: 292,
+      label: "BUILD v292 TV FOUR GROUPS",
       rulesChanged: false,
       surfaces: MINI4WD_FALLBACK_SURFACES,
       pageClasses: MINI4WD_FALLBACK_PAGE_CLASSES
     };
-    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v291 FINAL LANE SELECTION";
+    const MINI4WD_BUILD_LABEL = MINI4WD_BUILD.label || "BUILD v292 TV FOUR GROUPS";
     const MINI4WD_SURFACES = Array.isArray(MINI4WD_BUILD.surfaces) && MINI4WD_BUILD.surfaces.length
       ? Array.from(MINI4WD_BUILD.surfaces)
       : MINI4WD_FALLBACK_SURFACES;
@@ -40,7 +40,7 @@
     let activeRoundIndex = 0;
     let tvState = null;
     let tvPage = 0;
-    let tvGroupsPerPage = 3;
+    const tvGroupsPerPage = 4;
     let dbSelectedIds = new Set();
     let dbSearchText = "";
     let dbTeamFilter = "전체";
@@ -5213,7 +5213,7 @@ function getTvWindowGroups(target) {
       const groups = target?.groups || [];
       if (!groups.length) return { groups: [], mode: "empty", startIndex: 0, currentIndex: 0, pageCount: 1 };
 
-      const pageSize = Math.max(1, Number(tvGroupsPerPage) || 3);
+      const pageSize = tvGroupsPerPage;
       const groupHasProgress = group => {
         if ((group.advanceIds || []).length > 0) return true;
         if (target?.stageType === "points") {
@@ -5309,11 +5309,11 @@ function renderTvStage() {
       const windowInfo = getTvWindowGroups(target);
       const currentGroups = [...(windowInfo.groups || [])];
       const laneCount = Number(target.laneCount || state?.settings?.groupSize || 3) || 3;
-      while (currentGroups.length < 3) {
+      while (currentGroups.length < tvGroupsPerPage) {
         const nextNo = (windowInfo.startIndex || 0) + currentGroups.length + 1;
         currentGroups.push({ id: `tv-placeholder-${currentGroups.length}`, name: `대기 ${nextNo}조`, slots: [], advanceIds: [], isPlaceholder: true, laneCount });
       }
-      const shownCount = Math.min((windowInfo.groups || []).length || 0, 3);
+      const shownCount = Math.min((windowInfo.groups || []).length || 0, tvGroupsPerPage);
       const modeLabel = windowInfo.mode === "pending"
         ? `진행 대기 · ${(windowInfo.startIndex || 0) + 1}-${(windowInfo.startIndex || 0) + Math.max(shownCount, 1)}조`
         : `진행 포커스 · ${(windowInfo.startIndex || 0) + 1}-${(windowInfo.startIndex || 0) + Math.max(shownCount, 1)}조`;
@@ -5330,8 +5330,8 @@ function renderTvStage() {
             </div>
             ${logoMarkup("tv90-logo")}
           </header>
-          <main class="tv90-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
-            ${currentGroups.slice(0, 3).map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap, laneCount)).join("")}
+          <main class="tv90-grid">
+            ${currentGroups.map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap, laneCount)).join("")}
           </main>
           ${renderTvPointLeaders(target)}
           <footer class="tv90-foot"><span>${escapeHtml(laneCount)} LANE · ${escapeHtml((target.groups || []).length)} GROUPS · LIVE 자동 송출</span><span>${escapeHtml(mini4wdBuildLabel())}</span></footer>

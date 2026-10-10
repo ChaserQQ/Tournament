@@ -49,15 +49,15 @@
   ];
 
   const meta = Object.freeze({
-    version: 291,
-    label: "BUILD v291 FINAL LANE SELECTION",
-    title: "MINI4WD TOURNAMENT MAKER - v291 FINAL LANE SELECTION",
+    version: 292,
+    label: "BUILD v292 TV FOUR GROUPS",
+    title: "MINI4WD TOURNAMENT MAKER - v292 TV FOUR GROUPS",
     rulesChanged: false,
     assets: Object.freeze({
       config: 156,
-      build: 291,
-      app: 291,
-      css: 291,
+      build: 292,
+      app: 292,
+      css: 292,
       operatorMobileCss: 285,
       og: 51
     }),

@@ -444,6 +444,75 @@ async function inspectStaleFallback(browser) {
   return { route: "same-tab-stale-tv-fallback", viewport: { width: 390, height: 844 }, ok: failures.length === 0, failures, info };
 }
 
+async function inspectTvGroups(browser, viewport, laneCount) {
+  const page = await browser.newPage({ viewport });
+  await installLocalRouteStubs(page);
+  await page.goto(`http://127.0.0.1:${port}/index.html#view=login`, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector("input[type='email']");
+  await page.evaluate(lanes => {
+    const names = ["김민수", "박지훈", "이서준", "최하늘", "정우진"];
+    window.__qaTvPayload = {
+      tournament: { name: "GGP 최종전", venue: "QA 경기장", status: "running" },
+      settings: { laneCount: lanes, matchMode: lanes === 5 ? "ggp" : "normal" },
+      broadcast: { mode: "stage", roundIndex: 0, stageIndex: 0 },
+      qualifierRounds: [{ title: "1라운드", stages: [{ name: "예선", type: "normal", groups:
+        Array.from({ length: 9 }, (_, i) => ({
+          id: `tv-group-${i}`, name: `${i + 1}조`, advanceIds: [],
+          slots: Array.from({ length: lanes }, (_, j) => ({ id: `tv-${i}-${j}`, lane: j + 1, name: names[j], team: "미니카 레이싱" }))
+        }))
+      }] }]
+    };
+    renderTvSnapshot(window.__qaTvPayload);
+  }, laneCount);
+  const info = await page.evaluate(() => {
+    const rect = el => {
+      const { x, y, width, height, right, bottom } = el.getBoundingClientRect();
+      return { x, y, width, height, right, bottom };
+    };
+    const groups = [...document.querySelectorAll(".tv90-group")];
+    return {
+      titles: groups.map(el => el.querySelector(".tv90-group-title").textContent),
+      cards: groups.map(rect),
+      lanesPerGroup: groups.map(el => el.querySelectorAll(".tv90-lane").length),
+      lanesClipped: groups.some(group => [...group.querySelectorAll(".tv90-lane")].some(lane => rect(lane).bottom > rect(group).bottom + 1)),
+      grid: rect(document.querySelector(".tv90-grid")),
+      overflowX: Math.max(0, document.documentElement.scrollWidth - innerWidth),
+      overflowY: Math.max(0, document.documentElement.scrollHeight - innerHeight),
+      mode: document.querySelector(".tv90-mode-pill").textContent
+    };
+  });
+  await page.screenshot({ path: path.join(require("os").tmpdir(), `mtm-tv-four-${viewport.width}-${laneCount}.png`) });
+  const progression = await page.evaluate(() => {
+    const payload = window.__qaTvPayload;
+    const groups = payload.qualifierRounds[0].stages[0].groups;
+    const titles = () => [...document.querySelectorAll(".tv90-group:not(.tv90-placeholder) .tv90-group-title")].map(el => el.textContent);
+    tvPage = 1;
+    renderTvSnapshot(payload);
+    const secondPage = titles();
+    groups[8].advanceIds = [groups[8].slots[0].id];
+    renderTvSnapshot(payload);
+    const lastWindow = titles();
+    const selected = document.querySelectorAll(".tv90-lane.is-selected").length;
+    payload.qualifierRounds[0].stages[0].groups = groups.slice(0, 2);
+    tvPage = 0;
+    renderTvSnapshot(payload);
+    return { secondPage, lastWindow, selected, shortWindow: titles(), placeholders: document.querySelectorAll(".tv90-placeholder").length };
+  });
+  const failures = [];
+  if (info.titles.join() !== "1조,2조,3조,4조" || !info.mode.includes("1-4조")) failures.push("TV must show the first four groups and matching range");
+  if (info.lanesPerGroup.some(count => count !== laneCount) || info.lanesClipped) failures.push("TV lanes are missing or clipped");
+  if (info.overflowX > 1) failures.push("TV page overflows horizontally");
+  if (viewport.width > 1100) {
+    if (info.cards.some(card => Math.abs(card.y - info.cards[0].y) > 1 || card.right > viewport.width || card.bottom > viewport.height)) failures.push("four TV groups must fit in one row within the screen");
+    if (info.grid.x > 13 || viewport.width - info.grid.right > 13 || info.cards[3].right < info.grid.right - 1) failures.push("TV groups leave unused width");
+    if (info.overflowY > 1 || info.grid.height < viewport.height * 0.7) failures.push("TV groups must fill the available screen height");
+  }
+  if (progression.secondPage.join() !== "5조,6조,7조,8조" || progression.lastWindow.join() !== "6조,7조,8조,9조" || progression.selected !== 1) failures.push("TV page/focus progression lost groups or results");
+  if (progression.shortWindow.join() !== "1조,2조" || progression.placeholders !== 2) failures.push("short TV stage must preserve four slots without duplicating groups");
+  await page.close();
+  return { route: `tv-four-groups-${laneCount}-lanes`, viewport, ok: !failures.length, failures, info, progression };
+}
+
 async function main() {
   const meta = readBuildMeta();
   const server = await startServer();
@@ -471,10 +540,15 @@ async function main() {
     { width: 320, height: 720 }
   ];
   const results = [];
+  for (const viewport of [{ width: 1920, height: 1080 }, ...viewports]) {
+    for (const laneCount of [3, 5]) results.push(await inspectTvGroups(browser, viewport, laneCount));
+  }
+  if (!process.env.MINI4WD_QA_TV_ONLY) {
   for (const viewport of viewports) {
     for (const route of routes) results.push(await inspectRoute(browser, meta, route, viewport));
   }
   results.push(await inspectStaleFallback(browser));
+  }
   await browser.close();
   await new Promise(resolve => server.close(resolve));
 

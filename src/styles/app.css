@@ -6066,7 +6066,7 @@
       display: grid !important;
       grid-template-rows: auto minmax(0, 1fr) auto !important;
       gap: clamp(10px, 1vw, 18px) !important;
-      padding: clamp(14px, 1.3vw, 26px) !important;
+      padding: clamp(8px, .6vw, 12px) !important;
       overflow: hidden !important;
       background: #f4f6f8 !important;
       color: var(--c-fg) !important;
@@ -15580,7 +15580,7 @@ body.surface-tv-live.tv-mode .tv90-header {
 }
 body.surface-tv-live.tv-mode .tv90-grid {
   gap: 12px !important;
-  padding: 0 18px !important;
+  padding: 0 !important;
 }
 body.surface-tv-live.tv-mode .tv90-group {
   border-radius: 18px !important;
