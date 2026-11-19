@@ -8387,6 +8387,7 @@ function flattenPrivateResultLogs(raw = {}) {
         const empty = shuffle(group.slots.filter(slot => slot.isEmptyLane))[0];
         group.slots[empty.lane - 1] = { ...player, lane: empty.lane };
       });
+      groups.forEach(group => { group.ggpResultConfirmed = group.slots.every(slot => slot.isEmptyLane); });
       captureOperatorUndoSnapshotV266("GGP 최종 준결승 생성");
       state.finalRace = { id: `ggp-semi-${Date.now()}`, type: "ggpSemiFinal", name: "GGP 최종 준결승", groupSize: 5,
         groups: scheduleGroupsByAdvancement(groups, advancementOrder) };
@@ -10012,6 +10013,10 @@ function stopLiveLobbyRealtimeV50() {
           catch (error) { return value; }
         };
         const merged = normalizeImportedState(clone(privateState));
+        // A full broadcast represents the whole bracket. RTDB drops nulls and
+        // empty collections, including all results cleared by an undo.
+        const fullBracket = incoming.remoteWriteProtocolV279 === RTDB_WRITE_PROTOCOL_V279
+          && Array.isArray(incoming.qualifierRounds) && Boolean(incoming.settings && incoming.tournament && incoming.broadcast);
         const publicToPrivateId = new Map();
         const privatePlayersById = new Map();
         const privateIdsByIdentity = new Map();
@@ -10117,6 +10122,12 @@ function stopLiveLobbyRealtimeV50() {
         };
         const mergeGroup = (privateGroup = {}, publicGroup = {}) => {
           const next = { ...privateGroup, ...publicGroup };
+          if (fullBracket) {
+            next.advanceIds = [];
+            next.points = {};
+            next.slots = [];
+            if (!Object.hasOwn(publicGroup, "confirmationOrder")) delete next.confirmationOrder;
+          }
           if (Array.isArray(publicGroup.slots)) next.slots = publicGroup.slots.map(rehydratePlayer);
           if (Array.isArray(publicGroup.advanceIds)) next.advanceIds = publicGroup.advanceIds.map(privateIdFor);
           if (publicGroup.points && typeof publicGroup.points === "object") {
@@ -10124,14 +10135,15 @@ function stopLiveLobbyRealtimeV50() {
           }
           return next;
         };
-        const mergeGroups = (privateGroups = [], publicGroups = []) => publicGroups.map((group, index) => {
-          const existing = privateGroups.find(item => item?.id && item.id === group?.id) || privateGroups[index] || {};
-          return mergeGroup(existing, group);
-        });
+        const matchingNode = (nodes, node, index) => node.id ? nodes?.find(item => item?.id === node.id) : nodes?.[index];
+        const mergeGroups = (privateGroups = [], publicGroups = []) => publicGroups.map((group, index) =>
+          mergeGroup(matchingNode(privateGroups, group, index), group));
         const mergeStage = (privateStage = {}, publicStage = {}) => {
           const next = { ...privateStage, ...publicStage };
           if (Array.isArray(publicStage.resultEntryIds)) next.resultEntryIds = publicStage.resultEntryIds.map(privateIdFor);
           else delete next.resultEntryIds;
+          if (fullBracket && !Object.hasOwn(publicStage, "qualificationOrder")) delete next.qualificationOrder;
+          if (fullBracket && !publicStage.groups) next.groups = [];
           if (Array.isArray(publicStage.groups)) next.groups = mergeGroups(privateStage.groups || [], publicStage.groups);
           if (Array.isArray(publicStage.pointTreeRanking)) next.pointTreeRanking = publicStage.pointTreeRanking.map(rehydratePointSummary);
           if (Array.isArray(publicStage.pointFinalSource)) next.pointFinalSource = publicStage.pointFinalSource.map(rehydratePointSummary);
@@ -10139,17 +10151,14 @@ function stopLiveLobbyRealtimeV50() {
         };
         const mergeRound = (privateRound = {}, publicRound = {}) => {
           const next = { ...privateRound, ...publicRound };
-          if (Array.isArray(publicRound.stages)) {
-            next.stages = publicRound.stages.map((stage, index) => {
-              const existing = (privateRound.stages || []).find(item => item?.id && item.id === stage?.id)
-                || privateRound.stages?.[index]
-                || {};
-              return mergeStage(existing, stage);
-            });
+          if (fullBracket || Array.isArray(publicRound.stages)) {
+            next.stages = (publicRound.stages || []).map((stage, index) =>
+              mergeStage(matchingNode(privateRound.stages, stage, index), stage));
           }
-          if (Object.prototype.hasOwnProperty.call(publicRound, "finalist")) next.finalist = rehydratePlayer(publicRound.finalist);
-          if (Array.isArray(publicRound.ggpFinalists)) next.ggpFinalists = publicRound.ggpFinalists.map(rehydratePlayer);
-          if (Array.isArray(publicRound.crowFinalists)) next.crowFinalists = publicRound.crowFinalists.map(rehydratePlayer);
+          if (fullBracket && !publicRound.stagePlan) next.stagePlan = [];
+          if (fullBracket || Object.hasOwn(publicRound, "finalist")) next.finalist = rehydratePlayer(publicRound.finalist) || null;
+          if (fullBracket || Array.isArray(publicRound.ggpFinalists)) next.ggpFinalists = (publicRound.ggpFinalists || []).map(rehydratePlayer);
+          if (fullBracket || Array.isArray(publicRound.crowFinalists)) next.crowFinalists = (publicRound.crowFinalists || []).map(rehydratePlayer);
           return next;
         };
 
@@ -10163,23 +10172,24 @@ function stopLiveLobbyRealtimeV50() {
         if (Object.prototype.hasOwnProperty.call(incoming, "activeRoundIndex")) merged.activeRoundIndex = Number(incoming.activeRoundIndex || 0);
         if (incoming.broadcast) merged.broadcast = { ...(merged.broadcast || {}), ...incoming.broadcast };
         if (Array.isArray(incoming.qualifierRounds)) {
-          merged.qualifierRounds = incoming.qualifierRounds.map((round, index) => {
-            const existing = (merged.qualifierRounds || []).find(item => item?.id && item.id === round?.id)
-              || merged.qualifierRounds?.[index]
-              || {};
-            return mergeRound(existing, round);
-          });
+          merged.qualifierRounds = incoming.qualifierRounds.map((round, index) =>
+            mergeRound(matchingNode(merged.qualifierRounds, round, index), round));
         }
-        if (Object.prototype.hasOwnProperty.call(incoming, "finalRace")) {
+        if (fullBracket || Object.hasOwn(incoming, "finalRace")) {
           if (!incoming.finalRace) merged.finalRace = null;
           else {
-            const privateFinal = merged.finalRace || {};
+            const previous = merged.finalRace;
+            const privateFinal = previous?.id === incoming.finalRace.id && previous?.type === incoming.finalRace.type ? previous || {} : {};
             merged.finalRace = { ...privateFinal, ...incoming.finalRace };
+            if (fullBracket) {
+              for (const key of ["group", "groups", "semiGroups"]) {
+                if (!incoming.finalRace[key]) delete merged.finalRace[key];
+              }
+            }
             if (Array.isArray(incoming.finalRace.groups)) {
               merged.finalRace.groups = mergeGroups(privateFinal.groups || [], incoming.finalRace.groups);
             }
-            if (incoming.finalRace.type === "ggpFinal") delete merged.finalRace.groups;
-            if (Array.isArray(incoming.finalRace.semiGroups)) merged.finalRace.semiGroups = mergeGroups(privateFinal.semiGroups || privateFinal.groups || [], incoming.finalRace.semiGroups);
+            if (Array.isArray(incoming.finalRace.semiGroups)) merged.finalRace.semiGroups = mergeGroups(previous?.semiGroups || previous?.groups, incoming.finalRace.semiGroups);
             if (incoming.finalRace.group) merged.finalRace.group = mergeGroup(privateFinal.group || {}, incoming.finalRace.group);
           }
         }

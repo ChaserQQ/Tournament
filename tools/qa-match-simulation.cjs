@@ -762,10 +762,14 @@ async function runViewport(browser, viewport) {
         slots: actualSlots(group).map(player => ({ id: player.id, name: player.name }))
       }));
       assert(crowSemiSelectedCount === 3, `crow semi selected ${crowSemiSelectedCount}/3 ${JSON.stringify(crowSemiDebug)}`);
+      const privateCrowSemi = structuredClone(exportState());
       createCrowFinalFromSemi();
       await wait(180);
       assert(state.finalRace?.type === "crowFinal", `crow final missing after ${crowSemiSelectedCount} semi winners`);
       const crowGroup = getFinalGroups()[0];
+      const recoveredCrowFinal = window.__mini4wdMergeNewerPublicRunningStateV278(privateCrowSemi, makePublicLivePayload(exportState())).finalRace;
+      assert(getFinalGroups(recoveredCrowFinal).length === 1 && getFinalGroups(recoveredCrowFinal)[0].id === crowGroup.id,
+        "recovering crow final retained old semifinal heats");
       const crowWinner = actualSlots(crowGroup)[0];
       const crowRankCounts = state.qualifierRounds.map(round => (round.crowFinalists || []).length);
       toggleFinalWinner(crowWinner.id, crowGroup.id);
@@ -911,7 +915,7 @@ async function runViewport(browser, viewport) {
       assert(getEligibleParticipants().length === 4, "GGP course-out permanently withdrew entrants");
       createFinalRace();
       assert(getFinalGroups().length === 5, "GGP empty final semifinal lost fixed five groups");
-      getFinalGroups().forEach(group => confirmGgpGroup(-1, 0, group.id));
+      assert(getFinalGroups().every(g => g.ggpResultConfirmed), "empty GGP final semifinal heats require manual confirmation");
       createGgpFinalFromSemi();
       assert(isTournamentFinalResultReady() && getFinalWinners().length === 0, "GGP all-out final cannot finish without invented winner");
       await wait(180);
@@ -1049,6 +1053,25 @@ async function runGgpUi(browser, viewport) {
       && state.qualifierRounds.slice(1).every(item => item.stages.length === 0);
     renderOperator();
     const publicState = serverValue(makePublicStatePayload(exportState()));
+    // An undo can clear every result. RTDB omits those keys from the newer full snapshot.
+    const stale = structuredClone(before);
+    const staleRound = stale.qualifierRounds[0];
+    const staleGroup = staleRound.stages[2].groups[0];
+    const winner = staleGroup.slots[0];
+    staleGroup.advanceIds = [winner.id];
+    staleGroup.points = { [winner.id]: 3 };
+    staleRound.finalist = winner;
+    staleRound.ggpFinalists = [winner];
+    staleRound.crowFinalists = [winner];
+    stale.qualifierRounds[1].stages = [structuredClone(staleRound.stages[0])];
+    stale.finalRace = { id: "old-final", type: "final", group: staleGroup };
+    const recovered = window.__mini4wdMergeNewerPublicRunningStateV278(stale, publicState);
+    const recoveredRound = recovered.qualifierRounds[0];
+    const recoveredGroup = recoveredRound.stages[2].groups[0];
+    const undoRecovered = !recovered.finalRace && !recoveredRound.finalist && !recoveredRound.ggpFinalists.length
+      && !recoveredRound.crowFinalists.length && !recovered.qualifierRounds[1].stages.length
+      && !recoveredGroup.advanceIds.length && !Object.keys(recoveredGroup.points || {}).length
+      && recoveredGroup.slots[0].id === winner.id && recoveredRound.stages[1].groups.every(g => g.advanceIds.length === 1);
     renderMobileSnapshot(publicState);
     const viewerRendered = document.body.innerText.includes("라운드 결승");
     renderOperator();
@@ -1060,7 +1083,7 @@ async function runGgpUi(browser, viewport) {
       && !state.qualifierRounds[1].stages[0].groups.some(group => group.slots.some(player => finalIds.slice(0, 3).includes(player.id)));
     applyAuthoritativeTournamentStateV278(before.tournament.liveId, before);
     renderOperator();
-    return { omitted, preserved, emptyRounds, sourceUnchanged, localRestored, viewerRendered, continued };
+    return { omitted, preserved, emptyRounds, sourceUnchanged, localRestored, viewerRendered, continued, undoRecovered };
   });
   if (Object.values(remoteRecovery).some(value => !value)) failures.push(`GGP RTDB recovery failed: ${JSON.stringify(remoteRecovery)}`);
   // Exercise the actual lane buttons in every GGP round final, including occupied and empty lanes.
