@@ -779,7 +779,9 @@ async function runViewport(browser, viewport) {
           if (stage.type === "ggpSemi") assert(stage.groups.length === 5, "GGP round semifinal must have exactly five groups");
           const si = state.qualifierRounds[ri].stages.length - 1;
           const quota = ggpAdvanceLimit(stage.type);
-          stage.groups.forEach(group => {
+          // Officials can finish the heats out of numerical order.
+          const confirmationOrder = [...stage.groups].reverse();
+          confirmationOrder.forEach(group => {
             actualSlots(group).slice(0, quota).forEach(player => toggleAdvance(ri, si, group.id, player.id));
             confirmGgpGroup(ri, si, group.id);
           });
@@ -789,8 +791,30 @@ async function runViewport(browser, viewport) {
             assert(state.qualifierRounds[ri].ggpFinalists.length === 3, "GGP round did not qualify three racers");
             break;
           }
-          createNextStage(ri);
+          let drawn, drawInput;
+          const originalDraw = generateGgpStage;
+          try {
+            generateGgpStage = (...args) => {
+              drawInput = args[0].map(p => p.id);
+              const result = originalDraw(...args);
+              drawn = JSON.parse(JSON.stringify(result.groups));
+              return result;
+            };
+            createNextStage(ri);
+          } finally { generateGgpStage = originalDraw; }
           assert(lastStage(ri) !== stage, "GGP next stage was not generated");
+          const scheduled = lastStage(ri).groups;
+          assert(JSON.stringify(drawInput) === JSON.stringify(getSelectedFromStage(stage).map(p => p.id)), "advancement order changed the draw input");
+          const priorityIds = confirmationOrder.flatMap(g => g.advanceIds || []);
+          const first = g => priorityIds.findIndex(id => g.slots.some(p => p.id === id));
+          const expected = [...drawn].sort((a, b) => (first(a) < 0 ? Infinity : first(a)) - (first(b) < 0 ? Infinity : first(b)));
+          assert(JSON.stringify(scheduled.map(g => [g.id, g.slots])) === JSON.stringify(expected.map(g => [g.id, g.slots])),
+            "GGP schedule must move whole drawn groups in advancement order");
+          if (stage.type === "ggpQualifier") {
+            const stored = normalizeImportedState(exportState()).qualifierRounds[ri].stages[si];
+            const live = makePublicStatePayload(exportState()).qualifierRounds[ri].stages[si];
+            assert([stored, live].every(s => confirmationOrder.every((g, i) => s.groups.find(x => x.id === g.id)?.confirmationOrder === i + 1)), "GGP confirmation order lost on restore or LIVE");
+          }
         }
       }
       assert(JSON.stringify(ggpCounts) === JSON.stringify([60,57,54,51,48]), `GGP exclusion counts wrong: ${ggpCounts}`);
@@ -799,7 +823,11 @@ async function runViewport(browser, viewport) {
       assert(state.finalRace.type === "ggpSemiFinal" && getFinalGroups().length === 5, "GGP final semifinal must have exactly five groups");
       assert(getFinalGroups().flatMap(actualSlots).length === 24, "GGP final semifinal lost slots");
       assert(new Set(getFinalGroups().flatMap(actualSlots).map(player => player.id)).size === 24, "GGP multiple seeds collapsed to one ID");
-      getGgpSeeds().forEach(seed => assert(getFinalGroups()[seed.group - 1].slots[seed.lane - 1].sourcePlayerId === seedPlayer.id, "GGP reserved seed moved"));
+      getGgpSeeds().forEach(seed => assert(getFinalGroups().find(g => g.name === `최종 준결승 ${seed.group}조`).slots[seed.lane - 1].sourcePlayerId === seedPlayer.id, "GGP reserved seed moved"));
+      const qualifierPriority = getGgpQualifiedPlayers().map(p => p.id);
+      const firstInHeat = getFinalGroups().map(g => qualifierPriority.findIndex(id => actualSlots(g).some(p => p.id === id)))
+        .map(index => index < 0 ? Infinity : index);
+      assert(firstInHeat.every((first, i) => i === 0 || firstInHeat[i - 1] <= first), "GGP seeded semifinal heats ignored advancement order");
       assert(!isTournamentFinalResultReady(), "GGP semifinal can finish tournament");
       const privateSemi = JSON.parse(JSON.stringify(exportState()));
       state = normalizeImportedState(privateSemi);

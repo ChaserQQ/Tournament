@@ -49,14 +49,14 @@
   ];
 
   const meta = Object.freeze({
-    version: 294,
-    label: "BUILD v294 GGP REMOTE RECOVERY",
-    title: "MINI4WD TOURNAMENT MAKER - v294 GGP REMOTE RECOVERY",
+    version: 295,
+    label: "BUILD v295 ADVANCEMENT ORDER",
+    title: "MINI4WD TOURNAMENT MAKER - v295 ADVANCEMENT ORDER",
     rulesChanged: false,
     assets: Object.freeze({
       config: 156,
-      build: 294,
-      app: 294,
+      build: 295,
+      app: 295,
       css: 292,
       operatorMobileCss: 285,
       og: 51

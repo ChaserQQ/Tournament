@@ -8262,6 +8262,9 @@ function flattenPrivateResultLogs(raw = {}) {
       if (count > limit) return showError(`이 경기는 최대 ${limit}명까지 선택할 수 있습니다.`);
       if (count < limit && !confirm(count === 0 ? "진출자 없이 이 경기를 확정할까요? 재경기는 진행하지 않습니다." : `${count}명만 진출시키고 나머지는 탈락 처리할까요?`)) return;
       captureOperatorUndoSnapshotV266("GGP 경기 결과 확정");
+      if (stage.type === "ggpQualifier" && !group.ggpResultConfirmed) {
+        group.confirmationOrder = 1 + Math.max(0, ...stage.groups.map(item => item.confirmationOrder || 0));
+      }
       group.ggpResultConfirmed = true;
       logTournamentAction("GGP 경기 결과 확정", `${group.name}: ${count}명`);
       saveLiveState();
@@ -8297,6 +8300,15 @@ function flattenPrivateResultLogs(raw = {}) {
       renderOperator();
     }
 
+    // Only schedule heats after the draw has decided all opponents and lanes.
+    function scheduleGgpGroups(groups, qualifiers) {
+      const rank = new Map(qualifiers.map((player, index) => [String(player.id), index]));
+      // Unranked heats (only seeds or empty lanes) keep their draw order at the end.
+      const priority = group => Math.min(rank.size, ...group.slots.filter(player => !player.isEmptyLane)
+        .map(player => rank.get(String(player.id)) ?? rank.size));
+      return [...groups].sort((a, b) => priority(a) - priority(b));
+    }
+
     function createGgpNextStage(roundIndex) {
       const round = state.qualifierRounds[roundIndex];
       if (!canEditGgpStage(roundIndex, round.stages.length - 1)) return;
@@ -8308,6 +8320,12 @@ function flattenPrivateResultLogs(raw = {}) {
       const type = stage.type === "ggpQualifier" || selected.length > 5 ? "ggpSemi" : "ggpRoundFinal";
       const nextStage = generateGgpStage(selected, round, type);
       if (!nextStage) return;
+      if (nextStage.groups.length > 1) {
+        // Results from older builds precede newly confirmed results, in their saved group order.
+        const confirmed = [...stage.groups].sort((a, b) => (a.confirmationOrder || 0) - (b.confirmationOrder || 0));
+        nextStage.groups = scheduleGgpGroups(nextStage.groups, confirmed.flatMap(getSelectedGroupPlayersV280))
+          .map((group, index) => ({ ...group, name: `${index + 1}조` }));
+      }
       captureOperatorUndoSnapshotV266("GGP 다음 경기");
       round.stages.push(nextStage);
       activeRoundIndex = roundIndex;
@@ -8328,7 +8346,8 @@ function flattenPrivateResultLogs(raw = {}) {
       getGgpSeeds().forEach((seed, index) => {
         groups[seed.group - 1].slots[seed.lane - 1] = { ...seed.player, id: `${seed.player.id}::ggp-seed-${index + 1}`, sourcePlayerId: seed.player.id, lane: seed.lane };
       });
-      const qualifiers = shuffle(getGgpQualifiedPlayers());
+      const advancementOrder = getGgpQualifiedPlayers();
+      const qualifiers = shuffle(advancementOrder);
       if (qualifiers.length + getGgpSeeds().length > 25) return showError("최종 준결승은 최대 25자리입니다.");
       qualifiers.forEach(player => {
         const candidates = groups.filter(group => group.slots.some(slot => slot.isEmptyLane));
@@ -8338,7 +8357,8 @@ function flattenPrivateResultLogs(raw = {}) {
         group.slots[empty.lane - 1] = { ...player, lane: empty.lane };
       });
       captureOperatorUndoSnapshotV266("GGP 최종 준결승 생성");
-      state.finalRace = { id: `ggp-semi-${Date.now()}`, type: "ggpSemiFinal", name: "GGP 최종 준결승", groupSize: 5, groups };
+      state.finalRace = { id: `ggp-semi-${Date.now()}`, type: "ggpSemiFinal", name: "GGP 최종 준결승", groupSize: 5,
+        groups: scheduleGgpGroups(groups, advancementOrder) };
       state.broadcast = { mode: "final" };
       saveLiveState();
       renderOperator();
@@ -8941,6 +8961,7 @@ function normalizePlayerForFinal(player, extra = {}) {
           points
         };
         if (Object.prototype.hasOwnProperty.call(group || {}, "ggpResultConfirmed")) cleanedGroup.ggpResultConfirmed = group.ggpResultConfirmed === true;
+        if (Number.isSafeInteger(group?.confirmationOrder) && group.confirmationOrder > 0) cleanedGroup.confirmationOrder = group.confirmationOrder;
         if (Object.prototype.hasOwnProperty.call(group || {}, "tiedScore")) {
           const tiedScore = Number(group.tiedScore);
           cleanedGroup.tiedScore = Number.isFinite(tiedScore) ? tiedScore : 0;
