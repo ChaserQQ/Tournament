@@ -331,11 +331,36 @@ async function runViewport(browser, viewport) {
     };
     const selectFirstInEachGroup = async (roundIndex, stageIndex = null) => {
       const stage = stageIndex == null ? lastStage(roundIndex) : state.qualifierRounds[roundIndex].stages[stageIndex];
-      stage.groups.forEach(group => {
+      const orderedIds = [];
+      [...stage.groups].reverse().forEach(group => {
         const first = actualSlots(group)[0];
         if (first && !(group.advanceIds || []).includes(first.id)) toggleAdvance(roundIndex, state.qualifierRounds[roundIndex].stages.indexOf(stage), group.id, first.id);
+        if (first) orderedIds.push(first.id);
       });
       await wait(80);
+      return orderedIds;
+    };
+    // Compare the actual draw to the published stage, including every opponent and lane.
+    const advanceAndCheckDraw = (roundIndex, priority) => {
+      let originalGroups;
+      const draw = generateStage;
+      try {
+        generateStage = (...args) => {
+          const stage = draw(...args);
+          originalGroups = JSON.parse(JSON.stringify(stage.groups));
+          return stage;
+        };
+        createNextStage(roundIndex);
+      } finally { generateStage = draw; }
+      assert(originalGroups, "next stage was not drawn");
+      const earliest = group => Math.min(priority.length, ...actualSlots(group)
+        .map(p => priority.indexOf(p.id)).filter(i => i >= 0));
+      const expected = originalGroups.sort((a,b) => earliest(a) - earliest(b));
+      const contents = groups => JSON.stringify(groups.map(g => [g.id, g.slots]));
+      const result = lastStage(roundIndex);
+      assert(contents(result.groups) === contents(expected), `${state.settings.matchMode} changed drawn opponents, lanes or advancement order`);
+      const liveStage = makePublicStatePayload(exportState()).qualifierRounds[roundIndex].stages.at(-1);
+      assert(JSON.stringify(liveStage.groups.map(g => g.id)) === JSON.stringify(expected.map(g => g.id)), "LIVE heat order diverged");
     };
     const selectFirstNInFinalStage = async (roundIndex, count) => {
       const stage = lastStage(roundIndex);
@@ -366,8 +391,8 @@ async function runViewport(browser, viewport) {
           assert(state.qualifierRounds[roundIndex].finalist, `round ${roundIndex} finalist missing`);
           return;
         }
-        await selectFirstInEachGroup(roundIndex);
-        createNextStage(roundIndex);
+        const order = await selectFirstInEachGroup(roundIndex);
+        advanceAndCheckDraw(roundIndex, order);
         await wait(160);
       }
       throw new Error(`round ${roundIndex} did not finish`);
@@ -478,6 +503,15 @@ async function runViewport(browser, viewport) {
       assert(incompleteMessage.includes(secondBoundaryGroup.name), `missing-group error did not identify ${secondBoundaryGroup.name}: ${incompleteMessage}`);
       toggleAdvance(0, 0, firstBoundaryGroup.id, firstBoundaryPlayers[1].id);
       toggleAdvance(0, 0, secondBoundaryGroup.id, secondBoundaryPlayers[0].id);
+      // Removing and reselecting a result gives it a new place in the queue.
+      toggleAdvance(0, 0, firstBoundaryGroup.id, firstBoundaryPlayers[0].id);
+      toggleAdvance(0, 0, firstBoundaryGroup.id, firstBoundaryPlayers[0].id);
+      const entryIds = [secondBoundaryPlayers[0].id, firstBoundaryPlayers[0].id];
+      const restored = normalizeImportedState(JSON.parse(JSON.stringify(exportState())));
+      assert(JSON.stringify(restored.qualifierRounds[0].stages[0].resultEntryIds) === JSON.stringify(entryIds), "advance order lost on restore or reselection");
+      const published = makePublicStatePayload(restored);
+      const aliases = new Map(restored.tournament.publicParticipantAliases.map(a => [a.privateId, a.publicId]));
+      assert(JSON.stringify(published.qualifierRounds[0].stages[0].resultEntryIds) === JSON.stringify(entryIds.map(id => aliases.get(id))), "LIVE must use public aliases for result order");
       const expectedBoundaryIds = new Set([String(firstBoundaryPlayers[0].id), String(secondBoundaryPlayers[0].id)]);
       createNextStage(0);
       await wait(160);
@@ -490,7 +524,7 @@ async function runViewport(browser, viewport) {
       algorithmChecks.customGroupFinal = `${boundaryStage.groups.length}->${boundaryFinal.groups.length}`;
       algorithmChecks.forcedSingletonBlocked = true;
 
-      await reset("basic", 3, 9);
+      await reset("basic", 3, 21);
       let historyBefore = historyCount();
       for (const index of [0, 1, 2]) await runNormalRound(index);
       const basicFinal = await finishStandardFinal(historyBefore);
@@ -542,9 +576,14 @@ async function runViewport(browser, viewport) {
       for (let stageIndex = 0; stageIndex < 3; stageIndex += 1) {
         const stage = lastStage(0);
         assert(stage?.type === "points", `points3 expected points stage ${stageIndex}`);
-        stage.groups.forEach(group => actualSlots(group).forEach(player => setPointScore(0, state.qualifierRounds[0].stages.indexOf(stage), group.id, player.id, 1)));
+        const order = [...(stage.resultEntryIds || [])];
+        [...stage.groups].reverse().forEach(group => actualSlots(group).forEach(player => {
+          if (!order.includes(player.id)) order.push(player.id);
+          setPointScore(0, stageIndex, group.id, player.id, 1);
+        }));
+        assert(JSON.stringify(order) === JSON.stringify(stage.resultEntryIds), "rescoring changed first result entry order");
         await wait(120);
-        createNextStage(0);
+        advanceAndCheckDraw(0, order);
         await wait(180);
       }
       assert(isPointFinalDecisionStage(lastStage(0)), "points3 tied-cutoff decision stage missing");
@@ -631,12 +670,12 @@ async function runViewport(browser, viewport) {
       historyBefore = historyCount();
       startQualifierRound(0);
       await ensureLease("qa-revival");
-      await selectFirstInEachGroup(0);
+      const baseOrder = await selectFirstInEachGroup(0);
       createRevivalStage(0);
       await wait(180);
       assert(lastStage(0)?.type === "revival", "revival stage missing");
-      await selectFirstInEachGroup(0);
-      createNextStage(0);
+      const revivalOrder = await selectFirstInEachGroup(0);
+      advanceAndCheckDraw(0, [...baseOrder, ...revivalOrder]);
       await wait(180);
       assert(lastStage(0)?.name, "revival merged stage missing");
       let revivalGuard = 0;
@@ -667,7 +706,7 @@ async function runViewport(browser, viewport) {
 
       await reset("crow", 3, 9);
       historyBefore = historyCount();
-      for (const roundIndex of [0, 1, 2]) {
+      for (const roundIndex of [1, 0, 2]) {
         startQualifierRound(roundIndex);
         await ensureLease(`qa-crow-${roundIndex}`);
         let guard = 0;
@@ -689,6 +728,7 @@ async function runViewport(browser, viewport) {
       await wait(180);
       assert(state.finalRace?.type === "crowSemi", "crow semi missing");
       const crowSemiGroups = getFinalGroups();
+      assert(crowSemiGroups.map(g => g.slots[1].crowRank).join(",") === "1,2,3", "9강 should schedule by the first confirmed round, preserving the lane matrix");
       const crowSemiFirstPlayers = crowSemiGroups.map(group => actualSlots(group)[0]);
       assert(crowSemiGroups.length === 3 && crowSemiFirstPlayers.every(Boolean), "crow semi groups are incomplete");
       const crowSemiExtraPlayer = actualSlots(crowSemiGroups[0])[1];

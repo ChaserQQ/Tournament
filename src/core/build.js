@@ -49,14 +49,14 @@
   ];
 
   const meta = Object.freeze({
-    version: 295,
-    label: "BUILD v295 ADVANCEMENT ORDER",
-    title: "MINI4WD TOURNAMENT MAKER - v295 ADVANCEMENT ORDER",
+    version: 296,
+    label: "BUILD v296 ALL MODES HEAT ORDER",
+    title: "MINI4WD TOURNAMENT MAKER - v296 ALL MODES HEAT ORDER",
     rulesChanged: false,
     assets: Object.freeze({
       config: 156,
-      build: 295,
-      app: 295,
+      build: 296,
+      app: 296,
       css: 292,
       operatorMobileCss: 285,
       og: 51

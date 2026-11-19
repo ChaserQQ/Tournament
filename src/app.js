@@ -1414,6 +1414,12 @@ function normalizeMatchMode(mode = state?.settings?.matchMode) {
       return Array.from(totals.values()).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "ko"));
     }
 
+    function storePointScore(stage, group, playerId, score) {
+      group.points = group.points || {};
+      if (!Object.hasOwn(group.points, playerId)) recordStageEntry(stage, playerId, true);
+      group.points[playerId] = Number(score);
+    }
+
     function setPointScore(roundIndex, stageIndex, groupId, playerId, score) {
       if (!canModifyTournamentAction("점수 변경")) return;
       const stage = state.qualifierRounds[roundIndex]?.stages?.[stageIndex];
@@ -1423,8 +1429,7 @@ function normalizeMatchMode(mode = state?.settings?.matchMode) {
       const player = group.slots.find(item => samePlayerIdV280(item.id, playerId));
       if (!player || player.isEmptyLane) return;
       captureOperatorUndoSnapshotV266("점수 선택");
-      group.points = group.points || {};
-      group.points[player.id] = Number(score);
+      storePointScore(stage, group, player.id, score);
       state.broadcast = { mode: "stage", roundIndex, stageIndex };
       activeRoundIndex = roundIndex;
       logTournamentAction("진출자 변경", player.name || player.id);
@@ -1603,6 +1608,7 @@ function normalizeMatchMode(mode = state?.settings?.matchMode) {
 
       state.broadcast = { mode: "stage", roundIndex, stageIndex: round.stages.length - 1 };
       activeRoundIndex = roundIndex;
+      scheduleDrawnStage(round.stages[round.stages.length - 1], lastStage);
       logTournamentAction("다음 경기 생성", generatedStageName);
       renderOperator();
       syncOperatorLiveStateV269("createPointNextStage");
@@ -1674,6 +1680,7 @@ function normalizeMatchMode(mode = state?.settings?.matchMode) {
         if (unique.length < 2) return showError("합류 후 다음 단계를 만들 참가자가 부족합니다.");
         const nextName = getNextStageName(round, unique.length);
         const nextStage = generateStage(unique, round.index, round.stages.length + 1, nextName);
+        scheduleDrawnStage(nextStage, baseStage, lastStage);
         nextStage.type = "merged";
         nextStage.mergedFromRevival = true;
         captureOperatorUndoSnapshotV266("다음 경기 진행");
@@ -1686,7 +1693,9 @@ function normalizeMatchMode(mode = state?.settings?.matchMode) {
         if (!ensureAdvancementMakesProgressV280(lastStage, selected, round.stages.length + 1)) return;
         const nextName = getNextStageName(round, selected.length);
         captureOperatorUndoSnapshotV266("다음 경기 진행");
-        round.stages.push(generateStage(selected, round.index, round.stages.length + 1, nextName));
+        const nextStage = generateStage(selected, round.index, round.stages.length + 1, nextName);
+        scheduleDrawnStage(nextStage, lastStage);
+        round.stages.push(nextStage);
       }
 
       state.broadcast = { mode: "stage", roundIndex, stageIndex: round.stages.length - 1 };
@@ -1772,6 +1781,39 @@ function normalizeMatchMode(mode = state?.settings?.matchMode) {
 
       saveLiveState();
       renderOperator();
+    }
+
+    function recordStageEntry(stage, playerId, selected) {
+      const order = (stage.resultEntryIds || []).filter(id => !samePlayerIdV280(id, playerId));
+      if (selected) order.push(playerId);
+      stage.resultEntryIds = order;
+    }
+
+    function stageAdvancementOrder(stage) {
+      if (stage.type === "ggpQualifier") {
+        const confirmed = [...stage.groups].sort((a, b) => (a.confirmationOrder || 0) - (b.confirmationOrder || 0));
+        return confirmed.flatMap(getSelectedGroupPlayersV280);
+      }
+      const players = stage.type === "points" ? getActualPlayersFromStage(stage) : getSelectedFromStage(stage);
+      const order = new Map((stage.resultEntryIds || []).map((id, index) => [String(id), index]));
+      // A legacy result with no entry time precedes new entries in its saved order.
+      return players.sort((a, b) => (order.get(String(a.id)) ?? -1) - (order.get(String(b.id)) ?? -1));
+    }
+
+    function scheduleDrawnStage(stage, ...sourceStages) {
+      if (stage.groups.length < 2) return;
+      const priority = sourceStages.filter(Boolean).flatMap(stageAdvancementOrder);
+      stage.groups = scheduleGroupsByAdvancement(stage.groups, priority);
+      if (stage.type !== "pointTieBreak") stage.groups.forEach((group, i) => { group.name = `${i + 1}조`; });
+    }
+
+    // Only schedule heats after the draw has decided all opponents and lanes.
+    function scheduleGroupsByAdvancement(groups, qualifiers) {
+      const rank = new Map(qualifiers.map((player, index) => [String(player.id), index]));
+      // Unranked heats (only seeds or empty lanes) keep their draw order at the end.
+      const priority = group => Math.min(rank.size, ...group.slots.filter(player => !player.isEmptyLane)
+        .map(player => rank.get(String(player.id)) ?? rank.size));
+      return [...groups].sort((a, b) => priority(a) - priority(b));
     }
 
     function getSelectedFromStage(stage) {
@@ -1893,7 +1935,9 @@ function normalizeMatchMode(mode = state?.settings?.matchMode) {
 
       const nextName = getNextStageName(round, selected.length);
       captureOperatorUndoSnapshotV266("다음 경기 진행");
-      round.stages.push(generateStage(selected, round.index, round.stages.length + 1, nextName));
+      const nextStage = generateStage(selected, round.index, round.stages.length + 1, nextName);
+      scheduleDrawnStage(nextStage, lastStage);
+      round.stages.push(nextStage);
       state.broadcast = { mode: "stage", roundIndex, stageIndex: round.stages.length - 1 };
       activeRoundIndex = roundIndex;
       renderOperator();
@@ -1925,6 +1969,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
       const wasSelected = group.advanceIds.some(id => samePlayerIdV280(id, player.id));
       captureOperatorUndoSnapshotV266(wasSelected ? "진출 선택 해제" : "진출 선택");
       if (isGgpMode()) group.ggpResultConfirmed = false;
+      else recordStageEntry(stage, player.id, !wasSelected);
       if (wasSelected) {
         group.advanceIds = group.advanceIds.filter(id => !samePlayerIdV280(id, player.id));
       } else {
@@ -8300,15 +8345,6 @@ function flattenPrivateResultLogs(raw = {}) {
       renderOperator();
     }
 
-    // Only schedule heats after the draw has decided all opponents and lanes.
-    function scheduleGgpGroups(groups, qualifiers) {
-      const rank = new Map(qualifiers.map((player, index) => [String(player.id), index]));
-      // Unranked heats (only seeds or empty lanes) keep their draw order at the end.
-      const priority = group => Math.min(rank.size, ...group.slots.filter(player => !player.isEmptyLane)
-        .map(player => rank.get(String(player.id)) ?? rank.size));
-      return [...groups].sort((a, b) => priority(a) - priority(b));
-    }
-
     function createGgpNextStage(roundIndex) {
       const round = state.qualifierRounds[roundIndex];
       if (!canEditGgpStage(roundIndex, round.stages.length - 1)) return;
@@ -8320,12 +8356,7 @@ function flattenPrivateResultLogs(raw = {}) {
       const type = stage.type === "ggpQualifier" || selected.length > 5 ? "ggpSemi" : "ggpRoundFinal";
       const nextStage = generateGgpStage(selected, round, type);
       if (!nextStage) return;
-      if (nextStage.groups.length > 1) {
-        // Results from older builds precede newly confirmed results, in their saved group order.
-        const confirmed = [...stage.groups].sort((a, b) => (a.confirmationOrder || 0) - (b.confirmationOrder || 0));
-        nextStage.groups = scheduleGgpGroups(nextStage.groups, confirmed.flatMap(getSelectedGroupPlayersV280))
-          .map((group, index) => ({ ...group, name: `${index + 1}조` }));
-      }
+      scheduleDrawnStage(nextStage, stage);
       captureOperatorUndoSnapshotV266("GGP 다음 경기");
       round.stages.push(nextStage);
       activeRoundIndex = roundIndex;
@@ -8358,7 +8389,7 @@ function flattenPrivateResultLogs(raw = {}) {
       });
       captureOperatorUndoSnapshotV266("GGP 최종 준결승 생성");
       state.finalRace = { id: `ggp-semi-${Date.now()}`, type: "ggpSemiFinal", name: "GGP 최종 준결승", groupSize: 5,
-        groups: scheduleGgpGroups(groups, advancementOrder) };
+        groups: scheduleGroupsByAdvancement(groups, advancementOrder) };
       state.broadcast = { mode: "final" };
       saveLiveState();
       renderOperator();
@@ -8542,6 +8573,9 @@ function normalizePlayerForFinal(player, extra = {}) {
         }
         if (selected.length !== 3) return showError("토너먼트(9강) 방식은 각 라운드 결승에서 1~3위 3명을 선택해야 합니다. 선택 순서가 1위, 2위, 3위입니다.");
         captureOperatorUndoSnapshotV266("진출 확정");
+        if (!lastStage.qualificationOrder || !selected.every((player, i) => round.crowFinalists?.[i]?.id === player.id)) {
+          lastStage.qualificationOrder = 1 + Math.max(0, ...state.qualifierRounds.map(r => r.stages?.at(-1)?.qualificationOrder || 0));
+        }
         round.crowFinalists = selected.slice(0, 3).map((player, index) => normalizePlayerForFinal(player, { crowRank: index + 1, sourceRoundIndex: round.index }));
         round.finalist = round.crowFinalists[0];
         round.noFinalist = false;
@@ -8618,12 +8652,14 @@ function normalizePlayerForFinal(player, extra = {}) {
         makeCrowSemiGroup("9강 준결 3조", [getCrowRoundRank(rounds[0], 3), getCrowRoundRank(rounds[1], 1), getCrowRoundRank(rounds[2], 2)])
       ];
       captureOperatorUndoSnapshotV266("최종 결승 진행");
+      const priority = [...rounds].sort((a, b) => (a.stages?.at(-1)?.qualificationOrder || 0) - (b.stages?.at(-1)?.qualificationOrder || 0))
+        .flatMap(round => round.crowFinalists.map(makeCrowSemiSlot));
       state.finalRace = {
         id: `crow-semi-${Math.random().toString(36).slice(2, 8)}`,
         type: "crowSemi",
         name: "9강 최종 준결",
         groupSize: 3,
-        groups
+        groups: scheduleGroupsByAdvancement(groups, priority)
       };
       state.broadcast = { mode: "final" };
       logTournamentAction("9강 준결 생성", "9명 준결 편성");
@@ -8978,6 +9014,8 @@ function normalizePlayerForFinal(player, extra = {}) {
           groups: (stage?.groups || []).map(group => cleanGroup(group, includeMetrics))
         };
         if (stage?.type) cleanedStage.type = String(stage.type);
+        if (Array.isArray(stage?.resultEntryIds)) cleanedStage.resultEntryIds = stage.resultEntryIds.map(id => idMap.get(String(id))).filter(Boolean);
+        if (Number.isSafeInteger(stage?.qualificationOrder) && stage.qualificationOrder > 0) cleanedStage.qualificationOrder = stage.qualificationOrder;
         if (stage?.meta) cleanedStage.meta = cleanStageMeta(stage.meta);
         if (Array.isArray(stage?.pointOptions)) {
           cleanedStage.pointOptions = stage.pointOptions.map(Number).filter(Number.isFinite);
@@ -10092,6 +10130,8 @@ function stopLiveLobbyRealtimeV50() {
         });
         const mergeStage = (privateStage = {}, publicStage = {}) => {
           const next = { ...privateStage, ...publicStage };
+          if (Array.isArray(publicStage.resultEntryIds)) next.resultEntryIds = publicStage.resultEntryIds.map(privateIdFor);
+          else delete next.resultEntryIds;
           if (Array.isArray(publicStage.groups)) next.groups = mergeGroups(privateStage.groups || [], publicStage.groups);
           if (Array.isArray(publicStage.pointTreeRanking)) next.pointTreeRanking = publicStage.pointTreeRanking.map(rehydratePointSummary);
           if (Array.isArray(publicStage.pointFinalSource)) next.pointFinalSource = publicStage.pointFinalSource.map(rehydratePointSummary);
@@ -11762,8 +11802,7 @@ function stopLiveLobbyRealtimeV50() {
         const player = group.slots.find(item => item.id === playerId);
         if (!player || player.isEmptyLane) return;
         captureOperatorUndoSnapshotV266("점수 선택");
-        group.points = group.points || {};
-        group.points[playerId] = Number(score);
+        storePointScore(stage, group, player.id, score);
         state.broadcast = { mode: "stage", roundIndex, stageIndex };
         activeRoundIndex = roundIndex;
         try { logTournamentAction("점수 변경", `${player.name || player.id}: ${score}P`); } catch (_) {}
