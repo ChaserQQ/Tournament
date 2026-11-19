@@ -109,8 +109,13 @@ const firebaseStub = `
       "qa-venue": { venueId: "qa-venue", venueName: "QA Venue", approved: true, updatedAt: Date.now() }
     },
     publicVenueDirectory: {},
-    publicLive: {},
-    publicHistory: {},
+    publicLive: window.__qaPublishedBracket ? { "qa-h2h": { updatedAt: Date.now(), state: window.__qaPublishedBracket } } : {},
+    publicHistory: {
+      "qa-h2h-history": { id: "qa-h2h-history", createdAt: new Date(Date.now() - 86400000).toISOString(), rows: [
+        { 차수: "예전 라운드", 단계: "예선", 조: "1조", 선수명: "기록A", 팀명: "QA", 결과: "진출" },
+        { 차수: "예전 라운드", 단계: "예선", 조: "1조", 선수명: "기록B", 팀명: "QA", 결과: "탈락" }
+      ] }
+    },
     activeTournaments: {},
     operationLocks: {},
     tournaments: {},
@@ -154,6 +159,8 @@ const firebaseStub = `
       on(_event, cb) { setTimeout(() => cb(snapshot(getAt(this.path))), 0); return cb; },
       off() {},
       orderByChild() { return this; },
+      startAt() { return this; },
+      endAt() { return this; },
       limitToLast() { return this; },
       limitToFirst() { return this; },
       equalTo() { return this; },
@@ -270,6 +277,74 @@ async function runMatrix(page, expectedVersion) {
         }, {}),
         leaders: (stats.mostWins || []).slice(0, 4).map(item => ({ name: item.name, wins: item.wins, championships: item.championships, finals: item.finals }))
       });
+    }
+
+    function runLiveHeadToHead() {
+      const [a, b, c, d, e] = ["기록A", "기록B", "첫상대", "동명이인", "동명이인"].map((name, i) => ({
+        id: "private-history-" + i, name, team: i === 4 ? "QB" : "QA", lane: i + 1
+      }));
+      const racers = [a, b, c, d, e];
+      const heat = (id, slots, advances = [], extra = {}) => group(id, id, slots, advances.map(p => p.id), extra);
+      const current = heat("current", [a, c, e, b, d]);
+      const completed = heat("done", [a, b, d], [b]);
+      const stages = [
+        stage("done", "예선", "normal", [completed]),
+        stage("pending", "준결승", "ggpSemi", [heat("not-confirmed", [a, b], [a], { ggpResultConfirmed: false })]),
+        stage("current", "예선", "normal", [current])
+      ];
+      resetCase("basic", 5, [round("history", 1, "1차 라운드", stages)]);
+      state.broadcast.stageIndex = 2;
+      const source = exportState();
+      // A stored copy of the same event must not add a second meeting.
+      const stored = loadLocalResultLogs();
+      localStorage.setItem(LOCAL_RESULT_LOGS_KEY, JSON.stringify([...stored, window.__qaFirebaseStore.publicHistory["qa-h2h-history"]]));
+      const stats = (snapshot, stageNo = 2) => makePublicStatePayload(snapshot).qualifierRounds[0].stages[stageNo].groups[0].slots[0].h2hMetrics;
+      const record = stats(source);
+      const vsB = record.find(item => item.name === b.name);
+      assert(vsB?.wins === 1 && vsB?.losses === 1, "cold operator must include archived and completed results exactly once");
+      assert(record.find(item => item.name === c.name)?.matches === 0, "pending opponent must have no history");
+      assert(record.filter(item => item.name === d.name).every(item => item.matches === 0), "two eliminated racers must not record a loss against each other");
+      const dto = makePublicStatePayload(source);
+      window.__qaPublishedBracket = JSON.parse(JSON.stringify(dto));
+      const display = dto.qualifierRounds[0].stages[2].groups[0];
+      assert(record.every((item, i) => item.opponentId === display.slots[i + 1].id && !item.opponentId.includes("private-history")), "metrics must use public opponent aliases");
+      renderTvSnapshot(dto);
+      assert(document.querySelector(".tv90-h2h-row")?.textContent.includes("기록B 1승 1패"), "TV hid the known opponent behind unplayed opponents");
+      renderMobileSnapshot(dto);
+      assert(document.querySelector(".mobile-current .slot-metrics")?.textContent.includes("기록B 1승1패"), "mobile and TV history disagree");
+
+      const publicA = display.slots[0];
+      const sameName = publicA.h2hMetrics.filter(item => item.name === d.name);
+      Object.assign(sameName[0], { wins: 3, losses: 0, matches: 3 });
+      Object.assign(sameName[1], { wins: 0, losses: 2, matches: 2 });
+      renderMobileSnapshot(dto);
+      const sameRows = document.querySelector(".mobile-current .slot-metrics")?.textContent || "";
+      assert(sameRows.includes("동명이인 3승0패") && sameRows.includes("동명이인 0승2패"), "same-nickname opponents must keep separate public results");
+      publicA.h2hMetrics.forEach(item => delete item.opponentId);
+      renderMobileSnapshot(dto);
+      assert(document.querySelector(".mobile-current .slot-metrics")?.textContent.includes("기록B 1승1패"), "legacy named metrics must still render");
+
+      source.settings.matchMode = "points5Tree";
+      source.qualifierRounds[0].stages = [
+        stage("p1", "포인트 1차전", "points", [heat("all-scores", racers, [], { points: { [a.id]: 0, [b.id]: 2, [c.id]: 0, [d.id]: 1, [e.id]: 3 } })]),
+        stage("p2", "포인트 2차전", "points", [heat("partial", racers, [], { points: { [a.id]: 0 } })]),
+        stage("p3", "포인트 3차전", "points", [current])
+      ];
+      const low = stats(source);
+      assert(low.find(item => item.name === b.name)?.wins === 2 && low.find(item => item.name === c.name)?.matches === 0, "0P, tied scores and incomplete points heats must use the source snapshot");
+      source.settings.matchMode = "points3";
+      const high = stats(source).find(item => item.name === b.name);
+      assert(high?.wins === 1 && high?.losses === 1, "higher score must win in three-heat mode");
+
+      source.settings.matchMode = "ggp";
+      source.qualifierRounds[0].stages = [stage("pending", "예선", "ggpQualifier", [current])];
+      source.finalRace = { type: "ggpFinal", groupSize: 5, semiGroups: [heat("semifinal", [a, b], [a], { ggpResultConfirmed: true })], group: current };
+      source.broadcast = { mode: "final" };
+      const final = makePublicStatePayload(source);
+      renderTvSnapshot(final);
+      assert(document.querySelector(".tv-final-history")?.textContent.includes("기록B · 2승 0패"), "final board lost confirmed semifinal or archive");
+      localStorage.setItem(LOCAL_RESULT_LOGS_KEY, JSON.stringify(stored));
+      summaries.push({ name: "live-head-to-head", completedMeetings: vsB.matches, wins: vsB.wins, losses: vsB.losses });
     }
 
     function runBasicCase() {
@@ -645,6 +720,7 @@ async function runMatrix(page, expectedVersion) {
     assert(typeof getStageResultRows === "function", "getStageResultRows is not available");
     assert(typeof analyzeRecords === "function", "analyzeRecords is not available");
     [
+      runLiveHeadToHead,
       runBasicCase,
       runPoints3Case,
       runPoints5TreeCase,
@@ -691,7 +767,21 @@ async function main() {
   page.on("dialog", dialog => dialog.accept());
   await page.goto(`http://127.0.0.1:${port}/index.html`, { waitUntil: "domcontentloaded", timeout: 25000 });
   await page.waitForFunction(() => typeof getStageResultRows === "function" && typeof analyzeRecords === "function", null, { timeout: 10000 });
+  await page.waitForFunction(() => document.documentElement.dataset.uiSurface === "operator" && metricHistory.records.length > 0);
   const matrix = await runMatrix(page, meta.version);
+  const published = await page.evaluate(() => window.__qaPublishedBracket);
+  for (const [view, viewport, selector, label] of [
+    ["tv-live", { width: 1365, height: 900 }, ".tv90-h2h-row", "기록B 1승 1패"],
+    ["mobile-live", { width: 390, height: 844 }, ".mobile-current .slot-metrics", "기록B 1승1패"]
+  ]) {
+    const viewer = await browser.newPage({ viewport });
+    await installNetworkStubs(viewer);
+    await viewer.addInitScript(payload => { window.__qaPublishedBracket = payload; }, published);
+    await viewer.goto("http://127.0.0.1:" + port + "/index.html#view=" + view + "&t=qa-h2h");
+    if (!(await viewer.locator(selector).first().innerText()).includes(label)) failures.push(view + " fresh viewer lost published wins/losses");
+    if (await viewer.evaluate(() => metricHistory.request !== null || metricHistory.records.length > 0)) failures.push(view + " unnecessarily loaded operator history");
+    await viewer.close();
+  }
   await page.close();
   await browser.close();
   await new Promise(resolve => server.close(resolve));

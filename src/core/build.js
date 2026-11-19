@@ -49,15 +49,15 @@
   ];
 
   const meta = Object.freeze({
-    version: 298,
-    label: "BUILD v298 LIVE RESULTS AND OPERATOR INPUT",
-    title: "MINI4WD TOURNAMENT MAKER - v298 LIVE RESULTS AND OPERATOR INPUT",
+    version: 299,
+    label: "BUILD v299 LIVE HEAD-TO-HEAD RECORDS",
+    title: "MINI4WD TOURNAMENT MAKER - v299 LIVE HEAD-TO-HEAD RECORDS",
     rulesChanged: false,
     assets: Object.freeze({
       config: 156,
-      build: 298,
-      app: 298,
-      css: 298,
+      build: 299,
+      app: 299,
+      css: 299,
       operatorMobileCss: 285,
       og: 51
     }),

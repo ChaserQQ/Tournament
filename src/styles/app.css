@@ -6294,7 +6294,7 @@
     body.tv-mode .tv90-h2h {
       grid-area: h2h !important;
       justify-self: end !important;
-      align-self: center !important;
+      align-self: end !important;
       width: 100% !important;
       max-width: clamp(92px, 8.2vw, 156px) !important;
       min-width: 0 !important;
@@ -15656,7 +15656,17 @@ body.surface-tv-live.tv-mode .tv90-grid {
 }
 .point-buttons button[aria-pressed="true"] { text-decoration: underline; text-underline-offset: .18em; }
 @media (max-width: 600px) {
-  .tv-final-history { display: none; }
+  .tv-final-lane {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: "lane player result" "lane history result";
+    gap: 2px 8px;
+    align-content: center;
+  }
+  .tv-final-number { grid-area: lane; }
+  .tv-final-player { grid-area: player; }
+  .tv-final-history { grid-area: history; max-width: 100%; font-size: 11px; }
+  .tv-final-result { grid-area: result; }
   .tv-final-player > span { font-size: 12px; }
 }
 body.surface-tv-live.tv-mode .tv90-group {
@@ -17564,7 +17574,7 @@ html body.surface-mobile-live.ui-page-mobile-live:not(.tv-mode) .slot.is-point-w
 }
 
 html body.surface-tv-live.tv-mode .tv90-lane {
-  grid-template-columns: minmax(0, 1fr) clamp(64px, 5.2vw, 96px) !important;
+  grid-template-columns: minmax(0, 1fr) clamp(84px, 7.2vw, 145px) !important;
   column-gap: clamp(5px, .42vw, 8px) !important;
   padding-right: clamp(7px, .6vw, 11px) !important;
 }
@@ -17590,18 +17600,18 @@ html body.surface-tv-live.tv-mode .tv90-screen[data-tv-lanes="3"] .tv90-name.is-
 }
 
 html body.surface-tv-live.tv-mode .tv90-h2h {
-  max-width: clamp(64px, 5.2vw, 96px) !important;
+  max-width: clamp(84px, 7.2vw, 145px) !important;
   gap: 2px !important;
   opacity: .9 !important;
 }
 
 html body.surface-tv-live.tv-mode .tv90-h2h-title {
-  font-size: clamp(7px, .5vw, 9px) !important;
+  font-size: clamp(9px, .7vw, 14px) !important;
   letter-spacing: -.04em !important;
 }
 
 html body.surface-tv-live.tv-mode .tv90-h2h-row {
-  font-size: clamp(6.5px, .47vw, 8.8px) !important;
+  font-size: clamp(10px, .9vw, 18px) !important;
   padding-right: clamp(3px, .26vw, 5px) !important;
 }
 

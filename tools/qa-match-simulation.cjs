@@ -191,6 +191,8 @@ const firebaseStub = `
         }
       },
       orderByChild() { return this; },
+      startAt() { return this; },
+      endAt() { return this; },
       limitToLast() { return this; },
       limitToFirst() { return this; },
       equalTo() { return this; },
@@ -766,6 +768,9 @@ async function runViewport(browser, viewport) {
       createCrowFinalFromSemi();
       await wait(180);
       assert(state.finalRace?.type === "crowFinal", `crow final missing after ${crowSemiSelectedCount} semi winners`);
+      const savedSemis = getStageResultRows().filter(row => row.단계 === "9강준결");
+      assert(savedSemis.length === 9 && savedSemis.filter(row => row.결과 === "결승진출").length === 3,
+        "crow final must retain the three completed semifinals");
       const crowGroup = getFinalGroups()[0];
       const recoveredCrowFinal = window.__mini4wdMergeNewerPublicRunningStateV278(privateCrowSemi, makePublicLivePayload(exportState())).finalRace;
       assert(getFinalGroups(recoveredCrowFinal).length === 1 && getFinalGroups(recoveredCrowFinal)[0].id === crowGroup.id,

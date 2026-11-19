@@ -2853,6 +2853,7 @@ function setBroadcastStage(roundIndex, stageIndex) {
       document.body.classList.remove("live-lobby-page-v89");
       document.body.classList.add("operator-light-page-v95");
       resetMetricCacheV122();
+      loadOperatorMetricHistory();
       saveOperatorRenderStateV122("renderOperator");
 
       const players = parseParticipants();
@@ -3369,94 +3370,182 @@ function setBroadcastStage(roundIndex, stageIndex) {
     let metricCacheV122 = null;
     let renderSaveTimerV122 = null;
 
-    function resetMetricCacheV122() {
+    let metricBracket;
+    let usePublishedMetrics = false;
+    const metricHistory = { records: [], request: null, refreshAfter: 0 };
+
+    function resetMetricCacheV122(bracket = state, publicView = false) {
       metricCacheV122 = null;
+      metricBracket = bracket;
+      usePublishedMetrics = publicView;
     }
 
-    function getPlayerMetricCacheKeyV122(player = {}) {
-      try {
-        return playerMetricKeys(player).join("\u001f");
-      } catch (error) {
-        return String(player?.id || player?.name || "");
+    function metricHistoryCutoff() {
+      const date = new Date(firebaseServerNowV279());
+      const day = date.getUTCDate();
+      // Clamp to the last valid day three calendar months earlier.
+      date.setUTCDate(1);
+      date.setUTCMonth(date.getUTCMonth() - 2, 0);
+      date.setUTCDate(Math.min(day, date.getUTCDate()));
+      return date;
+    }
+
+    function loadOperatorMetricHistory() {
+      if (!currentAuthUser || !canOperate() || isPublicViewerRoute() || metricHistory.request || Date.now() < metricHistory.refreshAfter) return;
+      const db = initFirebase();
+      if (!db) return;
+      metricHistory.request = Promise.resolve().then(() => {
+        const history = db.ref(PUBLIC_HISTORY_PATH).orderByChild("createdAt");
+        const cutoff = metricHistoryCutoff();
+        const now = new Date(firebaseServerNowV279());
+        return Promise.all([
+          history.startAt(cutoff.toISOString()).endAt(now.toISOString()).get(),
+          history.startAt(cutoff.getTime()).endAt(now.getTime()).get()
+        ]);
+      }).then(snapshots => {
+        const records = Object.values(Object.assign({}, ...snapshots.map(snapshot => snapshot.val() || {})));
+        const hadRecords = metricHistory.records.length > 0;
+        metricHistory.records = records;
+        metricHistory.refreshAfter = Date.now() + 5 * 60 * 1000;
+        if (!records.length && !hadRecords) return;
+        if (!currentAuthUser || !canOperate() || isPublicViewerRoute() || document.documentElement.dataset.uiSurface !== "operator") return;
+        resetMetricCacheV122();
+        const groups = getAllTournamentStagesForMetrics(state).flatMap(stage => stage.groups || []);
+        const byId = new Map(groups.filter(Boolean).map(group => [String(group.id), group]));
+        for (const el of app.querySelectorAll("[data-metric-group][data-metric-player]")) {
+          const group = byId.get(el.dataset.metricGroup);
+          const player = group?.slots?.find(slot => slot && String(slot.id) === el.dataset.metricPlayer);
+          if (player) el.outerHTML = renderPlayerMatchMetrics(player, group);
+        }
+        if (state.tournament?.status === "running") queueFirebaseSave();
+      }).catch(() => {
+        metricHistory.refreshAfter = Date.now() + 30000;
+      }).finally(() => { metricHistory.request = null; });
+    }
+
+    function metricIdentity(player) {
+      const ids = [player.sourcePlayerId, player.originalPlayerId, player.basePlayerId, player.playerId, player.id];
+      const names = [...new Set([player.name, player.nickname].filter(Boolean).map(name => String(name).trim()))];
+      const team = String(player.team || "").trim();
+      return {
+        ids: [...new Set(ids.filter(id => id != null && id !== "").map(id => "id:" + id))],
+        teamNames: team ? names.map(name => JSON.stringify([name, team])) : [],
+        names: names.map(name => "name:" + name),
+        team
+      };
+    }
+
+    function metricPlace(row, lowScoreWins) {
+      const result = String(row.결과 || "");
+      if (result === "포인트" || row.비고 === "points") {
+        if (row.점수 == null || row.점수 === "" || !Number.isFinite(Number(row.점수))) return null;
+        return (lowScoreWins ? 1 : -1) * Number(row.점수);
+      }
+      const rank = /^(?:GGP|9강|순위결정)\s*(\d+)위/.exec(result);
+      if (rank) return Number(rank[1]);
+      if (result === "진출" || isCountableWinResultV192(result)) return 0;
+      return ["탈락", "결승참가"].includes(result) ? Infinity : null;
+    }
+
+    function archivedMetricHeats(record) {
+      const lowScoreWins = isLowScorePointRecordV188(record);
+      const heats = new Map();
+      for (const row of record.rows) {
+        if (!row || row.결과 === "빈 레인") continue;
+        const key = JSON.stringify([row.차수, row.단계, row.조]);
+        if (!heats.has(key)) heats.set(key, []);
+        const identity = metricIdentity({ id: row.선수ID || row.playerId, name: row.선수명, nickname: row.닉네임, team: row.팀명 });
+        heats.get(key).push({ identity, place: metricPlace(row, lowScoreWins) });
+      }
+      return [...heats.values()].filter(heat => heat.every(entry => entry.place != null));
+    }
+
+    function completedMetricHeat(group, type, mode, rankedRoundFinal) {
+      if (type.startsWith("ggp") && !group.ggpResultConfirmed) return [];
+      const players = (group.slots || []).filter(player => player && !player.isEmptyLane);
+      const order = new Map((group.advanceIds || []).map((id, i) => [String(id), i + 1]));
+      if (type === "points") {
+        if (!players.every(player => group.points?.[player.id] != null && group.points[player.id] !== "" && Number.isFinite(Number(group.points[player.id])))) return [];
+      } else if (!order.size || (type === "pointTieBreak" && !players.every(player => order.has(String(player.id))))) return [];
+      return players.map(player => {
+        const rank = order.get(String(player.id));
+        let place = rank == null ? Infinity : 0;
+        if (rank && (type === "pointTieBreak" || type === "ggpRoundFinal" || rankedRoundFinal)) place = rank;
+        if (type === "points") place = (mode === "points5Tree" ? 1 : -1) * Number(group.points[player.id]);
+        return { identity: metricIdentity(player), place, lane: Number(player.lane) };
+      });
+    }
+
+    function findMetricEntrant(heat, identity) {
+      for (const field of ["ids", "teamNames", "names"]) {
+        if (!identity[field].length) continue;
+        const candidates = heat.filter(entry =>
+          (field !== "names" || !identity.team || !entry.identity.team || identity.team === entry.identity.team)
+          && entry.identity[field].some(key => identity[field].includes(key)));
+        if (candidates.length) return candidates.length === 1 ? candidates[0] : null;
+      }
+      return null;
+    }
+
+    function indexMetricHeat(index, heat) {
+      if (heat.length < 2 || !heat.some(entry => Number.isFinite(entry.place))) return;
+      for (const { identity } of heat) {
+        for (const key of [...identity.ids, ...identity.teamNames, ...identity.names]) {
+          if (!index.has(key)) index.set(key, new Set());
+          index.get(key).add(heat);
+        }
       }
     }
 
-    function keysOverlapV122(left = [], right = []) {
-      if (!left.length || !right.length) return false;
-      const set = new Set(left);
-      return right.some(key => set.has(key));
-    }
-
-    function buildGroupedRecentRecordsV122(records = []) {
-      return records.map(record => {
-        const groups = new Map();
-        const lowScoreWins = isLowScorePointRecordV188(record);
-        (record.rows || []).forEach(row => {
-          if (!row || row.결과 === "빈 레인") return;
-          const key = `${row.차수 || ""}|${row.단계 || ""}|${row.조 || ""}`;
-          if (!groups.has(key)) groups.set(key, []);
-          groups.get(key).push(row);
-        });
-        return {
-          record,
-          groups: Array.from(groups.values()).map(rows => ({
-            rows,
-            lowScoreWins,
-            items: rows.map(row => ({ row, keys: rowMetricKeys(row) }))
-          }))
-        };
-      });
-    }
-
-    function buildTodayLaneRateMapV122() {
-      const laneStats = new Map();
-      const ensureLane = laneNo => {
-        if (!laneStats.has(laneNo)) laneStats.set(laneNo, { matches: 0, wins: 0 });
-        return laneStats.get(laneNo);
-      };
-      getAllTournamentStagesForMetrics().forEach(stage => {
-        (stage.groups || []).forEach(group => {
-          const validSlots = (group.slots || []).filter(item => item && !item.isEmptyLane);
-          let pointWinScore = null;
-          if (group.points) {
-            const scores = validSlots.map(item => Number(group.points[item.id] || 0)).filter(value => Number.isFinite(value));
-            pointWinScore = scores.length
-              ? (isPointFiveTreeMode() ? Math.min(...scores) : Math.max(...scores))
-              : null;
-          }
-          validSlots.forEach(slot => {
-            const laneNo = Number(slot.lane);
-            if (!laneNo) return;
-            const stat = ensureLane(laneNo);
-            stat.matches += 1;
-            if ((group.advanceIds || []).some(id => samePlayerIdV280(id, slot.id))) {
-              stat.wins += 1;
-              return;
-            }
-            if (group.points && Object.prototype.hasOwnProperty.call(group.points, slot.id)) {
-              const score = Number(group.points[slot.id] || 0);
-              if (pointWinScore != null && score === pointWinScore && (isPointFiveTreeMode() || score > 0)) stat.wins += 1;
-            }
-          });
-        });
-      });
-      const rateMap = new Map();
-      laneStats.forEach((stat, laneNo) => {
-        rateMap.set(laneNo, stat.matches ? `${Math.round((stat.wins / stat.matches) * 100)}%` : "-");
-      });
-      return rateMap;
+    let archivedMetricIndex;
+    function getArchivedMetricIndex(bracket) {
+      const cloud = metricHistory.records;
+      const dashboard = currentAuthUser && canViewDashboard() ? window.__dashboardRecords : null;
+      let local = null;
+      try { local = localStorage.getItem(LOCAL_RESULT_LOGS_KEY); } catch (_) {}
+      const activeIds = [bracket.tournament?.liveId, bracket.tournament?.recordId, bracket.tournament?.id].filter(Boolean);
+      const cutoff = metricHistoryCutoff();
+      const key = JSON.stringify([currentAuthUser?.uid, activeIds, cutoff.toISOString().slice(0, 10)]);
+      if (archivedMetricIndex?.key === key && archivedMetricIndex.cloud === cloud &&
+          archivedMetricIndex.local === local && archivedMetricIndex.dashboard === dashboard) return archivedMetricIndex.index;
+      const index = new Map();
+      const seen = new Set(activeIds);
+      const records = [...loadLocalResultLogs(), ...(dashboard || []), ...cloud];
+      for (const record of records) {
+        if (!Array.isArray(record?.rows) || !record.rows.length || getResultRecordDateMs(record) < cutoff.getTime()) continue;
+        const ids = [record.id, record.sourceTournamentId].filter(Boolean);
+        if (ids.some(id => seen.has(id))) continue;
+        ids.forEach(id => seen.add(id));
+        archivedMetricHeats(record).forEach(heat => indexMetricHeat(index, heat));
+      }
+      archivedMetricIndex = { key, local, cloud, dashboard, index };
+      return index;
     }
 
     function getMetricCacheV122() {
       if (metricCacheV122) return metricCacheV122;
-      let recentRecords = [];
-      try { recentRecords = getRecentMetricRecords(3); } catch (error) { recentRecords = []; }
-      metricCacheV122 = {
-        recentRecords,
-        groupedRecords: buildGroupedRecentRecordsV122(recentRecords),
-        laneRateMap: buildTodayLaneRateMapV122(),
-        h2h: new Map()
-      };
+      const bracket = metricBracket || state;
+      const currentIndex = new Map();
+      const laneStats = new Map();
+      const mode = normalizeMatchMode(bracket.settings?.matchMode);
+      for (const stage of getAllTournamentStagesForMetrics(bracket)) {
+        for (const group of stage.groups || []) {
+          if (!group) continue;
+          const heat = completedMetricHeat(group, stage.type || "normal", mode, mode === "crow" && stage.name === "라운드 결승");
+          indexMetricHeat(currentIndex, heat);
+          const best = Math.min(...heat.map(entry => entry.place));
+          for (const entry of heat) {
+            if (!entry.lane) continue;
+            const stat = laneStats.get(entry.lane) || { matches: 0, wins: 0 };
+            stat.matches += 1;
+            if (Number.isFinite(best) && entry.place === best && (stage.type !== "points" || mode === "points5Tree" || best < 0)) stat.wins += 1;
+            laneStats.set(entry.lane, stat);
+          }
+        }
+      }
+      const laneRateMap = new Map([...laneStats].map(([lane, stat]) => [lane, Math.round(stat.wins / stat.matches * 100) + "%"]));
+      const indexes = usePublishedMetrics ? [currentIndex] : [currentIndex, getArchivedMetricIndex(bracket)];
+      metricCacheV122 = { indexes, laneRateMap, h2h: new Map() };
       return metricCacheV122;
     }
 
@@ -3743,13 +3832,11 @@ function setBroadcastStage(roundIndex, stageIndex) {
       `;
     }
 
-    function getAllTournamentStagesForMetrics() {
-      const stages = [];
-      (state.qualifierRounds || []).forEach(round => (round.stages || []).forEach(stage => stages.push(stage)));
-      if (state.finalRace) {
-        if (Array.isArray(state.finalRace.groups)) stages.push({ name: state.finalRace.name || "결승", groups: state.finalRace.groups });
-        else if (state.finalRace.group) stages.push({ name: state.finalRace.name || "결승", groups: [state.finalRace.group] });
-      }
+    function getAllTournamentStagesForMetrics(bracket = state) {
+      const stages = (bracket.qualifierRounds || []).flatMap(round => round?.stages || []).filter(Boolean);
+      const final = bracket.finalRace;
+      if (final?.semiGroups?.length) stages.push({ type: final.type === "crowFinal" ? "crowSemi" : "ggpSemiFinal", groups: final.semiGroups });
+      if (final) stages.push({ type: final.type || "final", groups: getFinalGroups(final) });
       return stages;
     }
 
@@ -3759,120 +3846,52 @@ function setBroadcastStage(roundIndex, stageIndex) {
       return Number.isFinite(ms) ? ms : 0;
     }
 
-    function getRecentMetricRecords(months = 3) {
-      const cutoff = Date.now() - months * 31 * 24 * 60 * 60 * 1000;
-      const records = [];
-      try {
-        if (typeof loadLocalResultLogs === "function") records.push(...loadLocalResultLogs());
-      } catch (error) {}
-      try {
-        if (Array.isArray(window.__dashboardRecords)) records.push(...window.__dashboardRecords);
-      } catch (error) {}
-      try {
-        const currentRows = typeof getStageResultRows === "function" ? getStageResultRows() : [];
-        if (currentRows && currentRows.length) {
-          records.push({
-            id: `current-${state.tournament?.recordId || state.tournament?.id || "active"}`,
-            createdAt: new Date().toISOString(),
-            rows: currentRows
-          });
-        }
-      } catch (error) {}
-
-      const seen = new Set();
-      return records.filter(record => {
-        if (!record || !Array.isArray(record.rows)) return false;
-        const id = record.id || `${record.createdAt || ""}-${record.rows.length}`;
-        if (seen.has(id)) return false;
-        seen.add(id);
-        const dateMs = getResultRecordDateMs(record) || Date.now();
-        return dateMs >= cutoff;
-      });
-    }
-
-    function playerMetricKeys(player = {}) {
-      if (!player || player.isEmptyLane) return [];
-      let ident = {};
-      try { ident = resolvePlayerIdentity(player) || {}; } catch (error) {}
-      return Array.from(new Set([
-        ident.playerId,
-        player.id,
-        player.playerId,
-        player.name ? `${player.name}|${player.team || ""}` : "",
-        player.name || ""
-      ].filter(Boolean).map(value => String(value).trim())));
-    }
-
-    function rowMetricKeys(row = {}) {
-      return Array.from(new Set([
-        row.선수ID,
-        row.playerId,
-        row.선수명 ? `${row.선수명}|${row.팀명 || ""}` : "",
-        row.선수명 || row.닉네임 || ""
-      ].filter(Boolean).map(value => String(value).trim())));
-    }
-
     function isCountableWinResultV192(result) {
       const text = String(result || "");
       return isRankWinnerResultV188(text) || ["결승진출", "최종결승진출", "최종우승"].includes(text);
     }
 
-    function isMetricWinRow(row, peerRows = [], lowScoreWins = false) {
-      const result = String(row?.결과 || "");
-      if (isCountableWinResultV192(result)) return true;
-      const rowScore = Number(row?.점수 ?? "");
-      if (Number.isFinite(rowScore) && (lowScoreWins || rowScore > 0)) {
-        const scores = peerRows.map(item => Number(item?.점수 ?? "")).filter(value => Number.isFinite(value));
-        if (scores.length && rowScore === (lowScoreWins ? Math.min(...scores) : Math.max(...scores))) return true;
-      }
-      return false;
-    }
-
     function getRecentHeadToHeadStats(player, currentGroup) {
       if (!player || player.isEmptyLane || !currentGroup) return [];
-      const opponents = (currentGroup.slots || [])
-        .filter(slot => slot && !slot.isEmptyLane && slot.id !== player.id);
-      if (Array.isArray(player.h2hMetrics)) {
-        const byName = new Map(player.h2hMetrics.map(item => [String(item.name || "상대").trim(), item]));
-        return opponents.map(opponent => {
-          const name = String(opponent.name || "상대").trim();
-          const item = byName.get(name) || {};
-          const matches = Number(item.matches || 0);
-          const wins = Number(item.wins || 0);
-          const losses = Number(item.losses || Math.max(0, matches - wins));
-          const rate = item.rate == null ? (matches ? Math.round((wins / matches) * 100) : null) : Number(item.rate);
-          return { opponent, name, matches, wins, losses, rate, rateText: matches ? `${rate}%` : "-" };
-        });
-      }
-      if (!opponents.length) return [];
-
-      const cache = getMetricCacheV122();
-      const playerKeys = playerMetricKeys(player);
-      const playerKey = getPlayerMetricCacheKeyV122(player);
+      const opponents = (currentGroup.slots || []).filter(slot => slot && !slot.isEmptyLane && !samePlayerIdV280(slot.id, player.id));
+      const published = usePublishedMetrics && Array.isArray(player.h2hMetrics) ? player.h2hMetrics : null;
+      const identity = metricIdentity(player);
       return opponents.map(opponent => {
-        const opponentKeys = playerMetricKeys(opponent);
-        const cacheKey = `${playerKey}::${opponentKeys.join("\u001f")}`;
-        if (cache.h2h.has(cacheKey)) {
-          const cached = cache.h2h.get(cacheKey);
-          return { ...cached, opponent, name: opponent.name || cached.name || "상대" };
-        }
-        let matches = 0;
+        const name = String(opponent.name || "상대").trim();
         let wins = 0;
-        cache.groupedRecords.forEach(record => {
-          record.groups.forEach(group => {
-            const myItem = group.items.find(item => keysOverlapV122(item.keys, playerKeys));
-            if (!myItem) return;
-            const opponentItem = group.items.find(item => keysOverlapV122(item.keys, opponentKeys));
-            if (!opponentItem) return;
-            matches += 1;
-            if (isMetricWinRow(myItem.row, group.rows, group.lowScoreWins)) wins += 1;
-          });
-        });
-        const losses = Math.max(0, matches - wins);
-        const rate = matches ? Math.round((wins / matches) * 100) : null;
-        const value = { name: opponent.name || "상대", matches, wins, losses, rate, rateText: matches ? `${rate}%` : "-" };
-        cache.h2h.set(cacheKey, value);
-        return { ...value, opponent };
+        let losses = 0;
+        if (published) {
+          const byName = published.filter(item => item && !item.opponentId && String(item.name || "").trim() === name);
+          const item = published.find(row => row?.opponentId && samePlayerIdV280(row.opponentId, opponent.id))
+            || (byName.length === 1 ? byName[0] : null);
+          wins = Number(item?.wins || 0);
+          losses = Number(item?.losses ?? Math.max(0, Number(item?.matches || 0) - wins));
+        } else {
+          const cache = getMetricCacheV122();
+          const other = metricIdentity(opponent);
+          const key = JSON.stringify([identity, other]);
+          if (!cache.h2h.has(key)) {
+            const heats = new Set();
+            for (const alias of [...identity.ids, ...identity.teamNames, ...identity.names]) {
+              for (const index of cache.indexes) {
+                for (const heat of index.get(alias) || []) heats.add(heat);
+              }
+            }
+            for (const heat of heats) {
+              const mine = findMetricEntrant(heat, identity);
+              const theirs = findMetricEntrant(heat, other);
+              if (!mine || !theirs) continue;
+              if (mine.place < theirs.place) wins++;
+              if (mine.place > theirs.place) losses++;
+            }
+            cache.h2h.set(key, { wins, losses });
+          } else {
+            ({ wins, losses } = cache.h2h.get(key));
+          }
+        }
+        const matches = wins + losses;
+        const rate = matches ? Math.round(wins / matches * 100) : null;
+        return { opponent, name, matches, wins, losses, rate, rateText: matches ? rate + "%" : "-" };
       });
     }
 
@@ -3927,7 +3946,8 @@ function setBroadcastStage(roundIndex, stageIndex) {
           : `${item.name} 전적없음`;
         return `<span class="slot-metric h2h ${item.matches ? "" : "h2h-empty"}">${escapeHtml(label)}</span>`;
       }).join("");
-      return `<div class="slot-metrics slot-metrics-inline slot-h2h-rows" title="최근 3개월 전적" style="--h2h-row-count:${h2hCount}"><div class="slot-h2h-title">최근 3개월 전적</div>${h2hRows || `<span class="slot-metric h2h h2h-empty">상대전적 없음</span>`}</div>`;
+      const binding = usePublishedMetrics ? "" : ` data-metric-group="${escapeAttr(group.id)}" data-metric-player="${escapeAttr(player.id)}"`;
+      return `<div class="slot-metrics slot-metrics-inline slot-h2h-rows"${binding} title="최근 3개월 전적" style="--h2h-row-count:${h2hCount}"><div class="slot-h2h-title">최근 3개월 전적</div>${h2hRows || `<span class="slot-metric h2h h2h-empty">상대전적 없음</span>`}</div>`;
     }
 
     function renderPlayerCardMain(player, group) {
@@ -5223,7 +5243,7 @@ function avoidanceLabel(level) {
 
     function renderMobileSnapshot(payload) {
       setUiSurfaceV149("mobile-live");
-      resetMetricCacheV122();
+      resetMetricCacheV122(payload, true);
       document.body.classList.remove("tv-mode");
       const target = getBroadcastTarget(payload);
 
@@ -5357,6 +5377,11 @@ function getTvWindowGroups(target) {
       return type === "crowSemi" || type === "ggpSemiFinal" ? "결승 진출" : "진출";
     }
 
+    function tvOpponentHistory(player, group) {
+      return getRecentHeadToHeadStats(player, group).filter(item => item.matches)
+        .sort((a, b) => b.matches - a.matches).slice(0, 2);
+    }
+
     function renderTv90Lane(player, group, stageType = "normal", pointTotalsMap = {}) {
       const lane = Number(player?.lane || 0) || "";
       if (!player || player.isEmptyLane) {
@@ -5378,9 +5403,8 @@ function getTvWindowGroups(target) {
       const total = pointTotalsMap?.[player.id];
       const cumulative = stageType === "points" && total != null && (heatScore == null ? total !== 0 : Number(total) !== Number(heatScore))
         ? `<small>누적 ${escapeHtml(total)}P</small>` : "";
-      const stats = getGroupMatchStatsForPlayer(player, group || {});
-      const rows = (stats.h2h || []).slice(0, 2).map(item => {
-        const label = item.matches ? `${item.name} ${item.wins}-${item.losses}` : `${item.name} -`;
+      const rows = tvOpponentHistory(player, group).map(item => {
+        const label = `${item.name} ${item.wins}승 ${item.losses}패`;
         return `<div class="tv90-h2h-row" title="${escapeAttr(label)}">${escapeHtml(label)}</div>`;
       }).join("") || `<div class="tv90-h2h-row">상대전적 없음</div>`;
       const displayName = String(player.name || "").trim();
@@ -5395,7 +5419,7 @@ function getTvWindowGroups(target) {
 
 function renderTvStage() {
       setUiSurfaceV149("tv-live");
-      resetMetricCacheV122();
+      resetMetricCacheV122(tvState, true);
       const target = getBroadcastTarget(tvState);
       document.body.classList.add("tv-mode");
       if (!target) {
@@ -5465,11 +5489,11 @@ function renderTvStage() {
         <ol class="tv-final-lanes">${slots.map(player => {
           const label = liveResultLabel(group, player.id, type);
           const rate = player.isEmptyLane ? "" : getDisplayLaneWinRate(player.lane, player);
-          const stats = player.isEmptyLane ? [] : (getGroupMatchStatsForPlayer(player, group)?.h2h || []).filter(item => item.matches).slice(0, 2);
+          const stats = player.isEmptyLane ? [] : tvOpponentHistory(player, group);
           return `<li class="tv-final-lane${label ? " has-result" : ""}${player.isEmptyLane ? " is-empty" : ""}">
             <span class="tv-final-number"><small>레인</small>${escapeHtml(player.lane)}</span>
             <div class="tv-final-player"><strong>${escapeHtml(player.isEmptyLane ? "빈 레인" : player.name)}</strong><span>${escapeHtml([player.team, !player.isEmptyLane && rate && rate !== "-" ? "레인 승률 " + rate : ""].filter(Boolean).join(" · "))}</span></div>
-            <div class="tv-final-history">${stats.map(item => `<span>${escapeHtml(item.name)} · ${escapeHtml(item.wins)}승 ${escapeHtml(item.losses)}패</span>`).join("")}</div>
+            <div class="tv-final-history" aria-label="최근 상대 전적">${stats.map(item => `<span>${escapeHtml(item.name)} · ${escapeHtml(item.wins)}승 ${escapeHtml(item.losses)}패</span>`).join("") || (player.isEmptyLane ? "" : "상대전적 없음")}</div>
             ${label ? `<strong class="tv-final-result">${escapeHtml(label)}</strong>` : ""}
           </li>`;
         }).join("")}</ol></main>`;
@@ -8781,6 +8805,7 @@ function normalizePlayerForFinal(player, extra = {}) {
       state.finalRace = {
         id: `crow-final-${Math.random().toString(36).slice(2, 8)}`,
         type: "crowFinal",
+        semiGroups: state.finalRace.groups,
         name: "9강 최종 결승",
         groupSize: 3,
         group: {
@@ -9035,7 +9060,7 @@ function normalizePlayerForFinal(player, extra = {}) {
     }
 
     function makePublicStatePayload(sourceState = exportState()) {
-      resetMetricCacheV122();
+      resetMetricCacheV122(sourceState);
       let seq = 0;
       const idMap = ensurePublicParticipantAliasesV278(sourceState);
       const usedPublicIds = new Set(idMap.values());
@@ -9082,6 +9107,7 @@ function normalizePlayerForFinal(player, extra = {}) {
             const h2h = getRecentHeadToHeadStats(player, group).map(item => ({
               // Metrics must use the same public nickname policy as slots.
               // item.name can be the private/internal player name.
+              opponentId: publicId(item.opponent.id),
               name: item?.opponent ? publicDisplayName(item.opponent) : "상대",
               matches: Number(item.matches || 0),
               wins: Number(item.wins || 0),
@@ -9237,9 +9263,11 @@ function normalizePlayerForFinal(player, extra = {}) {
       if (state.finalRace) resultFinalGroups.forEach(group => group.slots.forEach(player => {
         const selected = (group.advanceIds || []).some(id => samePlayerIdV280(id, player.id));
         const ident = resolvePlayerIdentity(player);
-        const isGgpSemi = state.finalRace.type === "ggpSemiFinal" || (state.finalRace.semiGroups || []).includes(group);
-        const finalType = isGgpSemi ? "GGP최종준결" : state.finalRace.type === "crowSemi" ? "9강준결" : "FINAL";
-        rows.push({ ...meta, 경기장ID: currentVenueId(), 선수ID: ident.playerId, 실명: ident.realName, 연락처: ident.contact, 차수: state.finalRace.name || "최종 결승", 단계: finalType, 조: group.name, 레인: `${player.lane}LANE`, 선수명: player.name, 팀명: player.team || "", 점수: "", 결과: player.isEmptyLane ? "빈 레인" : selected ? (["crowSemi", "ggpSemiFinal"].includes(state.finalRace.type) || isGgpSemi ? "결승진출" : "최종우승") : "결승참가", 비고: state.finalRace.type || "final" });
+        const savedSemi = (state.finalRace.semiGroups || []).includes(group);
+        const isGgpSemi = state.finalRace.type === "ggpSemiFinal" || (savedSemi && state.finalRace.type === "ggpFinal");
+        const isCrowSemi = state.finalRace.type === "crowSemi" || (savedSemi && state.finalRace.type === "crowFinal");
+        const finalType = isGgpSemi ? "GGP최종준결" : isCrowSemi ? "9강준결" : "FINAL";
+        rows.push({ ...meta, 경기장ID: currentVenueId(), 선수ID: ident.playerId, 실명: ident.realName, 연락처: ident.contact, 차수: isGgpSemi ? "GGP 최종 준결승" : isCrowSemi ? "9강 최종 준결" : state.finalRace.name || "최종 결승", 단계: finalType, 조: group.name, 레인: `${player.lane}LANE`, 선수명: player.name, 팀명: player.team || "", 점수: "", 결과: player.isEmptyLane ? "빈 레인" : selected ? (isCrowSemi || isGgpSemi ? "결승진출" : "최종우승") : "결승참가", 비고: isGgpSemi ? "ggpSemiFinal" : isCrowSemi ? "crowSemi" : state.finalRace.type || "final" });
       }));
       return rows;
     }

@@ -206,6 +206,8 @@ const firebaseStub = `
       },
       remove() { setAt(this.path, null); return Promise.resolve(); },
       orderByChild() { return this; },
+      startAt() { return this; },
+      endAt() { return this; },
       limitToLast() { return this; },
       limitToFirst() { return this; },
       equalTo() { return this; },
@@ -514,6 +516,10 @@ async function inspectTvGroups(browser, viewport, laneCount) {
     const stage = payload.qualifierRounds[0].stages[0];
     const group = stage.groups[0];
     const [first, second] = group.slots;
+    for (const player of group.slots) {
+      player.h2hMetrics = group.slots.filter(opponent => opponent.id !== player.id).map(opponent =>
+        ({ opponentId: opponent.id, name: opponent.name, matches: 3, wins: 2, losses: 1 }));
+    }
     stage.type = "points";
     group.points = { [first.id]: 3 };
     payload.qualifierRounds[0].stages.push({ ...stage, groups: [{ ...group, points: { [first.id]: 0 } }] });
@@ -538,7 +544,10 @@ async function inspectTvGroups(browser, viewport, laneCount) {
     const board = document.querySelector(".tv-final-board");
     const rows = [...document.querySelectorAll(".tv-final-lane")];
     const rect = board?.getBoundingClientRect();
-    const fits = rect && rect.right <= innerWidth + 1 && rows.every(row => row.getBoundingClientRect().bottom <= innerHeight + 1);
+    const fits = rect && rect.right <= innerWidth + 1 && rows.every(row => {
+      const history = row.querySelector(".tv-final-history");
+      return row.getBoundingClientRect().bottom <= innerHeight + 1 && history.offsetHeight > 0 && history.textContent.includes("2승 1패");
+    });
     const final = document.querySelector(".tv-final-result")?.textContent;
     const placeholders = document.querySelectorAll(".tv90-placeholder").length;
     renderMobileSnapshot(payload);

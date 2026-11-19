@@ -169,6 +169,8 @@ const firebaseStub = `
       on(_event, cb) { setTimeout(() => cb(snapshot(getAt(this.path))), 0); return cb; },
       off() {},
       orderByChild() { return this; },
+      startAt() { return this; },
+      endAt() { return this; },
       limitToLast() { return this; },
       limitToFirst() { return this; },
       equalTo() { return this; },

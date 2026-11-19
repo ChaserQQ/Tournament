@@ -210,6 +210,8 @@ const firebaseStub = `
         }
       },
       orderByChild() { return this; },
+      startAt() { return this; },
+      endAt() { return this; },
       limitToLast() { return this; },
       limitToFirst() { return this; },
       equalTo() { return this; },
