@@ -6450,6 +6450,18 @@ async function runViewport(browser, meta, viewport) {
   logs.push({ step: "point-scores", info: await assertNoUiBreakage(page, "point-scores", failures) });
   const selectedPointButtons = await page.locator(".point-buttons button.primary").count();
   if (selectedPointButtons < 1) failures.push("point score clicks did not leave a selected score");
+  const mismatchedScores = await page.evaluate(() => {
+    const stage = state.qualifierRounds[activeRoundIndex].stages.at(-1);
+    return [...document.querySelectorAll(".current-stage .point-buttons")].some(controls => {
+      const group = stage.groups.find(item => String(item.id) === controls.dataset.groupId);
+      const score = group?.points?.[controls.dataset.playerId];
+      const pressed = [...controls.querySelectorAll('[aria-pressed="true"]')];
+      if (score == null) return pressed.length !== 0;
+      return pressed.length !== 1 || Number(pressed[0].dataset.score) !== Number(score);
+    }) || [...document.querySelectorAll('.current-stage [data-operator-group-state="current"]')].some(card =>
+      groupHasCompletePointScoresV280(stage.groups[Number(card.dataset.operatorGroupIndex)]));
+  });
+  if (mismatchedScores) failures.push("score buttons or current group did not reflect the stored points");
 
   const operatorMutationLeaseV279 = await page.evaluate(async () => {
     const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));

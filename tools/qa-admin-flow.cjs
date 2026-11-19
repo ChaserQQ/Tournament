@@ -479,6 +479,36 @@ async function runViewport(browser, meta, viewport) {
   logs.push({ step: "admin-accounts", info: await inspectAdminRoute(page, meta, "#view=admin", "admin-accounts", failures) });
   logs.push({ step: "admin-matches", info: await inspectAdminRoute(page, meta, "#view=admin-matches", "admin-matches", failures) });
   logs.push({ step: "delegated-xss-actions", info: await inspectDelegatedXssActions(page, failures) });
+  await page.evaluate(() => renderDbPage());
+  const draft = page.locator("#dbNickname");
+  await draft.fill("작성 중");
+  const rosterSearch = page.getByRole("textbox", { name: "선수 명단 검색" });
+  await rosterSearch.pressSequentially("race");
+  if (await rosterSearch.inputValue() !== "race" || await draft.inputValue() !== "작성 중") failures.push("roster filtering lost input focus or registration draft");
+  await page.evaluate(() => {
+    window.__dashboardRecords = [{ id: "qa-search", tournamentName: "race", venueName: "QA", raceClass: "오픈", rows: [] }];
+    renderDashboardWithRecords(window.__dashboardRecords);
+  });
+  const recordSearch = page.getByPlaceholder("대회명/경기장/클래스");
+  await recordSearch.pressSequentially("rae");
+  await recordSearch.press("ArrowLeft");
+  await recordSearch.press("c");
+  const stats = page.locator(".dashboard-page-v132 .db-stat-grid strong").first();
+  if (await recordSearch.inputValue() !== "race" || await stats.textContent() !== "1") failures.push("dashboard search lost the caret or the matching record");
+  await recordSearch.fill("검색 결과 없음");
+  if (await stats.textContent() !== "0" || await page.locator(".dashboard-class-summary-v146").count() !== 1) failures.push("dashboard retained stale search results");
+  await page.evaluate(() => {
+    renderLoginPage();
+    window.__qaLoginSubmits = 0;
+    document.querySelector(".auth-card").addEventListener("submit", event => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      window.__qaLoginSubmits += 1;
+    }, true);
+  });
+  await page.getByLabel("이메일", { exact: true }).fill("qa@example.test");
+  await page.getByLabel("비밀번호", { exact: true }).press("Enter");
+  if (await page.evaluate(() => window.__qaLoginSubmits) !== 1) failures.push("keyboard login did not submit once");
   await page.close();
   return { viewport, ok: failures.length === 0, failures, logs };
 }

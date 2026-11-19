@@ -49,15 +49,15 @@
   ];
 
   const meta = Object.freeze({
-    version: 297,
-    label: "BUILD v297 BRACKET RESULT RECOVERY",
-    title: "MINI4WD TOURNAMENT MAKER - v297 BRACKET RESULT RECOVERY",
+    version: 298,
+    label: "BUILD v298 LIVE RESULTS AND OPERATOR INPUT",
+    title: "MINI4WD TOURNAMENT MAKER - v298 LIVE RESULTS AND OPERATOR INPUT",
     rulesChanged: false,
     assets: Object.freeze({
       config: 156,
-      build: 297,
-      app: 297,
-      css: 292,
+      build: 298,
+      app: 298,
+      css: 298,
       operatorMobileCss: 285,
       og: 51
     }),

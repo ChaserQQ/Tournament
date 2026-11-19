@@ -1420,21 +1420,44 @@ function normalizeMatchMode(mode = state?.settings?.matchMode) {
       group.points[playerId] = Number(score);
     }
 
+    function pointControlId(roundIndex, stageIndex, groupId, playerId) {
+      return "point-" + JSON.stringify([roundIndex, stageIndex, String(groupId), String(playerId)]);
+    }
+
     function setPointScore(roundIndex, stageIndex, groupId, playerId, score) {
-      if (!canModifyTournamentAction("점수 변경")) return;
+      if (!canModifyTournamentAction("점수 변경") || score == null || score === "" || !Number.isFinite(Number(score))) return;
       const stage = state.qualifierRounds[roundIndex]?.stages?.[stageIndex];
-      if (!stage || stage.type !== "points") return;
+      if (stage?.type !== "points") return;
       const group = stage.groups.find(item => String(item.id) === String(groupId));
-      if (!group) return;
-      const player = group.slots.find(item => samePlayerIdV280(item.id, playerId));
+      const player = group?.slots.find(item => samePlayerIdV280(item.id, playerId));
       if (!player || player.isEmptyLane) return;
+      const wasComplete = groupHasCompletePointScoresV280(group);
+      const controlsId = pointControlId(roundIndex, stageIndex, group.id, player.id);
+      const controls = document.getElementById(controlsId);
       captureOperatorUndoSnapshotV266("점수 선택");
       storePointScore(stage, group, player.id, score);
       state.broadcast = { mode: "stage", roundIndex, stageIndex };
       activeRoundIndex = roundIndex;
-      logTournamentAction("진출자 변경", player.name || player.id);
       logTournamentAction("점수 변경", `${player.name || player.id}: ${score}P`);
-      renderOperator();
+      saveLiveState();
+      if (!wasComplete && groupHasCompletePointScoresV280(group)) {
+        const hadFocus = controls?.contains(document.activeElement);
+        renderOperator();
+        if (hadFocus) {
+          const selected = document.getElementById(controlsId)?.querySelector('[aria-pressed="true"]');
+          const next = app.querySelector('.current-stage [data-operator-group-state="current"] .point-buttons button');
+          const target = selected?.getClientRects().length && !selected.closest("details:not([open])") ? selected : next || app.querySelector(".operator-mobile-dock-v233 > button");
+          target?.focus({ preventScroll: true });
+        }
+        return;
+      }
+      for (const button of controls?.querySelectorAll("button[data-score]") || []) {
+        const pressed = Number(button.dataset.score) === Number(score);
+        button.setAttribute("aria-pressed", String(pressed));
+        button.classList.toggle("primary", pressed);
+        button.classList.toggle("ghost", !pressed);
+      }
+      refreshOperatorUndoFloatV266();
     }
 
     function selectPointFinalistsByCutoff(totals, limit, ascending = false) {
@@ -3710,10 +3733,11 @@ function setBroadcastStage(roundIndex, stageIndex) {
           <div class="slot-inner slot-inner-name-first">
             ${renderPlayerCardMain(player, group)}
           </div>
-          <div class="point-buttons">
-            ${stage.pointOptions.map(score => `
-              <button class="${Number(selectedScore) === Number(score) ? "primary" : "ghost"}" onclick="setPointScore(${roundIndex}, ${stageIndex}, '${escapeAttr(group.id)}', '${escapeAttr(player.id)}', ${score})">${score}P</button>
-            `).join("")}
+          <div class="point-buttons" id="${escapeAttr(pointControlId(roundIndex, stageIndex, group.id, player.id))}" data-group-id="${escapeAttr(group.id)}" data-player-id="${escapeAttr(player.id)}" role="group" aria-label="${escapeAttr(player.name)} 점수">
+            ${stage.pointOptions.map(score => {
+              const pressed = selectedScore != null && Number(selectedScore) === Number(score);
+              return `<button class="${pressed ? "primary" : "ghost"}" data-score="${escapeAttr(score)}" aria-pressed="${pressed}" onclick="setPointScore(${roundIndex}, ${stageIndex}, this.parentElement.dataset.groupId, this.parentElement.dataset.playerId, this.dataset.score)">${escapeHtml(score)}P</button>`;
+            }).join("")}
           </div>
         </div>
       `;
@@ -5128,9 +5152,9 @@ function avoidanceLabel(level) {
     function computePointTotalsUpToStage(round, uptoStageIndex = Infinity) {
       const totals = new Map();
       (round.stages || []).forEach((stage, stageIndex) => {
-        if (stageIndex > uptoStageIndex || stage.type !== "points") return;
-        stage.groups.forEach(group => {
-          group.slots.forEach(player => {
+        if (stageIndex > uptoStageIndex || stage?.type !== "points") return;
+        (stage.groups || []).filter(Boolean).forEach(group => {
+          (group.slots || []).filter(Boolean).forEach(player => {
             if (player.isEmptyLane) return;
             const current = totals.get(player.id) || { id: player.id, name: player.name, team: player.team, total: 0, heats: [] };
             const score = Number((group.points || {})[player.id] ?? 0);
@@ -5222,7 +5246,7 @@ function avoidanceLabel(level) {
               <h2>현재 진행</h2>
               <p class="hint">${escapeHtml(target.title)}</p>
               <div class="groups" >
-                ${target.groups.map(group => target.stageType === "points" ? renderReadOnlyPointGroup(group, { type: "points" }, target.pointTotalsMap) : renderReadOnlyGroup(group, target.isFinal)).join("")}
+                ${target.groups.map(group => target.stageType === "points" ? renderReadOnlyPointGroup(group, { type: "points" }, target.pointTotalsMap) : renderReadOnlyGroup(group, target.stageType)).join("")}
               </div>
             </section>
             ${renderMobilePointLeaders(target)}
@@ -5240,19 +5264,19 @@ function avoidanceLabel(level) {
       const rounds = payload.qualifierRounds || [];
       return `
         <div class="history-mobile-list">
-          ${rounds.map(round => `
+          ${rounds.filter(Boolean).map(round => `
             <section class="history-round">
               <div class="history-round-head">
                 <strong>${escapeHtml(round.title)}</strong>
                 <span>${round.ggpFinalists?.length ? `확정 · ${round.ggpFinalists.map(player => escapeHtml(player.name)).join(", ")}` : isRoundNoFinalistV275(round) ? "진출자 없음" : round.finalist ? `확정 · ${escapeHtml(round.finalist.name)}` : round.stages?.length ? "진행중" : "미진행"}</span>
               </div>
-              ${(round.stages || []).map(stage => `
+              ${(round.stages || []).filter(Boolean).map(stage => `
                 <details class="history-stage">
-                  <summary>${escapeHtml(stage.name)} · ${stage.groups.length}개 조</summary>
+                  <summary>${escapeHtml(stage.name)} · ${(stage.groups || []).filter(Boolean).length}개 조</summary>
                   <div class="history-stage-body">
-                    ${stage.groups.map(group => {
+                    ${(stage.groups || []).filter(Boolean).map(group => {
                       const selectedNames = (group.advanceIds || [])
-                        .map(id => group.slots.find(slot => slot.id === id))
+                        .map(id => group.slots?.find(slot => slot && samePlayerIdV280(slot.id, id)))
                         .filter(Boolean)
                         .map(player => player.name);
                       return `
@@ -5318,7 +5342,22 @@ function getTvWindowGroups(target) {
       return "is-truncated";
     }
 
-    function renderTv90Lane(player, group, isFinal, stageType = "normal", pointTotalsMap = {}) {
+    function liveResultLabel(group, playerId, type) {
+      const rank = (group.advanceIds || []).findIndex(id => samePlayerIdV280(id, playerId)) + 1;
+      if (!rank) return "";
+      const pending = type?.startsWith("ggp") && group.ggpResultConfirmed !== true;
+      if (type === "pendingFinal") return "우승 선택 중";
+      if (["final", "ggpFinal", "crowFinal"].includes(type)) {
+        if (pending) return "우승 선택 중";
+        return group.advanceIds.length > 1 ? "공동 우승" : "우승";
+      }
+      if (type === "pointTieBreak") return `${rank}번째 선택`;
+      if (type === "ggpRoundFinal") return `${pending ? "잠정 " : ""}${rank}위`;
+      if (pending) return "진출 선택 중";
+      return type === "crowSemi" || type === "ggpSemiFinal" ? "결승 진출" : "진출";
+    }
+
+    function renderTv90Lane(player, group, stageType = "normal", pointTotalsMap = {}) {
       const lane = Number(player?.lane || 0) || "";
       if (!player || player.isEmptyLane) {
         return `
@@ -5330,8 +5369,15 @@ function getTvWindowGroups(target) {
           </div>`;
       }
       const selected = (group?.advanceIds || []).some(id => samePlayerIdV280(id, player.id));
-      const pointValue = Number(pointTotalsMap?.[player.id] ?? (group?.points || {})[player.id] ?? 0);
-      const resultText = stageType === "points" ? `${pointValue}P` : "";
+      const rawScore = group.points?.[player.id];
+      const heatScore = rawScore == null || rawScore === "" || !Number.isFinite(Number(rawScore)) ? null : Number(rawScore);
+      const resultText = stageType === "points"
+        ? (heatScore == null ? "미입력" : `${heatScore}P`)
+        : liveResultLabel(group, player.id, stageType);
+      const pointClass = stageType === "points" ? (heatScore == null ? "is-point-v143 is-unscored" : "is-point-v143") : "";
+      const total = pointTotalsMap?.[player.id];
+      const cumulative = stageType === "points" && total != null && (heatScore == null ? total !== 0 : Number(total) !== Number(heatScore))
+        ? `<small>누적 ${escapeHtml(total)}P</small>` : "";
       const stats = getGroupMatchStatsForPlayer(player, group || {});
       const rows = (stats.h2h || []).slice(0, 2).map(item => {
         const label = item.matches ? `${item.name} ${item.wins}-${item.losses}` : `${item.name} -`;
@@ -5343,7 +5389,7 @@ function getTvWindowGroups(target) {
           <div class="tv90-lane-meta"><div class="tv90-lane-main"><span class="tv90-lane-no">${escapeHtml(lane)}</span><span class="tv90-lane-word">LANE</span></div><div class="tv90-rate">오늘 ${escapeHtml(getDisplayLaneWinRate(lane, player))}</div></div>
           <div class="tv90-player"><div class="tv90-name ${getTv90NameClass(displayName)}" title="${escapeAttr(player.name || "")}">${escapeHtml(displayName || "-")}</div>${player.team ? `<div class="tv90-team" title="${escapeAttr(player.team)}">${escapeHtml(player.team)}</div>` : `<div class="tv90-team">팀명 없음</div>`}</div>
           <div class="tv90-h2h"><div class="tv90-h2h-title">최근전적</div>${rows}</div>
-          <div class="tv90-result ${stageType === "points" ? "is-point-v143" : ""}">${escapeHtml(resultText)}</div>
+          <div class="tv90-result ${pointClass}">${escapeHtml(resultText)}${cumulative}</div>
         </div>`;
     }
 
@@ -5371,12 +5417,13 @@ function renderTvStage() {
       const windowInfo = getTvWindowGroups(target);
       const currentGroups = [...(windowInfo.groups || [])];
       const laneCount = Number(target.laneCount || state?.settings?.groupSize || 3) || 3;
-      while (currentGroups.length < tvGroupsPerPage) {
+      const singleFinal = target.isFinal && target.groups.length === 1 && !["ggpSemiFinal", "crowSemi"].includes(target.stageType);
+      while (!singleFinal && currentGroups.length < tvGroupsPerPage) {
         const nextNo = (windowInfo.startIndex || 0) + currentGroups.length + 1;
         currentGroups.push({ id: `tv-placeholder-${currentGroups.length}`, name: `대기 ${nextNo}조`, slots: [], advanceIds: [], isPlaceholder: true, laneCount });
       }
       const shownCount = Math.min((windowInfo.groups || []).length || 0, tvGroupsPerPage);
-      const modeLabel = windowInfo.mode === "pending"
+      const modeLabel = singleFinal ? "최종 결승" : windowInfo.mode === "pending"
         ? `진행 대기 · ${(windowInfo.startIndex || 0) + 1}-${(windowInfo.startIndex || 0) + Math.max(shownCount, 1)}조`
         : `진행 포커스 · ${(windowInfo.startIndex || 0) + 1}-${(windowInfo.startIndex || 0) + Math.max(shownCount, 1)}조`;
       const tvTournamentName = target.tournamentName || tvState?.tournament?.name || "";
@@ -5392,16 +5439,43 @@ function renderTvStage() {
             </div>
             ${logoMarkup("tv90-logo")}
           </header>
-          <main class="tv90-grid">
-            ${currentGroups.map(group => renderTvGroup(group, target.isFinal, target.stageType, target.pointTotalsMap, laneCount)).join("")}
-          </main>
+          ${singleFinal ? renderTvFinalBoard(currentGroups[0], target.stageType, laneCount) : `<main class="tv90-grid">
+            ${currentGroups.map(group => renderTvGroup(group, target.stageType, target.pointTotalsMap, laneCount)).join("")}
+          </main>`}
           ${renderTvPointLeaders(target)}
           <footer class="tv90-foot"><span>${escapeHtml(laneCount)} LANE · ${escapeHtml((target.groups || []).length)} GROUPS · LIVE 자동 송출</span><span>${escapeHtml(mini4wdBuildLabel())}</span></footer>
         </div>`;
     }
 
 
-    function renderTvGroup(group, isFinal, stageType = "normal", pointTotalsMap = {}, laneCountOverride = null) {
+    function tvLaneSlots(group, laneCount) {
+      const byLane = new Map((group.slots || []).filter(Boolean).map((player, index) => [Number(player.lane) || index + 1, player]));
+      return Array.from({ length: laneCount }, (_, index) => {
+        const lane = index + 1;
+        return byLane.get(lane) || { id: "empty-" + group.id + "-" + lane, lane, isEmptyLane: true, name: "빈 레인" };
+      });
+    }
+
+    function renderTvFinalBoard(group, type, laneCount) {
+      const slots = tvLaneSlots(group, laneCount);
+      const count = slots.filter(player => !player.isEmptyLane).length;
+      const noWinner = type === "ggpFinal" && group.ggpResultConfirmed && !group.advanceIds?.length;
+      return `<main class="tv-final-board" aria-label="최종 결승 대진">
+        <div class="tv-final-heading"><h2>결승 대진</h2><span>${noWinner ? "우승자 없음" : count + "명 출전"}</span></div>
+        <ol class="tv-final-lanes">${slots.map(player => {
+          const label = liveResultLabel(group, player.id, type);
+          const rate = player.isEmptyLane ? "" : getDisplayLaneWinRate(player.lane, player);
+          const stats = player.isEmptyLane ? [] : (getGroupMatchStatsForPlayer(player, group)?.h2h || []).filter(item => item.matches).slice(0, 2);
+          return `<li class="tv-final-lane${label ? " has-result" : ""}${player.isEmptyLane ? " is-empty" : ""}">
+            <span class="tv-final-number"><small>레인</small>${escapeHtml(player.lane)}</span>
+            <div class="tv-final-player"><strong>${escapeHtml(player.isEmptyLane ? "빈 레인" : player.name)}</strong><span>${escapeHtml([player.team, !player.isEmptyLane && rate && rate !== "-" ? "레인 승률 " + rate : ""].filter(Boolean).join(" · "))}</span></div>
+            <div class="tv-final-history">${stats.map(item => `<span>${escapeHtml(item.name)} · ${escapeHtml(item.wins)}승 ${escapeHtml(item.losses)}패</span>`).join("")}</div>
+            ${label ? `<strong class="tv-final-result">${escapeHtml(label)}</strong>` : ""}
+          </li>`;
+        }).join("")}</ol></main>`;
+    }
+
+    function renderTvGroup(group, stageType = "normal", pointTotalsMap = {}, laneCountOverride = null) {
       const laneCount = Number(laneCountOverride || group?.laneCount || state?.settings?.groupSize || 3) || 3;
       if (group?.isPlaceholder) {
         return `
@@ -5410,8 +5484,7 @@ function renderTvStage() {
             <div class="tv90-placeholder-body"><div>다음 경기 대기</div></div>
           </article>`;
       }
-      const slots = Array.isArray(group?.slots) ? group.slots.slice(0, laneCount) : [];
-      while (slots.length < laneCount) slots.push({ id: `empty-${group?.id || "group"}-${slots.length + 1}`, lane: slots.length + 1, isEmptyLane: true, name: "빈 레인" });
+      const slots = tvLaneSlots(group, laneCount);
       const activeCount = slots.filter(slot => slot && !slot.isEmptyLane).length;
       return `
         <article class="tv90-group tv90-group-${escapeAttr(stageType || "stage")}" data-lanes="${laneCount}">
@@ -5419,7 +5492,7 @@ function renderTvStage() {
             <div class="tv90-group-title" title="${escapeAttr(group?.name || "")}">${escapeHtml(group?.name || "경기")}</div>
             <span class="tv90-badge">${activeCount}명 경기</span>
           </div>
-          ${slots.map(player => renderTv90Lane(player, group, isFinal, stageType, pointTotalsMap)).join("")}
+          ${slots.map(player => renderTv90Lane(player, group, stageType, pointTotalsMap)).join("")}
         </article>`;
     }
 
@@ -5434,7 +5507,7 @@ function renderReadOnlyPointGroup(group, stage, pointTotalsMap) {
       return `
         <article class="group">
           <div class="group-title"><strong>${escapeHtml(group.name)}</strong><span class="badge">포인트전</span></div>
-          ${group.slots.map(player => {
+          ${(group.slots || []).filter(Boolean).map(player => {
             if (player.isEmptyLane) {
               return `
                 <div class="slot empty-lane" style="cursor:default;">
@@ -5465,11 +5538,11 @@ function renderReadOnlyPointGroup(group, stage, pointTotalsMap) {
       `;
     }
 
-    function renderReadOnlyGroup(group, isFinal) {
+    function renderReadOnlyGroup(group, stageType) {
       return `
         <article class="group">
-          <div class="group-title"><strong>${escapeHtml(group.name)}</strong><span class="badge">${group.slots.filter(slot => !slot.isEmptyLane).length}명 경기</span></div>
-          ${group.slots.map(player => {
+          <div class="group-title"><strong>${escapeHtml(group.name)}</strong><span class="badge">${(group.slots || []).filter(slot => slot && !slot.isEmptyLane).length}명 경기</span></div>
+          ${(group.slots || []).filter(Boolean).map(player => {
             if (player.isEmptyLane) {
               return `
                 <div class="slot empty-lane" style="cursor:default;">
@@ -5485,7 +5558,7 @@ function renderReadOnlyPointGroup(group, stage, pointTotalsMap) {
               <div class="slot ${selected ? "selected" : ""}" style="cursor:default;">
                 <div class="slot-inner slot-inner-name-first">
                   ${renderPlayerCardMain(player, group)}
-                  ${selected ? `<span class="mobile-advance-result-v175">진출</span>` : ""}
+                  ${selected ? `<span class="mobile-advance-result-v175">${escapeHtml(liveResultLabel(group, player.id, stageType))}</span>` : ""}
                 </div>
               </div>
             `;
@@ -5605,19 +5678,25 @@ function selectFavoritePlayers() {
 
 
 
-function setDbSearch(value) {
+    function replaceFilterResults(fragment, selectors) {
+      for (const selector of selectors) {
+        app.querySelector(selector).replaceWith(fragment.querySelector(selector));
+      }
+    }
+
+    function setDbSearch(value) {
       dbSearchText = value;
-      renderDbPage();
+      renderDbPage("filter");
     }
 
     function setDbTeamFilter(value) {
       dbTeamFilter = value;
-      renderDbPage();
+      renderDbPage("filter");
     }
 
     function setDbStatusFilter(value) {
       dbStatusFilter = value;
-      renderDbPage();
+      renderDbPage("filter");
     }
 
     function setDbSort(field) {
@@ -5629,7 +5708,7 @@ function setDbSearch(value) {
       }
       safeSetItem("mini4wdDbSortField", dbSortField);
       safeSetItem("mini4wdDbSortDir", dbSortDir);
-      renderDbPage();
+      renderDbPage("filter");
     }
 
     function rosterSortValue(player, field) {
@@ -6269,24 +6348,25 @@ function parseBooleanCell(value, defaultValue = false) {
             title: "운영자 로그인",
             description: "일반 방문자는 라이브를 로그인 없이 볼 수 있고, 운영과 선수 명단 관리는 승인된 계정이 필요합니다."
           })}
-          ${renderPageNav()}<section class="card auth-card ui-panel-v212">
+          ${renderPageNav()}<form class="card auth-card ui-panel-v212" onsubmit="event.preventDefault(); loginWithEmailPassword()">
             <h2>로그인</h2>
             <p class="hint">${escapeHtml(message)}</p>
-            <label>이메일</label><input class="mini-input" id="loginEmail" type="email" autocomplete="username" />
+            <label for="loginEmail">이메일</label><input class="mini-input" id="loginEmail" type="email" autocomplete="username" />
             <label for="loginPassword">비밀번호</label><input class="mini-input" id="loginPassword" type="password" autocomplete="current-password" />
             <div class="auth-actions">
-              <button class="primary" onclick="loginWithEmailPassword()">로그인</button>
-              <button class="ghost" onclick="requestVenueAccount()">경기장 계정 신청</button>
+              <button class="primary" type="submit">로그인</button>
+              <button type="button" class="ghost" onclick="requestVenueAccount()">경기장 계정 신청</button>
             </div>
             <p class="privacy-note" style="margin-top:12px;">경기장 계정 신청 후 관리자가 승인해야 운영자 화면에 들어갈 수 있습니다.</p>
-            <div class="auth-secondary-actions-v212"><button class="ghost" onclick="openDashboardPage()">기록 보기</button><button class="ghost" onclick="openLiveLobbyPage()">라이브</button></div>
-          </section>
+            <div class="auth-secondary-actions-v212"><button type="button" class="ghost" onclick="openDashboardPage()">기록 보기</button><button type="button" class="ghost" onclick="openLiveLobbyPage()">라이브</button></div>
+          </form>
         </div>`;
     }    async function loginWithEmailPassword() {
       const email = document.getElementById("loginEmail")?.value.trim();
       const password = document.getElementById("loginPassword")?.value;
       if (!email || !password) return alert("이메일과 비밀번호를 입력하세요.");
       const loginButton = document.querySelector('.auth-actions .primary');
+      if (loginButton?.disabled) return;
       const originalText = loginButton ? loginButton.textContent : "";
       try {
         if (loginButton) { loginButton.disabled = true; loginButton.textContent = "로그인 중"; }
@@ -6689,10 +6769,19 @@ function parseBooleanCell(value, defaultValue = false) {
     function requestRosterCloudLoad() {
       const venueId = currentVenueId();
       const loadKey = isAdminUser() ? ("__admin_all__:" + venueId) : venueId;
-      if (dbCloudLoadedVenueId === loadKey) return;
-      dbCloudLoadedVenueId = loadKey;
       const db = initFirebase();
-      if (!db || !currentAuthUser) return;
+      if (!db || !currentAuthUser || dbCloudLoadedVenueId === loadKey) return;
+      dbCloudLoadedVenueId = loadKey;
+      const userId = currentAuthUser.uid;
+      const storageKey = getRosterStorageKey();
+      function applyRoster(players) {
+        if (dbCloudLoadedVenueId !== loadKey || currentAuthUser?.uid !== userId || getRosterStorageKey() !== storageKey) return;
+        safeSetItem(storageKey, JSON.stringify(players));
+        if (app.querySelector(".db-roster-list-card-v99")) renderDbPage("cloud");
+      }
+      function allowRetry() {
+        if (dbCloudLoadedVenueId === loadKey) dbCloudLoadedVenueId = "";
+      }
       // [v113 관리자 전체 명부] 관리자는 모든 경기장 선수를 병합 로드 (실제 venueId 보존)
       if (isAdminUser()) {
         db.ref("venues").get().then(snapshot => {
@@ -6708,18 +6797,16 @@ function parseBooleanCell(value, defaultValue = false) {
               merged.push(np);
             });
           });
-          safeSetItem(getRosterStorageKey(), JSON.stringify(merged));
-          renderDbPage();
-        }).catch(() => {});
+          applyRoster(merged);
+        }).catch(allowRetry);
         return;
       }
       db.ref(`venues/${venueId}/players`).get().then(snapshot => {
         const raw = snapshot.val();
         if (!raw) return;
         const cloud = Object.values(raw).map(normalizeRosterPlayer);
-        safeSetItem(getRosterStorageKey(), JSON.stringify(cloud));
-        renderDbPage();
-      }).catch(() => {});
+        applyRoster(cloud);
+      }).catch(allowRetry);
     }
 
     function findRosterMatch(displayName, team) {
@@ -6794,7 +6881,7 @@ function parseBooleanCell(value, defaultValue = false) {
 
     function updateSelectedPreview() {
       const roster = loadRoster();
-      const selected = roster.filter(player => dbSelectedIds.has(rosterRecordKey(player)) || dbSelectedIds.has(rosterRecordKey(player)));
+      const selected = roster.filter(player => dbSelectedIds.has(rosterRecordKey(player)));
       const el = document.getElementById("selectedPreview");
       const count = document.getElementById("selectedCount");
       if (count) count.textContent = selected.length;
@@ -6933,12 +7020,12 @@ function parseBooleanCell(value, defaultValue = false) {
       renderDbPage();
     }
 
-    function renderDbPage() {
+    function renderDbPage(update = "page") {
       setUiSurfaceV149("player-management");
       if (!canOperate()) return renderLoginPage("선수 명단은 경기장 계정 또는 관리자만 사용할 수 있습니다.");
       document.body.classList.remove("tv-mode");
       document.body.classList.add("db-light-page-v96");
-      requestRosterCloudLoad();
+      if (update === "page") requestRosterCloudLoad();
       const roster = loadRoster();
       const teams = Array.from(new Set(roster.map(player => player.team).filter(Boolean))).sort();
       const filtered = getDbFilteredRoster(roster);
@@ -6951,7 +7038,7 @@ function parseBooleanCell(value, defaultValue = false) {
       const fixedVenueName = currentVenueName();
       const rosterColspan = isAdminUser() ? 9 : 8;
 
-      app.innerHTML = `
+      const markup = `
         <div class="db-page player-db-light-v96 player-db-v121 app-shell-v212 db-shell-v212">
           ${renderUnifiedPageHeaderV173({
             className: "db-titlebar-v131 db-titlebar-v132",
@@ -6982,7 +7069,17 @@ function parseBooleanCell(value, defaultValue = false) {
             </section>
 
             <section class="card ui-panel-v212 selected-box db-selected-card-v121"><div class="db-panel-title"><h2>참가자 선택</h2><span class="pill"><span id="selectedCount">0</span>명 선택</span></div><div class="db-actions db-selected-actions-v121" style="margin-bottom:10px;"><button class="ghost" onclick="selectRecentPlayers()">최근 참가자</button><button class="ghost" onclick="selectFavoritePlayers()">즐겨찾기</button><button class="ghost" onclick="clearSelectedPlayers()">선택 해제</button></div><div id="selectedPreview" class="finalist-grid selected-preview-v145"></div><button class="primary db-primary-action-v120 db-primary-action-v121" onclick="applySelectedPlayersToTournament()">선택 선수로 대진 생성 준비</button></section>
-          </aside><main class="db-player-main-v98 db-player-main-v99"><section class="card ui-panel-v212 db-roster-list-card-v98 db-roster-list-card-v99"><div class="db-panel-title"><div><h2>선수 명부</h2><div class="meta">총 ${roster.length}명 · 표시 ${filtered.length}명</div></div><div class="db-actions db-filter-actions"><input class="mini-input" placeholder="검색(이름/팀/경기장)" value="${escapeHtml(dbSearchText)}" oninput="setDbSearch(this.value)"  /><select onchange="setDbTeamFilter(this.value)" ><option value="전체">전체 팀</option>${teams.map(team => `<option value="${escapeHtml(team)}" ${team === dbTeamFilter ? "selected" : ""}>${escapeHtml(team)}</option>`).join("")}</select><select onchange="setDbStatusFilter(this.value)" >${["전체", "활성", "비활성", "즐겨찾기", "연락처 있음", "연락처 없음"].map(value => `<option value="${value}" ${value === dbStatusFilter ? "selected" : ""}>${value}</option>`).join("")}</select></div></div><div class="db-stat-grid"><div class="db-stat"><small>전체 선수</small><strong>${roster.length}</strong></div><div class="db-stat"><small>활성 선수</small><strong>${activeCount}</strong></div><div class="db-stat"><small>즐겨찾기</small><strong>${favoriteCount}</strong></div><div class="db-stat"><small>연락처 미등록</small><strong>${missingContactCount}</strong></div></div><div class="db-bulk-toolbar"><div><label class="db-checkline"><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /> 일괄 선택</label><span class="hint db-bulk-count-v130">${filtered.length}명 · 선택 ${visibleSelectedCount}명</span></div><div class="db-bulk-buttons"><button class="ghost" onclick="selectVisiblePlayers()">전체 선택</button><button class="ghost" onclick="deselectVisiblePlayers()">선택 해제</button><button class="ghost" onclick="selectAllActivePlayers()">활성 선수만 선택</button>${dbSortButton("realName", "실명")}${dbSortButton("nickname", "닉네임")}${dbSortButton("team", "팀명")}${isAdminUser() ? dbSortButton("venue", "경기장") : ""}${dbSortButton("createdAt", "등록일")}</div></div><div class="roster-table-wrap db-roster-scroll-v98 db-roster-scroll-v99"><table class="roster-table roster-table-v121 ${isAdminUser() ? "roster-table-admin-v203" : "roster-table-venue-v203"}"><thead><tr><th><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /></th><th>★</th>${isAdminUser() ? `<th><button class="ghost table-sort-btn" onclick="setDbSort('venue')">경기장${dbSortField === "venue" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th>` : ""}<th><button class="ghost table-sort-btn" onclick="setDbSort('realName')">실명${dbSortField === "realName" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('nickname')">닉네임${dbSortField === "nickname" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('team')">팀명${dbSortField === "team" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>연락처</th><th>메모</th><th>상태&관리</th></tr></thead><tbody>${filtered.map(player => renderRosterRow(player)).join("") || `<tr><td colspan="${rosterColspan}"><div class="db-empty">등록된 선수가 없습니다.</div></td></tr>`}</tbody></table></div></section></main></div></div>`;
+          </aside><main class="db-player-main-v98 db-player-main-v99"><section class="card ui-panel-v212 db-roster-list-card-v98 db-roster-list-card-v99"><div class="db-panel-title"><div><h2>선수 명부</h2><div class="meta">총 ${roster.length}명 · 표시 ${filtered.length}명</div></div><div class="db-actions db-filter-actions"><input class="mini-input" aria-label="선수 명단 검색" placeholder="검색(이름/팀/경기장)" value="${escapeHtml(dbSearchText)}" oninput="setDbSearch(this.value)"  /><select aria-label="팀 필터" onchange="setDbTeamFilter(this.value)" ><option value="전체">전체 팀</option>${teams.map(team => `<option value="${escapeHtml(team)}" ${team === dbTeamFilter ? "selected" : ""}>${escapeHtml(team)}</option>`).join("")}</select><select aria-label="선수 상태 필터" onchange="setDbStatusFilter(this.value)" >${["전체", "활성", "비활성", "즐겨찾기", "연락처 있음", "연락처 없음"].map(value => `<option value="${value}" ${value === dbStatusFilter ? "selected" : ""}>${value}</option>`).join("")}</select></div></div><div class="db-stat-grid"><div class="db-stat"><small>전체 선수</small><strong>${roster.length}</strong></div><div class="db-stat"><small>활성 선수</small><strong>${activeCount}</strong></div><div class="db-stat"><small>즐겨찾기</small><strong>${favoriteCount}</strong></div><div class="db-stat"><small>연락처 미등록</small><strong>${missingContactCount}</strong></div></div><div class="db-bulk-toolbar"><div><label class="db-checkline"><input type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /> 일괄 선택</label><span class="hint db-bulk-count-v130">${filtered.length}명 · 선택 ${visibleSelectedCount}명</span></div><div class="db-bulk-buttons"><button class="ghost" onclick="selectVisiblePlayers()">전체 선택</button><button class="ghost" onclick="deselectVisiblePlayers()">선택 해제</button><button class="ghost" onclick="selectAllActivePlayers()">활성 선수만 선택</button>${dbSortButton("realName", "실명")}${dbSortButton("nickname", "닉네임")}${dbSortButton("team", "팀명")}${isAdminUser() ? dbSortButton("venue", "경기장") : ""}${dbSortButton("createdAt", "등록일")}</div></div><div class="roster-table-wrap db-roster-scroll-v98 db-roster-scroll-v99"><table class="roster-table roster-table-v121 ${isAdminUser() ? "roster-table-admin-v203" : "roster-table-venue-v203"}"><thead><tr><th><input aria-label="표시된 활성 선수 일괄 선택" type="checkbox" ${allVisibleSelected ? "checked" : ""} onchange="toggleVisibleSelectAll(this.checked)" /></th><th>★</th>${isAdminUser() ? `<th><button class="ghost table-sort-btn" onclick="setDbSort('venue')">경기장${dbSortField === "venue" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th>` : ""}<th><button class="ghost table-sort-btn" onclick="setDbSort('realName')">실명${dbSortField === "realName" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('nickname')">닉네임${dbSortField === "nickname" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th><button class="ghost table-sort-btn" onclick="setDbSort('team')">팀명${dbSortField === "team" ? (dbSortDir === "asc" ? " ▲" : " ▼") : ""}</button></th><th>연락처</th><th>메모</th><th>상태&관리</th></tr></thead><tbody>${filtered.map(player => renderRosterRow(player)).join("") || `<tr><td colspan="${rosterColspan}"><div class="db-empty">${roster.length ? "조건에 맞는 선수가 없습니다." : "등록된 선수가 없습니다."}</div></td></tr>`}</tbody></table></div></section></main></div></div>`;
+      if (update !== "page" && app.querySelector(".db-roster-list-card-v99")) {
+        const template = document.createElement("template");
+        template.innerHTML = markup;
+        const regions = [".db-titlebar-v132", ".db-roster-list-card-v99 .meta", ".db-bulk-toolbar", ".roster-table"];
+        if (update === "cloud") regions.push("#dbTeamDatalist", ".db-filter-actions select", ".db-stat-grid");
+        replaceFilterResults(template.content, regions);
+        if (update === "cloud") updateSelectedPreview();
+        return;
+      }
+      app.innerHTML = markup;
       updateSelectedPreview();
     }
 
@@ -8001,7 +8098,7 @@ function exportTournamentCsv() {
       }).join("") || `<div class="hint">데이터 없음</div>`}</div>`;
     }
 
-    function renderDashboardWithRecords(records) {
+    function renderDashboardWithRecords(records, filterOnly = false) {
       setUiSurfaceV149("dashboard");
       const venueOptions = dashboardVenueOptions(records);
       if (dashboardFilter.venue !== "전체" && !venueOptions.some(v => v.id === dashboardFilter.venue || v.name === dashboardFilter.venue || (v.aliases || []).includes(dashboardFilter.venue) || normalizeKey(dashboardFilter.venue) === v.id)) dashboardFilter.venue = "전체";
@@ -8011,14 +8108,18 @@ function exportTournamentCsv() {
       const stats = analyzeRecords(filtered);
       const venueVisits = analyzePlayerVenueVisits(filtered);
       document.body.classList.remove("tv-mode");
-      app.innerHTML = `<div class="db-page dashboard-page-v132 app-shell-v212 dashboard-shell-v212">${renderUnifiedPageHeaderV173({ className: "dashboard-titlebar-v132", kicker: "기록 분석", title: "대시보드", description: "기간, 경기장, 클래스 기준으로 대회 기록을 확인합니다.", stats: [{ label: "대회 기록", value: `${filtered.length}건` }, { label: "경기장", value: `${new Set(filtered.map(r=>r.venueName||r.venueId)).size}곳` }, { label: "선수", value: `${stats.players.length}명` }, { label: "클래스", value: `${classStats.length}개` }] })}${currentAuthUser ? accountBadge() : renderPageNav()}<div class="toolbar dashboard-actions-toolbar"><button class="ghost" onclick="dashboardFilter.venue='전체'; renderDashboardWithRecords(window.__dashboardRecords||[])">전체 경기장</button><button class="ghost" onclick="openDashboardPage()">새로고침</button></div><section class="card ui-panel-v212 dashboard-filter-panel-v212"><div class="dashboard-filter"><div><label>시작일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.from)}" onchange="dashboardFilter.from=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>종료일</label><input class="mini-input" type="date" value="${escapeHtml(dashboardFilter.to)}" onchange="dashboardFilter.to=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div><div><label>경기장</label><select class="mini-input" onchange="dashboardFilter.venue=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 경기장</option>${venueOptions.map(v => `<option value="${escapeHtml(v.id)}" ${dashboardFilter.venue===v.id || dashboardFilter.venue===v.name || (v.aliases || []).includes(dashboardFilter.venue) || normalizeKey(dashboardFilter.venue)===v.id ? "selected" : ""}>${escapeHtml(v.name)}</option>`).join("")}</select></div><div><label>클래스</label><select class="mini-input" onchange="dashboardFilter.raceClass=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])"><option value="전체">전체 클래스</option>${classes.map(c => `<option value="${escapeHtml(c)}" ${dashboardFilter.raceClass===c?"selected":""}>${escapeHtml(c)}</option>`).join("")}</select></div><div><label>검색</label><input class="mini-input" placeholder="대회명/경기장/클래스" value="${escapeHtml(dashboardFilter.keyword)}" oninput="dashboardFilter.keyword=this.value; renderDashboardWithRecords(window.__dashboardRecords||[])" /></div></div><div class="dashboard-period-row"><button class="ghost" onclick="setDashboardPeriod('all')">전체 기간</button><button class="ghost" onclick="setDashboardPeriod('month')">이번달</button><button class="ghost" onclick="setDashboardPeriod('30d')">최근 30일</button></div><div class="db-stat-grid" style="margin-top:12px;"><div class="db-stat"><small>대회 기록</small><strong>${filtered.length}</strong></div><div class="db-stat"><small>경기장</small><strong>${new Set(filtered.map(r=>r.venueName||r.venueId)).size}</strong></div><div class="db-stat"><small>선수</small><strong>${stats.players.length}</strong></div></div></section><div class="dashboard-grid ui-workspace-v212 dashboard-workspace-v212"><section class="dashboard-card ui-panel-v212"><h3>클래스별 기록</h3><div class="class-chip-wrap">${classStats.map(item => `<div class="class-chip"><span>${escapeHtml(item.raceClass)}</span><b>${item.count}회</b></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card ui-panel-v212"><h3>선수별 경기장 방문</h3>${renderVenueVisitList(venueVisits)}</section><section class="dashboard-card ui-panel-v212"><h3>최다승 유저</h3>${rankList(stats.mostWins, "wins", "승")}</section><section class="dashboard-card ui-panel-v212"><h3>자주 우승하는 사람</h3>${rankList(stats.mostChampions, "championships", "회")}</section><section class="dashboard-card ui-panel-v212"><h3>자주 지는 사람</h3>${rankList(stats.mostLosses, "losses", "패")}</section><section class="dashboard-card ui-panel-v212"><h3>참가 횟수 랭킹</h3>${rankList(stats.mostParticipants, "matches", "회")}</section><section class="dashboard-card ui-panel-v212"><h3>포인트전 누적</h3>${rankList(stats.mostPoints, "points", "P")}</section><section class="dashboard-card ui-panel-v212"><h3>한 레인 편중</h3><div class="rank-list">${stats.oneLane.slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)} · ${p.mainLane}LANE</span><strong>${Math.round(p.laneRate*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card ui-panel-v212"><h3>레인별 승률</h3><div class="rank-list">${stats.laneStats.map(l=>`<div class="rank-row"><b>${l.lane}</b><span class="rank-name">${l.matches}경기</span><strong>${l.matches ? Math.round(l.wins/l.matches*100) : 0}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card ui-panel-v212"><h3>결승 진출률</h3><div class="rank-list">${stats.players.filter(p=>p.matches).sort((a,b)=>(b.finals/b.matches)-(a.finals/a.matches)).slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)}</span><strong>${Math.round(p.finals/p.matches*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section></div></div>`;
-      const legacyDashboardActions = app.querySelector(".dashboard-actions-toolbar");
-      if (legacyDashboardActions) legacyDashboardActions.remove();
-      const dashboardGrid = app.querySelector(".dashboard-page-v132 > .dashboard-grid");
+      const template = document.createElement("template");
+      template.innerHTML = `<div class="db-page dashboard-page-v132 app-shell-v212 dashboard-shell-v212">${renderUnifiedPageHeaderV173({ className: "dashboard-titlebar-v132", kicker: "기록 분석", title: "대시보드", description: "기간, 경기장, 클래스 기준으로 대회 기록을 확인합니다.", stats: [{ label: "대회 기록", value: `${filtered.length}건` }, { label: "경기장", value: `${new Set(filtered.map(r=>r.venueName||r.venueId)).size}곳` }, { label: "선수", value: `${stats.players.length}명` }, { label: "클래스", value: `${classStats.length}개` }] })}${currentAuthUser ? accountBadge() : renderPageNav()}<section class="card ui-panel-v212 dashboard-filter-panel-v212"><div class="dashboard-filter"><div><label for="dashboardFrom">시작일</label><input id="dashboardFrom" class="mini-input" type="date" value="${escapeHtml(dashboardFilter.from)}" onchange="dashboardFilter.from=this.value; renderDashboardWithRecords(window.__dashboardRecords||[], true)" /></div><div><label for="dashboardTo">종료일</label><input id="dashboardTo" class="mini-input" type="date" value="${escapeHtml(dashboardFilter.to)}" onchange="dashboardFilter.to=this.value; renderDashboardWithRecords(window.__dashboardRecords||[], true)" /></div><div><label for="dashboardVenue">경기장</label><select id="dashboardVenue" class="mini-input" onchange="dashboardFilter.venue=this.value; renderDashboardWithRecords(window.__dashboardRecords||[], true)"><option value="전체">전체 경기장</option>${venueOptions.map(v => `<option value="${escapeHtml(v.id)}" ${dashboardFilter.venue===v.id || dashboardFilter.venue===v.name || (v.aliases || []).includes(dashboardFilter.venue) || normalizeKey(dashboardFilter.venue)===v.id ? "selected" : ""}>${escapeHtml(v.name)}</option>`).join("")}</select></div><div><label for="dashboardClass">클래스</label><select id="dashboardClass" class="mini-input" onchange="dashboardFilter.raceClass=this.value; renderDashboardWithRecords(window.__dashboardRecords||[], true)"><option value="전체">전체 클래스</option>${classes.map(c => `<option value="${escapeHtml(c)}" ${dashboardFilter.raceClass===c?"selected":""}>${escapeHtml(c)}</option>`).join("")}</select></div><div><label for="dashboardSearch">검색</label><input id="dashboardSearch" class="mini-input" placeholder="대회명/경기장/클래스" value="${escapeHtml(dashboardFilter.keyword)}" oninput="dashboardFilter.keyword=this.value; renderDashboardWithRecords(window.__dashboardRecords||[], true)" /></div></div><div class="dashboard-period-row"><button class="ghost" onclick="setDashboardPeriod('all')">전체 기간</button><button class="ghost" onclick="setDashboardPeriod('month')">이번달</button><button class="ghost" onclick="setDashboardPeriod('30d')">최근 30일</button></div><div class="db-stat-grid" style="margin-top:12px;"><div class="db-stat"><small>대회 기록</small><strong>${filtered.length}</strong></div><div class="db-stat"><small>경기장</small><strong>${new Set(filtered.map(r=>r.venueName||r.venueId)).size}</strong></div><div class="db-stat"><small>선수</small><strong>${stats.players.length}</strong></div></div></section><div class="dashboard-grid ui-workspace-v212 dashboard-workspace-v212"><section class="dashboard-card ui-panel-v212"><h3>클래스별 기록</h3><div class="class-chip-wrap">${classStats.map(item => `<div class="class-chip"><span>${escapeHtml(item.raceClass)}</span><b>${item.count}회</b></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card ui-panel-v212"><h3>선수별 경기장 방문</h3>${renderVenueVisitList(venueVisits)}</section><section class="dashboard-card ui-panel-v212"><h3>최다승 유저</h3>${rankList(stats.mostWins, "wins", "승")}</section><section class="dashboard-card ui-panel-v212"><h3>자주 우승하는 사람</h3>${rankList(stats.mostChampions, "championships", "회")}</section><section class="dashboard-card ui-panel-v212"><h3>자주 지는 사람</h3>${rankList(stats.mostLosses, "losses", "패")}</section><section class="dashboard-card ui-panel-v212"><h3>참가 횟수 랭킹</h3>${rankList(stats.mostParticipants, "matches", "회")}</section><section class="dashboard-card ui-panel-v212"><h3>포인트전 누적</h3>${rankList(stats.mostPoints, "points", "P")}</section><section class="dashboard-card ui-panel-v212"><h3>한 레인 편중</h3><div class="rank-list">${stats.oneLane.slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)} · ${p.mainLane}LANE</span><strong>${Math.round(p.laneRate*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card ui-panel-v212"><h3>레인별 승률</h3><div class="rank-list">${stats.laneStats.map(l=>`<div class="rank-row"><b>${l.lane}</b><span class="rank-name">${l.matches}경기</span><strong>${l.matches ? Math.round(l.wins/l.matches*100) : 0}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section><section class="dashboard-card ui-panel-v212"><h3>결승 진출률</h3><div class="rank-list">${stats.players.filter(p=>p.matches).sort((a,b)=>(b.finals/b.matches)-(a.finals/a.matches)).slice(0,10).map((p,i)=>`<div class="rank-row"><b>${i+1}</b><span class="rank-name">${escapeHtml(p.name)}</span><strong>${Math.round(p.finals/p.matches*100)}%</strong></div>`).join("") || `<div class="hint">데이터 없음</div>`}</div></section></div></div>`;
+      const dashboardGrid = template.content.querySelector(".dashboard-page-v132 > .dashboard-grid");
       const classSummary = dashboardGrid?.querySelector(":scope > .dashboard-card:first-child");
       if (dashboardGrid && classSummary) {
         classSummary.classList.add("dashboard-class-summary-v146");
         dashboardGrid.before(classSummary);
+      }
+      if (filterOnly && app.querySelector(".dashboard-page-v132")) {
+        replaceFilterResults(template.content, [".dashboard-titlebar-v132", ".db-stat-grid", ".dashboard-class-summary-v146", ".dashboard-grid"]);
+      } else {
+        app.replaceChildren(template.content);
       }
     }
 
@@ -8827,17 +8928,25 @@ function normalizePlayerForFinal(player, extra = {}) {
       const broadcast = payload.broadcast || { mode: "stage", roundIndex: 0, stageIndex: 0 };
       const tournamentName = payload.tournament?.name || "";
       if (broadcast.mode === "final" && payload.finalRace) {
-        const groups = Array.isArray(payload.finalRace.groups) ? payload.finalRace.groups : [payload.finalRace.group].filter(Boolean);
-        return { title: payload.finalRace.name || "최종 결승", tournamentName, laneCount: payload.finalRace.groupSize || payload.settings.laneCount, groups, isFinal: true, stageType: "final", stageName: payload.finalRace.name || "최종 결승", pointTotalsMap: {} };
+        const groups = getFinalGroups(payload.finalRace).filter(Boolean);
+        return { title: payload.finalRace.name || "최종 결승", tournamentName, laneCount: payload.finalRace.groupSize || payload.settings?.laneCount, groups, isFinal: true, stageType: payload.finalRace.type || "final", stageName: payload.finalRace.name || "최종 결승", pointTotalsMap: {} };
       }
       const round = payload.qualifierRounds?.[broadcast.roundIndex];
-      const stage = round?.stages?.[broadcast.stageIndex] || round?.stages?.[round.stages.length - 1];
+      const stage = round?.stages?.[broadcast.stageIndex] || round?.stages?.at(-1);
       if (!round || !stage) return null;
       const pointTotals = stage.type === "points" ? computePointTotalsUpToStage(round, broadcast.stageIndex) : [];
       const pointTotalsMap = Object.fromEntries(pointTotals.map(player => [player.id, player.total]));
       const pointLimit = getPointStageLimit(payload.settings?.matchMode || state.settings.matchMode);
       const isFinalPointHeat = stage.type === "points" && stage.name === `포인트 ${pointLimit}차전`;
-      return { title: `${round.title} · ${stage.name}`, tournamentName, laneCount: payload.settings.laneCount, groups: stage.groups, round, stage, stageType: stage.type || "stage", stageName: stage.name, pointLeaders: isFinalPointHeat ? getPointLeadersWithTies(pointTotals, 3) : [], pointTotalsMap };
+      const groups = (stage.groups || []).filter(Boolean);
+      const revivalFinal = payload.settings?.matchMode === "revival" && groups.length === 1
+        && ["결승", "라운드 결승"].includes(stage.name) && stage === round.stages.at(-1);
+      const stageType = revivalFinal ? (round.finalist ? "final" : "pendingFinal") : stage.type || "stage";
+      return {
+        title: `${round.title} · ${stage.name}`, tournamentName, laneCount: payload.settings?.laneCount,
+        groups, round, stage, isFinal: revivalFinal, stageType, stageName: stage.name, pointTotalsMap,
+        pointLeaders: isFinalPointHeat ? getPointLeadersWithTies(pointTotals, 3) : []
+      };
     }
 
     function getCurrentStageForPrint(payload = state) {
@@ -8847,7 +8956,7 @@ function normalizePlayerForFinal(player, extra = {}) {
         return { title: `${payload.finalRace.name || "최종 결승"} · FINAL`, groups, isFinal: true };
       }
       const round = payload.qualifierRounds?.[broadcast.roundIndex];
-      const stage = round?.stages?.[broadcast.stageIndex] || round?.stages?.[round.stages.length - 1];
+      const stage = round?.stages?.[broadcast.stageIndex] || round?.stages?.at(-1);
       if (!round || !stage) return null;
       return { title: `${round.title} · ${stage.name}`, groups: stage.groups, stage };
     }
@@ -11790,37 +11899,6 @@ function stopLiveLobbyRealtimeV50() {
         return v104FirebaseSync(reason, true, options);
       }
 
-      function v104RefreshPointButtons(roundIndex, stageIndex, groupId, playerId, score){
-        try {
-          const needle = `setPointScore(${roundIndex}, ${stageIndex}, '${groupId}', '${playerId}'`;
-          document.querySelectorAll('button[onclick]').forEach(btn => {
-            const attr = btn.getAttribute('onclick') || '';
-            if (!attr.includes(needle)) return;
-            const isActive = attr.includes(`, ${Number(score)})`) || attr.includes(`,${Number(score)})`);
-            btn.classList.toggle('primary', isActive);
-            btn.classList.toggle('ghost', !isActive);
-          });
-        } catch (error) { /* no-op */ }
-      }
-
-      function v104SetPointScore(roundIndex, stageIndex, groupId, playerId, score){
-        if (!canModifyTournamentAction("점수 변경")) return;
-        const stage = state.qualifierRounds[roundIndex]?.stages?.[stageIndex];
-        if (!stage || stage.type !== "points") return;
-        const group = stage.groups.find(item => item.id === groupId);
-        if (!group) return;
-        const player = group.slots.find(item => item.id === playerId);
-        if (!player || player.isEmptyLane) return;
-        captureOperatorUndoSnapshotV266("점수 선택");
-        storePointScore(stage, group, player.id, score);
-        state.broadcast = { mode: "stage", roundIndex, stageIndex };
-        activeRoundIndex = roundIndex;
-        try { logTournamentAction("점수 변경", `${player.name || player.id}: ${score}P`); } catch (_) {}
-        v104RefreshPointButtons(roundIndex, stageIndex, groupId, playerId, score);
-        refreshOperatorUndoFloatV266();
-        v104SaveLiveState();
-      }
-
       function v104FlushBeforeExit(reason="exit"){
         try {
           if (isPublicViewerRoute()) return false;
@@ -11834,11 +11912,9 @@ function stopLiveLobbyRealtimeV50() {
       try { void (window.saveLiveState = v104SaveLiveState); } catch (_) {}
       try { void (window.queueFirebaseSave = v104QueueFirebaseSave); } catch (_) {}
       try { void (window.forceLiveBroadcastSync = v104ForceLiveBroadcastSync); } catch (_) {}
-      try { void (window.setPointScore = v104SetPointScore); } catch (_) {}
       window.saveLiveState = v104SaveLiveState;
       window.queueFirebaseSave = v104QueueFirebaseSave;
       window.forceLiveBroadcastSync = v104ForceLiveBroadcastSync;
-      window.setPointScore = v104SetPointScore;
       window.addEventListener("pagehide", () => v104FlushBeforeExit("pagehide"));
       window.addEventListener("beforeunload", () => v104FlushBeforeExit("beforeunload"));
       document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") v104FlushBeforeExit("visibility-hidden"); });
